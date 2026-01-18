@@ -83,7 +83,7 @@ object CodeNodeFactory {
         val nodeId = NodeIdGenerator.generateId("codenode")
 
         // Wrap the type-safe transform function in ProcessingLogic
-        val processingLogic: ProcessingLogic = { inputs ->
+        val processingLogic = ProcessingLogic { inputs ->
             @Suppress("UNCHECKED_CAST")
             val inputPacket = inputs[inputPortName] as? InformationPacket<TIn>
                 ?: throw IllegalArgumentException("Missing or invalid input packet for port '$inputPortName'")
@@ -141,7 +141,7 @@ object CodeNodeFactory {
         val nodeId = NodeIdGenerator.generateId("codenode")
 
         // Wrap the type-safe predicate in ProcessingLogic
-        val processingLogic: ProcessingLogic = { inputs ->
+        val processingLogic = ProcessingLogic { inputs ->
             @Suppress("UNCHECKED_CAST")
             val inputPacket = inputs[inputPortName] as? InformationPacket<T>
                 ?: throw IllegalArgumentException("Missing or invalid input packet for port '$inputPortName'")
@@ -206,7 +206,7 @@ object CodeNodeFactory {
         val nodeId = NodeIdGenerator.generateId("codenode")
 
         // Wrap the type-safe split function in ProcessingLogic
-        val processingLogic: ProcessingLogic = { inputs ->
+        val processingLogic = ProcessingLogic { inputs ->
             @Suppress("UNCHECKED_CAST")
             val inputPacket = inputs[inputPortName] as? InformationPacket<T>
                 ?: throw IllegalArgumentException("Missing or invalid input packet for port '$inputPortName'")
@@ -271,7 +271,7 @@ object CodeNodeFactory {
         val nodeId = NodeIdGenerator.generateId("codenode")
 
         // Wrap the type-safe merge function in ProcessingLogic
-        val processingLogic: ProcessingLogic = { inputs ->
+        val processingLogic = ProcessingLogic { inputs ->
             @Suppress("UNCHECKED_CAST")
             // Extract payloads from all available input packets
             val payloads = inputs.mapValues { (_, packet) ->
@@ -335,7 +335,7 @@ object CodeNodeFactory {
         val nodeId = NodeIdGenerator.generateId("codenode")
 
         // Wrap the type-safe validate function in ProcessingLogic
-        val processingLogic: ProcessingLogic = { inputs ->
+        val processingLogic = ProcessingLogic { inputs ->
             @Suppress("UNCHECKED_CAST")
             val inputPacket = inputs[inputPortName] as? InformationPacket<T>
                 ?: throw IllegalArgumentException("Missing or invalid input packet for port '$inputPortName'")
@@ -393,7 +393,7 @@ object CodeNodeFactory {
         val nodeId = NodeIdGenerator.generateId("codenode")
 
         // Wrap the type-safe generate function in ProcessingLogic
-        val processingLogic: ProcessingLogic = {
+        val processingLogic = ProcessingLogic {
             val result = generate()
             mapOf(outputPortName to InformationPacketFactory.create(result))
         }
@@ -443,7 +443,7 @@ object CodeNodeFactory {
         val nodeId = NodeIdGenerator.generateId("codenode")
 
         // Wrap the type-safe consume function in ProcessingLogic
-        val processingLogic: ProcessingLogic = { inputs ->
+        val processingLogic = ProcessingLogic { inputs ->
             @Suppress("UNCHECKED_CAST")
             val inputPacket = inputs[inputPortName] as? InformationPacket<T>
                 ?: throw IllegalArgumentException("Missing or invalid input packet for port '$inputPortName'")

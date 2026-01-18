@@ -10,18 +10,45 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 
 /**
- * Processing logic function for CodeNode execution
+ * Processing logic interface for CodeNode execution
  *
  * Takes a map of input port names to InformationPackets and produces
  * a map of output port names to InformationPackets.
  *
- * This is a suspend function to support asynchronous operations like
+ * This is a functional interface (SAM - Single Abstract Method) that supports:
+ * - Lambda syntax: `ProcessingLogic { inputs -> ... }`
+ * - Class implementations: `class MyUseCase : ProcessingLogic { ... }`
+ * - Dependency injection, state management, and lifecycle hooks
+ *
+ * The suspend operator function supports asynchronous operations like
  * API calls, database queries, or file I/O.
  *
- * @param inputs Map of input port name to received InformationPacket
- * @return Map of output port name to produced InformationPacket
+ * @sample
+ * ```kotlin
+ * // Lambda usage
+ * val logic: ProcessingLogic = { inputs ->
+ *     // Process and return outputs
+ *     mapOf(...)
+ * }
+ *
+ * // Class usage (UseCase pattern)
+ * class TransformUseCase(private val apiClient: ApiClient) : ProcessingLogic {
+ *     override suspend fun invoke(inputs: Map<String, InformationPacket<*>>): Map<String, InformationPacket<*>> {
+ *         // Use injected dependencies
+ *         return mapOf(...)
+ *     }
+ * }
+ * ```
  */
-typealias ProcessingLogic = suspend (inputs: Map<String, InformationPacket<*>>) -> Map<String, InformationPacket<*>>
+fun interface ProcessingLogic {
+    /**
+     * Processes input InformationPackets and produces output InformationPackets
+     *
+     * @param inputs Map of input port name to received InformationPacket
+     * @return Map of output port name to produced InformationPacket
+     */
+    suspend operator fun invoke(inputs: Map<String, InformationPacket<*>>): Map<String, InformationPacket<*>>
+}
 
 /**
  * Type classification for CodeNode instances
