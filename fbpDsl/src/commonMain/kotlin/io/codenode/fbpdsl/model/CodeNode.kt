@@ -10,6 +10,49 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 
 /**
+ * Type classification for CodeNode instances
+ */
+@Serializable
+enum class CodeNodeType {
+    /** Transforms input data to different output type */
+    TRANSFORMER,
+
+    /** Filters input based on predicate, passing only matching items */
+    FILTER,
+
+    /** Splits single input into multiple outputs */
+    SPLITTER,
+
+    /** Merges multiple inputs into single output */
+    MERGER,
+
+    /** Validates input data against rules */
+    VALIDATOR,
+
+    /** Generates data (no input required) */
+    GENERATOR,
+
+    /** Consumes data (no output) */
+    SINK,
+
+    /** API endpoint integration */
+    API_ENDPOINT,
+
+    /** Database operation */
+    DATABASE,
+
+    /** Custom/user-defined node type */
+    CUSTOM;
+
+    /**
+     * Returns a human-readable type name
+     */
+    val typeName: String
+        get() = name.lowercase().replace('_', ' ').split(' ')
+            .joinToString(" ") { it.replaceFirstChar { c -> c.uppercase() } }
+}
+
+/**
  * CodeNode represents a terminal node in the FBP graph hierarchy that executes business logic.
  * CodeNodes are controlled by long-running coroutines (Kotlin) or goroutines (Go) and perform
  * the actual data processing in the flow-based program.
@@ -22,7 +65,7 @@ import kotlinx.serialization.Transient
  *
  * @property id Unique identifier for this node
  * @property name Human-readable name
- * @property nodeType Type descriptor (e.g., "Transformer", "Validator", "APIEndpoint")
+ * @property codeNodeType Type classification enum
  * @property description Optional documentation
  * @property position Visual canvas position
  * @property inputPorts List of INPUT ports for receiving data
@@ -39,7 +82,7 @@ import kotlinx.serialization.Transient
  * val transformerNode = CodeNode(
  *     id = "node_123",
  *     name = "UserDataTransformer",
- *     nodeType = "Transformer",
+ *     codeNodeType = CodeNodeType.TRANSFORMER,
  *     description = "Transforms user data from API format to domain model",
  *     position = Node.Position(100.0, 200.0),
  *     inputPorts = listOf(
@@ -56,7 +99,7 @@ import kotlinx.serialization.Transient
 data class CodeNode(
     override val id: String,
     override val name: String,
-    override val nodeType: String,
+    val codeNodeType: CodeNodeType,
     override val description: String? = null,
     override val position: Position,
     @Transient override val inputPorts: List<Port<*>> = emptyList(),
@@ -68,6 +111,13 @@ data class CodeNode(
     val processingLogic: String? = null,
     val controlConfig: ControlConfig = ControlConfig()
 ) : Node() {
+
+    /**
+     * Returns the string representation of the node type
+     * Derived from the codeNodeType enum
+     */
+    override val nodeType: String
+        get() = codeNodeType.typeName
 
     /**
      * State of the CodeNode's execution lifecycle
@@ -231,177 +281,4 @@ data class CodeNode(
      * @return true if state is IDLE or RUNNING
      */
     fun canAcceptPackets(): Boolean = executionState == ExecutionState.IDLE || executionState == ExecutionState.RUNNING
-}
-
-/**
- * Factory for creating CodeNode instances
- */
-object CodeNodeFactory {
-    /**
-     * Creates a simple CodeNode with default settings
-     *
-     * @param name Human-readable name
-     * @param nodeType Type descriptor (e.g., "Transformer", "Validator")
-     * @param position Canvas position
-     * @param inputPorts List of input ports
-     * @param outputPorts List of output ports
-     * @param processingLogic Optional reference to code template
-     * @param description Optional documentation
-     * @param configuration Optional key-value configuration
-     * @return New CodeNode instance
-     */
-    fun create(
-        name: String,
-        nodeType: String,
-        position: Node.Position = Node.Position.ORIGIN,
-        inputPorts: List<Port<*>> = emptyList(),
-        outputPorts: List<Port<*>> = emptyList(),
-        processingLogic: String? = null,
-        description: String? = null,
-        configuration: Map<String, String> = emptyMap()
-    ): CodeNode {
-        return CodeNode(
-            id = NodeIdGenerator.generateId("codenode"),
-            name = name,
-            nodeType = nodeType,
-            description = description,
-            position = position,
-            inputPorts = inputPorts,
-            outputPorts = outputPorts,
-            configuration = configuration,
-            processingLogic = processingLogic
-        )
-    }
-
-    /**
-     * Creates a transformer CodeNode with one input and one output port
-     *
-     * @param name Human-readable name
-     * @param inputPortName Name for the input port
-     * @param outputPortName Name for the output port
-     * @param position Canvas position
-     * @param processingLogic Optional reference to code template
-     * @return New CodeNode configured as a transformer
-     */
-    inline fun <reified TIn : Any, reified TOut : Any> createTransformer(
-        name: String,
-        inputPortName: String = "input",
-        outputPortName: String = "output",
-        position: Node.Position = Node.Position.ORIGIN,
-        processingLogic: String? = null
-    ): CodeNode {
-        val nodeId = NodeIdGenerator.generateId("codenode")
-        return CodeNode(
-            id = nodeId,
-            name = name,
-            nodeType = "Transformer",
-            position = position,
-            inputPorts = listOf(
-                PortFactory.input<TIn>(inputPortName, nodeId, required = true)
-            ),
-            outputPorts = listOf(
-                PortFactory.output<TOut>(outputPortName, nodeId)
-            ),
-            processingLogic = processingLogic
-        )
-    }
-
-    /**
-     * Creates a filter CodeNode with one input and one output port
-     *
-     * @param name Human-readable name
-     * @param inputPortName Name for the input port
-     * @param outputPortName Name for the output port (passed items)
-     * @param position Canvas position
-     * @param processingLogic Optional reference to code template
-     * @return New CodeNode configured as a filter
-     */
-    inline fun <reified T : Any> createFilter(
-        name: String,
-        inputPortName: String = "input",
-        outputPortName: String = "output",
-        position: Node.Position = Node.Position.ORIGIN,
-        processingLogic: String? = null
-    ): CodeNode {
-        val nodeId = NodeIdGenerator.generateId("codenode")
-        return CodeNode(
-            id = nodeId,
-            name = name,
-            nodeType = "Filter",
-            position = position,
-            inputPorts = listOf(
-                PortFactory.input<T>(inputPortName, nodeId, required = true)
-            ),
-            outputPorts = listOf(
-                PortFactory.output<T>(outputPortName, nodeId)
-            ),
-            processingLogic = processingLogic
-        )
-    }
-
-    /**
-     * Creates a splitter CodeNode with one input and multiple output ports
-     *
-     * @param name Human-readable name
-     * @param inputPortName Name for the input port
-     * @param outputPortNames Names for the output ports
-     * @param position Canvas position
-     * @param processingLogic Optional reference to code template
-     * @return New CodeNode configured as a splitter
-     */
-    inline fun <reified T : Any> createSplitter(
-        name: String,
-        inputPortName: String = "input",
-        outputPortNames: List<String> = listOf("output1", "output2"),
-        position: Node.Position = Node.Position.ORIGIN,
-        processingLogic: String? = null
-    ): CodeNode {
-        val nodeId = NodeIdGenerator.generateId("codenode")
-        return CodeNode(
-            id = nodeId,
-            name = name,
-            nodeType = "Splitter",
-            position = position,
-            inputPorts = listOf(
-                PortFactory.input<T>(inputPortName, nodeId, required = true)
-            ),
-            outputPorts = outputPortNames.map { portName ->
-                PortFactory.output<T>(portName, nodeId)
-            },
-            processingLogic = processingLogic
-        )
-    }
-
-    /**
-     * Creates a merger CodeNode with multiple input ports and one output port
-     *
-     * @param name Human-readable name
-     * @param inputPortNames Names for the input ports
-     * @param outputPortName Name for the output port
-     * @param position Canvas position
-     * @param processingLogic Optional reference to code template
-     * @return New CodeNode configured as a merger
-     */
-    inline fun <reified T : Any> createMerger(
-        name: String,
-        inputPortNames: List<String> = listOf("input1", "input2"),
-        outputPortName: String = "output",
-        position: Node.Position = Node.Position.ORIGIN,
-        processingLogic: String? = null
-    ): CodeNode {
-        val nodeId = NodeIdGenerator.generateId("codenode")
-        return CodeNode(
-            id = nodeId,
-            name = name,
-            nodeType = "Merger",
-            position = position,
-            inputPorts = inputPortNames.map { portName ->
-                PortFactory.input<T>(portName, nodeId, required = false)
-            },
-            outputPorts = listOf(
-                PortFactory.output<T>(outputPortName, nodeId)
-            ),
-            processingLogic = processingLogic
-        )
-    }
 }
