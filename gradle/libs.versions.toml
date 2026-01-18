@@ -1,0 +1,66 @@
+[versions]
+# Build System
+gradle = "8.8"
+kotlin = "2.1.30"
+kotlinPoet = "2.2.0"
+
+# Compose & UI
+compose = "1.11.1"
+composeDesktopResources = "1.11.1"
+composeCompiler = "2.1.30"  # Matches Kotlin version for Kotlin 2.0+ architecture
+
+# Coroutines & Serialization
+coroutines = "1.8.0"
+serialization = "1.6.2"
+
+# IntelliJ Platform
+intellijPlatformSdk = "2024.1"
+
+# Testing
+junit5 = "5.10.1"
+
+[libraries]
+# Kotlin
+kotlin-stdlib = { group = "org.jetbrains.kotlin", name = "kotlin-stdlib", version.ref = "kotlin" }
+kotlin-reflect = { group = "org.jetbrains.kotlin", name = "kotlin-reflect", version.ref = "kotlin" }
+kotlin-test = { group = "org.jetbrains.kotlin", name = "kotlin-test", version.ref = "kotlin" }
+
+# Coroutines
+coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "coroutines" }
+coroutines-swing = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-swing", version.ref = "coroutines" }
+
+# Serialization
+serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "serialization" }
+
+# Compose Multiplatform
+compose-ui = { group = "org.jetbrains.compose.ui", name = "ui", version.ref = "compose" }
+compose-foundation = { group = "org.jetbrains.compose.foundation", name = "foundation", version.ref = "compose" }
+compose-material3 = { group = "org.jetbrains.compose.material3", name = "material3", version.ref = "compose" }
+compose-material-icons-extended = { group = "org.jetbrains.compose.material", name = "material-icons-extended", version.ref = "compose" }
+compose-runtime = { group = "org.jetbrains.compose.runtime", name = "runtime", version.ref = "compose" }
+
+# Code Generation
+kotlinPoet = { group = "com.squareup", name = "kotlinpoet", version.ref = "kotlinPoet" }
+
+# Testing
+junit5-api = { group = "org.junit.jupiter", name = "junit-jupiter-api", version.ref = "junit5" }
+junit5-engine = { group = "org.junit.jupiter", name = "junit-jupiter-engine", version.ref = "junit5" }
+junit5-all = { group = "org.junit.jupiter", name = "junit-jupiter", version.ref = "junit5" }
+
+[bundles]
+coroutines = ["coroutines-core"]
+coroutines-swing = ["coroutines-core", "coroutines-swing"]
+serialization = ["serialization-json"]
+compose = ["compose-ui", "compose-foundation", "compose-material3", "compose-runtime"]
+compose-extended = ["compose-ui", "compose-foundation", "compose-material3", "compose-material-icons-extended", "compose-runtime"]
+kotlin = ["kotlin-stdlib", "kotlin-reflect"]
+junit5 = ["junit5-api", "junit5-engine"]
+
+[plugins]
+kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+kotlin-parcelize = { id = "org.jetbrains.kotlin.plugin.parcelize", version.ref = "kotlin" }
+compose = { id = "org.jetbrains.compose", version.ref = "compose" }
+

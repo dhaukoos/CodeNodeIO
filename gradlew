@@ -1,18 +1,38 @@
-#!/bin/zsh
+#!/bin/bash
 
-# CodeNodeIO Gradle Wrapper for macOS
-# Automatically finds Java and delegates to Gradle 8.5
+##############################################################################
+##
+##  Gradle start up script for UN*X
+##
+##############################################################################
 
-# Auto-detect JAVA_HOME if not set
-if [ -z "$JAVA_HOME" ]; then
-    export JAVA_HOME=$(/usr/libexec/java_home -v 21 2>/dev/null) || export JAVA_HOME=$(/usr/libexec/java_home 2>/dev/null)
-fi
+# Determine the absolute path to this script
+SCRIPT_PATH="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+APP_HOME="${SCRIPT_PATH}"
 
-if [ -z "$JAVA_HOME" ]; then
-    echo "Error: Java not found. Please install Java 11+ or set JAVA_HOME."
+# Define wrapper JAR location
+GRADLE_WRAPPER="${APP_HOME}/gradle/wrapper/gradle-wrapper.jar"
+
+if [ ! -f "$GRADLE_WRAPPER" ]; then
+    echo "Error: gradle-wrapper.jar not found at ${GRADLE_WRAPPER}"
     exit 1
 fi
 
-# Execute Gradle 8.5
-exec "$(dirname "$0")/gradle-8.5/bin/gradle" "$@"
+# Determine Java to use
+if [ -z "$JAVA_HOME" ]; then
+    # Try to find Java 11+
+    JAVA_HOME=$( /usr/libexec/java_home -v 11+ 2>/dev/null ) || \
+    JAVA_HOME=$( /usr/libexec/java_home 2>/dev/null ) || \
+    JAVA_HOME="/usr/libexec/java_home"
+fi
+
+JAVA="${JAVA_HOME}/bin/java"
+
+if [ ! -x "$JAVA" ]; then
+    echo "Error: JAVA_HOME is not properly set or Java executable not found"
+    exit 1
+fi
+
+# Pass through all arguments to the Gradle wrapper
+exec "$JAVA" -classpath "$GRADLE_WRAPPER" org.gradle.wrapper.GradleWrapperMain "$@"
 

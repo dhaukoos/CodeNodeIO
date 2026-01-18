@@ -12,12 +12,12 @@ pluginManagement {
     }
 
     plugins {
-        kotlin("jvm") version "2.1.21"
-        kotlin("multiplatform") version "2.1.21"
-        kotlin("plugin.serialization") version "2.1.21"
-        id("org.jetbrains.compose") version "1.10.0"
-        id("org.jetbrains.kotlin.plugin.compose") version "2.1.21"
-        id("org.jetbrains.kotlin.plugin.parcelize") version "2.1.21"
+        kotlin("jvm") version "2.1.30"
+        kotlin("multiplatform") version "2.1.30"
+        kotlin("plugin.serialization") version "2.1.30"
+        id("org.jetbrains.compose") version "1.11.1"
+        id("org.jetbrains.kotlin.plugin.compose") version "2.1.30"
+        id("org.jetbrains.kotlin.plugin.parcelize") version "2.1.30"
     }
 }
 

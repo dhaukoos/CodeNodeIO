@@ -6,6 +6,8 @@
 
 plugins {
     kotlin("multiplatform")
+    id("org.jetbrains.compose")
+    id("org.jetbrains.kotlin.plugin.compose")
 }
 
 kotlin {
@@ -17,6 +19,11 @@ kotlin {
             dependencies {
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0")
                 implementation(project(":fbpDsl"))
+                // Compose Multiplatform dependencies
+                implementation("org.jetbrains.compose.ui:ui:1.11.1")
+                implementation("org.jetbrains.compose.foundation:foundation:1.11.1")
+                implementation("org.jetbrains.compose.material3:material3:1.11.1")
+                implementation("org.jetbrains.compose.runtime:runtime:1.11.1")
             }
         }
 
@@ -29,6 +36,8 @@ kotlin {
         val jvmMain by getting {
             dependencies {
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-swing:1.8.0")
+                // Compose Desktop runtime for current platform
+                implementation(compose.desktop.currentOs)
             }
         }
 
