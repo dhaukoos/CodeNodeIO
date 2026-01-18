@@ -1,39 +1,57 @@
 /*
  * Port - Entry/Exit Point for Node Data Flow
  * Defines how nodes can be connected and what types of data they accept/emit
+ * Uses Kotlin's generic types for compile-time type safety
  * License: Apache 2.0
  */
 
 package io.codenode.fbpdsl.model
 
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.JsonElement
+import kotlin.reflect.KClass
 
 /**
- * Port represents an entry or exit point on a Node for data flow.
+ * Port represents a type-safe entry or exit point on a Node for data flow.
  * Ports define how nodes can be connected and what types of data they accept/emit.
  *
  * Based on FBP principles, ports are typed connection points that enforce
- * data flow compatibility and validation.
+ * data flow compatibility and validation using Kotlin's type system.
  *
+ * This implementation uses KClass to represent data types, ensuring type safety
+ * at both compile-time (where possible) and runtime.
+ *
+ * @param T The type of data this port accepts/emits (must be a Kotlin data class)
  * @property id Unique identifier for this port
  * @property name Human-readable name (e.g., "input", "output", "error")
  * @property direction Whether this port receives (INPUT) or sends (OUTPUT) data
- * @property dataType Expected InformationPacket type for type safety
+ * @property dataType The KClass representing the expected data type
  * @property required Whether this port must be connected for valid graph
- * @property defaultValue Optional default IP if input port is unconnected
- * @property validationRules Optional validation logic for incoming IPs
+ * @property defaultValue Optional default payload if input port is unconnected
+ * @property validationRules Optional validation predicates for incoming data
  * @property owningNodeId Reference to the parent Node that owns this port
+ *
+ * @sample
+ * ```kotlin
+ * data class UserData(val name: String, val email: String)
+ *
+ * // Create a typed input port
+ * val userInputPort = Port(
+ *     id = "port_1",
+ *     name = "userInput",
+ *     direction = Port.Direction.INPUT,
+ *     dataType = UserData::class,
+ *     required = true,
+ *     owningNodeId = "node_123"
+ * )
+ * ```
  */
-@Serializable
-data class Port(
+data class Port<T : Any>(
     val id: String,
     val name: String,
     val direction: Direction,
-    val dataType: String,
+    val dataType: KClass<T>,
     val required: Boolean = false,
-    val defaultValue: JsonElement? = null,
-    val validationRules: List<String> = emptyList(),
+    val defaultValue: T? = null,
+    val validationRules: List<(T) -> ValidationResult> = emptyList(),
     val owningNodeId: String
 ) {
     /**
@@ -48,6 +66,14 @@ data class Port(
     }
 
     /**
+     * Gets the simple name of the data type (e.g., "UserData" instead of full qualified name)
+     *
+     * @return Simple class name of the port's data type
+     */
+    val typeName: String
+        get() = dataType.simpleName ?: dataType.toString()
+
+    /**
      * Validates that this port is well-formed
      *
      * @return true if port is valid, false otherwise
@@ -55,7 +81,6 @@ data class Port(
     fun isValid(): Boolean {
         return id.isNotBlank() &&
                 name.isNotBlank() &&
-                dataType.isNotBlank() &&
                 owningNodeId.isNotBlank()
     }
 
@@ -65,7 +90,7 @@ data class Port(
      * @param other The port to check compatibility with
      * @return true if ports can be connected, false otherwise
      */
-    fun isCompatibleWith(other: Port): Boolean {
+    fun isCompatibleWith(other: Port<*>): Boolean {
         // Can only connect OUTPUT to INPUT
         if (this.direction == Direction.OUTPUT && other.direction == Direction.INPUT) {
             return areTypesCompatible(this.dataType, other.dataType)
@@ -83,15 +108,22 @@ data class Port(
      * @param targetType The type from the INPUT port
      * @return true if types are compatible
      */
-    private fun areTypesCompatible(sourceType: String, targetType: String): Boolean {
+    private fun areTypesCompatible(sourceType: KClass<*>, targetType: KClass<*>): Boolean {
         // Exact match
         if (sourceType == targetType) return true
 
         // "Any" type is compatible with everything
-        if (targetType == "Any" || sourceType == "Any") return true
+        if (targetType == Any::class || sourceType == Any::class) return true
 
-        // TODO: Implement more sophisticated type compatibility (inheritance, generics)
-        return false
+        // Check if sourceType is a subclass of targetType (covariance)
+        // Note: In Kotlin/Common, full reflection may be limited
+        // This is a basic check - more sophisticated type checking would require platform-specific code
+        try {
+            return targetType.isInstance(sourceType)
+        } catch (e: Exception) {
+            // If reflection fails, fall back to exact match only
+            return false
+        }
     }
 
     /**
@@ -100,20 +132,28 @@ data class Port(
      * @param ip The InformationPacket to validate
      * @return Validation result with success flag and error messages
      */
-    fun validatePacket(ip: InformationPacket): ValidationResult {
+    fun validatePacket(ip: InformationPacket<T>): ValidationResult {
         val errors = mutableListOf<String>()
 
         // Check type compatibility
-        if (ip.type != dataType && dataType != "Any") {
-            errors.add("Type mismatch: expected '$dataType', got '${ip.type}'")
+        if (!ip.hasValidType()) {
+            errors.add("IP has invalid type: payload type does not match declared dataType")
         }
 
-        // Apply custom validation rules
+        if (ip.dataType != dataType && dataType != Any::class) {
+            errors.add("Type mismatch: expected '${typeName}', got '${ip.typeName}'")
+        }
+
+        // Validate IP is well-formed
+        if (!ip.isValid()) {
+            errors.add("IP failed basic validation (invalid id or type mismatch)")
+        }
+
+        // Apply custom validation rules to the payload
         validationRules.forEach { rule ->
-            // TODO: Implement validation rule execution
-            // For now, just validate that IP is well-formed
-            if (!ip.isValid()) {
-                errors.add("IP failed validation rule: $rule")
+            val result = rule(ip.payload)
+            if (!result.success) {
+                errors.addAll(result.errors)
             }
         }
 
@@ -129,59 +169,151 @@ data class Port(
      * @param newOwningNodeId The new owner node ID
      * @return New port instance with updated owner
      */
-    fun withOwner(newOwningNodeId: String): Port {
+    fun withOwner(newOwningNodeId: String): Port<T> {
         return copy(owningNodeId = newOwningNodeId)
     }
 
 }
 
 /**
- * Factory for creating Port instances
+ * Factory for creating type-safe Port instances
  */
 object PortFactory {
     /**
-     * Creates a simple INPUT port with default settings
+     * Creates a simple INPUT port with default settings using reified type
      *
+     * @param T The type of data this port accepts (must be a Kotlin data class)
      * @param name Port name
-     * @param dataType Expected data type
      * @param owningNodeId Parent node ID
      * @param required Whether connection is mandatory
+     * @param defaultValue Optional default value if port is unconnected
+     * @param validationRules Optional validation predicates for incoming data
+     * @return New Port instance
+     *
+     * @sample
+     * ```kotlin
+     * data class UserData(val name: String, val email: String)
+     *
+     * val inputPort = PortFactory.input<UserData>(
+     *     name = "userInput",
+     *     owningNodeId = "node_123",
+     *     required = true
+     * )
+     * ```
+     */
+    inline fun <reified T : Any> input(
+        name: String,
+        owningNodeId: String,
+        required: Boolean = false,
+        defaultValue: T? = null,
+        validationRules: List<(T) -> ValidationResult> = emptyList()
+    ): Port<T> {
+        return Port(
+            id = generateId(),
+            name = name,
+            direction = Port.Direction.INPUT,
+            dataType = T::class,
+            required = required,
+            defaultValue = defaultValue,
+            validationRules = validationRules,
+            owningNodeId = owningNodeId
+        )
+    }
+
+    /**
+     * Creates a simple OUTPUT port with default settings using reified type
+     *
+     * @param T The type of data this port emits (must be a Kotlin data class)
+     * @param name Port name
+     * @param owningNodeId Parent node ID
+     * @param validationRules Optional validation predicates for outgoing data
+     * @return New Port instance
+     *
+     * @sample
+     * ```kotlin
+     * data class ProcessedData(val result: String, val timestamp: Long)
+     *
+     * val outputPort = PortFactory.output<ProcessedData>(
+     *     name = "result",
+     *     owningNodeId = "node_456"
+     * )
+     * ```
+     */
+    inline fun <reified T : Any> output(
+        name: String,
+        owningNodeId: String,
+        validationRules: List<(T) -> ValidationResult> = emptyList()
+    ): Port<T> {
+        return Port(
+            id = generateId(),
+            name = name,
+            direction = Port.Direction.OUTPUT,
+            dataType = T::class,
+            required = false,
+            defaultValue = null,
+            validationRules = validationRules,
+            owningNodeId = owningNodeId
+        )
+    }
+
+    /**
+     * Creates an INPUT port with explicit type specification
+     * Useful when the type cannot be inferred or needs to be specified explicitly
+     *
+     * @param T The type of data this port accepts
+     * @param name Port name
+     * @param dataType The KClass representing the expected data type
+     * @param owningNodeId Parent node ID
+     * @param required Whether connection is mandatory
+     * @param defaultValue Optional default value if port is unconnected
+     * @param validationRules Optional validation predicates for incoming data
      * @return New Port instance
      */
-    fun input(
+    fun <T : Any> inputWithType(
         name: String,
-        dataType: String,
+        dataType: KClass<T>,
         owningNodeId: String,
-        required: Boolean = false
-    ): Port {
+        required: Boolean = false,
+        defaultValue: T? = null,
+        validationRules: List<(T) -> ValidationResult> = emptyList()
+    ): Port<T> {
         return Port(
             id = generateId(),
             name = name,
             direction = Port.Direction.INPUT,
             dataType = dataType,
             required = required,
+            defaultValue = defaultValue,
+            validationRules = validationRules,
             owningNodeId = owningNodeId
         )
     }
 
     /**
-     * Creates a simple OUTPUT port with default settings
+     * Creates an OUTPUT port with explicit type specification
+     * Useful when the type cannot be inferred or needs to be specified explicitly
      *
+     * @param T The type of data this port emits
      * @param name Port name
-     * @param dataType Data type this port emits
+     * @param dataType The KClass representing the data type
      * @param owningNodeId Parent node ID
+     * @param validationRules Optional validation predicates for outgoing data
      * @return New Port instance
      */
-    fun output(
+    fun <T : Any> outputWithType(
         name: String,
-        dataType: String,
-        owningNodeId: String
-    ): Port {
+        dataType: KClass<T>,
+        owningNodeId: String,
+        validationRules: List<(T) -> ValidationResult> = emptyList()
+    ): Port<T> {
         return Port(
             id = generateId(),
             name = name,
             direction = Port.Direction.OUTPUT,
             dataType = dataType,
+            required = false,
+            defaultValue = null,
+            validationRules = validationRules,
             owningNodeId = owningNodeId
         )
     }
@@ -191,7 +323,7 @@ object PortFactory {
      *
      * @return Unique identifier string
      */
-    private fun generateId(): String {
+    fun generateId(): String {
         val timestamp = System.currentTimeMillis()
         val random = (0..999999).random()
         return "port_${timestamp}_$random"

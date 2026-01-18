@@ -33,8 +33,8 @@ sealed class Node {
     abstract val nodeType: String
     abstract val description: String?
     abstract val position: Position
-    abstract val inputPorts: List<Port>
-    abstract val outputPorts: List<Port>
+    abstract val inputPorts: List<Port<*>>
+    abstract val outputPorts: List<Port<*>>
     abstract val configuration: Map<String, String>
     abstract val parentNodeId: String?
 
@@ -65,7 +65,7 @@ sealed class Node {
      *
      * @return Combined list of all ports
      */
-    fun getAllPorts(): List<Port> = inputPorts + outputPorts
+    fun getAllPorts(): List<Port<*>> = inputPorts + outputPorts
 
     /**
      * Finds a port by name
@@ -73,7 +73,7 @@ sealed class Node {
      * @param name The port name to search for
      * @return The port if found, null otherwise
      */
-    fun findPort(name: String): Port? {
+    fun findPort(name: String): Port<*>? {
         return getAllPorts().find { it.name == name }
     }
 
@@ -83,7 +83,7 @@ sealed class Node {
      * @param name The port name to search for
      * @return The input port if found, null otherwise
      */
-    fun findInputPort(name: String): Port? {
+    fun findInputPort(name: String): Port<*>? {
         return inputPorts.find { it.name == name }
     }
 
@@ -93,7 +93,7 @@ sealed class Node {
      * @param name The port name to search for
      * @return The output port if found, null otherwise
      */
-    fun findOutputPort(name: String): Port? {
+    fun findOutputPort(name: String): Port<*>? {
         return outputPorts.find { it.name == name }
     }
 
