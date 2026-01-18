@@ -56,7 +56,7 @@ Built on **J. Paul Morrison's Flow-based Programming** principles:
 
 - **Kotlin 2.1.21** (enforced by build.gradle.kts)
 - **JDK 11+** (recommended: JDK 17 or 21)
-- **Gradle 8.5+** (wrapper included)
+- **Gradle 8.8+** (wrapper included)
 - **IntelliJ IDEA 2024.1+** or **Android Studio 2024.1+**
 - **Go 1.21+** (for Go code generation testing)
 
