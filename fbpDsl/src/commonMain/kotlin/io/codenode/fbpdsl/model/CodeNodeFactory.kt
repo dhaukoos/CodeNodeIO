@@ -18,7 +18,7 @@ object CodeNodeFactory {
      * @param position Canvas position
      * @param inputPorts List of input ports
      * @param outputPorts List of output ports
-     * @param processingLogic Optional reference to code template
+     * @param processingLogic Optional processing logic lambda function
      * @param description Optional documentation
      * @param configuration Optional key-value configuration
      * @return New CodeNode instance
@@ -29,7 +29,7 @@ object CodeNodeFactory {
         position: Node.Position = Node.Position.ORIGIN,
         inputPorts: List<Port<*>> = emptyList(),
         outputPorts: List<Port<*>> = emptyList(),
-        processingLogic: String? = null,
+        processingLogic: ProcessingLogic? = null,
         description: String? = null,
         configuration: Map<String, String> = emptyMap()
     ): CodeNode {
@@ -49,23 +49,49 @@ object CodeNodeFactory {
     /**
      * Creates a transformer CodeNode with one input and one output port
      *
+     * @param TIn Input type parameter
+     * @param TOut Output type parameter
      * @param name Human-readable name
      * @param inputPortName Name for the input port
      * @param outputPortName Name for the output port
      * @param position Canvas position
-     * @param processingLogic Optional reference to code template
      * @param description Optional documentation
+     * @param transform Type-safe transformation function from TIn to TOut
      * @return New CodeNode configured as a transformer
+     *
+     * @sample
+     * ```kotlin
+     * data class InputData(val value: String)
+     * data class OutputData(val result: Int)
+     *
+     * val node = CodeNodeFactory.createTransformer<InputData, OutputData>(
+     *     name = "StringToInt",
+     *     transform = { input ->
+     *         OutputData(input.value.toIntOrNull() ?: 0)
+     *     }
+     * )
+     * ```
      */
     inline fun <reified TIn : Any, reified TOut : Any> createTransformer(
         name: String,
         inputPortName: String = "input",
         outputPortName: String = "output",
         position: Node.Position = Node.Position.ORIGIN,
-        processingLogic: String? = null,
-        description: String? = null
+        description: String? = null,
+        noinline transform: suspend (TIn) -> TOut
     ): CodeNode {
         val nodeId = NodeIdGenerator.generateId("codenode")
+
+        // Wrap the type-safe transform function in ProcessingLogic
+        val processingLogic: ProcessingLogic = { inputs ->
+            @Suppress("UNCHECKED_CAST")
+            val inputPacket = inputs[inputPortName] as? InformationPacket<TIn>
+                ?: throw IllegalArgumentException("Missing or invalid input packet for port '$inputPortName'")
+
+            val result = transform(inputPacket.payload)
+            mapOf(outputPortName to InformationPacketFactory.create(result))
+        }
+
         return CodeNode(
             id = nodeId,
             name = name,
@@ -85,23 +111,49 @@ object CodeNodeFactory {
     /**
      * Creates a filter CodeNode with one input and one output port
      *
+     * @param T Type parameter for both input and output
      * @param name Human-readable name
      * @param inputPortName Name for the input port
      * @param outputPortName Name for the output port (passed items)
      * @param position Canvas position
-     * @param processingLogic Optional reference to code template
      * @param description Optional documentation
+     * @param predicate Type-safe filter predicate - returns true to pass, false to drop
      * @return New CodeNode configured as a filter
+     *
+     * @sample
+     * ```kotlin
+     * data class NumberData(val value: Int)
+     *
+     * val node = CodeNodeFactory.createFilter<NumberData>(
+     *     name = "PositiveNumberFilter",
+     *     predicate = { data -> data.value > 0 }
+     * )
+     * ```
      */
     inline fun <reified T : Any> createFilter(
         name: String,
         inputPortName: String = "input",
         outputPortName: String = "output",
         position: Node.Position = Node.Position.ORIGIN,
-        processingLogic: String? = null,
-        description: String? = null
+        description: String? = null,
+        noinline predicate: suspend (T) -> Boolean
     ): CodeNode {
         val nodeId = NodeIdGenerator.generateId("codenode")
+
+        // Wrap the type-safe predicate in ProcessingLogic
+        val processingLogic: ProcessingLogic = { inputs ->
+            @Suppress("UNCHECKED_CAST")
+            val inputPacket = inputs[inputPortName] as? InformationPacket<T>
+                ?: throw IllegalArgumentException("Missing or invalid input packet for port '$inputPortName'")
+
+            // Only pass through if predicate returns true
+            if (predicate(inputPacket.payload)) {
+                mapOf(outputPortName to inputPacket)
+            } else {
+                emptyMap() // Drop the packet
+            }
+        }
+
         return CodeNode(
             id = nodeId,
             name = name,
@@ -121,23 +173,51 @@ object CodeNodeFactory {
     /**
      * Creates a splitter CodeNode with one input and multiple output ports
      *
+     * @param T Type parameter for input and outputs
      * @param name Human-readable name
      * @param inputPortName Name for the input port
      * @param outputPortNames Names for the output ports
      * @param position Canvas position
-     * @param processingLogic Optional reference to code template
      * @param description Optional documentation
+     * @param split Type-safe splitter function - maps input to output port assignments
      * @return New CodeNode configured as a splitter
+     *
+     * @sample
+     * ```kotlin
+     * data class NumberData(val value: Int)
+     *
+     * val node = CodeNodeFactory.createSplitter<NumberData>(
+     *     name = "EvenOddSplitter",
+     *     outputPortNames = listOf("even", "odd"),
+     *     split = { data ->
+     *         if (data.value % 2 == 0) listOf("even") else listOf("odd")
+     *     }
+     * )
+     * ```
      */
     inline fun <reified T : Any> createSplitter(
         name: String,
         inputPortName: String = "input",
         outputPortNames: List<String> = listOf("output1", "output2"),
         position: Node.Position = Node.Position.ORIGIN,
-        processingLogic: String? = null,
-        description: String? = null
+        description: String? = null,
+        noinline split: suspend (T) -> List<String>
     ): CodeNode {
         val nodeId = NodeIdGenerator.generateId("codenode")
+
+        // Wrap the type-safe split function in ProcessingLogic
+        val processingLogic: ProcessingLogic = { inputs ->
+            @Suppress("UNCHECKED_CAST")
+            val inputPacket = inputs[inputPortName] as? InformationPacket<T>
+                ?: throw IllegalArgumentException("Missing or invalid input packet for port '$inputPortName'")
+
+            // Get target ports from split function
+            val targetPorts = split(inputPacket.payload)
+
+            // Send to each target port
+            targetPorts.associateWith { inputPacket }
+        }
+
         return CodeNode(
             id = nodeId,
             name = name,
@@ -157,23 +237,53 @@ object CodeNodeFactory {
     /**
      * Creates a merger CodeNode with multiple input ports and one output port
      *
+     * @param T Type parameter for inputs and output
      * @param name Human-readable name
      * @param inputPortNames Names for the input ports
      * @param outputPortName Name for the output port
      * @param position Canvas position
-     * @param processingLogic Optional reference to code template
      * @param description Optional documentation
+     * @param merge Type-safe merge function - combines available inputs into one output
      * @return New CodeNode configured as a merger
+     *
+     * @sample
+     * ```kotlin
+     * data class NumberData(val value: Int)
+     *
+     * val node = CodeNodeFactory.createMerger<NumberData>(
+     *     name = "SumMerger",
+     *     inputPortNames = listOf("a", "b", "c"),
+     *     merge = { inputs ->
+     *         val sum = inputs.values.sumOf { it.value }
+     *         NumberData(sum)
+     *     }
+     * )
+     * ```
      */
     inline fun <reified T : Any> createMerger(
         name: String,
         inputPortNames: List<String> = listOf("input1", "input2"),
         outputPortName: String = "output",
         position: Node.Position = Node.Position.ORIGIN,
-        processingLogic: String? = null,
-        description: String? = null
+        description: String? = null,
+        noinline merge: suspend (Map<String, T>) -> T
     ): CodeNode {
         val nodeId = NodeIdGenerator.generateId("codenode")
+
+        // Wrap the type-safe merge function in ProcessingLogic
+        val processingLogic: ProcessingLogic = { inputs ->
+            @Suppress("UNCHECKED_CAST")
+            // Extract payloads from all available input packets
+            val payloads = inputs.mapValues { (_, packet) ->
+                (packet as? InformationPacket<T>)?.payload
+                    ?: throw IllegalArgumentException("Invalid input packet type")
+            }
+
+            // Merge the inputs
+            val result = merge(payloads)
+            mapOf(outputPortName to InformationPacketFactory.create(result))
+        }
+
         return CodeNode(
             id = nodeId,
             name = name,
@@ -193,14 +303,25 @@ object CodeNodeFactory {
     /**
      * Creates a validator CodeNode with one input and two output ports (valid/invalid)
      *
+     * @param T Type parameter for input and outputs
      * @param name Human-readable name
      * @param inputPortName Name for the input port
      * @param validPortName Name for the valid output port
      * @param invalidPortName Name for the invalid output port
      * @param position Canvas position
-     * @param processingLogic Optional reference to code template
      * @param description Optional documentation
+     * @param validate Type-safe validation function - returns true if valid, false if invalid
      * @return New CodeNode configured as a validator
+     *
+     * @sample
+     * ```kotlin
+     * data class EmailData(val address: String)
+     *
+     * val node = CodeNodeFactory.createValidator<EmailData>(
+     *     name = "EmailValidator",
+     *     validate = { email -> email.address.contains("@") }
+     * )
+     * ```
      */
     inline fun <reified T : Any> createValidator(
         name: String,
@@ -208,10 +329,22 @@ object CodeNodeFactory {
         validPortName: String = "valid",
         invalidPortName: String = "invalid",
         position: Node.Position = Node.Position.ORIGIN,
-        processingLogic: String? = null,
-        description: String? = null
+        description: String? = null,
+        noinline validate: suspend (T) -> Boolean
     ): CodeNode {
         val nodeId = NodeIdGenerator.generateId("codenode")
+
+        // Wrap the type-safe validate function in ProcessingLogic
+        val processingLogic: ProcessingLogic = { inputs ->
+            @Suppress("UNCHECKED_CAST")
+            val inputPacket = inputs[inputPortName] as? InformationPacket<T>
+                ?: throw IllegalArgumentException("Missing or invalid input packet for port '$inputPortName'")
+
+            // Route to valid or invalid port based on validation result
+            val targetPort = if (validate(inputPacket.payload)) validPortName else invalidPortName
+            mapOf(targetPort to inputPacket)
+        }
+
         return CodeNode(
             id = nodeId,
             name = name,
@@ -232,21 +365,39 @@ object CodeNodeFactory {
     /**
      * Creates a generator CodeNode with no input and one output port
      *
+     * @param T Type parameter for output
      * @param name Human-readable name
      * @param outputPortName Name for the output port
      * @param position Canvas position
-     * @param processingLogic Optional reference to code template
      * @param description Optional documentation
+     * @param generate Type-safe generation function - produces output data
      * @return New CodeNode configured as a generator
+     *
+     * @sample
+     * ```kotlin
+     * data class TimestampData(val time: Long)
+     *
+     * val node = CodeNodeFactory.createGenerator<TimestampData>(
+     *     name = "TimestampGenerator",
+     *     generate = { TimestampData(System.currentTimeMillis()) }
+     * )
+     * ```
      */
     inline fun <reified T : Any> createGenerator(
         name: String,
         outputPortName: String = "output",
         position: Node.Position = Node.Position.ORIGIN,
-        processingLogic: String? = null,
-        description: String? = null
+        description: String? = null,
+        noinline generate: suspend () -> T
     ): CodeNode {
         val nodeId = NodeIdGenerator.generateId("codenode")
+
+        // Wrap the type-safe generate function in ProcessingLogic
+        val processingLogic: ProcessingLogic = {
+            val result = generate()
+            mapOf(outputPortName to InformationPacketFactory.create(result))
+        }
+
         return CodeNode(
             id = nodeId,
             name = name,
@@ -264,21 +415,43 @@ object CodeNodeFactory {
     /**
      * Creates a sink CodeNode with one input and no output ports
      *
+     * @param T Type parameter for input
      * @param name Human-readable name
      * @param inputPortName Name for the input port
      * @param position Canvas position
-     * @param processingLogic Optional reference to code template
      * @param description Optional documentation
+     * @param consume Type-safe consumption function - performs side effects with input
      * @return New CodeNode configured as a sink
+     *
+     * @sample
+     * ```kotlin
+     * data class LogData(val message: String)
+     *
+     * val node = CodeNodeFactory.createSink<LogData>(
+     *     name = "Logger",
+     *     consume = { log -> println(log.message) }
+     * )
+     * ```
      */
     inline fun <reified T : Any> createSink(
         name: String,
         inputPortName: String = "input",
         position: Node.Position = Node.Position.ORIGIN,
-        processingLogic: String? = null,
-        description: String? = null
+        description: String? = null,
+        noinline consume: suspend (T) -> Unit
     ): CodeNode {
         val nodeId = NodeIdGenerator.generateId("codenode")
+
+        // Wrap the type-safe consume function in ProcessingLogic
+        val processingLogic: ProcessingLogic = { inputs ->
+            @Suppress("UNCHECKED_CAST")
+            val inputPacket = inputs[inputPortName] as? InformationPacket<T>
+                ?: throw IllegalArgumentException("Missing or invalid input packet for port '$inputPortName'")
+
+            consume(inputPacket.payload)
+            emptyMap() // No outputs
+        }
+
         return CodeNode(
             id = nodeId,
             name = name,
