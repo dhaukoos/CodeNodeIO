@@ -19,13 +19,13 @@ tasks.withType<JavaCompile> {
 }
 
 dependencies {
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.2")
+    implementation(libs.coroutines.core)
+    implementation(libs.serialization.json)
     implementation(project(":fbpDsl"))
     implementation(project(":kotlinCompiler"))
     implementation(project(":goCompiler"))
 
-    testImplementation("org.junit.jupiter:junit-jupiter:5.10.1")
+    testImplementation(libs.junit5.all)
     testImplementation(kotlin("test"))
 }
 

@@ -39,7 +39,6 @@ out/
 *.iws
 *.ipr
 *.idea/
-gradle-wrapper.jar
 
 # IDE-specific files
 .vscode/
@@ -51,3 +50,38 @@ gradle-wrapper.jar
 # Module-specific build directories
 */build/
 */.gradle/
+
+# Compose Desktop
+*.app/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Generated code
+generated/
+
+# Test coverage
+coverage/
+*.exec
+
+# Temporary files
+*.tmp
+*.bak
+
+# IDE Plugin sandbox
+idePlugin/build/idea-sandbox/
+
+# Node modules (if any Web development)
+node_modules/
+
+# Mac specific
+.AppleDouble
+.LSOverride
+
+# Kotlin specific
+*.kotlin_module
+
+# Gradle wrapper (keep the jar)
+!gradle-wrapper.jar

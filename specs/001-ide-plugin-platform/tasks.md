@@ -24,19 +24,19 @@
 
 **Purpose**: Project initialization and basic structure
 
-- [ ] T001 Create root build.gradle.kts with Kotlin Multiplatform plugin configuration
-- [ ] T002 Create settings.gradle.kts declaring all 6 modules (fbpDsl, graphEditor, circuitSimulator, kotlinCompiler, goCompiler, idePlugin)
-- [ ] T003 Create gradle.properties with Kotlin 1.9.23, Compose 1.6.10, and IntelliJ Platform SDK 2023.1+ versions
-- [ ] T004 [P] Create fbpDsl module structure: src/commonMain/kotlin/, src/commonTest/kotlin/, src/jvmMain/kotlin/
-- [ ] T005 [P] Create graphEditor module structure: src/jvmMain/kotlin/, src/jvmTest/kotlin/
-- [ ] T006 [P] Create circuitSimulator module structure: src/jvmMain/kotlin/, src/jvmTest/kotlin/
-- [ ] T007 [P] Create kotlinCompiler module structure: src/commonMain/kotlin/, src/commonTest/kotlin/
-- [ ] T008 [P] Create goCompiler module structure: src/commonMain/kotlin/, src/commonTest/kotlin/
-- [ ] T009 [P] Create idePlugin module structure: src/main/kotlin/, src/main/resources/, src/test/kotlin/
-- [ ] T010 [P] Configure linting (ktlint) and formatting (editorconfig) tools
-- [ ] T011 [P] Create .gitignore with Gradle, IntelliJ IDEA, and Kotlin artifacts
-- [ ] T012 Create LICENSE file (Apache 2.0 per constitution)
-- [ ] T013 Create project README.md with setup instructions
+- [x] T001 Create root build.gradle.kts with Kotlin Multiplatform plugin configuration
+- [x] T002 Create settings.gradle.kts declaring all 6 modules (fbpDsl, graphEditor, circuitSimulator, kotlinCompiler, goCompiler, idePlugin)
+- [x] T003 Create gradle.properties with Kotlin 2.1.30, Compose 1.11.1, and IntelliJ Platform SDK 2024.1 versions
+- [x] T004 [P] Create fbpDsl module structure: src/commonMain/kotlin/, src/commonTest/kotlin/, src/jvmMain/kotlin/
+- [x] T005 [P] Create graphEditor module structure: src/jvmMain/kotlin/, src/jvmTest/kotlin/
+- [x] T006 [P] Create circuitSimulator module structure: src/jvmMain/kotlin/, src/jvmTest/kotlin/
+- [x] T007 [P] Create kotlinCompiler module structure: src/commonMain/kotlin/, src/commonTest/kotlin/
+- [x] T008 [P] Create goCompiler module structure: src/commonMain/kotlin/, src/commonTest/kotlin/
+- [x] T009 [P] Create idePlugin module structure: src/main/kotlin/, src/main/resources/, src/test/kotlin/
+- [x] T010 [P] Configure linting (ktlint) and formatting (editorconfig) tools
+- [x] T011 [P] Create .gitignore with Gradle, IntelliJ IDEA, and Kotlin artifacts
+- [x] T012 Create LICENSE file (Apache 2.0 per constitution)
+- [x] T013 Create project README.md with setup instructions
 
 ---
 

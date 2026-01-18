@@ -15,7 +15,7 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0")
+                implementation(libs.coroutines.core)
                 implementation(project(":fbpDsl"))
                 implementation(project(":graphEditor"))
             }
@@ -35,7 +35,7 @@ kotlin {
 
         val jvmTest by getting {
             dependencies {
-                implementation("org.junit.jupiter:junit-jupiter:5.10.1")
+                implementation(libs.junit5.all)
             }
         }
     }

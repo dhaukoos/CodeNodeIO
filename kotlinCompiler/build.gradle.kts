@@ -16,9 +16,9 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-                implementation("com.squareup:kotlinpoet:2.2.0")
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0")
-                implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.2")
+                implementation(libs.kotlinPoet)
+                implementation(libs.coroutines.core)
+                implementation(libs.serialization.json)
                 implementation(project(":fbpDsl"))
             }
         }
@@ -26,7 +26,7 @@ kotlin {
         val commonTest by getting {
             dependencies {
                 implementation(kotlin("test"))
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.0")
+                implementation(libs.coroutines.test)
             }
         }
 
@@ -38,7 +38,7 @@ kotlin {
 
         val jvmTest by getting {
             dependencies {
-                implementation("org.junit.jupiter:junit-jupiter:5.10.1")
+                implementation(libs.junit5.all)
             }
         }
     }
