@@ -93,8 +93,9 @@ CodeNodeIO is a JetBrains IDE plugin that enables developers to create full-stac
 - [x] **Maintainability**: Each module has single responsibility (DSL, editor, simulator, compilers, plugin)
   - Status: PASS
 
-- [x] **Type Safety**: Kotlin's type system ensures safety; DSL uses data classes for InformationPackets
+- [x] **Type Safety**: Kotlin's type system ensures safety; DSL uses generic types (InformationPacket<T>, Port<T>) and ProcessingLogic fun interface for compile-time type checking
   - Status: PASS
+  - Architecture: UseCase pattern with 7 typed base classes (TransformerUseCase, FilterUseCase, ValidatorUseCase, SplitterUseCase, MergerUseCase, GeneratorUseCase, SinkUseCase)
 
 - [x] **Documentation**: Complex algorithms (FBP execution, code generation) will require explanatory comments
   - Status: PENDING (to be enforced during implementation)
@@ -191,7 +192,12 @@ CodeNodeIO/                        # Repository root
 ├── fbpDsl/                        # Module: FBP Domain Specific Language
 │   ├── src/
 │   │   ├── commonMain/kotlin/
-│   │   │   ├── model/            # InformationPacket, Node, Port, Edge data classes
+│   │   │   ├── model/            # Generic data classes: InformationPacket<T>, Node, Port<T>, Edge
+│   │   │   │                     # CodeNode (extends Node), CodeNodeType enum, CodeNodeFactory
+│   │   │   ├── usecase/          # UseCase pattern support
+│   │   │   │   ├── TypedUseCases.kt           # 7 typed base classes for common FBP patterns
+│   │   │   │   ├── LifecycleAwareUseCases.kt  # Lifecycle management (initialize/cleanup)
+│   │   │   │   └── examples/                  # Example implementations (DI, decorators, composition)
 │   │   │   ├── dsl/              # Infix functions for DSL (connect, to, etc.)
 │   │   │   └── execution/        # Coroutine-based FBP execution engine
 │   │   ├── commonTest/kotlin/    # Unit tests for DSL and execution
@@ -264,7 +270,7 @@ CodeNodeIO/                        # Repository root
 
 **Structure Decision**: Multi-module Kotlin Multiplatform project with clear separation of concerns:
 
-1. **fbpDsl**: Foundation module providing FBP domain model (InformationPackets, Nodes, Ports, Edges) and DSL syntax using Kotlin infix functions. Multiplatform (common) to enable reuse across modules.
+1. **fbpDsl**: Foundation module providing FBP domain model with generic types (InformationPacket<T>, Node, Port<T>, Edge) and DSL syntax using Kotlin infix functions. Includes ProcessingLogic fun interface for type-safe business logic, CodeNodeType enum for node classification, and UseCase pattern support with 7 typed base classes (Transformer, Filter, Validator, Splitter, Merger, Generator, Sink). Provides lifecycle management (initialize/cleanup hooks) and supports decorator/composition patterns for cross-cutting concerns. Multiplatform (common) to enable reuse across modules.
 
 2. **graphEditor**: Compose Desktop application for visual graph creation. JVM-only as Compose Desktop targets JVM. Depends on fbpDsl.
 
@@ -291,6 +297,26 @@ idePlugin → graphEditor → fbpDsl
 - UI logic isolated in graphEditor/circuitSimulator
 - Code generation isolated in *Compiler modules
 - IDE integration isolated in idePlugin
+
+**CodeNode Processing Architecture**:
+
+The fbpDsl module uses the UseCase pattern for business logic encapsulation:
+
+- **ProcessingLogic**: Fun interface enabling both lambda syntax (`ProcessingLogic { ... }`) and class implementations
+- **Typed Base Classes**: 7 abstract classes for common FBP patterns:
+  - `TransformerUseCase<TIn, TOut>`: Type-safe transformation from input to output
+  - `FilterUseCase<T>`: Conditional pass-through with predicate
+  - `ValidatorUseCase<T>`: Routes to valid/invalid output ports
+  - `SplitterUseCase<T>`: Dynamic output port selection
+  - `MergerUseCase<T>`: Combines multiple inputs into single output
+  - `GeneratorUseCase<T>`: Generates output without input
+  - `SinkUseCase<T>`: Consumes input for side effects (logging, persistence)
+- **Lifecycle Management**: Initialize/cleanup hooks for resource management (database connections, file handles, caches)
+- **Composition Patterns**: Support for decorator pattern (logging, retry, metrics) and pipeline composition
+
+Benefits: Dependency injection, testability, reusability, state management, observability
+
+Documentation: See `fbpDsl/docs/UseCase-Pattern-Guide.md` for detailed implementation guide
 
 ## Complexity Tracking
 
