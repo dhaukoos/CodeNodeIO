@@ -49,7 +49,7 @@
 - [x] T014 [P] Create InformationPacket data class in fbpDsl/src/commonMain/kotlin/model/InformationPacket.kt
 - [x] T015 [P] Create Port data class (id, name, direction enum, dataType, required, defaultValue, validationRules) in fbpDsl/src/commonMain/kotlin/model/Port.kt
 - [x] T016 [P] Create Node abstract class in fbpDsl/src/commonMain/kotlin/model/Node.kt
-- [ ] T017 Create CodeNode class (extends Node) in fbpDsl/src/commonMain/kotlin/model/CodeNode.kt
+- [x] T017 Create CodeNode class (extends Node) in fbpDsl/src/commonMain/kotlin/model/CodeNode.kt
 - [ ] T018 Create GraphNode class (extends Node) in fbpDsl/src/commonMain/kotlin/model/GraphNode.kt
 - [ ] T019 [P] Create Connection data class in fbpDsl/src/commonMain/kotlin/model/Connection.kt
 - [ ] T020 [P] Create FlowGraph data class in fbpDsl/src/commonMain/kotlin/model/FlowGraph.kt
