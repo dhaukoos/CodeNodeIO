@@ -52,7 +52,7 @@
 - [x] T017 Create CodeNode class (extends Node) in fbpDsl/src/commonMain/kotlin/model/CodeNode.kt
 - [x] T018 Create GraphNode class (extends Node) in fbpDsl/src/commonMain/kotlin/model/GraphNode.kt
 - [x] T019 [P] Create Connection data class in fbpDsl/src/commonMain/kotlin/model/Connection.kt
-- [ ] T020 [P] Create FlowGraph data class in fbpDsl/src/commonMain/kotlin/model/FlowGraph.kt
+- [x] T020 [P] Create FlowGraph data class in fbpDsl/src/commonMain/kotlin/model/FlowGraph.kt
 - [ ] T021 [P] Create NodeTypeDefinition data class in fbpDsl/src/commonMain/kotlin/model/NodeTypeDefinition.kt
 - [ ] T022 [P] Create PropertyConfiguration data class in fbpDsl/src/commonMain/kotlin/model/PropertyConfiguration.kt
 - [ ] T023 Create FlowGraphDsl.kt with infix functions (flowGraph, codeNode, graphNode, connect) in fbpDsl/src/commonMain/kotlin/dsl/FlowGraphDsl.kt
