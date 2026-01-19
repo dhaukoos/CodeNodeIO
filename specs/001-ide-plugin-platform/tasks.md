@@ -55,7 +55,7 @@
 - [x] T020 [P] Create FlowGraph data class in fbpDsl/src/commonMain/kotlin/model/FlowGraph.kt
 - [x] T021 [P] Create NodeTypeDefinition data class in fbpDsl/src/commonMain/kotlin/model/NodeTypeDefinition.kt
 - [x] T022 [P] Create PropertyConfiguration data class in fbpDsl/src/commonMain/kotlin/model/PropertyConfiguration.kt
-- [ ] T023 Create FlowGraphDsl.kt with infix functions (flowGraph, codeNode, graphNode, connect) in fbpDsl/src/commonMain/kotlin/dsl/FlowGraphDsl.kt
+- [x] T023 Create FlowGraphDsl.kt with infix functions (flowGraph, codeNode, graphNode, connect) in fbpDsl/src/commonMain/kotlin/dsl/FlowGraphDsl.kt
 - [ ] T024 Setup fbpDsl module build.gradle.kts with kotlin-test and kotlinx-coroutines-core dependencies
 - [ ] T025 Setup graphEditor module build.gradle.kts with Compose Desktop 1.6.10, dependency on fbpDsl
 - [ ] T026 Setup kotlinCompiler module build.gradle.kts with KotlinPoet 1.16.0, dependency on fbpDsl
