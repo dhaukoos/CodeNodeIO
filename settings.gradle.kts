@@ -43,5 +43,5 @@ include(":graphEditor")
 include(":circuitSimulator")
 include(":kotlinCompiler")
 include(":goCompiler")
-// include(":idePlugin")  // Disabled for now due to compatibility issues
+include(":idePlugin")
 

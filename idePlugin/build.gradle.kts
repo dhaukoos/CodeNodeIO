@@ -6,6 +6,7 @@
 
 plugins {
     kotlin("jvm")
+    id("org.jetbrains.intellij") version "1.17.3"
 }
 
 repositories {
@@ -13,15 +14,34 @@ repositories {
     mavenCentral()
 }
 
-// Configure compilation to target Java 11 regardless of toolchain version
-tasks.withType<JavaCompile> {
-    options.release.set(11)
+// Configure IntelliJ Platform plugin
+intellij {
+    version.set("2024.1")
+    type.set("IC") // IntelliJ IDEA Community Edition
+    plugins.set(listOf("java", "Kotlin"))
+}
+
+// Configure Kotlin JVM target to 17 (compatible with IntelliJ Platform 2024.1)
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
+    kotlinOptions {
+        jvmTarget = "17"
+    }
+}
+
+// Configure Java compilation to target Java 17 for IntelliJ Platform 2024.1
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
 }
 
 dependencies {
-    implementation(libs.coroutines.core)
+    // Note: Kotlin stdlib and coroutines are provided by IntelliJ Platform
     implementation(libs.serialization.json)
+
+    // Dependencies on all project modules
     implementation(project(":fbpDsl"))
+    implementation(project(":graphEditor"))
+    implementation(project(":circuitSimulator"))
     implementation(project(":kotlinCompiler"))
     implementation(project(":goCompiler"))
 
