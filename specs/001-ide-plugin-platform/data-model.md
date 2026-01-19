@@ -151,14 +151,16 @@ This document defines the core data entities for the CodeNodeIO platform. The do
 
 **Purpose**: Represents data flow link between two ports. Implemented as channels in Kotlin or Go.
 
+**Design Decision**: Following the Single Responsibility Principle, connections only handle data flow and buffering. Data transformation should be performed by dedicated transformer nodes, keeping the Connection class focused on linking ports and managing channel behavior.
+
 **Attributes**:
 - `id`: Unique identifier (UUID)
 - `sourceNodeId`: Reference to source Node
 - `sourcePortId`: Reference to source OUTPUT Port
 - `targetNodeId`: Reference to target Node
 - `targetPortId`: Reference to target INPUT Port
-- `transformationLogic`: Optional IP transformation function
 - `channelCapacity`: Buffer size for channel (default: 0 = unbuffered)
+- `parentScopeId`: Optional reference to parent GraphNode or FlowGraph
 
 **Validation Rules**:
 - Source port must be OUTPUT direction

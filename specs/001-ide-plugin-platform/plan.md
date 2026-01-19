@@ -318,6 +318,22 @@ Benefits: Dependency injection, testability, reusability, state management, obse
 
 Documentation: See `fbpDsl/docs/UseCase-Pattern-Guide.md` for detailed implementation guide
 
+**Connection Architecture**:
+
+Following the Single Responsibility Principle, the Connection class is designed with a focused purpose:
+
+- **Single Responsibility**: Connections only link ports and manage data flow - no transformation logic
+- **Design Rationale**: Data transformation should be handled by dedicated transformer nodes, not by connections
+  - Keeps Connection class simple and focused
+  - Enables better testability and debuggability
+  - Allows transformations to be visible in the graph as explicit nodes
+  - Supports composition of multiple transformations in sequence
+- **Channel Semantics**: Supports buffered and unbuffered channels via `channelCapacity` property
+- **Type Safety**: Validates port direction (OUTPUT → INPUT) and type compatibility at connection creation
+- **Scope Awareness**: Optional `parentScopeId` links connections to containing GraphNode or FlowGraph
+
+Benefits: Simplicity, maintainability, explicit data flow, separation of concerns
+
 ## Complexity Tracking
 
 > **Fill ONLY if Constitution Check has violations that must be justified**

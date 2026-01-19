@@ -7,26 +7,27 @@
 package io.codenode.fbpdsl.model
 
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.Transient
 
 /**
  * Connection represents a data flow link between two ports in the FBP graph.
  * Connections are the edges that link nodes together, implemented as channels
  * in Kotlin (using coroutines) or Go (using goroutines).
  *
- * Based on FBP principles, connections:
+ * Based on FBP principles and the Single Responsibility Principle, connections:
  * - Link exactly one source OUTPUT port to one target INPUT port
- * - Carry InformationPackets from source to target
+ * - Carry InformationPackets from source to target without modification
  * - Can buffer packets based on channelCapacity
- * - Can optionally transform packets in-flight
  * - Enforce type compatibility between connected ports
+ *
+ * Note: Data transformation should be handled by dedicated transformer nodes,
+ * not by connections. This keeps the Connection class focused on its single
+ * responsibility: linking ports and managing data flow.
  *
  * @property id Unique identifier for this connection
  * @property sourceNodeId Reference to the source Node
  * @property sourcePortId Reference to the source OUTPUT Port
  * @property targetNodeId Reference to the target Node
  * @property targetPortId Reference to the target INPUT Port
- * @property transformationLogic Optional function to transform packets in-flight
  * @property channelCapacity Buffer size for the channel (0 = unbuffered, default)
  * @property parentScopeId Optional reference to parent GraphNode or FlowGraph
  *
@@ -49,25 +50,9 @@ data class Connection(
     val sourcePortId: String,
     val targetNodeId: String,
     val targetPortId: String,
-    @Transient val transformationLogic: TransformationLogic? = null,
     val channelCapacity: Int = 0,
     val parentScopeId: String? = null
 ) {
-    /**
-     * Transformation function that can modify InformationPackets in-flight
-     *
-     * This is a functional interface that allows connections to transform
-     * data as it flows from source to target port.
-     */
-    fun interface TransformationLogic {
-        /**
-         * Transforms an InformationPacket
-         *
-         * @param packet The input packet
-         * @return The transformed packet
-         */
-        suspend operator fun invoke(packet: InformationPacket<*>): InformationPacket<*>
-    }
 
     init {
         require(id.isNotBlank()) { "Connection ID cannot be blank" }
@@ -170,16 +155,6 @@ data class Connection(
     }
 
     /**
-     * Creates a copy of this connection with a new transformation logic
-     *
-     * @param logic The new transformation logic
-     * @return New Connection instance with updated logic
-     */
-    fun withTransformation(logic: TransformationLogic?): Connection {
-        return copy(transformationLogic = logic)
-    }
-
-    /**
      * Creates a copy of this connection with a new channel capacity
      *
      * @param capacity The new buffer size
@@ -199,13 +174,6 @@ data class Connection(
     fun withParentScope(scopeId: String?): Connection {
         return copy(parentScopeId = scopeId)
     }
-
-    /**
-     * Checks if this connection has a transformation logic defined
-     *
-     * @return true if transformationLogic is not null
-     */
-    fun hasTransformation(): Boolean = transformationLogic != null
 
     /**
      * Checks if this connection is buffered (capacity > 0)
@@ -329,33 +297,6 @@ object ConnectionFactory {
             targetNodeId = targetNodeId,
             targetPortId = targetPortId,
             channelCapacity = capacity
-        )
-    }
-
-    /**
-     * Creates a connection with transformation logic
-     *
-     * @param sourceNodeId Source node ID
-     * @param sourcePortId Source port ID
-     * @param targetNodeId Target node ID
-     * @param targetPortId Target port ID
-     * @param transformation Function to transform packets in-flight
-     * @return New Connection instance
-     */
-    fun createWithTransformation(
-        sourceNodeId: String,
-        sourcePortId: String,
-        targetNodeId: String,
-        targetPortId: String,
-        transformation: Connection.TransformationLogic
-    ): Connection {
-        return Connection(
-            id = ConnectionIdGenerator.generateId(),
-            sourceNodeId = sourceNodeId,
-            sourcePortId = sourcePortId,
-            targetNodeId = targetNodeId,
-            targetPortId = targetPortId,
-            transformationLogic = transformation
         )
     }
 
