@@ -10,8 +10,8 @@ import io.codenode.fbpdsl.model.FlowGraph
 import io.codenode.fbpdsl.model.InformationPacket
 
 class CircuitSimulator(private val graph: FlowGraph) {
-    suspend fun execute(): List<InformationPacket> {
-        val results = mutableListOf<InformationPacket>()
+    suspend fun execute(): List<InformationPacket<*>> {
+        val results = mutableListOf<InformationPacket<*>>()
         // Execution logic will be implemented in Phase 1
         return results
     }

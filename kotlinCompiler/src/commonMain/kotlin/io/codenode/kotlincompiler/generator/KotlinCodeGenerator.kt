@@ -16,7 +16,7 @@ class KotlinCodeGenerator {
 
         val componentClass = TypeSpec.classBuilder(className)
             .addKdoc("Generated component for node: ${node.name}\n")
-            .addKdoc("Type: ${node.type}\n")
+            .addKdoc("Type: ${node.nodeType}\n")
             .build()
 
         return FileSpec.builder(className.packageName, className.simpleName)

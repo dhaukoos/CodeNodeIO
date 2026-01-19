@@ -56,10 +56,10 @@
 - [x] T021 [P] Create NodeTypeDefinition data class in fbpDsl/src/commonMain/kotlin/model/NodeTypeDefinition.kt
 - [x] T022 [P] Create PropertyConfiguration data class in fbpDsl/src/commonMain/kotlin/model/PropertyConfiguration.kt
 - [x] T023 Create FlowGraphDsl.kt with infix functions (flowGraph, codeNode, graphNode, connect) in fbpDsl/src/commonMain/kotlin/dsl/FlowGraphDsl.kt
-- [ ] T024 Setup fbpDsl module build.gradle.kts with kotlin-test and kotlinx-coroutines-core dependencies
-- [ ] T025 Setup graphEditor module build.gradle.kts with Compose Desktop 1.6.10, dependency on fbpDsl
-- [ ] T026 Setup kotlinCompiler module build.gradle.kts with KotlinPoet 1.16.0, dependency on fbpDsl
-- [ ] T027 Setup goCompiler module build.gradle.kts with dependency on fbpDsl
+- [x] T024 Setup fbpDsl module build.gradle.kts with kotlin-test and kotlinx-coroutines-core dependencies
+- [x] T025 Setup graphEditor module build.gradle.kts with Compose Desktop 1.10.0, dependency on fbpDsl
+- [x] T026 Setup kotlinCompiler module build.gradle.kts with KotlinPoet 2.2.0, dependency on fbpDsl
+- [x] T027 Setup goCompiler module build.gradle.kts with dependency on fbpDsl
 - [ ] T028 Setup idePlugin module build.gradle.kts with IntelliJ Platform SDK 2023.1+, dependencies on all modules
 - [ ] T029 Create plugin.xml descriptor in idePlugin/src/main/resources/META-INF/plugin.xml
 
