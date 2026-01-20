@@ -97,9 +97,9 @@
 - [x] T044 [US1] Implement port type compatibility checking in fbpDsl/src/commonMain/kotlin/validation/PortValidator.kt
 - [x] T045 [US1] Implement graph serialization to .flow.kts DSL format in graphEditor/src/jvmMain/kotlin/serialization/FlowGraphSerializer.kt
 - [x] T046 [US1] Implement graph deserialization from .flow.kts files in graphEditor/src/jvmMain/kotlin/serialization/FlowGraphDeserializer.kt
-- [ ] T047 [US1] Add undo/redo support using command pattern in graphEditor/src/jvmMain/kotlin/state/UndoRedoManager.kt
-- [ ] T048 [US1] Add zoom and pan controls to canvas in graphEditor/src/jvmMain/kotlin/ui/CanvasControls.kt
-- [ ] T049 [US1] Implement error display for invalid connections in graphEditor/src/jvmMain/kotlin/ui/ErrorDisplay.kt
+- [x] T047 [US1] Add undo/redo support using command pattern in graphEditor/src/jvmMain/kotlin/state/UndoRedoManager.kt
+- [x] T048 [US1] Add zoom and pan controls to canvas in graphEditor/src/jvmMain/kotlin/ui/CanvasControls.kt
+- [x] T049 [US1] Implement error display for invalid connections in graphEditor/src/jvmMain/kotlin/ui/ErrorDisplay.kt
 
 **Checkpoint**: At this point, User Story 1 should be fully functional and testable independently
 
