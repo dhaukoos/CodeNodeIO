@@ -95,8 +95,8 @@
 - [x] T042 [US1] Implement drag-and-drop logic for adding nodes to canvas in graphEditor/src/jvmMain/kotlin/ui/DragAndDropHandler.kt
 - [x] T043 [US1] Implement connection creation logic (click output port → click input port) in graphEditor/src/jvmMain/kotlin/ui/ConnectionHandler.kt
 - [x] T044 [US1] Implement port type compatibility checking in fbpDsl/src/commonMain/kotlin/validation/PortValidator.kt
-- [ ] T045 [US1] Implement graph serialization to .flow.kts DSL format in graphEditor/src/jvmMain/kotlin/serialization/FlowGraphSerializer.kt
-- [ ] T046 [US1] Implement graph deserialization from .flow.kts files in graphEditor/src/jvmMain/kotlin/serialization/FlowGraphDeserializer.kt
+- [x] T045 [US1] Implement graph serialization to .flow.kts DSL format in graphEditor/src/jvmMain/kotlin/serialization/FlowGraphSerializer.kt
+- [x] T046 [US1] Implement graph deserialization from .flow.kts files in graphEditor/src/jvmMain/kotlin/serialization/FlowGraphDeserializer.kt
 - [ ] T047 [US1] Add undo/redo support using command pattern in graphEditor/src/jvmMain/kotlin/state/UndoRedoManager.kt
 - [ ] T048 [US1] Add zoom and pan controls to canvas in graphEditor/src/jvmMain/kotlin/ui/CanvasControls.kt
 - [ ] T049 [US1] Implement error display for invalid connections in graphEditor/src/jvmMain/kotlin/ui/ErrorDisplay.kt
