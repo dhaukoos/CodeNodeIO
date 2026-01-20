@@ -136,7 +136,7 @@ private fun CategoryHeader(
         )
 
         Text(
-            text = category.displayName,
+            text = category.name.replace("_", " ").lowercase().replaceFirstChar { it.uppercase() },
             fontSize = 14.sp,
             fontWeight = FontWeight.SemiBold,
             color = Color(0xFF424242)
@@ -152,18 +152,14 @@ private fun NodeTypeItem(
     nodeType: NodeTypeDefinition,
     onClick: () -> Unit
 ) {
-    var isHovered by remember { mutableStateOf(false) }
-
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 4.dp, horizontal = 8.dp)
-            .clickable(onClick = onClick)
-            .onPointerEvent(PointerEventType.Enter) { isHovered = true }
-            .onPointerEvent(PointerEventType.Exit) { isHovered = false },
+            .clickable(onClick = onClick),
         shape = RoundedCornerShape(4.dp),
-        backgroundColor = if (isHovered) Color(0xFFE3F2FD) else Color.White,
-        elevation = if (isHovered) 4.dp else 1.dp
+        backgroundColor = Color.White,
+        elevation = 1.dp
     ) {
         Column(
             modifier = Modifier
@@ -197,17 +193,19 @@ private fun NodeTypeItem(
                     .fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                if (nodeType.defaultInputPorts.isNotEmpty()) {
+                val inputPorts = nodeType.getInputPortTemplates()
+                if (inputPorts.isNotEmpty()) {
                     PortBadge(
-                        count = nodeType.defaultInputPorts.size,
+                        count = inputPorts.size,
                         label = "in",
                         color = Color(0xFF4CAF50)
                     )
                 }
 
-                if (nodeType.defaultOutputPorts.isNotEmpty()) {
+                val outputPorts = nodeType.getOutputPortTemplates()
+                if (outputPorts.isNotEmpty()) {
                     PortBadge(
-                        count = nodeType.defaultOutputPorts.size,
+                        count = outputPorts.size,
                         label = "out",
                         color = Color(0xFF2196F3)
                     )
@@ -216,10 +214,6 @@ private fun NodeTypeItem(
         }
     }
 
-    // Show tooltip on hover
-    if (isHovered) {
-        NodeTypeTooltip(nodeType)
-    }
 }
 
 /**
@@ -245,28 +239,3 @@ private fun PortBadge(
     }
 }
 
-/**
- * Tooltip showing detailed node type information
- */
-@Composable
-private fun NodeTypeTooltip(nodeType: NodeTypeDefinition) {
-    // Placeholder - full tooltip implementation would use Popup or custom positioning
-    // For now, this is a visual marker that tooltips should appear
-}
-
-/**
- * Extension function for pointer hover events
- */
-private fun Modifier.onPointerEvent(
-    eventType: PointerEventType,
-    onEvent: () -> Unit
-): Modifier = this.pointerInput(eventType) {
-    awaitPointerEventScope {
-        while (true) {
-            val event = awaitPointerEvent()
-            if (event.type == eventType) {
-                onEvent()
-            }
-        }
-    }
-}

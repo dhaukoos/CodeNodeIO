@@ -1,0 +1,590 @@
+/*
+ * GraphState - UI State Management for Flow Graph Editor
+ * Manages graph data, selection, viewport, and history for undo/redo
+ * License: Apache 2.0
+ */
+
+package io.codenode.grapheditor.state
+
+import androidx.compose.runtime.*
+import androidx.compose.ui.geometry.Offset
+import io.codenode.fbpdsl.model.FlowGraph
+import io.codenode.fbpdsl.model.Node
+import io.codenode.fbpdsl.model.Connection
+import io.codenode.fbpdsl.model.CodeNode
+import io.codenode.fbpdsl.model.NodeTypeDefinition
+
+/**
+ * State holder for the visual flow graph editor.
+ * Manages all mutable state for the canvas, including graph data, selection, viewport, and history.
+ *
+ * This is a Compose-compatible state holder that provides reactive updates to the UI.
+ * All mutations create new immutable copies, enabling proper Compose recomposition and undo/redo.
+ *
+ * @property initialGraph The initial flow graph to display
+ */
+class GraphState(initialGraph: FlowGraph) {
+
+    /**
+     * The current flow graph being edited
+     */
+    var flowGraph by mutableStateOf(initialGraph)
+        private set
+
+    /**
+     * Currently selected node ID (null if no selection)
+     */
+    var selectedNodeId by mutableStateOf<String?>(null)
+        private set
+
+    /**
+     * Set of currently selected connection IDs
+     */
+    var selectedConnectionIds by mutableStateOf<Set<String>>(emptySet())
+        private set
+
+    /**
+     * Canvas pan offset (for scrolling/panning the view)
+     */
+    var panOffset by mutableStateOf(Offset.Zero)
+        private set
+
+    /**
+     * Canvas zoom scale (1.0 = 100%, 0.5 = 50%, 2.0 = 200%)
+     */
+    var scale by mutableStateOf(1f)
+        private set
+
+    /**
+     * Whether the graph has unsaved changes
+     */
+    var isDirty by mutableStateOf(false)
+        private set
+
+    /**
+     * Error message to display (null if no error)
+     */
+    var errorMessage by mutableStateOf<String?>(null)
+        private set
+
+    /**
+     * Node currently being dragged (null if no drag in progress)
+     */
+    var draggingNodeId by mutableStateOf<String?>(null)
+        private set
+
+    /**
+     * Offset accumulated during current drag operation
+     */
+    var dragOffset by mutableStateOf(Offset.Zero)
+        private set
+
+    /**
+     * Connection being created (stores source node and port IDs)
+     */
+    var pendingConnection by mutableStateOf<PendingConnection?>(null)
+        private set
+
+    /**
+     * Node being hovered over (for visual feedback)
+     */
+    var hoveredNodeId by mutableStateOf<String?>(null)
+        private set
+
+    /**
+     * Port being hovered over (for connection creation)
+     */
+    var hoveredPort by mutableStateOf<PortLocation?>(null)
+        private set
+
+    // ============================================================================
+    // Graph Mutation Operations
+    // ============================================================================
+
+    /**
+     * Replaces the entire flow graph with a new one
+     *
+     * @param newGraph The new flow graph
+     * @param markDirty Whether to mark the graph as modified
+     */
+    fun setGraph(newGraph: FlowGraph, markDirty: Boolean = true) {
+        flowGraph = newGraph
+        if (markDirty) {
+            isDirty = true
+        }
+    }
+
+    /**
+     * Adds a new node to the graph at the specified position
+     *
+     * @param node The node to add
+     * @param position Canvas position (in canvas coordinates)
+     */
+    fun addNode(node: Node, position: Offset) {
+        // Create a copy of the node with the specified position
+        val positionedNode = when (node) {
+            is CodeNode -> node.copy(position = Node.Position(position.x.toDouble(), position.y.toDouble()))
+            else -> node
+        }
+
+        flowGraph = flowGraph.addNode(positionedNode)
+        isDirty = true
+    }
+
+    /**
+     * Removes a node from the graph (also removes connected edges)
+     *
+     * @param nodeId The ID of the node to remove
+     */
+    fun removeNode(nodeId: String) {
+        // Remove the node
+        flowGraph = flowGraph.removeNode(nodeId)
+
+        // Remove all connections involving this node
+        val connectionsToRemove = flowGraph.getConnectionsForNode(nodeId)
+        connectionsToRemove.forEach { connection ->
+            flowGraph = flowGraph.removeConnection(connection.id)
+        }
+
+        // Clear selection if removed node was selected
+        if (selectedNodeId == nodeId) {
+            selectedNodeId = null
+        }
+
+        isDirty = true
+    }
+
+    /**
+     * Updates the position of a node
+     *
+     * @param nodeId The ID of the node to move
+     * @param newX New X coordinate (in canvas coordinates)
+     * @param newY New Y coordinate (in canvas coordinates)
+     */
+    fun updateNodePosition(nodeId: String, newX: Double, newY: Double) {
+        val node = flowGraph.findNode(nodeId) ?: return
+
+        val updatedNode = when (node) {
+            is CodeNode -> node.copy(position = Node.Position(newX, newY))
+            else -> node
+        }
+
+        // Replace the node in the graph
+        flowGraph = flowGraph.removeNode(nodeId).addNode(updatedNode)
+        isDirty = true
+    }
+
+    /**
+     * Adds a connection between two nodes
+     *
+     * @param connection The connection to add
+     * @return true if connection was added successfully, false if invalid
+     */
+    fun addConnection(connection: Connection): Boolean {
+        // Validate the connection
+        val validation = connection.validate()
+        if (!validation.success) {
+            errorMessage = "Invalid connection: ${validation.errors.joinToString(", ")}"
+            return false
+        }
+
+        // Check if source and target nodes exist
+        val sourceNode = flowGraph.findNode(connection.sourceNodeId)
+        val targetNode = flowGraph.findNode(connection.targetNodeId)
+
+        if (sourceNode == null || targetNode == null) {
+            errorMessage = "Cannot create connection: source or target node not found"
+            return false
+        }
+
+        // Add the connection
+        flowGraph = flowGraph.addConnection(connection)
+        isDirty = true
+        errorMessage = null
+        return true
+    }
+
+    /**
+     * Removes a connection from the graph
+     *
+     * @param connectionId The ID of the connection to remove
+     */
+    fun removeConnection(connectionId: String) {
+        flowGraph = flowGraph.removeConnection(connectionId)
+        selectedConnectionIds = selectedConnectionIds - connectionId
+        isDirty = true
+    }
+
+    // ============================================================================
+    // Selection Operations
+    // ============================================================================
+
+    /**
+     * Selects a node (clears previous selection)
+     *
+     * @param nodeId The ID of the node to select (null to clear selection)
+     */
+    fun selectNode(nodeId: String?) {
+        selectedNodeId = nodeId
+        selectedConnectionIds = emptySet()
+    }
+
+    /**
+     * Adds a node to the current selection (multi-select)
+     *
+     * @param nodeId The ID of the node to add to selection
+     */
+    fun addNodeToSelection(nodeId: String) {
+        // For now, we only support single selection
+        // Multi-select can be implemented later
+        selectNode(nodeId)
+    }
+
+    /**
+     * Selects a connection (clears node selection)
+     *
+     * @param connectionId The ID of the connection to select
+     */
+    fun selectConnection(connectionId: String) {
+        selectedNodeId = null
+        selectedConnectionIds = setOf(connectionId)
+    }
+
+    /**
+     * Adds a connection to the current selection (multi-select)
+     *
+     * @param connectionId The ID of the connection to add
+     */
+    fun addConnectionToSelection(connectionId: String) {
+        selectedConnectionIds = selectedConnectionIds + connectionId
+    }
+
+    /**
+     * Clears all selections
+     */
+    fun clearSelection() {
+        selectedNodeId = null
+        selectedConnectionIds = emptySet()
+    }
+
+    // ============================================================================
+    // Viewport Operations
+    // ============================================================================
+
+    /**
+     * Updates the canvas pan offset
+     *
+     * @param offset New pan offset
+     */
+    fun updatePanOffset(offset: Offset) {
+        panOffset = offset
+    }
+
+    /**
+     * Adjusts the canvas pan offset by a delta
+     *
+     * @param delta Amount to pan by
+     */
+    fun pan(delta: Offset) {
+        panOffset += delta
+    }
+
+    /**
+     * Updates the canvas zoom scale
+     *
+     * @param newScale New zoom scale (clamped to 0.1 - 5.0)
+     */
+    fun updateScale(newScale: Float) {
+        scale = newScale.coerceIn(0.1f, 5.0f)
+    }
+
+    /**
+     * Adjusts the canvas zoom scale by a factor
+     *
+     * @param factor Zoom factor (e.g., 1.1 to zoom in 10%, 0.9 to zoom out 10%)
+     * @param focalPoint Point to zoom towards (in screen coordinates)
+     */
+    fun zoom(factor: Float, focalPoint: Offset? = null) {
+        val oldScale = scale
+        val newScale = (scale * factor).coerceIn(0.1f, 5.0f)
+
+        if (focalPoint != null && newScale != oldScale) {
+            // Adjust pan offset to zoom towards focal point
+            val scaleDelta = newScale / oldScale
+            val offsetX = focalPoint.x - (focalPoint.x - panOffset.x) * scaleDelta
+            val offsetY = focalPoint.y - (focalPoint.y - panOffset.y) * scaleDelta
+            panOffset = Offset(offsetX, offsetY)
+        }
+
+        scale = newScale
+    }
+
+    /**
+     * Resets the viewport to default (centered at origin, 100% zoom)
+     */
+    fun resetViewport() {
+        panOffset = Offset.Zero
+        scale = 1f
+    }
+
+    // ============================================================================
+    // Drag Operations
+    // ============================================================================
+
+    /**
+     * Starts dragging a node
+     *
+     * @param nodeId The ID of the node being dragged
+     */
+    fun startDraggingNode(nodeId: String) {
+        draggingNodeId = nodeId
+        dragOffset = Offset.Zero
+    }
+
+    /**
+     * Updates the drag offset during a drag operation
+     *
+     * @param delta Amount to drag by (in canvas coordinates)
+     */
+    fun updateDragOffset(delta: Offset) {
+        dragOffset += delta
+    }
+
+    /**
+     * Finishes dragging a node and commits the position change
+     */
+    fun finishDraggingNode() {
+        val nodeId = draggingNodeId ?: return
+        val node = flowGraph.findNode(nodeId) ?: return
+
+        // Calculate final position
+        val currentPos = when (node) {
+            is CodeNode -> node.position
+            else -> return
+        }
+
+        val newX = currentPos.x + dragOffset.x / scale
+        val newY = currentPos.y + dragOffset.y / scale
+
+        // Update node position
+        updateNodePosition(nodeId, newX, newY)
+
+        // Reset drag state
+        draggingNodeId = null
+        dragOffset = Offset.Zero
+    }
+
+    /**
+     * Cancels the current drag operation without committing changes
+     */
+    fun cancelDrag() {
+        draggingNodeId = null
+        dragOffset = Offset.Zero
+    }
+
+    // ============================================================================
+    // Connection Creation
+    // ============================================================================
+
+    /**
+     * Starts creating a connection from a source port
+     *
+     * @param sourceNodeId ID of the source node
+     * @param sourcePortId ID of the source port
+     */
+    fun startConnection(sourceNodeId: String, sourcePortId: String) {
+        pendingConnection = PendingConnection(sourceNodeId, sourcePortId)
+        errorMessage = null
+    }
+
+    /**
+     * Finishes creating a connection to a target port
+     *
+     * @param targetNodeId ID of the target node
+     * @param targetPortId ID of the target port
+     * @return true if connection was created successfully
+     */
+    fun finishConnection(targetNodeId: String, targetPortId: String): Boolean {
+        val pending = pendingConnection ?: return false
+
+        // Create the connection
+        val connection = Connection(
+            id = "conn_${System.currentTimeMillis()}",
+            sourceNodeId = pending.sourceNodeId,
+            sourcePortId = pending.sourcePortId,
+            targetNodeId = targetNodeId,
+            targetPortId = targetPortId
+        )
+
+        val success = addConnection(connection)
+        pendingConnection = null
+        return success
+    }
+
+    /**
+     * Cancels the pending connection creation
+     */
+    fun cancelConnection() {
+        pendingConnection = null
+        errorMessage = null
+    }
+
+    // ============================================================================
+    // Hover State
+    // ============================================================================
+
+    /**
+     * Sets the node being hovered over
+     *
+     * @param nodeId The ID of the hovered node (null to clear)
+     */
+    fun setHoveredNode(nodeId: String?) {
+        hoveredNodeId = nodeId
+    }
+
+    /**
+     * Updates the port being hovered over
+     *
+     * @param port The location of the hovered port (null to clear)
+     */
+    fun updateHoveredPort(port: PortLocation?) {
+        hoveredPort = port
+    }
+
+    // ============================================================================
+    // Error Handling
+    // ============================================================================
+
+    /**
+     * Sets an error message to display
+     *
+     * @param message The error message (null to clear)
+     */
+    fun setError(message: String?) {
+        errorMessage = message
+    }
+
+    /**
+     * Clears the current error message
+     */
+    fun clearError() {
+        errorMessage = null
+    }
+
+    // ============================================================================
+    // Dirty State
+    // ============================================================================
+
+    /**
+     * Marks the graph as saved (clears dirty flag)
+     */
+    fun markAsSaved() {
+        isDirty = false
+    }
+
+    /**
+     * Marks the graph as modified (sets dirty flag)
+     */
+    fun markAsDirty() {
+        isDirty = true
+    }
+
+    // ============================================================================
+    // Query Operations
+    // ============================================================================
+
+    /**
+     * Checks if a node is currently selected
+     *
+     * @param nodeId The ID of the node to check
+     * @return true if the node is selected
+     */
+    fun isNodeSelected(nodeId: String): Boolean {
+        return selectedNodeId == nodeId
+    }
+
+    /**
+     * Checks if a connection is currently selected
+     *
+     * @param connectionId The ID of the connection to check
+     * @return true if the connection is selected
+     */
+    fun isConnectionSelected(connectionId: String): Boolean {
+        return connectionId in selectedConnectionIds
+    }
+
+    /**
+     * Checks if a node is currently being dragged
+     *
+     * @param nodeId The ID of the node to check
+     * @return true if the node is being dragged
+     */
+    fun isNodeDragging(nodeId: String): Boolean {
+        return draggingNodeId == nodeId
+    }
+
+    /**
+     * Checks if a node is currently hovered
+     *
+     * @param nodeId The ID of the node to check
+     * @return true if the node is hovered
+     */
+    fun isNodeHovered(nodeId: String): Boolean {
+        return hoveredNodeId == nodeId
+    }
+
+    /**
+     * Gets the current position of a node (including drag offset if dragging)
+     *
+     * @param nodeId The ID of the node
+     * @return The current canvas position, or null if node not found
+     */
+    fun getNodePosition(nodeId: String): Offset? {
+        val node = flowGraph.findNode(nodeId) as? CodeNode ?: return null
+
+        val baseOffset = Offset(node.position.x.toFloat(), node.position.y.toFloat())
+
+        return if (draggingNodeId == nodeId) {
+            baseOffset + dragOffset / scale
+        } else {
+            baseOffset
+        }
+    }
+}
+
+/**
+ * Represents a connection being created (before target is selected)
+ *
+ * @property sourceNodeId ID of the source node
+ * @property sourcePortId ID of the source port
+ */
+data class PendingConnection(
+    val sourceNodeId: String,
+    val sourcePortId: String
+)
+
+/**
+ * Represents the location of a port (for hover detection)
+ *
+ * @property nodeId ID of the node containing the port
+ * @property portId ID of the port
+ * @property isInput Whether this is an input port (false = output port)
+ */
+data class PortLocation(
+    val nodeId: String,
+    val portId: String,
+    val isInput: Boolean
+)
+
+/**
+ * Creates a GraphState instance as a remembered Compose state
+ *
+ * @param initialGraph The initial flow graph to display
+ * @return A remembered GraphState instance
+ */
+@Composable
+fun rememberGraphState(initialGraph: FlowGraph): GraphState {
+    return remember(initialGraph) {
+        GraphState(initialGraph)
+    }
+}

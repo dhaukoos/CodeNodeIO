@@ -120,7 +120,7 @@ private fun DrawScope.renderCodeNode(
         color = getNodeTypeColor(node.codeNodeType),
         topLeft = position,
         size = Size(nodeWidth, typeBarHeight),
-        cornerRadius = CornerRadius(cornerRadius, cornerRadius, 0f, 0f)
+        cornerRadius = CornerRadius(cornerRadius, 0f)
     )
 
     // Draw node name
@@ -299,6 +299,9 @@ private fun getNodeTypeColor(nodeType: CodeNodeType): Color {
         CodeNodeType.SPLITTER -> Color(0xFF9C27B0)  // Purple - splits data
         CodeNodeType.MERGER -> Color(0xFF00BCD4)  // Cyan - merges data
         CodeNodeType.SINK -> Color(0xFFF44336)  // Red - consumes data
+        CodeNodeType.API_ENDPOINT -> Color(0xFF00BCD4)  // Cyan - API integration
+        CodeNodeType.DATABASE -> Color(0xFF607D8B)  // Blue Grey - database ops
+        CodeNodeType.CUSTOM -> Color(0xFF9E9E9E)  // Grey - custom/user-defined
     }
 }
 
