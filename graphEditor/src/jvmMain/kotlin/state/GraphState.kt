@@ -8,6 +8,7 @@ package io.codenode.grapheditor.state
 
 import androidx.compose.runtime.*
 import androidx.compose.ui.geometry.Offset
+import io.codenode.fbpdsl.dsl.flowGraph
 import io.codenode.fbpdsl.model.FlowGraph
 import io.codenode.fbpdsl.model.Node
 import io.codenode.fbpdsl.model.Connection
@@ -23,7 +24,10 @@ import io.codenode.fbpdsl.model.NodeTypeDefinition
  *
  * @property initialGraph The initial flow graph to display
  */
-class GraphState(initialGraph: FlowGraph) {
+class GraphState(initialGraph: FlowGraph = flowGraph(
+    name = "Untitled",
+    version = "1.0.0"
+) {}) {
 
     /**
      * The current flow graph being edited
@@ -112,6 +116,27 @@ class GraphState(initialGraph: FlowGraph) {
         if (markDirty) {
             isDirty = true
         }
+    }
+
+    /**
+     * Clears the graph and resets to an empty state
+     */
+    fun clearGraph() {
+        flowGraph = flowGraph(
+            name = "Untitled",
+            version = "1.0.0"
+        ) {}
+        selectedNodeId = null
+        selectedConnectionIds = emptySet()
+        panOffset = Offset.Zero
+        scale = 1f
+        isDirty = false
+        errorMessage = null
+        draggingNodeId = null
+        dragOffset = Offset.Zero
+        pendingConnection = null
+        hoveredNodeId = null
+        hoveredPort = null
     }
 
     /**

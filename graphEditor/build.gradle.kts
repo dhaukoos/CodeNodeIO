@@ -12,6 +12,7 @@ plugins {
 
 kotlin {
     jvm {
+        withJava()
     }
 
     sourceSets {
@@ -52,5 +53,20 @@ kotlin {
 
 tasks.withType<Test> {
     useJUnitPlatform()
+}
+
+compose.desktop {
+    application {
+        mainClass = "io.codenode.grapheditor.MainKt"
+        nativeDistributions {
+            targetFormats(
+                org.jetbrains.compose.desktop.application.dsl.TargetFormat.Dmg,
+                org.jetbrains.compose.desktop.application.dsl.TargetFormat.Msi,
+                org.jetbrains.compose.desktop.application.dsl.TargetFormat.Deb
+            )
+            packageName = "CodeNodeIO Graph Editor"
+            packageVersion = "1.0.0"
+        }
+    }
 }
 
