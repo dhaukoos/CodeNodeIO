@@ -8,6 +8,11 @@ package io.codenode.grapheditor.serialization
 
 import io.codenode.fbpdsl.model.FlowGraph
 import io.codenode.fbpdsl.model.ValidationResult
+import io.codenode.fbpdsl.model.CodeNode
+import io.codenode.fbpdsl.model.CodeNodeType
+import io.codenode.fbpdsl.model.Node
+import io.codenode.fbpdsl.model.Port
+import io.codenode.fbpdsl.model.Connection
 import java.io.File
 import java.io.Reader
 import javax.script.ScriptEngineManager
@@ -114,11 +119,134 @@ object FlowGraphDeserializer {
      * For production use, proper Kotlin script evaluation should be used
      */
     private fun deserializeManually(dslContent: String): DeserializationResult {
-        return DeserializationResult.error(
-            "Manual deserialization not yet implemented. " +
-            "Kotlin scripting engine is required for .flow.kts file evaluation. " +
-            "Ensure kotlin-scripting dependencies are available."
-        )
+        return try {
+            // Extract graph name and version from flowGraph(...) declaration
+            val flowGraphPattern = Regex("""flowGraph\s*\(\s*"([^"]*)"\s*,\s*version\s*=\s*"([^"]*)"\s*(?:,\s*description\s*=\s*"([^"]*)"\s*)?\)\s*\{""")
+            val flowGraphMatch = flowGraphPattern.find(dslContent)
+                ?: return DeserializationResult.error("Could not find flowGraph declaration in file")
+
+            val name = flowGraphMatch.groupValues[1]
+            val version = flowGraphMatch.groupValues[2]
+            val description = flowGraphMatch.groupValues.getOrNull(3)?.takeIf { it.isNotEmpty() }
+
+            // Parse nodes
+            val nodes = mutableListOf<CodeNode>()
+            val nodeIdMap = mutableMapOf<String, String>() // variable name -> node ID
+
+            val nodePattern = Regex("""val\s+(\w+)\s*=\s*codeNode\s*\(\s*"([^"]*)"\s*(?:,\s*nodeType\s*=\s*"([^"]*)"\s*)?\)\s*\{([^}]*)\}""", RegexOption.DOT_MATCHES_ALL)
+            nodePattern.findAll(dslContent).forEach { match ->
+                val varName = match.groupValues[1]
+                val nodeName = match.groupValues[2]
+                val nodeBody = match.groupValues[4]
+
+                // Parse position
+                val posPattern = Regex("""position\s*\(\s*([\d.]+)\s*,\s*([\d.]+)\s*\)""")
+                val posMatch = posPattern.find(nodeBody)
+                val x = posMatch?.groupValues?.get(1)?.toDoubleOrNull() ?: 0.0
+                val y = posMatch?.groupValues?.get(2)?.toDoubleOrNull() ?: 0.0
+
+                // Parse description
+                val descPattern = Regex("""description\s*=\s*"([^"]*)"""")
+                val nodeDesc = descPattern.find(nodeBody)?.groupValues?.get(1)
+
+                val nodeId = "node_${System.currentTimeMillis()}_${(0..9999).random()}"
+
+                // Parse input ports
+                val inputPorts = mutableListOf<Port<Any>>()
+                val inputPattern = Regex("""input\s*\(\s*"([^"]*)"\s*,\s*(\w+)::class(?:\s*,\s*required\s*=\s*(true|false))?\s*\)""")
+                inputPattern.findAll(nodeBody).forEach { inputMatch ->
+                    val portName = inputMatch.groupValues[1]
+                    val portId = "port_${System.currentTimeMillis()}_${(0..9999).random()}_$portName"
+                    inputPorts.add(Port<Any>(
+                        id = portId,
+                        name = portName,
+                        direction = Port.Direction.INPUT,
+                        dataType = Any::class,
+                        owningNodeId = nodeId
+                    ))
+                }
+
+                // Parse output ports
+                val outputPorts = mutableListOf<Port<Any>>()
+                val outputPattern = Regex("""output\s*\(\s*"([^"]*)"\s*,\s*(\w+)::class(?:\s*,\s*required\s*=\s*(true|false))?\s*\)""")
+                outputPattern.findAll(nodeBody).forEach { outputMatch ->
+                    val portName = outputMatch.groupValues[1]
+                    val portId = "port_${System.currentTimeMillis()}_${(0..9999).random()}_$portName"
+                    outputPorts.add(Port<Any>(
+                        id = portId,
+                        name = portName,
+                        direction = Port.Direction.OUTPUT,
+                        dataType = Any::class,
+                        owningNodeId = nodeId
+                    ))
+                }
+
+                val node = CodeNode(
+                    id = nodeId,
+                    name = nodeName,
+                    codeNodeType = CodeNodeType.CUSTOM,
+                    description = nodeDesc,
+                    position = Node.Position(x, y),
+                    inputPorts = inputPorts,
+                    outputPorts = outputPorts
+                )
+
+                nodes.add(node)
+                nodeIdMap[varName] = nodeId
+            }
+
+            // Parse connections
+            val connections = mutableListOf<Connection>()
+            val connPattern = Regex("""(\w+)\.output\s*\(\s*"([^"]*)"\s*\)\s*connect\s*(\w+)\.input\s*\(\s*"([^"]*)"\s*\)""")
+            connPattern.findAll(dslContent).forEach { match ->
+                val sourceVar = match.groupValues[1]
+                val sourcePortName = match.groupValues[2]
+                val targetVar = match.groupValues[3]
+                val targetPortName = match.groupValues[4]
+
+                val sourceNodeId = nodeIdMap[sourceVar]
+                val targetNodeId = nodeIdMap[targetVar]
+
+                if (sourceNodeId != null && targetNodeId != null) {
+                    // Find the actual port IDs
+                    val sourceNode = nodes.find { it.id == sourceNodeId }
+                    val targetNode = nodes.find { it.id == targetNodeId }
+
+                    val sourcePort = sourceNode?.outputPorts?.find { it.name == sourcePortName }
+                    val targetPort = targetNode?.inputPorts?.find { it.name == targetPortName }
+
+                    if (sourcePort != null && targetPort != null) {
+                        connections.add(Connection(
+                            id = "conn_${System.currentTimeMillis()}_${(0..9999).random()}",
+                            sourceNodeId = sourceNodeId,
+                            sourcePortId = sourcePort.id,
+                            targetNodeId = targetNodeId,
+                            targetPortId = targetPort.id
+                        ))
+                    }
+                }
+            }
+
+            // Create the FlowGraph manually
+            val graphId = "graph_${System.currentTimeMillis()}_${(0..999999).random()}"
+            val graph = FlowGraph(
+                id = graphId,
+                name = name,
+                version = version,
+                description = description,
+                rootNodes = nodes,
+                connections = connections,
+                metadata = emptyMap(),
+                targetPlatforms = emptyList()
+            )
+
+            DeserializationResult.success(graph)
+        } catch (e: Exception) {
+            DeserializationResult.error(
+                "Manual deserialization failed: ${e.message}",
+                e
+            )
+        }
     }
 
     /**

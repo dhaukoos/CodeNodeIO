@@ -23,6 +23,7 @@ import io.codenode.fbpdsl.dsl.flowGraph
 import io.codenode.grapheditor.state.GraphState
 import io.codenode.grapheditor.state.rememberUndoRedoManager
 import io.codenode.grapheditor.ui.CanvasControls
+import io.codenode.grapheditor.ui.CompactCanvasControls
 import io.codenode.grapheditor.ui.ConnectionErrorDisplay
 import io.codenode.grapheditor.ui.FlowGraphCanvas
 import io.codenode.grapheditor.ui.NodePalette
@@ -267,15 +268,9 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.BottomEnd
                 ) {
-                    CanvasControls(
+                    CompactCanvasControls(
                         graphState = graphState,
-                        modifier = Modifier.padding(16.dp),
-                        onResetView = {
-                            statusMessage = "View reset"
-                        },
-                        onFitToScreen = {
-                            statusMessage = "Fit to screen"
-                        }
+                        modifier = Modifier.padding(16.dp)
                     )
                 }
 
