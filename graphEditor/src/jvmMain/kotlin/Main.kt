@@ -22,6 +22,9 @@ import androidx.compose.ui.window.rememberWindowState
 import io.codenode.fbpdsl.dsl.flowGraph
 import io.codenode.grapheditor.state.GraphState
 import io.codenode.grapheditor.state.rememberUndoRedoManager
+import io.codenode.grapheditor.state.AddNodeCommand
+import io.codenode.grapheditor.state.MoveNodeCommand
+import io.codenode.grapheditor.state.AddConnectionCommand
 import io.codenode.grapheditor.ui.CanvasControls
 import io.codenode.grapheditor.ui.CompactCanvasControls
 import io.codenode.grapheditor.ui.ConnectionErrorDisplay
@@ -235,7 +238,9 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                                     )
                                 }
                             )
-                            graphState.addNode(newNode, Offset(xOffset.toFloat(), yOffset.toFloat()))
+                            // Use undo/redo manager to execute the command
+                            val command = AddNodeCommand(newNode, Offset(xOffset.toFloat(), yOffset.toFloat()))
+                            undoRedoManager.execute(command, graphState)
                             statusMessage = "Added ${nodeType.name} node"
                         }
                     )
@@ -249,13 +254,30 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                             statusMessage = if (nodeId != null) "Selected node" else "Deselected"
                         },
                         onNodeMoved = { nodeId, newX, newY ->
-                            graphState.updateNodePosition(nodeId, newX, newY)
+                            // Get old position before moving
+                            val node = graphState.flowGraph.findNode(nodeId)
+                            val oldPosition = if (node is CodeNode) {
+                                Offset(node.position.x.toFloat(), node.position.y.toFloat())
+                            } else {
+                                Offset.Zero
+                            }
+
+                            // Create and execute move command
+                            val command = MoveNodeCommand(
+                                nodeId,
+                                oldPosition,
+                                Offset(newX.toFloat(), newY.toFloat())
+                            )
+                            undoRedoManager.execute(command, graphState)
                             statusMessage = "Moved node"
                         },
                         onConnectionCreated = { connection ->
-                            if (graphState.addConnection(connection)) {
+                            // Create and execute add connection command
+                            val command = AddConnectionCommand(connection)
+                            try {
+                                undoRedoManager.execute(command, graphState)
                                 statusMessage = "Created connection"
-                            } else {
+                            } catch (e: Exception) {
                                 statusMessage = graphState.errorMessage ?: "Failed to create connection"
                             }
                         },
