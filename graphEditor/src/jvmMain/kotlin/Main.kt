@@ -24,11 +24,127 @@ import io.codenode.grapheditor.state.GraphState
 import io.codenode.grapheditor.state.rememberUndoRedoManager
 import io.codenode.grapheditor.ui.CanvasControls
 import io.codenode.grapheditor.ui.ConnectionErrorDisplay
+import io.codenode.grapheditor.ui.FlowGraphCanvas
+import io.codenode.grapheditor.ui.NodePalette
 import io.codenode.grapheditor.serialization.FlowGraphSerializer
 import io.codenode.grapheditor.serialization.FlowGraphDeserializer
+import io.codenode.fbpdsl.model.NodeTypeDefinition
+import io.codenode.fbpdsl.model.PortTemplate
+import io.codenode.fbpdsl.model.Port
+import io.codenode.fbpdsl.model.CodeNode
+import io.codenode.fbpdsl.model.CodeNodeType
+import androidx.compose.ui.geometry.Offset
 import java.io.File
 import javax.swing.JFileChooser
 import javax.swing.filechooser.FileNameExtensionFilter
+
+/**
+ * Creates sample node types for the palette
+ */
+fun createSampleNodeTypes(): List<NodeTypeDefinition> {
+    return listOf(
+        NodeTypeDefinition(
+            id = "nodeType_generator",
+            name = "Data Generator",
+            category = NodeTypeDefinition.NodeCategory.SERVICE,
+            description = "Generates or loads data into the flow",
+            portTemplates = listOf(
+                PortTemplate(
+                    name = "output",
+                    direction = Port.Direction.OUTPUT,
+                    dataType = String::class,
+                    description = "Data output stream"
+                )
+            )
+        ),
+        NodeTypeDefinition(
+            id = "nodeType_transformer",
+            name = "Transform",
+            category = NodeTypeDefinition.NodeCategory.TRANSFORMER,
+            description = "Transforms data from one format to another",
+            portTemplates = listOf(
+                PortTemplate(
+                    name = "input",
+                    direction = Port.Direction.INPUT,
+                    dataType = String::class,
+                    description = "Data input"
+                ),
+                PortTemplate(
+                    name = "output",
+                    direction = Port.Direction.OUTPUT,
+                    dataType = String::class,
+                    description = "Transformed data output"
+                )
+            )
+        ),
+        NodeTypeDefinition(
+            id = "nodeType_filter",
+            name = "Filter",
+            category = NodeTypeDefinition.NodeCategory.TRANSFORMER,
+            description = "Filters data based on conditions",
+            portTemplates = listOf(
+                PortTemplate(
+                    name = "input",
+                    direction = Port.Direction.INPUT,
+                    dataType = Any::class,
+                    description = "Input data"
+                ),
+                PortTemplate(
+                    name = "passed",
+                    direction = Port.Direction.OUTPUT,
+                    dataType = Any::class,
+                    description = "Data that passed filter"
+                ),
+                PortTemplate(
+                    name = "rejected",
+                    direction = Port.Direction.OUTPUT,
+                    dataType = Any::class,
+                    description = "Data that failed filter"
+                )
+            )
+        ),
+        NodeTypeDefinition(
+            id = "nodeType_api",
+            name = "API Call",
+            category = NodeTypeDefinition.NodeCategory.API_ENDPOINT,
+            description = "Makes HTTP API requests",
+            portTemplates = listOf(
+                PortTemplate(
+                    name = "request",
+                    direction = Port.Direction.INPUT,
+                    dataType = Any::class,
+                    description = "Request data"
+                ),
+                PortTemplate(
+                    name = "response",
+                    direction = Port.Direction.OUTPUT,
+                    dataType = Any::class,
+                    description = "Response data"
+                )
+            )
+        ),
+        NodeTypeDefinition(
+            id = "nodeType_database",
+            name = "Database Query",
+            category = NodeTypeDefinition.NodeCategory.DATABASE,
+            description = "Executes database queries",
+            portTemplates = listOf(
+                PortTemplate(
+                    name = "query",
+                    direction = Port.Direction.INPUT,
+                    dataType = String::class,
+                    description = "SQL query"
+                ),
+                PortTemplate(
+                    name = "results",
+                    direction = Port.Direction.OUTPUT,
+                    dataType = Any::class,
+                    description = "Query results"
+                )
+            )
+        )
+    )
+}
 
 /**
  * Main composable for the GraphEditor application
@@ -44,9 +160,10 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
     }
     val graphState = remember { GraphState(initialGraph) }
     val undoRedoManager = rememberUndoRedoManager()
+    val nodeTypes = remember { createSampleNodeTypes() }
     var showSaveDialog by remember { mutableStateOf(false) }
     var showOpenDialog by remember { mutableStateOf(false) }
-    var statusMessage by remember { mutableStateOf("Ready - Graph Editor is functional!") }
+    var statusMessage by remember { mutableStateOf("Ready - Create a new graph or open an existing one") }
 
     MaterialTheme {
         Column(modifier = modifier.fillMaxSize()) {
@@ -79,69 +196,62 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
 
             // Main content area
             Box(modifier = Modifier.fillMaxSize().weight(1f)) {
-                // Center panel with canvas
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(16.dp)
-                    ) {
-                        Text(
-                            text = "CodeNodeIO Graph Editor",
-                            fontSize = 32.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color(0xFF2196F3)
-                        )
-                        Text(
-                            text = "User Story 1 - Core Visual Editor Components",
-                            fontSize = 20.sp,
-                            color = Color(0xFF424242)
-                        )
-                        Spacer(modifier = Modifier.height(24.dp))
-                        Text(
-                            text = "✓ Graph State Management (T037)",
-                            fontSize = 14.sp,
-                            color = Color(0xFF4CAF50)
-                        )
-                        Text(
-                            text = "✓ Undo/Redo System (T047)",
-                            fontSize = 14.sp,
-                            color = Color(0xFF4CAF50)
-                        )
-                        Text(
-                            text = "✓ Canvas Controls (T048)",
-                            fontSize = 14.sp,
-                            color = Color(0xFF4CAF50)
-                        )
-                        Text(
-                            text = "✓ Error Display (T049)",
-                            fontSize = 14.sp,
-                            color = Color(0xFF4CAF50)
-                        )
-                        Text(
-                            text = "✓ Serialization/Deserialization (T045, T046)",
-                            fontSize = 14.sp,
-                            color = Color(0xFF4CAF50)
-                        )
-                        Text(
-                            text = "✓ Port Validation (T044)",
-                            fontSize = 14.sp,
-                            color = Color(0xFF4CAF50)
-                        )
-                        Spacer(modifier = Modifier.height(16.dp))
-                        Text(
-                            text = "File operations: New, Open, Save",
-                            fontSize = 12.sp,
-                            color = Color(0xFF757575)
-                        )
-                        Text(
-                            text = "Undo/Redo: Enabled via top toolbar",
-                            fontSize = 12.sp,
-                            color = Color(0xFF757575)
-                        )
-                    }
+                // Layout: NodePalette on left, Canvas on right
+                Row(modifier = Modifier.fillMaxSize()) {
+                    // Node Palette
+                    NodePalette(
+                        nodeTypes = nodeTypes,
+                        onNodeSelected = { nodeType ->
+                            // Create a new node from the selected type
+                            // Offset each new node so they don't stack on top of each other
+                            val nodeId = "node_${System.currentTimeMillis()}"
+                            val nodeCount = graphState.flowGraph.rootNodes.size
+                            val xOffset = 300.0 + (nodeCount % 3) * 150.0  // 3 nodes per row
+                            val yOffset = 200.0 + (nodeCount / 3) * 100.0  // New row every 3 nodes
+                            val newNode = CodeNode(
+                                id = nodeId,
+                                name = nodeType.name,
+                                codeNodeType = CodeNodeType.CUSTOM,
+                                description = nodeType.description,
+                                position = io.codenode.fbpdsl.model.Node.Position(xOffset, yOffset),
+                                inputPorts = nodeType.getInputPortTemplates().map { template ->
+                                    Port(
+                                        id = "port_${System.currentTimeMillis()}_${template.name}",
+                                        name = template.name,
+                                        direction = template.direction,
+                                        dataType = template.dataType,
+                                        owningNodeId = nodeId
+                                    )
+                                },
+                                outputPorts = nodeType.getOutputPortTemplates().map { template ->
+                                    Port(
+                                        id = "port_${System.currentTimeMillis()}_${template.name}",
+                                        name = template.name,
+                                        direction = template.direction,
+                                        dataType = template.dataType,
+                                        owningNodeId = nodeId
+                                    )
+                                }
+                            )
+                            graphState.addNode(newNode, Offset(xOffset.toFloat(), yOffset.toFloat()))
+                            statusMessage = "Added ${nodeType.name} node"
+                        }
+                    )
+
+                    // Main Canvas
+                    FlowGraphCanvas(
+                        flowGraph = graphState.flowGraph,
+                        selectedNodeId = graphState.selectedNodeId,
+                        onNodeSelected = { nodeId ->
+                            graphState.selectNode(nodeId)
+                            statusMessage = if (nodeId != null) "Selected node" else "Deselected"
+                        },
+                        onNodeMoved = { nodeId, newX, newY ->
+                            graphState.updateNodePosition(nodeId, newX, newY)
+                            statusMessage = "Moved node"
+                        },
+                        modifier = Modifier.weight(1f)
+                    )
                 }
 
                 // Canvas controls overlay (bottom right)
@@ -405,7 +515,7 @@ fun main() = application {
     Window(
         onCloseRequest = ::exitApplication,
         state = windowState,
-        title = "CodeNodeIO Graph Editor - User Story 1 Checkpoint"
+        title = "CodeNodeIO Graph Editor - Visual Flow-Based Programming"
     ) {
         GraphEditorApp()
     }

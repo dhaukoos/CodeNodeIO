@@ -15,7 +15,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.input.pointer.*
 import androidx.compose.ui.unit.dp
 import io.codenode.fbpdsl.model.FlowGraph
 import io.codenode.fbpdsl.model.Node
@@ -46,33 +46,75 @@ fun FlowGraphCanvas(
     var draggingNode by remember { mutableStateOf<String?>(null) }
     var dragOffset by remember { mutableStateOf(Offset.Zero) }
 
+    // Create a stable reference to current state values that gesture detectors can read
+    val currentFlowGraph = remember { mutableStateOf(flowGraph) }
+    val currentPanOffset = remember { mutableStateOf(Offset.Zero) }
+    val currentScale = remember { mutableStateOf(1f) }
+
+    // Keep the references updated
+    currentFlowGraph.value = flowGraph
+    currentPanOffset.value = panOffset
+    currentScale.value = scale
+
     Box(
         modifier = modifier
             .fillMaxSize()
             .background(Color(0xFFF5F5F5))
             .pointerInput(Unit) {
-                // Handle canvas panning
-                detectDragGestures { change, dragAmount ->
-                    change.consume()
-                    if (draggingNode == null) {
-                        // Pan the canvas
-                        panOffset += dragAmount
-                    } else {
-                        // Drag the node
-                        dragOffset += dragAmount
+                // Handle dragging - use Unit key so it never recreates
+                detectDragGestures(
+                    onDragStart = { offset ->
+                        // Read current values from the stable references
+                        val nodeUnderPointer = findNodeAtPosition(
+                            currentFlowGraph.value,
+                            offset,
+                            currentPanOffset.value,
+                            currentScale.value
+                        )
+                        if (nodeUnderPointer != null) {
+                            draggingNode = nodeUnderPointer.id
+                            dragOffset = Offset.Zero
+                        } else {
+                            draggingNode = null
+                        }
+                    },
+                    onDrag = { change, dragAmount ->
+                        change.consume()
+                        if (draggingNode == null) {
+                            panOffset += dragAmount
+                        } else {
+                            dragOffset += dragAmount
+                        }
+                    },
+                    onDragEnd = {
+                        if (draggingNode != null) {
+                            val node = currentFlowGraph.value.findNode(draggingNode!!)
+                            if (node != null) {
+                                val newX = node.position.x + dragOffset.x / currentScale.value
+                                val newY = node.position.y + dragOffset.y / currentScale.value
+                                onNodeMoved(draggingNode!!, newX, newY)
+                            }
+                            onNodeSelected(draggingNode)
+                        }
+                        draggingNode = null
+                        dragOffset = Offset.Zero
+                    },
+                    onDragCancel = {
+                        draggingNode = null
+                        dragOffset = Offset.Zero
                     }
-                }
+                )
             }
             .pointerInput(Unit) {
-                // Handle node selection
+                // Handle taps for quick selection - use Unit key so it never recreates
                 detectTapGestures(
                     onTap = { offset ->
-                        // Find node at tap position
+                        // Read current values from the stable references
                         val tappedNode = findNodeAtPosition(
-                            flowGraph,
+                            currentFlowGraph.value,
                             offset,
-                            panOffset,
-                            scale
+                            currentPanOffset.value,
+                            currentScale.value
                         )
                         onNodeSelected(tappedNode?.id)
                     }
