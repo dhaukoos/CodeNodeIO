@@ -15,11 +15,14 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.*
 import androidx.compose.ui.unit.dp
 import io.codenode.fbpdsl.model.FlowGraph
 import io.codenode.fbpdsl.model.Node
 import io.codenode.fbpdsl.model.Connection
+import io.codenode.fbpdsl.model.Port
 
 /**
  * Main canvas component for rendering and interacting with flow graphs
@@ -46,6 +49,12 @@ fun FlowGraphCanvas(
     var draggingNode by remember { mutableStateOf<String?>(null) }
     var dragOffset by remember { mutableStateOf(Offset.Zero) }
 
+    // Connection creation state
+    var creatingConnection by remember { mutableStateOf(false) }
+    var connectionSourceNode by remember { mutableStateOf<String?>(null) }
+    var connectionSourcePort by remember { mutableStateOf<String?>(null) }
+    var connectionEndPosition by remember { mutableStateOf(Offset.Zero) }
+
     // Create a stable reference to current state values that gesture detectors can read
     val currentFlowGraph = remember { mutableStateOf(flowGraph) }
     val currentPanOffset = remember { mutableStateOf(Offset.Zero) }
@@ -64,30 +73,78 @@ fun FlowGraphCanvas(
                 // Handle dragging - use Unit key so it never recreates
                 detectDragGestures(
                     onDragStart = { offset ->
-                        // Read current values from the stable references
-                        val nodeUnderPointer = findNodeAtPosition(
+                        // Check if we're starting a connection from an output port
+                        val portInfo = findPortAtPosition(
                             currentFlowGraph.value,
                             offset,
                             currentPanOffset.value,
                             currentScale.value
                         )
-                        if (nodeUnderPointer != null) {
-                            draggingNode = nodeUnderPointer.id
-                            dragOffset = Offset.Zero
+
+                        if (portInfo != null && portInfo.direction == Port.Direction.OUTPUT) {
+                            // Starting a connection from an output port
+                            creatingConnection = true
+                            connectionSourceNode = portInfo.nodeId
+                            connectionSourcePort = portInfo.portId
+                            connectionEndPosition = offset
                         } else {
-                            draggingNode = null
+                            // Check if clicking on a node for dragging
+                            val nodeUnderPointer = findNodeAtPosition(
+                                currentFlowGraph.value,
+                                offset,
+                                currentPanOffset.value,
+                                currentScale.value
+                            )
+                            if (nodeUnderPointer != null) {
+                                draggingNode = nodeUnderPointer.id
+                                dragOffset = Offset.Zero
+                            } else {
+                                draggingNode = null
+                            }
                         }
                     },
                     onDrag = { change, dragAmount ->
                         change.consume()
-                        if (draggingNode == null) {
+                        if (creatingConnection) {
+                            // Update connection end position
+                            connectionEndPosition += dragAmount
+                        } else if (draggingNode == null) {
+                            // Pan the canvas
                             panOffset += dragAmount
                         } else {
+                            // Drag the node
                             dragOffset += dragAmount
                         }
                     },
                     onDragEnd = {
-                        if (draggingNode != null) {
+                        if (creatingConnection) {
+                            // Check if we ended on an input port
+                            val targetPortInfo = findPortAtPosition(
+                                currentFlowGraph.value,
+                                connectionEndPosition,
+                                currentPanOffset.value,
+                                currentScale.value
+                            )
+
+                            if (targetPortInfo != null &&
+                                targetPortInfo.direction == Port.Direction.INPUT &&
+                                targetPortInfo.nodeId != connectionSourceNode) {
+                                // Create the connection
+                                val connection = Connection(
+                                    id = "conn_${System.currentTimeMillis()}",
+                                    sourceNodeId = connectionSourceNode!!,
+                                    sourcePortId = connectionSourcePort!!,
+                                    targetNodeId = targetPortInfo.nodeId,
+                                    targetPortId = targetPortInfo.portId
+                                )
+                                onConnectionCreated(connection)
+                            }
+
+                            // Reset connection creation state
+                            creatingConnection = false
+                            connectionSourceNode = null
+                            connectionSourcePort = null
+                        } else if (draggingNode != null) {
                             val node = currentFlowGraph.value.findNode(draggingNode!!)
                             if (node != null) {
                                 val newX = node.position.x + dragOffset.x / currentScale.value
@@ -102,6 +159,9 @@ fun FlowGraphCanvas(
                     onDragCancel = {
                         draggingNode = null
                         dragOffset = Offset.Zero
+                        creatingConnection = false
+                        connectionSourceNode = null
+                        connectionSourcePort = null
                     }
                 )
             }
@@ -137,8 +197,51 @@ fun FlowGraphCanvas(
                     connection = connection,
                     nodes = flowGraph.rootNodes,
                     offset = transformedOffset,
-                    scale = transformedScale
+                    scale = transformedScale,
+                    draggingNodeId = draggingNode,
+                    dragOffset = dragOffset
                 )
+            }
+
+            // Draw pending connection line if creating a connection
+            if (creatingConnection && connectionSourceNode != null && connectionSourcePort != null) {
+                val sourceNode = flowGraph.findNode(connectionSourceNode!!)
+                if (sourceNode != null) {
+                    val sourcePort = sourceNode.outputPorts.find { it.id == connectionSourcePort }
+                    if (sourcePort != null) {
+                        val sourcePortIndex = sourceNode.outputPorts.indexOf(sourcePort)
+                        val portSpacing = 25f * scale
+                        val nodeWidth = 180f * scale
+                        val headerHeight = 30f * scale
+
+                        val sourceNodePos = Offset(
+                            sourceNode.position.x.toFloat() + panOffset.x,
+                            sourceNode.position.y.toFloat() + panOffset.y
+                        )
+
+                        val sourcePortPos = Offset(
+                            sourceNodePos.x + nodeWidth,
+                            sourceNodePos.y + headerHeight + 20f * scale + (sourcePortIndex * portSpacing)
+                        )
+
+                        // Draw dashed Bezier curve from source port to current mouse position
+                        drawBezierConnection(
+                            start = sourcePortPos,
+                            end = connectionEndPosition,
+                            scale = scale,
+                            color = Color(0xFF2196F3),
+                            strokeWidth = 3f,
+                            isDashed = true
+                        )
+
+                        // Draw circle at the end position
+                        drawCircle(
+                            color = Color(0xFF2196F3),
+                            radius = 5f * scale,
+                            center = connectionEndPosition
+                        )
+                    }
+                }
             }
 
             // Draw nodes
@@ -165,6 +268,51 @@ fun FlowGraphCanvas(
             }
         }
     }
+}
+
+/**
+ * Draws a Bezier curve connection between two points
+ * Creates a smooth S-curve suitable for flow graph connections
+ */
+private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawBezierConnection(
+    start: Offset,
+    end: Offset,
+    scale: Float,
+    color: Color = Color(0xFF2196F3),
+    strokeWidth: Float = 3f,
+    isDashed: Boolean = false
+) {
+    val path = Path().apply {
+        moveTo(start.x, start.y)
+
+        // Calculate control points for horizontal Bezier curve
+        // The distance between start and end determines how far out the control points extend
+        val dx = end.x - start.x
+        val controlPointOffset = kotlin.math.abs(dx) * 0.5f
+
+        // Control point 1: extends to the right from start point
+        val cp1 = Offset(start.x + controlPointOffset, start.y)
+
+        // Control point 2: extends to the left from end point
+        val cp2 = Offset(end.x - controlPointOffset, end.y)
+
+        // Draw cubic Bezier curve
+        cubicTo(cp1.x, cp1.y, cp2.x, cp2.y, end.x, end.y)
+    }
+
+    val pathEffect = if (isDashed) {
+        androidx.compose.ui.graphics.PathEffect.dashPathEffect(
+            floatArrayOf(10f * scale, 5f * scale)
+        )
+    } else {
+        null
+    }
+
+    drawPath(
+        path = path,
+        color = color,
+        style = Stroke(width = strokeWidth * scale, pathEffect = pathEffect)
+    )
 }
 
 /**
@@ -203,38 +351,59 @@ private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawGrid(
 }
 
 /**
- * Draws a connection line between two nodes
+ * Draws a connection line between two nodes as a Bezier curve
  */
 private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawConnection(
     connection: Connection,
     nodes: List<Node>,
     offset: Offset,
-    scale: Float
+    scale: Float,
+    draggingNodeId: String? = null,
+    dragOffset: Offset = Offset.Zero
 ) {
     val sourceNode = nodes.find { it.id == connection.sourceNodeId } ?: return
     val targetNode = nodes.find { it.id == connection.targetNodeId } ?: return
 
-    val sourcePos = Offset(
+    // Find the actual source and target ports
+    val sourcePort = sourceNode.outputPorts.find { it.id == connection.sourcePortId } ?: return
+    val targetPort = targetNode.inputPorts.find { it.id == connection.targetPortId } ?: return
+
+    // Calculate port positions
+    val portSpacing = 25f * scale
+    val nodeWidth = 180f * scale
+    val headerHeight = 30f * scale
+
+    // Apply drag offset if this node is being dragged
+    val sourceNodePos = Offset(
         sourceNode.position.x.toFloat() + offset.x,
         sourceNode.position.y.toFloat() + offset.y
+    ) + if (sourceNode.id == draggingNodeId) dragOffset else Offset.Zero
+
+    val targetNodePos = Offset(
+        targetNode.position.x.toFloat() + offset.x,
+        targetNode.position.y.toFloat() + offset.y
+    ) + if (targetNode.id == draggingNodeId) dragOffset else Offset.Zero
+
+    val sourcePortIndex = sourceNode.outputPorts.indexOf(sourcePort)
+    val targetPortIndex = targetNode.inputPorts.indexOf(targetPort)
+
+    // Calculate exact port positions
+    val sourcePos = Offset(
+        sourceNodePos.x + nodeWidth,  // Right side of source node
+        sourceNodePos.y + headerHeight + 20f * scale + (sourcePortIndex * portSpacing)
     )
 
     val targetPos = Offset(
-        targetNode.position.x.toFloat() + offset.x,
-        targetNode.position.y.toFloat() + offset.y
+        targetNodePos.x,  // Left side of target node
+        targetNodePos.y + headerHeight + 20f * scale + (targetPortIndex * portSpacing)
     )
 
-    // Draw simple line for now (will be enhanced by ConnectionRenderer)
-    drawLine(
-        color = Color(0xFF2196F3),
-        start = sourcePos,
-        end = targetPos,
-        strokeWidth = 2f * scale
-    )
+    // Draw Bezier curve
+    drawBezierConnection(sourcePos, targetPos, scale)
 }
 
 /**
- * Draws a node on the canvas
+ * Draws a node on the canvas with ports
  */
 private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawNode(
     node: Node,
@@ -243,8 +412,14 @@ private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawNode(
     isSelected: Boolean,
     isDragging: Boolean
 ) {
-    val nodeWidth = 120f * scale
-    val nodeHeight = 60f * scale
+    val portSpacing = 25f * scale
+    val portRadius = 6f * scale
+    val nodeWidth = 180f * scale
+    val headerHeight = 30f * scale
+
+    // Calculate node height based on number of ports
+    val maxPorts = maxOf(node.inputPorts.size, node.outputPorts.size)
+    val nodeHeight = headerHeight + (maxPorts.coerceAtLeast(1) * portSpacing) + 20f * scale
 
     val nodeColor = when {
         isDragging -> Color(0xFFBBDEFB)
@@ -257,7 +432,7 @@ private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawNode(
         else -> Color(0xFF9E9E9E)
     }
 
-    // Draw node rectangle (placeholder - will be enhanced by NodeRenderer)
+    // Draw main node body
     drawRect(
         color = nodeColor,
         topLeft = position,
@@ -271,6 +446,129 @@ private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawNode(
         size = androidx.compose.ui.geometry.Size(nodeWidth, nodeHeight),
         style = androidx.compose.ui.graphics.drawscope.Stroke(width = 2f * scale)
     )
+
+    // Draw header background
+    drawRect(
+        color = Color(0xFFE3F2FD),
+        topLeft = position,
+        size = androidx.compose.ui.geometry.Size(nodeWidth, headerHeight)
+    )
+
+    // Draw header separator line
+    drawLine(
+        color = borderColor,
+        start = Offset(position.x, position.y + headerHeight),
+        end = Offset(position.x + nodeWidth, position.y + headerHeight),
+        strokeWidth = 1f * scale
+    )
+
+    // Draw node name in header (simplified - just drawing a rectangle placeholder for text)
+    // In a real implementation, we'd use TextMeasurer or Compose UI Text
+
+    // Draw input ports on the left
+    node.inputPorts.forEachIndexed { index, port ->
+        val portY = position.y + headerHeight + 20f * scale + (index * portSpacing)
+        val portX = position.x
+
+        // Draw port circle
+        drawCircle(
+            color = Color(0xFF4CAF50),
+            radius = portRadius,
+            center = Offset(portX, portY)
+        )
+
+        // Draw port circle border
+        drawCircle(
+            color = Color(0xFF2E7D32),
+            radius = portRadius,
+            center = Offset(portX, portY),
+            style = androidx.compose.ui.graphics.drawscope.Stroke(width = 1.5f * scale)
+        )
+
+        // Draw port name indicator (small line extending into the node)
+        drawLine(
+            color = Color(0xFF757575),
+            start = Offset(portX + portRadius + 2f * scale, portY),
+            end = Offset(portX + 30f * scale, portY),
+            strokeWidth = 1f * scale
+        )
+    }
+
+    // Draw output ports on the right
+    node.outputPorts.forEachIndexed { index, port ->
+        val portY = position.y + headerHeight + 20f * scale + (index * portSpacing)
+        val portX = position.x + nodeWidth
+
+        // Draw port circle
+        drawCircle(
+            color = Color(0xFF2196F3),
+            radius = portRadius,
+            center = Offset(portX, portY)
+        )
+
+        // Draw port circle border
+        drawCircle(
+            color = Color(0xFF1565C0),
+            radius = portRadius,
+            center = Offset(portX, portY),
+            style = androidx.compose.ui.graphics.drawscope.Stroke(width = 1.5f * scale)
+        )
+
+        // Draw port name indicator (small line extending into the node)
+        drawLine(
+            color = Color(0xFF757575),
+            start = Offset(portX - portRadius - 2f * scale, portY),
+            end = Offset(portX - 30f * scale, portY),
+            strokeWidth = 1f * scale
+        )
+    }
+}
+
+/**
+ * Finds a port at the given canvas position
+ */
+private fun findPortAtPosition(
+    flowGraph: FlowGraph,
+    tapPosition: Offset,
+    panOffset: Offset,
+    scale: Float
+): PortInfo? {
+    val portRadius = 6f * scale
+    val clickRadius = 12f * scale // Larger hit area for easier clicking
+
+    flowGraph.rootNodes.forEach { node ->
+        val portSpacing = 25f * scale
+        val nodeWidth = 180f * scale
+        val headerHeight = 30f * scale
+        val nodePos = Offset(
+            node.position.x.toFloat() + panOffset.x,
+            node.position.y.toFloat() + panOffset.y
+        )
+
+        // Check input ports (left side)
+        node.inputPorts.forEachIndexed { index, port ->
+            val portY = nodePos.y + headerHeight + 20f * scale + (index * portSpacing)
+            val portX = nodePos.x
+            val portCenter = Offset(portX, portY)
+
+            if ((tapPosition - portCenter).getDistance() <= clickRadius) {
+                return PortInfo(node.id, port.id, portCenter, Port.Direction.INPUT)
+            }
+        }
+
+        // Check output ports (right side)
+        node.outputPorts.forEachIndexed { index, port ->
+            val portY = nodePos.y + headerHeight + 20f * scale + (index * portSpacing)
+            val portX = nodePos.x + nodeWidth
+            val portCenter = Offset(portX, portY)
+
+            if ((tapPosition - portCenter).getDistance() <= clickRadius) {
+                return PortInfo(node.id, port.id, portCenter, Port.Direction.OUTPUT)
+            }
+        }
+    }
+
+    return null
 }
 
 /**
@@ -282,10 +580,14 @@ private fun findNodeAtPosition(
     panOffset: Offset,
     scale: Float
 ): Node? {
-    val nodeWidth = 120f * scale
-    val nodeHeight = 60f * scale
-
     return flowGraph.rootNodes.findLast { node ->
+        // Calculate node dimensions (same as drawNode)
+        val portSpacing = 25f * scale
+        val nodeWidth = 180f * scale
+        val headerHeight = 30f * scale
+        val maxPorts = maxOf(node.inputPorts.size, node.outputPorts.size)
+        val nodeHeight = headerHeight + (maxPorts.coerceAtLeast(1) * portSpacing) + 20f * scale
+
         val nodePos = Offset(
             node.position.x.toFloat() + panOffset.x,
             node.position.y.toFloat() + panOffset.y

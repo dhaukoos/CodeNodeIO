@@ -33,6 +33,7 @@ import io.codenode.fbpdsl.model.PortTemplate
 import io.codenode.fbpdsl.model.Port
 import io.codenode.fbpdsl.model.CodeNode
 import io.codenode.fbpdsl.model.CodeNodeType
+import io.codenode.fbpdsl.model.Connection
 import androidx.compose.ui.geometry.Offset
 import java.io.File
 import javax.swing.JFileChooser
@@ -249,6 +250,13 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                         onNodeMoved = { nodeId, newX, newY ->
                             graphState.updateNodePosition(nodeId, newX, newY)
                             statusMessage = "Moved node"
+                        },
+                        onConnectionCreated = { connection ->
+                            if (graphState.addConnection(connection)) {
+                                statusMessage = "Created connection"
+                            } else {
+                                statusMessage = graphState.errorMessage ?: "Failed to create connection"
+                            }
                         },
                         modifier = Modifier.weight(1f)
                     )
