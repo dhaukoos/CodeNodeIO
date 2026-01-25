@@ -123,9 +123,12 @@
 - [x] T054 [US2] Implement DSL text generator (FlowGraph → readable text) in fbpDsl/src/commonMain/kotlin/dsl/TextGenerator.kt (TDD Green ✓ - all 6 tests pass)
 - [x] T055 [US2] Implement view toggle UI (button to switch visual ↔ textual) in graphEditor/src/jvmMain/kotlin/ui/ViewToggle.kt
 - [x] T056 [US2] Add syntax highlighting for DSL keywords in textual view in graphEditor/src/jvmMain/kotlin/ui/SyntaxHighlighter.kt
-- [x] T057 [US2] Implement bidirectional sync (changes in text reflect in visual, vice versa) in graphEditor/src/jvmMain/kotlin/state/ViewSynchronizer.kt
+- [~] T057 [US2] Implement bidirectional sync (changes in text reflect in visual, vice versa) in graphEditor/src/jvmMain/kotlin/state/ViewSynchronizer.kt (PARTIAL: Visual→Text works, Text→Visual not yet implemented)
+  - [ ] T057a [US2] Make TextualView editable (replace Text with BasicTextField) in graphEditor/src/jvmMain/kotlin/ui/TextualView.kt
+  - [ ] T057b [US2] Implement DSL parser (text → FlowGraph) in fbpDsl/src/commonMain/kotlin/dsl/DslParser.kt
+  - [ ] T057c [US2] Wire ViewSynchronizer to editable TextualView for text→visual updates
 
-**Checkpoint**: At this point, User Stories 1 AND 2 should both work independently
+**Checkpoint**: At this point, User Stories 1 AND 2 should both work independently (Note: US2 textual view is currently read-only; full bidirectional editing requires T057a-c)
 
 ---
 
