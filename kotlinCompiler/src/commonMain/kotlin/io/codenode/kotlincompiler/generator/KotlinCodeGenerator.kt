@@ -78,7 +78,28 @@ data class GeneratedProject(
     val name: String,
     val version: String,
     val files: List<FileSpec>
-)
+) {
+    /**
+     * Writes all generated files to the specified directory.
+     *
+     * @param outputDir The directory to write files to
+     */
+    fun writeTo(outputDir: java.io.File) {
+        files.forEach { fileSpec ->
+            fileSpec.writeTo(outputDir)
+        }
+    }
+
+    /**
+     * Gets the total number of generated files.
+     */
+    fun fileCount(): Int = files.size
+
+    /**
+     * Gets all generated file names.
+     */
+    fun fileNames(): List<String> = files.map { "${it.name}.kt" }
+}
 
 /**
  * Converts a string to PascalCase for class naming.

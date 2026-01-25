@@ -152,9 +152,9 @@
 - [x] T064 [P] [US3] Implement node-to-component code generation using KotlinPoet in kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/ComponentGenerator.kt
 - [x] T065 [P] [US3] Implement connection-to-flow code generation (coroutines/channels) in kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/FlowGenerator.kt
 - [x] T066 [P] [US3] Create code templates for common node types in kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/templates/ (7 templates: Transformer, Filter, Validator, Splitter, Merger, Generator, Sink)
-- [ ] T067 [US3] Implement build.gradle.kts generation for KMP projects in kotlinCompiler/src/commonMain/kotlin/generator/BuildScriptGenerator.kt
-- [ ] T068 [US3] Implement license validator (check dependencies against constitution) in kotlinCompiler/src/commonMain/kotlin/validator/LicenseValidator.kt
-- [ ] T069 [US3] Create IDE action "Generate KMP Code" in idePlugin/src/main/kotlin/actions/GenerateKMPCodeAction.kt
+- [x] T067 [US3] Implement build.gradle.kts generation for KMP projects in kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/BuildScriptGenerator.kt
+- [x] T068 [US3] Implement license validator (check dependencies against constitution) in kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/validator/LicenseValidator.kt
+- [x] T069 [US3] Create IDE action "Generate KMP Code" in idePlugin/src/main/kotlin/io/codenode/ideplugin/actions/GenerateKMPCodeAction.kt
 - [ ] T070 [US3] Implement generation dialog (target selection: Android, iOS, Web) in idePlugin/src/main/kotlin/ui/GenerationDialog.kt
 - [ ] T071 [US3] Add error reporting for generation failures in idePlugin/src/main/kotlin/ui/GenerationErrorReporter.kt
 
