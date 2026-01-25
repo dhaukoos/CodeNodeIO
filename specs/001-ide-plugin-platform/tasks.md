@@ -113,9 +113,9 @@
 
 ### Tests for User Story 2 (TDD - Write These FIRST) ⚠️
 
-- [ ] T050 [P] [US2] Unit test for DSL text generation from FlowGraph in fbpDsl/src/commonTest/kotlin/dsl/TextGeneratorTest.kt
-- [ ] T051 [P] [US2] UI test for TextualView component in graphEditor/src/jvmTest/kotlin/ui/TextualViewTest.kt
-- [ ] T052 [P] [US2] Integration test for view synchronization (visual ↔ textual) in graphEditor/src/jvmTest/kotlin/ui/ViewSyncTest.kt
+- [x] T050 [P] [US2] Unit test for DSL text generation from FlowGraph in fbpDsl/src/commonTest/kotlin/dsl/TextGeneratorTest.kt (TDD Red ✓ - tests fail correctly)
+- [x] T051 [P] [US2] UI test for TextualView component in graphEditor/src/jvmTest/kotlin/ui/TextualViewTest.kt (TDD Ready ✓)
+- [x] T052 [P] [US2] Integration test for view synchronization (visual ↔ textual) in graphEditor/src/jvmTest/kotlin/ui/ViewSyncTest.kt (TDD Ready ✓)
 
 ### Implementation for User Story 2
 
