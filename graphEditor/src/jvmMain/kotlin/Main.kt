@@ -30,6 +30,8 @@ import io.codenode.grapheditor.ui.CompactCanvasControls
 import io.codenode.grapheditor.ui.ConnectionErrorDisplay
 import io.codenode.grapheditor.ui.FlowGraphCanvas
 import io.codenode.grapheditor.ui.NodePalette
+import io.codenode.grapheditor.ui.GraphEditorWithToggle
+import io.codenode.grapheditor.ui.ViewMode
 import io.codenode.grapheditor.serialization.FlowGraphSerializer
 import io.codenode.grapheditor.serialization.FlowGraphDeserializer
 import io.codenode.fbpdsl.model.NodeTypeDefinition
@@ -245,41 +247,47 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                         }
                     )
 
-                    // Main Canvas
-                    FlowGraphCanvas(
+                    // Main Canvas with View Toggle (Visual/Textual/Split)
+                    GraphEditorWithToggle(
                         flowGraph = graphState.flowGraph,
-                        selectedNodeId = graphState.selectedNodeId,
-                        onNodeSelected = { nodeId ->
-                            graphState.selectNode(nodeId)
-                            statusMessage = if (nodeId != null) "Selected node" else "Deselected"
-                        },
-                        onNodeMoved = { nodeId, newX, newY ->
-                            // Get old position before moving
-                            val node = graphState.flowGraph.findNode(nodeId)
-                            val oldPosition = if (node is CodeNode) {
-                                Offset(node.position.x.toFloat(), node.position.y.toFloat())
-                            } else {
-                                Offset.Zero
-                            }
+                        initialMode = ViewMode.VISUAL,
+                        onVisualViewContent = {
+                            FlowGraphCanvas(
+                                flowGraph = graphState.flowGraph,
+                                selectedNodeId = graphState.selectedNodeId,
+                                onNodeSelected = { nodeId ->
+                                    graphState.selectNode(nodeId)
+                                    statusMessage = if (nodeId != null) "Selected node" else "Deselected"
+                                },
+                                onNodeMoved = { nodeId, newX, newY ->
+                                    // Get old position before moving
+                                    val node = graphState.flowGraph.findNode(nodeId)
+                                    val oldPosition = if (node is CodeNode) {
+                                        Offset(node.position.x.toFloat(), node.position.y.toFloat())
+                                    } else {
+                                        Offset.Zero
+                                    }
 
-                            // Create and execute move command
-                            val command = MoveNodeCommand(
-                                nodeId,
-                                oldPosition,
-                                Offset(newX.toFloat(), newY.toFloat())
+                                    // Create and execute move command
+                                    val command = MoveNodeCommand(
+                                        nodeId,
+                                        oldPosition,
+                                        Offset(newX.toFloat(), newY.toFloat())
+                                    )
+                                    undoRedoManager.execute(command, graphState)
+                                    statusMessage = "Moved node"
+                                },
+                                onConnectionCreated = { connection ->
+                                    // Create and execute add connection command
+                                    val command = AddConnectionCommand(connection)
+                                    try {
+                                        undoRedoManager.execute(command, graphState)
+                                        statusMessage = "Created connection"
+                                    } catch (e: Exception) {
+                                        statusMessage = graphState.errorMessage ?: "Failed to create connection"
+                                    }
+                                }
                             )
-                            undoRedoManager.execute(command, graphState)
-                            statusMessage = "Moved node"
-                        },
-                        onConnectionCreated = { connection ->
-                            // Create and execute add connection command
-                            val command = AddConnectionCommand(connection)
-                            try {
-                                undoRedoManager.execute(command, graphState)
-                                statusMessage = "Created connection"
-                            } catch (e: Exception) {
-                                statusMessage = graphState.errorMessage ?: "Failed to create connection"
-                            }
                         },
                         modifier = Modifier.weight(1f)
                     )

@@ -77,7 +77,7 @@ class FlowGraphBuilder(
         nodeType: String? = null,
         block: NodeBuilder.() -> Unit = {}
     ): NodeBuilder {
-        val builder = NodeBuilder(name, nodeType, isGraphNode = false)
+        val builder = NodeBuilder(name, nodeType, isGraphNode = false, flowGraphBuilder = this)
         builder.block()
         val node = builder.buildCodeNode()
         nodes.add(node)
@@ -95,7 +95,7 @@ class FlowGraphBuilder(
         name: String,
         block: GraphNodeBuilder.() -> Unit = {}
     ): GraphNodeBuilder {
-        val builder = GraphNodeBuilder(name)
+        val builder = GraphNodeBuilder(name, flowGraphBuilder = this)
         builder.block()
         val node = builder.build()
         nodes.add(node)
@@ -166,7 +166,8 @@ class FlowGraphBuilder(
 class NodeBuilder(
     private val name: String,
     private val nodeType: String?,
-    private val isGraphNode: Boolean
+    private val isGraphNode: Boolean,
+    private val flowGraphBuilder: FlowGraphBuilder? = null
 ) {
     private val inputPorts = mutableListOf<Port<*>>()
     private val outputPorts = mutableListOf<Port<*>>()
@@ -193,7 +194,7 @@ class NodeBuilder(
             required = required
         )
         inputPorts.add(port)
-        return PortReference(nodeId, port.id, portName, Port.Direction.INPUT)
+        return PortReference(nodeId, port.id, portName, Port.Direction.INPUT, flowGraphBuilder)
     }
 
     /**
@@ -213,7 +214,7 @@ class NodeBuilder(
             owningNodeId = nodeId
         )
         outputPorts.add(port)
-        return PortReference(nodeId, port.id, portName, Port.Direction.OUTPUT)
+        return PortReference(nodeId, port.id, portName, Port.Direction.OUTPUT, flowGraphBuilder)
     }
 
     /**
@@ -235,7 +236,7 @@ class NodeBuilder(
     fun output(portName: String): PortReference {
         val port = outputPorts.find { it.name == portName }
             ?: throw IllegalArgumentException("Output port '$portName' not found on node '$name'")
-        return PortReference(nodeId, port.id, portName, Port.Direction.OUTPUT)
+        return PortReference(nodeId, port.id, portName, Port.Direction.OUTPUT, flowGraphBuilder)
     }
 
     /**
@@ -247,7 +248,7 @@ class NodeBuilder(
     fun input(portName: String): PortReference {
         val port = inputPorts.find { it.name == portName }
             ?: throw IllegalArgumentException("Input port '$portName' not found on node '$name'")
-        return PortReference(nodeId, port.id, portName, Port.Direction.INPUT)
+        return PortReference(nodeId, port.id, portName, Port.Direction.INPUT, flowGraphBuilder)
     }
 
     /**
@@ -280,7 +281,8 @@ class NodeBuilder(
  */
 @FlowGraphDslMarker
 class GraphNodeBuilder(
-    private val name: String
+    private val name: String,
+    private val flowGraphBuilder: FlowGraphBuilder? = null
 ) {
     private val childNodes = mutableListOf<Node>()
     private val internalConnections = mutableListOf<Connection>()
@@ -347,7 +349,7 @@ class GraphNodeBuilder(
             required = required
         )
         inputPorts.add(port)
-        return PortReference(nodeId, port.id, portName, Port.Direction.INPUT)
+        return PortReference(nodeId, port.id, portName, Port.Direction.INPUT, flowGraphBuilder)
     }
 
     /**
@@ -367,7 +369,7 @@ class GraphNodeBuilder(
             owningNodeId = nodeId
         )
         outputPorts.add(port)
-        return PortReference(nodeId, port.id, portName, Port.Direction.OUTPUT)
+        return PortReference(nodeId, port.id, portName, Port.Direction.OUTPUT, flowGraphBuilder)
     }
 
     /**
@@ -430,7 +432,8 @@ data class PortReference(
     val nodeId: String,
     val portId: String,
     val portName: String,
-    val direction: Port.Direction
+    val direction: Port.Direction,
+    internal val builder: FlowGraphBuilder? = null
 ) {
     /**
      * Infix function to create a connection between ports
@@ -447,12 +450,17 @@ data class PortReference(
             throw IllegalArgumentException("Target port must be INPUT, got ${target.direction}")
         }
 
-        return ConnectionFactory.create(
+        val connection = ConnectionFactory.create(
             sourceNodeId = this.nodeId,
             sourcePortId = this.portId,
             targetNodeId = target.nodeId,
             targetPortId = target.portId
         )
+
+        // Auto-register connection if builder is available
+        builder?.addConnection(connection)
+
+        return connection
     }
 
     /**
@@ -497,13 +505,6 @@ class ConnectionBuilder(
         )
     }
 }
-
-// Extension functions for FlowGraphBuilder to support connection syntax within the DSL
-
-// Note: Connection registration is handled by the PortReference.connect() method
-// To properly register connections in the FlowGraphBuilder, users should capture
-// the returned Connection and manually add it using builder.addConnection() if needed
-// Or connections can be auto-registered during node building
 
 /**
  * DSL marker for port configuration

@@ -119,11 +119,11 @@
 
 ### Implementation for User Story 2
 
-- [ ] T053 [P] [US2] Implement TextualView Composable in graphEditor/src/jvmMain/kotlin/ui/TextualView.kt
-- [ ] T054 [US2] Implement DSL text generator (FlowGraph → readable text) in fbpDsl/src/commonMain/kotlin/dsl/TextGenerator.kt
-- [ ] T055 [US2] Implement view toggle UI (button to switch visual ↔ textual) in graphEditor/src/jvmMain/kotlin/ui/ViewToggle.kt
-- [ ] T056 [US2] Add syntax highlighting for DSL keywords in textual view in graphEditor/src/jvmMain/kotlin/ui/SyntaxHighlighter.kt
-- [ ] T057 [US2] Implement bidirectional sync (changes in text reflect in visual, vice versa) in graphEditor/src/jvmMain/kotlin/state/ViewSynchronizer.kt
+- [x] T053 [P] [US2] Implement TextualView Composable in graphEditor/src/jvmMain/kotlin/ui/TextualView.kt (TDD Green ✓)
+- [x] T054 [US2] Implement DSL text generator (FlowGraph → readable text) in fbpDsl/src/commonMain/kotlin/dsl/TextGenerator.kt (TDD Green ✓ - all 6 tests pass)
+- [x] T055 [US2] Implement view toggle UI (button to switch visual ↔ textual) in graphEditor/src/jvmMain/kotlin/ui/ViewToggle.kt
+- [x] T056 [US2] Add syntax highlighting for DSL keywords in textual view in graphEditor/src/jvmMain/kotlin/ui/SyntaxHighlighter.kt
+- [x] T057 [US2] Implement bidirectional sync (changes in text reflect in visual, vice versa) in graphEditor/src/jvmMain/kotlin/state/ViewSynchronizer.kt
 
 **Checkpoint**: At this point, User Stories 1 AND 2 should both work independently
 
