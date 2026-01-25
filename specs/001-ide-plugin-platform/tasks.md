@@ -140,11 +140,11 @@
 
 ### Tests for User Story 3 (TDD - Write These FIRST) ⚠️
 
-- [ ] T058 [P] [US3] Unit test for KotlinPoet code generation logic in kotlinCompiler/src/commonTest/kotlin/generator/KotlinCodeGeneratorTest.kt
-- [ ] T059 [P] [US3] Contract test: generated code compiles for JVM target in kotlinCompiler/src/commonTest/kotlin/contract/JvmCompilationTest.kt
-- [ ] T060 [P] [US3] Contract test: generated code compiles for Android target in kotlinCompiler/src/commonTest/kotlin/contract/AndroidCompilationTest.kt
-- [ ] T061 [P] [US3] Contract test: generated code compiles for iOS target in kotlinCompiler/src/commonTest/kotlin/contract/IosCompilationTest.kt
-- [ ] T062 [P] [US3] License validation test: no GPL/LGPL/AGPL dependencies in kotlinCompiler/src/commonTest/kotlin/validator/LicenseValidationTest.kt
+- [x] T058 [P] [US3] Unit test for KotlinPoet code generation logic in kotlinCompiler/src/commonTest/kotlin/io/codenode/kotlincompiler/generator/KotlinCodeGeneratorTest.kt (TDD Red ✓ - 1 test fails for edge case)
+- [x] T059 [P] [US3] Contract test: generated code compiles for JVM target in kotlinCompiler/src/commonTest/kotlin/io/codenode/kotlincompiler/contract/JvmCompilationTest.kt (TDD Red ✓ - 2 tests fail)
+- [x] T060 [P] [US3] Contract test: generated code compiles for Android target in kotlinCompiler/src/commonTest/kotlin/io/codenode/kotlincompiler/contract/AndroidCompilationTest.kt (TDD Red ✓ - 1 test fails)
+- [x] T061 [P] [US3] Contract test: generated code compiles for iOS target in kotlinCompiler/src/commonTest/kotlin/io/codenode/kotlincompiler/contract/IosCompilationTest.kt (TDD Red ✓ - 1 test fails)
+- [x] T062 [P] [US3] License validation test: no GPL/LGPL/AGPL dependencies in kotlinCompiler/src/commonTest/kotlin/io/codenode/kotlincompiler/validator/LicenseValidationTest.kt (TDD Red ✓ - all 10 tests pass)
 
 ### Implementation for User Story 3
 
