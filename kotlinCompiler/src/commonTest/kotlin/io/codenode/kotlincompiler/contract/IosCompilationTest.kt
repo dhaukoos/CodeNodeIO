@@ -117,7 +117,9 @@ class IosCompilationTest {
         val fileSpec = generator.generateNodeComponent(node)
 
         // Then file name should be valid for Kotlin/Native filesystem
-        assertEquals("ValidFileName.kt", fileSpec.name, "Should have valid .kt extension")
+        // Note: KotlinPoet FileSpec.name is the simple name without extension
+        // The .kt extension is added when writing to file via FileSpec.writeTo()
+        assertEquals("ValidFileName", fileSpec.name, "Should have valid file name")
         assertFalse(fileSpec.name.contains(" "), "Should not have spaces in filename")
         assertFalse(fileSpec.name.contains("/"), "Should not have slashes in filename")
     }

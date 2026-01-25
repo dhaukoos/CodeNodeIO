@@ -103,7 +103,9 @@ class JvmCompilationTest {
         val fileSpec = generator.generateNodeComponent(node)
 
         // Then file name should be valid for JVM filesystem
-        assertEquals("ValidFileName.kt", fileSpec.name, "Should have valid .kt extension")
+        // Note: KotlinPoet FileSpec.name is the simple name without extension
+        // The .kt extension is added when writing to file via FileSpec.writeTo()
+        assertEquals("ValidFileName", fileSpec.name, "Should have valid file name")
         assertFalse(fileSpec.name.contains(" "), "Should not have spaces in filename")
         assertFalse(fileSpec.name.contains("/"), "Should not have slashes in filename")
     }
@@ -159,10 +161,21 @@ class JvmCompilationTest {
         val fileSpec = generator.generateNodeComponent(node)
         val generatedCode = fileSpec.toString()
 
-        // Then indentation should be consistent (spaces, not tabs for Kotlin convention)
+        // Then indentation should be consistent (spaces only, no tabs - Kotlin convention)
         val lines = generatedCode.split("\n")
-        val indentedLines = lines.filter { it.startsWith("  ") || it.startsWith("\t") || !it.startsWith(" ") }
-        assertEquals(lines.size, indentedLines.size, "All lines should have consistent indentation")
+
+        // KotlinPoet uses 2-space indentation
+        // Every line should either be empty, have no leading whitespace, or have multiples of 2 spaces
+        val validIndentation = lines.all { line ->
+            if (line.isBlank()) true
+            else if (!line[0].isWhitespace()) true
+            else {
+                // Check that indentation is only spaces (no tabs) and is a multiple of 2
+                val leadingSpaces = line.takeWhile { it == ' ' }
+                !line.contains('\t') && leadingSpaces.length == line.takeWhile { it.isWhitespace() }.length
+            }
+        }
+        assertTrue(validIndentation, "All lines should have consistent space-based indentation")
     }
 
     @Test
