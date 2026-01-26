@@ -155,8 +155,8 @@
 - [x] T067 [US3] Implement build.gradle.kts generation for KMP projects in kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/BuildScriptGenerator.kt
 - [x] T068 [US3] Implement license validator (check dependencies against constitution) in kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/validator/LicenseValidator.kt
 - [x] T069 [US3] Create IDE action "Generate KMP Code" in idePlugin/src/main/kotlin/io/codenode/ideplugin/actions/GenerateKMPCodeAction.kt
-- [ ] T070 [US3] Implement generation dialog (target selection: Android, iOS, Web) in idePlugin/src/main/kotlin/ui/GenerationDialog.kt
-- [ ] T071 [US3] Add error reporting for generation failures in idePlugin/src/main/kotlin/ui/GenerationErrorReporter.kt
+- [x] T070 [US3] Implement generation dialog (target selection: Android, iOS, Web) in idePlugin/src/main/kotlin/io/codenode/ideplugin/ui/GenerationDialog.kt
+- [x] T071 [US3] Add error reporting for generation failures in idePlugin/src/main/kotlin/io/codenode/ideplugin/ui/GenerationErrorReporter.kt
 
 **Checkpoint**: At this point, User Stories 1, 2, AND 3 should all work independently
 
