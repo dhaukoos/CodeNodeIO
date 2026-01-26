@@ -198,9 +198,9 @@
 
 ### Tests for User Story 5 (TDD - Write These FIRST) ⚠️
 
-- [ ] T084 [P] [US5] Unit test for PropertyConfiguration validation in fbpDsl/src/commonTest/kotlin/model/PropertyConfigurationTest.kt
-- [ ] T085 [P] [US5] UI test for PropertiesPanel component in graphEditor/src/jvmTest/kotlin/ui/PropertiesPanelTest.kt
-- [ ] T086 [P] [US5] Integration test: property changes reflected in generated code in kotlinCompiler/src/commonTest/kotlin/integration/PropertyCodeGenTest.kt
+- [x] T084 [P] [US5] Unit test for PropertyConfiguration validation in fbpDsl/src/commonTest/kotlin/model/PropertyConfigurationTest.kt (TDD Ready ✓ - all 22 tests pass)
+- [x] T085 [P] [US5] UI test for PropertiesPanel component in graphEditor/src/jvmTest/kotlin/ui/PropertiesPanelTest.kt (TDD Ready ✓ - 14/15 tests pass, 1 fails as expected for unimplemented feature)
+- [x] T086 [P] [US5] Integration test: property changes reflected in generated code in kotlinCompiler/src/commonTest/kotlin/integration/PropertyCodeGenTest.kt (TDD Red ✓ - 8 tests fail as expected, awaiting T090 implementation)
 
 ### Implementation for User Story 5
 
