@@ -10,6 +10,7 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileChooser.FileChooser
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory
 import com.intellij.openapi.progress.ProgressIndicator
@@ -22,6 +23,7 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.ui.components.JBCheckBox
 import com.intellij.ui.dsl.builder.panel
 import io.codenode.fbpdsl.model.FlowGraph
+import io.codenode.ideplugin.services.FlowGraphManager
 import io.codenode.kotlincompiler.generator.BuildScriptGenerator
 import io.codenode.kotlincompiler.generator.KotlinCodeGenerator
 import io.codenode.kotlincompiler.validator.LicenseValidator
@@ -42,6 +44,7 @@ import javax.swing.JComponent
  */
 class GenerateKMPCodeAction : AnAction() {
 
+    private val logger = Logger.getInstance(GenerateKMPCodeAction::class.java)
     private val codeGenerator = KotlinCodeGenerator()
     private val buildScriptGenerator = BuildScriptGenerator()
     private val licenseValidator = LicenseValidator()
@@ -170,40 +173,49 @@ class GenerateKMPCodeAction : AnAction() {
      * Retrieves the flow graph from the current context.
      */
     private fun getFlowGraphFromContext(e: AnActionEvent): FlowGraph? {
-        // Try to get from editor
-        val editor = e.getData(CommonDataKeys.EDITOR)
-        val psiFile = e.getData(CommonDataKeys.PSI_FILE)
+        val project = e.project ?: return null
+        val flowGraphManager = FlowGraphManager.getInstance(project)
 
-        // Check if it's a .flow.kts file
-        if (psiFile?.name?.endsWith(".flow.kts") == true) {
-            // TODO: Parse the DSL file to get FlowGraph
-            // For now, return a placeholder
-            return createPlaceholderFlowGraph(psiFile.name.removeSuffix(".flow.kts"))
+        // First, check if there's an active graph in the manager
+        val activeGraph = flowGraphManager.getActiveGraph()
+        if (activeGraph != null) {
+            logger.info("Using active graph from FlowGraphManager: ${activeGraph.name}")
+            return activeGraph
         }
 
-        // Try to get from project service
-        val project = e.project ?: return null
-        // TODO: Get from FlowGraphManager service
-        // val flowGraphManager = project.getService(FlowGraphManager::class.java)
-        // return flowGraphManager.currentGraph
+        // Try to get from the current file in editor
+        val virtualFile = e.getData(CommonDataKeys.VIRTUAL_FILE)
+        if (virtualFile?.name?.endsWith(".flow.kts") == true) {
+            logger.info("Loading flow graph from file: ${virtualFile.path}")
+            return try {
+                val graph = flowGraphManager.loadFlowGraph(virtualFile)
+                flowGraphManager.setActiveGraph(graph, virtualFile.path)
+                graph
+            } catch (ex: Exception) {
+                logger.warn("Failed to load flow graph: ${ex.message}")
+                null
+            }
+        }
 
+        // Try to get from PSI file
+        val psiFile = e.getData(CommonDataKeys.PSI_FILE)
+        if (psiFile?.name?.endsWith(".flow.kts") == true) {
+            val file = psiFile.virtualFile
+            if (file != null) {
+                logger.info("Loading flow graph from PSI file: ${file.path}")
+                return try {
+                    val graph = flowGraphManager.loadFlowGraph(file)
+                    flowGraphManager.setActiveGraph(graph, file.path)
+                    graph
+                } catch (ex: Exception) {
+                    logger.warn("Failed to load flow graph from PSI: ${ex.message}")
+                    null
+                }
+            }
+        }
+
+        logger.debug("No flow graph found in current context")
         return null
-    }
-
-    /**
-     * Creates a placeholder flow graph for testing.
-     */
-    private fun createPlaceholderFlowGraph(name: String): FlowGraph {
-        return FlowGraph(
-            id = "graph_$name",
-            name = name,
-            version = "1.0.0",
-            description = "Generated from $name.flow.kts",
-            targetPlatforms = listOf(
-                FlowGraph.TargetPlatform.KMP_ANDROID,
-                FlowGraph.TargetPlatform.KMP_IOS
-            )
-        )
     }
 
     /**

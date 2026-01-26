@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+  <!-- Flow graph icon: nodes connected by lines -->
+  <!-- Node 1 (top left) -->
+  <rect x="1" y="1" width="4" height="3" rx="0.5" fill="#6B9BFA" stroke="#3574F0" stroke-width="0.5"/>
+
+  <!-- Node 2 (top right) -->
+  <rect x="11" y="1" width="4" height="3" rx="0.5" fill="#6B9BFA" stroke="#3574F0" stroke-width="0.5"/>
+
+  <!-- Node 3 (middle) -->
+  <rect x="6" y="6.5" width="4" height="3" rx="0.5" fill="#59A869" stroke="#499C54" stroke-width="0.5"/>
+
+  <!-- Node 4 (bottom) -->
+  <rect x="6" y="12" width="4" height="3" rx="0.5" fill="#CC7832" stroke="#B35A00" stroke-width="0.5"/>
+
+  <!-- Connection lines -->
+  <!-- Top left to middle -->
+  <path d="M5 2.5 L6 8" stroke="#808080" stroke-width="0.8" fill="none"/>
+
+  <!-- Top right to middle -->
+  <path d="M11 2.5 L10 8" stroke="#808080" stroke-width="0.8" fill="none"/>
+
+  <!-- Middle to bottom -->
+  <path d="M8 9.5 L8 12" stroke="#808080" stroke-width="0.8" fill="none"/>
+
+  <!-- Small arrows on connections -->
+  <polygon points="7.5,11 8.5,11 8,12" fill="#808080"/>
+</svg>

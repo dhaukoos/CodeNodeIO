@@ -263,11 +263,11 @@
 - [ ] T111 [P] Implement "New Flow Graph" action in idePlugin/src/main/kotlin/actions/NewFlowGraphAction.kt
 - [ ] T112 [P] Implement "Open Graph Editor" action in idePlugin/src/main/kotlin/actions/OpenGraphEditorAction.kt
 - [ ] T113 [P] Implement "Validate Flow Graph" action in idePlugin/src/main/kotlin/actions/ValidateFlowGraphAction.kt
-- [ ] T114 [P] Create FlowGraphManager service in idePlugin/src/main/kotlin/services/FlowGraphManager.kt
+- [x] T114 [P] Create FlowGraphManager service in idePlugin/src/main/kotlin/io/codenode/ideplugin/services/FlowGraphManager.kt
 - [ ] T115 [P] Create CodeGenerationService in idePlugin/src/main/kotlin/services/CodeGenerationService.kt
-- [ ] T116 [P] Register file type for .flow.kts files in plugin.xml
-- [ ] T117 [P] Add custom icon for flow graph files in idePlugin/src/main/resources/icons/
-- [ ] T118 Implement graph editor tool window in idePlugin/src/main/kotlin/toolwindows/GraphEditorToolWindow.kt
+- [x] T116 [P] Register file type for .flow.kts files in idePlugin/src/main/kotlin/io/codenode/ideplugin/filetype/FlowGraphFileType.kt
+- [x] T117 [P] Add custom icon for flow graph files in idePlugin/src/main/resources/icons/flowgraph.svg
+- [x] T118 Implement graph editor tool window in idePlugin/src/main/kotlin/io/codenode/ideplugin/toolwindow/GraphEditorToolWindowFactory.kt
 - [ ] T119 Implement validation results tool window in idePlugin/src/main/kotlin/toolwindows/ValidationResultsToolWindow.kt
 - [ ] T120 Add keyboard shortcuts for common actions in plugin.xml
 
