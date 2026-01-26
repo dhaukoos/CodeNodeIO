@@ -18,7 +18,15 @@ repositories {
 intellij {
     version.set("2024.1")
     type.set("IC") // IntelliJ IDEA Community Edition
-    plugins.set(listOf("java", "Kotlin"))
+    // No plugin dependencies needed - we parse .flow.kts files as text using our own DSL
+}
+
+// Configure plugin version compatibility
+tasks {
+    patchPluginXml {
+        sinceBuild.set("241")
+        untilBuild.set("") // Empty string means no upper bound - compatible with all future versions
+    }
 }
 
 // Configure Kotlin JVM target to 17 (compatible with IntelliJ Platform 2024.1)

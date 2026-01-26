@@ -6,9 +6,10 @@
 
 package io.codenode.ideplugin.filetype
 
-import com.intellij.openapi.fileTypes.LanguageFileType
+import com.intellij.openapi.fileTypes.FileType
 import com.intellij.openapi.util.IconLoader
-import org.jetbrains.kotlin.idea.KotlinLanguage
+import com.intellij.openapi.util.NlsContexts
+import com.intellij.openapi.util.NlsSafe
 import javax.swing.Icon
 
 /**
@@ -18,34 +19,41 @@ import javax.swing.Icon
  * This file type enables:
  * - Custom icon display in project view
  * - Association with the graph editor
- * - Kotlin syntax highlighting (base)
  * - Recognition by IDE actions and services
  */
-object FlowGraphFileType : LanguageFileType(KotlinLanguage.INSTANCE) {
+object FlowGraphFileType : FileType {
 
     /**
      * Unique identifier for this file type.
      */
+    @NlsSafe
     override fun getName(): String = "FlowGraph"
 
     /**
      * Human-readable description shown in file type settings.
      */
+    @NlsContexts.Label
     override fun getDescription(): String = "CodeNodeIO Flow Graph (FBP DSL)"
 
     /**
      * Default file extension (without the dot).
-     * Note: The full extension is "flow.kts" but we register it
-     * via plugin.xml's extensions attribute.
      */
     override fun getDefaultExtension(): String = "flow.kts"
 
     /**
      * Icon displayed in project view and tabs.
-     * Falls back to a built-in icon if custom icon is not found.
      */
     override fun getIcon(): Icon = FLOW_GRAPH_ICON
 
+    /**
+     * Whether this file type is binary.
+     */
+    override fun isBinary(): Boolean = false
+
+    /**
+     * Whether this file type is read-only.
+     */
+    override fun isReadOnly(): Boolean = false
 }
 
 /**

@@ -50,27 +50,21 @@
 
     <!-- Change Notes - updated with each release -->
     <change-notes><![CDATA[
-        <h3>Version 1.0.0</h3>
+        <h3>Version 0.1.0 (Preview)</h3>
         <ul>
-            <li>Initial release</li>
-            <li>Visual flow graph editor with drag-and-drop</li>
-            <li>Node palette with categorized node types</li>
-            <li>Type-safe port connections</li>
-            <li>Graph persistence and serialization</li>
-            <li>Textual representation viewing (FBP DSL)</li>
-            <li>KMP code generation (Android, iOS, Web)</li>
-            <li>Go backend code generation</li>
-            <li>Real-time graph validation</li>
+            <li>Visual flow graph viewer in tool window</li>
+            <li>.flow.kts file type recognition</li>
+            <li>KMP code generation from flow graphs</li>
         </ul>
     ]]></change-notes>
 
-    <!-- Compatibility: IntelliJ Platform 2024.1+ -->
-    <idea-version since-build="241.0"/>
+    <!-- Compatibility: IntelliJ Platform 2024.1+ (build 241) through 2025.x (build 252+) -->
+    <idea-version since-build="241.0" until-build="259.*"/>
 
     <!-- Plugin Dependencies -->
     <depends>com.intellij.modules.platform</depends>
-    <depends>com.intellij.modules.java</depends>
-    <depends>org.jetbrains.kotlin</depends>
+    <!-- Note: Kotlin plugin dependency removed to avoid K2 mode incompatibility.
+         We parse .flow.kts files as text using our own DSL parser. -->
 
     <!-- Extensions -->
     <extensions defaultExtensionNs="com.intellij">
@@ -79,44 +73,37 @@
             name="FlowGraph"
             implementationClass="io.codenode.ideplugin.filetype.FlowGraphFileType"
             fieldName="INSTANCE"
-            language="Kotlin"
             extensions="flow.kts"/>
 
-        <!-- Editor for flow graph files -->
-        <fileEditorProvider implementation="io.codenode.ideplugin.editor.FlowGraphEditorProvider"/>
-
-        <!-- Tool Windows -->
+        <!-- Tool Window: Graph Editor -->
         <toolWindow
             id="CodeNodeIO Graph Editor"
             anchor="right"
             icon="AllIcons.Toolwindows.ToolWindowBuild"
             factoryClass="io.codenode.ideplugin.toolwindow.GraphEditorToolWindowFactory"/>
 
-        <toolWindow
-            id="CodeNodeIO Validation"
-            anchor="bottom"
-            icon="AllIcons.Toolwindows.ToolWindowProblems"
-            factoryClass="io.codenode.ideplugin.toolwindow.ValidationToolWindowFactory"/>
-
         <!-- Project Service for managing flow graphs -->
         <projectService serviceImplementation="io.codenode.ideplugin.services.FlowGraphManager"/>
 
-        <!-- Application Service for node type catalog -->
-        <applicationService serviceImplementation="io.codenode.ideplugin.services.NodeTypeCatalog"/>
-
-        <!-- Code generation service -->
-        <projectService serviceImplementation="io.codenode.ideplugin.services.CodeGenerationService"/>
-
-        <!-- Validation service -->
-        <projectService serviceImplementation="io.codenode.ideplugin.services.ValidationService"/>
+        <!-- Notification group for plugin notifications -->
+        <notificationGroup id="CodeNodeIO" displayType="BALLOON"/>
     </extensions>
 
     <!-- Actions -->
     <actions>
         <!-- Main Menu: Tools > CodeNodeIO -->
-        <group id="CodeNodeIO.MainMenu" text="CodeNodeIO" description="CodeNodeIO FBP Tools">
+        <group id="CodeNodeIO.MainMenu" text="CodeNodeIO" description="CodeNodeIO FBP Tools" popup="true">
             <add-to-group group-id="ToolsMenu" anchor="last"/>
 
+            <action
+                id="CodeNodeIO.GenerateKMPCode"
+                class="io.codenode.ideplugin.actions.GenerateKMPCodeAction"
+                text="Generate KMP Code"
+                description="Generate Kotlin Multiplatform code from flow graph"
+                icon="AllIcons.Actions.Compile">
+            </action>
+
+            <!-- TODO: These actions will be implemented in Phase 10
             <action
                 id="CodeNodeIO.NewFlowGraph"
                 class="io.codenode.ideplugin.actions.NewFlowGraphAction"
@@ -147,14 +134,6 @@
             <separator/>
 
             <action
-                id="CodeNodeIO.GenerateKMPCode"
-                class="io.codenode.ideplugin.actions.GenerateKMPCodeAction"
-                text="Generate KMP Code"
-                description="Generate Kotlin Multiplatform code from flow graph"
-                icon="AllIcons.Actions.Compile">
-            </action>
-
-            <action
                 id="CodeNodeIO.GenerateGoCode"
                 class="io.codenode.ideplugin.actions.GenerateGoCodeAction"
                 text="Generate Go Code"
@@ -171,32 +150,14 @@
                 description="Open the circuit simulator for debugging data flow"
                 icon="AllIcons.Actions.StartDebugger">
             </action>
+            -->
         </group>
 
-        <!-- Context Menu Actions -->
+        <!-- Context Menu Actions for .flow.kts files -->
         <group id="CodeNodeIO.EditorPopupMenu">
             <add-to-group group-id="EditorPopupMenu" anchor="last"/>
             <separator/>
-            <reference ref="CodeNodeIO.ValidateGraph"/>
             <reference ref="CodeNodeIO.GenerateKMPCode"/>
-            <reference ref="CodeNodeIO.GenerateGoCode"/>
-        </group>
-
-        <!-- Project View Context Menu -->
-        <group id="CodeNodeIO.ProjectViewPopupMenu">
-            <add-to-group group-id="ProjectViewPopupMenu" anchor="last"/>
-            <separator/>
-            <reference ref="CodeNodeIO.NewFlowGraph"/>
         </group>
     </actions>
-
-    <!-- Application Components (deprecated but kept for compatibility) -->
-    <application-components>
-        <!-- No application components needed -->
-    </application-components>
-
-    <!-- Project Components (deprecated but kept for compatibility) -->
-    <project-components>
-        <!-- No project components needed -->
-    </project-components>
 </idea-plugin>
