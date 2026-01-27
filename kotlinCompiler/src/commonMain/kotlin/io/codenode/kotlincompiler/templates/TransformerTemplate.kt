@@ -11,7 +11,7 @@ import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import io.codenode.fbpdsl.model.CodeNode
 import io.codenode.fbpdsl.model.CodeNodeType
 import io.codenode.kotlincompiler.generator.camelCase
-import io.codenode.kotlincompiler.generator.ComponentGenerator
+import io.codenode.kotlincompiler.generator.ConfigAwareGenerator
 
 /**
  * Template for generating Transformer node components.
@@ -74,6 +74,9 @@ class TransformerTemplate : NodeTemplate {
                 .initializer("%T()", ClassName("kotlinx.coroutines.flow", "MutableSharedFlow"))
                 .build()
         )
+
+        // Add configuration properties
+        ConfigAwareGenerator.addConfigurationProperties(classBuilder, node)
 
         // Add transform function
         classBuilder.addFunction(generateTransformFunction(inputName))

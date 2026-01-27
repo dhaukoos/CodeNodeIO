@@ -240,6 +240,24 @@ class GraphState(initialGraph: FlowGraph = flowGraph(
         isDirty = true
     }
 
+    /**
+     * Updates a property value on a node's configuration
+     *
+     * @param nodeId The ID of the node to update
+     * @param propertyKey The configuration key to update
+     * @param value The new value
+     */
+    fun updateNodeProperty(nodeId: String, propertyKey: String, value: String) {
+        val node = flowGraph.findNode(nodeId) as? CodeNode ?: return
+
+        val updatedConfig = node.configuration + (propertyKey to value)
+        val updatedNode = node.copy(configuration = updatedConfig)
+
+        // Replace the node in the graph
+        flowGraph = flowGraph.removeNode(nodeId).addNode(updatedNode)
+        isDirty = true
+    }
+
     // ============================================================================
     // Selection Operations
     // ============================================================================

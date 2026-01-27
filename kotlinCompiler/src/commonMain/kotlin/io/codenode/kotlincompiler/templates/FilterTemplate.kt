@@ -11,6 +11,7 @@ import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import io.codenode.fbpdsl.model.CodeNode
 import io.codenode.fbpdsl.model.CodeNodeType
 import io.codenode.kotlincompiler.generator.camelCase
+import io.codenode.kotlincompiler.generator.ConfigAwareGenerator
 
 /**
  * Template for generating Filter node components.
@@ -82,6 +83,9 @@ class FilterTemplate : NodeTemplate {
                 .addKdoc("Output for data that doesn't match the filter")
                 .build()
         )
+
+        // Add configuration properties
+        ConfigAwareGenerator.addConfigurationProperties(classBuilder, node)
 
         // Add matches function
         classBuilder.addFunction(generateMatchesFunction())

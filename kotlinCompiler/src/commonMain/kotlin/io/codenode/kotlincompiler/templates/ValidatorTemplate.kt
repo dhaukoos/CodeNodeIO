@@ -11,6 +11,7 @@ import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import io.codenode.fbpdsl.model.CodeNode
 import io.codenode.fbpdsl.model.CodeNodeType
 import io.codenode.kotlincompiler.generator.camelCase
+import io.codenode.kotlincompiler.generator.ConfigAwareGenerator
 
 /**
  * Template for generating Validator node components.
@@ -80,6 +81,9 @@ class ValidatorTemplate : NodeTemplate {
                 .addKdoc("Output for data that fails validation (includes error info)")
                 .build()
         )
+
+        // Add configuration properties
+        ConfigAwareGenerator.addConfigurationProperties(classBuilder, node)
 
         // Add ValidationResult inner class
         classBuilder.addType(generateValidationResultClass())

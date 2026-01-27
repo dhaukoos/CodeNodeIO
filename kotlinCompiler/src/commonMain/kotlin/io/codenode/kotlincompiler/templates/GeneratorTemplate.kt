@@ -11,6 +11,7 @@ import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import io.codenode.fbpdsl.model.CodeNode
 import io.codenode.fbpdsl.model.CodeNodeType
 import io.codenode.kotlincompiler.generator.camelCase
+import io.codenode.kotlincompiler.generator.ConfigAwareGenerator
 
 /**
  * Template for generating Generator node components.
@@ -80,6 +81,9 @@ class GeneratorTemplate : NodeTemplate {
                 .initializer("false")
                 .build()
         )
+
+        // Add configuration properties
+        ConfigAwareGenerator.addConfigurationProperties(classBuilder, node)
 
         // Add generate function
         classBuilder.addFunction(generateGenerateFunction())

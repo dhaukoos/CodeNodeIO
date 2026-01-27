@@ -11,6 +11,7 @@ import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import io.codenode.fbpdsl.model.CodeNode
 import io.codenode.fbpdsl.model.CodeNodeType
 import io.codenode.kotlincompiler.generator.camelCase
+import io.codenode.kotlincompiler.generator.ConfigAwareGenerator
 
 /**
  * Template for generating Splitter node components.
@@ -80,6 +81,9 @@ class SplitterTemplate : NodeTemplate {
                     .build()
             )
         }
+
+        // Add configuration properties
+        ConfigAwareGenerator.addConfigurationProperties(classBuilder, node)
 
         // Add route function
         classBuilder.addFunction(generateRouteFunction(outputNames))

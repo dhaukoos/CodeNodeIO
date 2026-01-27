@@ -11,6 +11,7 @@ import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import io.codenode.fbpdsl.model.CodeNode
 import io.codenode.fbpdsl.model.CodeNodeType
 import io.codenode.kotlincompiler.generator.camelCase
+import io.codenode.kotlincompiler.generator.ConfigAwareGenerator
 
 /**
  * Template for generating Merger node components.
@@ -85,6 +86,9 @@ class MergerTemplate : NodeTemplate {
                 .initializer("mutableMapOf()")
                 .build()
         )
+
+        // Add configuration properties
+        ConfigAwareGenerator.addConfigurationProperties(classBuilder, node)
 
         // Add merge function
         classBuilder.addFunction(generateMergeFunction(inputNames))
