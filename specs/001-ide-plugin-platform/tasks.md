@@ -204,9 +204,9 @@
 
 ### Implementation for User Story 5
 
-- [ ] T087 [P] [US5] Implement PropertiesPanel Composable in graphEditor/src/jvmMain/kotlin/ui/PropertiesPanel.kt
-- [ ] T088 [P] [US5] Implement property editors (text, number, boolean, dropdown) in graphEditor/src/jvmMain/kotlin/ui/PropertyEditors.kt
-- [ ] T089 [US5] Implement property validation logic in fbpDsl/src/commonMain/kotlin/validation/PropertyValidator.kt
+- [x] T087 [P] [US5] Implement PropertiesPanel Composable in graphEditor/src/jvmMain/kotlin/ui/PropertiesPanel.kt
+- [x] T088 [P] [US5] Implement property editors (text, number, boolean, dropdown) in graphEditor/src/jvmMain/kotlin/ui/PropertyEditors.kt
+- [x] T089 [US5] Implement property validation logic in fbpDsl/src/commonMain/kotlin/validation/PropertyValidator.kt
 - [ ] T090 [US5] Update code generators to use node configurations in kotlinCompiler/src/commonMain/kotlin/generator/ConfigAwareGenerator.kt
 - [ ] T091 [US5] Update code generators to use node configurations in goCompiler/src/commonMain/kotlin/generator/ConfigAwareGoGenerator.kt
 - [ ] T092 [US5] Add property change tracking (undo/redo support) in graphEditor/src/jvmMain/kotlin/state/PropertyChangeTracker.kt
