@@ -45,6 +45,7 @@ java {
 dependencies {
     // Note: Kotlin stdlib and coroutines are provided by IntelliJ Platform
     implementation(libs.serialization.json)
+    implementation(libs.kotlinPoet)  // Required for code generation service
 
     // Dependencies on all project modules
     implementation(project(":fbpDsl"))

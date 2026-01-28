@@ -85,6 +85,9 @@
         <!-- Project Service for managing flow graphs -->
         <projectService serviceImplementation="io.codenode.ideplugin.services.FlowGraphManager"/>
 
+        <!-- Project Service for code generation -->
+        <projectService serviceImplementation="io.codenode.ideplugin.services.CodeGenerationService"/>
+
         <!-- Notification group for plugin notifications -->
         <notificationGroup id="CodeNodeIO" displayType="BALLOON"/>
     </extensions>
@@ -95,15 +98,6 @@
         <group id="CodeNodeIO.MainMenu" text="CodeNodeIO" description="CodeNodeIO FBP Tools" popup="true">
             <add-to-group group-id="ToolsMenu" anchor="last"/>
 
-            <action
-                id="CodeNodeIO.GenerateKMPCode"
-                class="io.codenode.ideplugin.actions.GenerateKMPCodeAction"
-                text="Generate KMP Code"
-                description="Generate Kotlin Multiplatform code from flow graph"
-                icon="AllIcons.Actions.Compile">
-            </action>
-
-            <!-- TODO: These actions will be implemented in Phase 10
             <action
                 id="CodeNodeIO.NewFlowGraph"
                 class="io.codenode.ideplugin.actions.NewFlowGraphAction"
@@ -122,6 +116,17 @@
                 <keyboard-shortcut first-keystroke="control alt G" keymap="$default"/>
             </action>
 
+            <separator/>
+
+            <action
+                id="CodeNodeIO.GenerateKMPCode"
+                class="io.codenode.ideplugin.actions.GenerateKMPCodeAction"
+                text="Generate KMP Code"
+                description="Generate Kotlin Multiplatform code from flow graph"
+                icon="AllIcons.Actions.Compile">
+            </action>
+
+            <!-- TODO: These actions will be implemented in future phases
             <action
                 id="CodeNodeIO.ValidateGraph"
                 class="io.codenode.ideplugin.actions.ValidateFlowGraphAction"
@@ -157,7 +162,26 @@
         <group id="CodeNodeIO.EditorPopupMenu">
             <add-to-group group-id="EditorPopupMenu" anchor="last"/>
             <separator/>
+            <action
+                id="CodeNodeIO.OpenInGraphEditor"
+                class="io.codenode.ideplugin.actions.OpenCurrentFileInGraphEditorAction"
+                text="Open in Graph Editor"
+                description="Open this flow graph in the visual editor"
+                icon="AllIcons.Actions.Edit"/>
             <reference ref="CodeNodeIO.GenerateKMPCode"/>
+        </group>
+
+        <!-- Project View Context Menu Actions -->
+        <group id="CodeNodeIO.ProjectViewPopupMenu">
+            <add-to-group group-id="ProjectViewPopupMenu" anchor="last"/>
+            <separator/>
+            <reference ref="CodeNodeIO.NewFlowGraph"/>
+            <action
+                id="CodeNodeIO.OpenInGraphEditorFromProject"
+                class="io.codenode.ideplugin.actions.OpenCurrentFileInGraphEditorAction"
+                text="Open in Graph Editor"
+                description="Open this flow graph in the visual editor"
+                icon="AllIcons.Actions.Edit"/>
         </group>
     </actions>
 </idea-plugin>

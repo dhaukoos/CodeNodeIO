@@ -123,10 +123,6 @@
 - [x] T054 [US2] Implement DSL text generator (FlowGraph → readable text) in fbpDsl/src/commonMain/kotlin/dsl/TextGenerator.kt (TDD Green ✓ - all 6 tests pass)
 - [x] T055 [US2] Implement view toggle UI (button to switch visual ↔ textual) in graphEditor/src/jvmMain/kotlin/ui/ViewToggle.kt
 - [x] T056 [US2] Add syntax highlighting for DSL keywords in textual view in graphEditor/src/jvmMain/kotlin/ui/SyntaxHighlighter.kt
-- [~] T057 [US2] Implement bidirectional sync (changes in text reflect in visual, vice versa) in graphEditor/src/jvmMain/kotlin/state/ViewSynchronizer.kt (PARTIAL: Visual→Text works, Text→Visual not yet implemented)
-  - [ ] T057a [US2] Make TextualView editable (replace Text with BasicTextField) in graphEditor/src/jvmMain/kotlin/ui/TextualView.kt
-  - [ ] T057b [US2] Implement DSL parser (text → FlowGraph) in fbpDsl/src/commonMain/kotlin/dsl/DslParser.kt
-  - [ ] T057c [US2] Wire ViewSynchronizer to editable TextualView for text→visual updates
 
 **Checkpoint**: At this point, User Stories 1 AND 2 should both work independently (Note: US2 textual view is currently read-only; full bidirectional editing requires T057a-c)
 
@@ -193,11 +189,11 @@
 
 **Purpose**: Complete IDE plugin integration
 
-- [ ] T111 [P] Implement "New Flow Graph" action in idePlugin/src/main/kotlin/actions/NewFlowGraphAction.kt
-- [ ] T112 [P] Implement "Open Graph Editor" action in idePlugin/src/main/kotlin/actions/OpenGraphEditorAction.kt
+- [x] T111 [P] Implement "New Flow Graph" action in idePlugin/src/main/kotlin/actions/NewFlowGraphAction.kt
+- [x] T112 [P] Implement "Open Graph Editor" action in idePlugin/src/main/kotlin/actions/OpenGraphEditorAction.kt
 
 - [x] T114 [P] Create FlowGraphManager service in idePlugin/src/main/kotlin/io/codenode/ideplugin/services/FlowGraphManager.kt
-- [ ] T115 [P] Create CodeGenerationService in idePlugin/src/main/kotlin/services/CodeGenerationService.kt
+- [x] T115 [P] Create CodeGenerationService in idePlugin/src/main/kotlin/services/CodeGenerationService.kt
 - [x] T116 [P] Register file type for .flow.kts files in idePlugin/src/main/kotlin/io/codenode/ideplugin/filetype/FlowGraphFileType.kt
 - [x] T117 [P] Add custom icon for flow graph files in idePlugin/src/main/resources/icons/flowgraph.svg
 - [x] T118 Implement graph editor tool window in idePlugin/src/main/kotlin/io/codenode/ideplugin/toolwindow/GraphEditorToolWindowFactory.kt

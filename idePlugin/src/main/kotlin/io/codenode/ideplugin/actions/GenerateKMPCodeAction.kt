@@ -23,10 +23,10 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.ui.components.JBCheckBox
 import com.intellij.ui.dsl.builder.panel
 import io.codenode.fbpdsl.model.FlowGraph
+import io.codenode.ideplugin.services.CodeGenerationService
 import io.codenode.ideplugin.services.FlowGraphManager
+import io.codenode.ideplugin.services.GenerationErrorType
 import io.codenode.kotlincompiler.generator.BuildScriptGenerator
-import io.codenode.kotlincompiler.generator.KotlinCodeGenerator
-import io.codenode.kotlincompiler.validator.LicenseValidator
 import java.io.File
 import javax.swing.JComponent
 
@@ -45,9 +45,6 @@ import javax.swing.JComponent
 class GenerateKMPCodeAction : AnAction() {
 
     private val logger = Logger.getInstance(GenerateKMPCodeAction::class.java)
-    private val codeGenerator = KotlinCodeGenerator()
-    private val buildScriptGenerator = BuildScriptGenerator()
-    private val licenseValidator = LicenseValidator()
 
     override fun actionPerformed(e: AnActionEvent) {
         val project = e.project ?: return
@@ -70,97 +67,36 @@ class GenerateKMPCodeAction : AnAction() {
         val config = dialog.getTargetConfig()
         val outputDir = selectOutputDirectory(project) ?: return
 
-        // Run generation in background
-        ProgressManager.getInstance().run(object : Task.Backgroundable(
-            project,
-            "Generating KMP Code",
-            true
-        ) {
-            override fun run(indicator: ProgressIndicator) {
-                try {
-                    indicator.text = "Validating flow graph..."
-                    indicator.fraction = 0.1
+        // Use the CodeGenerationService
+        val codeGenerationService = CodeGenerationService.getInstance(project)
 
-                    // Validate the flow graph
-                    val validation = flowGraph.validate()
-                    if (!validation.success) {
-                        ApplicationManager.getApplication().invokeLater {
-                            Messages.showErrorDialog(
-                                project,
-                                "Flow graph validation failed:\n${validation.errors.joinToString("\n")}",
-                                "Generation Error"
-                            )
-                        }
-                        return
-                    }
-
-                    indicator.text = "Generating component classes..."
-                    indicator.fraction = 0.3
-
-                    // Generate the project
-                    val generatedProject = codeGenerator.generateProject(flowGraph)
-
-                    indicator.text = "Generating build scripts..."
-                    indicator.fraction = 0.5
-
-                    // Generate build scripts
-                    val buildScript = buildScriptGenerator.generateBuildScript(flowGraph, config)
-                    val settingsScript = buildScriptGenerator.generateSettingsScript(flowGraph.name)
-                    val gradleProperties = buildScriptGenerator.generateGradleProperties()
-
-                    indicator.text = "Validating licenses..."
-                    indicator.fraction = 0.7
-
-                    // Validate licenses
-                    val licenseResult = licenseValidator.validateBuildScript(buildScript)
-                    if (!licenseResult.isValid) {
-                        val report = licenseValidator.generateReport(licenseResult)
-                        ApplicationManager.getApplication().invokeLater {
-                            Messages.showErrorDialog(
-                                project,
-                                "License validation failed:\n\n$report",
-                                "License Violation"
-                            )
-                        }
-                        return
-                    }
-
-                    indicator.text = "Writing files..."
-                    indicator.fraction = 0.9
-
-                    // Write files to output directory
-                    writeGeneratedFiles(
-                        outputDir,
-                        flowGraph.name,
-                        generatedProject,
-                        buildScript,
-                        settingsScript,
-                        gradleProperties
-                    )
-
-                    indicator.fraction = 1.0
-
-                    ApplicationManager.getApplication().invokeLater {
-                        Messages.showInfoMessage(
-                            project,
-                            "KMP code generated successfully!\n\n" +
-                                "Output: ${outputDir.path}/${flowGraph.name}\n" +
-                                "Files: ${generatedProject.files.size} source files\n" +
-                                "Targets: ${getTargetSummary(config)}",
-                            "Generation Complete"
-                        )
-                    }
-                } catch (ex: Exception) {
-                    ApplicationManager.getApplication().invokeLater {
-                        Messages.showErrorDialog(
-                            project,
-                            "Code generation failed: ${ex.message}",
-                            "Generation Error"
-                        )
-                    }
+        codeGenerationService.generateKMPCodeAsync(
+            flowGraph = flowGraph,
+            config = config,
+            outputDir = File(outputDir.path)
+        ) { result ->
+            if (result.success) {
+                Messages.showInfoMessage(
+                    project,
+                    "KMP code generated successfully!\n\n" +
+                        "Output: ${result.outputPath}\n" +
+                        "Files: ${result.fileCount} files\n" +
+                        "Targets: ${result.targetSummary}",
+                    "Generation Complete"
+                )
+            } else {
+                val title = when (result.errorType) {
+                    GenerationErrorType.LICENSE_VIOLATION -> "License Violation"
+                    GenerationErrorType.VALIDATION_FAILED -> "Validation Error"
+                    else -> "Generation Error"
                 }
+                Messages.showErrorDialog(
+                    project,
+                    result.errorMessage ?: "Unknown error occurred",
+                    title
+                )
             }
-        })
+        }
     }
 
     override fun update(e: AnActionEvent) {
@@ -227,53 +163,6 @@ class GenerateKMPCodeAction : AnAction() {
             .withDescription("Choose where to generate the KMP project")
 
         return FileChooser.chooseFile(descriptor, project, project.baseDir)
-    }
-
-    /**
-     * Writes all generated files to the output directory.
-     */
-    private fun writeGeneratedFiles(
-        outputDir: VirtualFile,
-        projectName: String,
-        generatedProject: io.codenode.kotlincompiler.generator.GeneratedProject,
-        buildScript: String,
-        settingsScript: String,
-        gradleProperties: String
-    ) {
-        val projectDir = File(outputDir.path, projectName)
-        projectDir.mkdirs()
-
-        // Write build.gradle.kts
-        File(projectDir, "build.gradle.kts").writeText(buildScript)
-
-        // Write settings.gradle.kts
-        File(projectDir, "settings.gradle.kts").writeText(settingsScript)
-
-        // Write gradle.properties
-        File(projectDir, "gradle.properties").writeText(gradleProperties)
-
-        // Create source directories
-        val srcDir = File(projectDir, "src/commonMain/kotlin/io/codenode/generated")
-        srcDir.mkdirs()
-
-        // Write generated source files using the GeneratedProject's file writing capability
-        generatedProject.writeTo(srcDir)
-
-        // Refresh the file system
-        outputDir.refresh(true, true)
-    }
-
-    /**
-     * Returns a summary of selected targets.
-     */
-    private fun getTargetSummary(config: BuildScriptGenerator.TargetConfig): String {
-        val targets = mutableListOf<String>()
-        if (config.android) targets.add("Android")
-        if (config.ios) targets.add("iOS")
-        if (config.desktop) targets.add("Desktop")
-        if (config.js) targets.add("Web (JS)")
-        if (config.wasm) targets.add("Web (Wasm)")
-        return targets.joinToString(", ")
     }
 
     /**
