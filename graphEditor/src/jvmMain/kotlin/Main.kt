@@ -32,6 +32,9 @@ import io.codenode.grapheditor.ui.FlowGraphCanvas
 import io.codenode.grapheditor.ui.NodePalette
 import io.codenode.grapheditor.ui.GraphEditorWithToggle
 import io.codenode.grapheditor.ui.ViewMode
+import io.codenode.grapheditor.ui.CompactPropertiesPanel
+import io.codenode.grapheditor.ui.PropertiesPanelState
+import io.codenode.grapheditor.state.rememberPropertyChangeTracker
 import io.codenode.grapheditor.serialization.FlowGraphSerializer
 import io.codenode.grapheditor.serialization.FlowGraphDeserializer
 import io.codenode.fbpdsl.model.NodeTypeDefinition
@@ -62,7 +65,22 @@ fun createSampleNodeTypes(): List<NodeTypeDefinition> {
                     dataType = String::class,
                     description = "Data output stream"
                 )
-            )
+            ),
+            defaultConfiguration = mapOf(
+                "intervalMs" to "1000",
+                "maxItems" to "100",
+                "autoStart" to "true"
+            ),
+            configurationSchema = """
+                {
+                    "type": "object",
+                    "properties": {
+                        "intervalMs": {"type": "integer", "minimum": 100, "maximum": 60000},
+                        "maxItems": {"type": "integer", "minimum": 1, "maximum": 10000},
+                        "autoStart": {"type": "boolean"}
+                    }
+                }
+            """.trimIndent()
         ),
         NodeTypeDefinition(
             id = "nodeType_transformer",
@@ -82,7 +100,20 @@ fun createSampleNodeTypes(): List<NodeTypeDefinition> {
                     dataType = String::class,
                     description = "Transformed data output"
                 )
-            )
+            ),
+            defaultConfiguration = mapOf(
+                "outputFormat" to "json",
+                "preserveOrder" to "true"
+            ),
+            configurationSchema = """
+                {
+                    "type": "object",
+                    "properties": {
+                        "outputFormat": {"type": "string", "enum": ["json", "xml", "csv"]},
+                        "preserveOrder": {"type": "boolean"}
+                    }
+                }
+            """.trimIndent()
         ),
         NodeTypeDefinition(
             id = "nodeType_filter",
@@ -108,7 +139,23 @@ fun createSampleNodeTypes(): List<NodeTypeDefinition> {
                     dataType = Any::class,
                     description = "Data that failed filter"
                 )
-            )
+            ),
+            defaultConfiguration = mapOf(
+                "filterField" to "status",
+                "filterValue" to "active",
+                "caseSensitive" to "false"
+            ),
+            configurationSchema = """
+                {
+                    "type": "object",
+                    "properties": {
+                        "filterField": {"type": "string"},
+                        "filterValue": {"type": "string"},
+                        "caseSensitive": {"type": "boolean"}
+                    },
+                    "required": ["filterField", "filterValue"]
+                }
+            """.trimIndent()
         ),
         NodeTypeDefinition(
             id = "nodeType_api",
@@ -128,7 +175,23 @@ fun createSampleNodeTypes(): List<NodeTypeDefinition> {
                     dataType = Any::class,
                     description = "Response data"
                 )
-            )
+            ),
+            defaultConfiguration = mapOf(
+                "url" to "https://api.example.com",
+                "method" to "GET",
+                "timeout" to "30"
+            ),
+            configurationSchema = """
+                {
+                    "type": "object",
+                    "properties": {
+                        "url": {"type": "string"},
+                        "method": {"type": "string", "enum": ["GET", "POST", "PUT", "DELETE"]},
+                        "timeout": {"type": "integer", "minimum": 1, "maximum": 120}
+                    },
+                    "required": ["url"]
+                }
+            """.trimIndent()
         ),
         NodeTypeDefinition(
             id = "nodeType_database",
@@ -148,7 +211,23 @@ fun createSampleNodeTypes(): List<NodeTypeDefinition> {
                     dataType = Any::class,
                     description = "Query results"
                 )
-            )
+            ),
+            defaultConfiguration = mapOf(
+                "connectionString" to "jdbc:postgresql://localhost:5432/db",
+                "maxResults" to "100",
+                "timeout" to "30"
+            ),
+            configurationSchema = """
+                {
+                    "type": "object",
+                    "properties": {
+                        "connectionString": {"type": "string"},
+                        "maxResults": {"type": "integer", "minimum": 1, "maximum": 10000},
+                        "timeout": {"type": "integer", "minimum": 1, "maximum": 300}
+                    },
+                    "required": ["connectionString"]
+                }
+            """.trimIndent()
         )
     )
 }
@@ -167,6 +246,7 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
     }
     val graphState = remember { GraphState(initialGraph) }
     val undoRedoManager = rememberUndoRedoManager()
+    val propertyChangeTracker = rememberPropertyChangeTracker(undoRedoManager, graphState)
     val nodeTypes = remember { createSampleNodeTypes() }
     var showSaveDialog by remember { mutableStateOf(false) }
     var showOpenDialog by remember { mutableStateOf(false) }
@@ -238,7 +318,8 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                                         dataType = template.dataType,
                                         owningNodeId = nodeId
                                     )
-                                }
+                                },
+                                configuration = nodeType.defaultConfiguration
                             )
                             // Use undo/redo manager to execute the command
                             val command = AddNodeCommand(newNode, Offset(xOffset.toFloat(), yOffset.toFloat()))
@@ -290,6 +371,28 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                             )
                         },
                         modifier = Modifier.weight(1f)
+                    )
+
+                    // Properties Panel (right side) - shows when a node is selected
+                    val selectedNode = graphState.selectedNodeId?.let { nodeId ->
+                        graphState.flowGraph.findNode(nodeId) as? CodeNode
+                    }
+
+                    CompactPropertiesPanel(
+                        selectedNode = selectedNode,
+                        propertyDefinitions = selectedNode?.let { node ->
+                            // Derive property definitions from node type or use defaults
+                            nodeTypes.find { it.name == node.name }?.let { nodeType ->
+                                PropertiesPanelState.derivePropertyDefinitions(nodeType)
+                            } ?: emptyList()
+                        } ?: emptyList(),
+                        onPropertyChanged = { key, value ->
+                            selectedNode?.let { node ->
+                                val oldValue = node.configuration[key] ?: ""
+                                propertyChangeTracker.trackChange(node.id, key, oldValue, value)
+                                statusMessage = "Updated property: $key"
+                            }
+                        }
                     )
                 }
 

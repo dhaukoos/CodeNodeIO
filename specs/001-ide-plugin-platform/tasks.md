@@ -162,32 +162,6 @@
 
 ---
 
-## Phase 6: User Story 4 - Go Backend Code Generation (Priority: P4)
-
-**Goal**: Generate Go code for backend services from flow graphs
-
-**Independent Test**: Create flow graph for API endpoint, generate Go code, build binary, verify endpoint responds correctly
-
-### Tests for User Story 4 (TDD - Write These FIRST) ⚠️
-
-- [ ] T072 [P] [US4] Unit test for Go template rendering in goCompiler/src/commonTest/kotlin/generator/GoCodeGeneratorTest.kt
-- [ ] T073 [P] [US4] Contract test: generated Go code compiles successfully in goCompiler/src/commonTest/kotlin/contract/GoCompilationTest.kt
-- [ ] T074 [P] [US4] Contract test: generated Go code passes `go vet` in goCompiler/src/commonTest/kotlin/contract/GoVetTest.kt
-- [ ] T075 [P] [US4] License validation test: no GPL/LGPL/AGPL Go modules in goCompiler/src/commonTest/kotlin/validator/GoLicenseValidationTest.kt
-
-### Implementation for User Story 4
-
-- [ ] T076 [P] [US4] Create GoCodeGenerator class in goCompiler/src/commonMain/kotlin/generator/GoCodeGenerator.kt
-- [ ] T077 [P] [US4] Create Go code templates for nodes using text/template in goCompiler/src/commonMain/kotlin/templates/
-- [ ] T078 [US4] Implement node-to-handler code generation in goCompiler/src/commonMain/kotlin/generator/HandlerGenerator.kt
-- [ ] T079 [US4] Implement go.mod file generation in goCompiler/src/commonMain/kotlin/generator/GoModGenerator.kt
-- [ ] T080 [US4] Implement Go code formatting using go/format in goCompiler/src/commonMain/kotlin/generator/GoFormatter.kt
-- [ ] T081 [US4] Implement Go license validator in goCompiler/src/commonMain/kotlin/validator/GoLicenseValidator.kt
-- [ ] T082 [US4] Create IDE action "Generate Go Code" in idePlugin/src/main/kotlin/actions/GenerateGoCodeAction.kt
-- [ ] T083 [US4] Implement Go generation dialog (module name, version) in idePlugin/src/main/kotlin/ui/GoGenerationDialog.kt
-
-**Checkpoint**: All code generation user stories should now be independently functional
-
 ---
 
 ## Phase 7: User Story 5 - Node Configuration and Properties (Priority: P5)
@@ -208,51 +182,10 @@
 - [x] T088 [P] [US5] Implement property editors (text, number, boolean, dropdown) in graphEditor/src/jvmMain/kotlin/ui/PropertyEditors.kt
 - [x] T089 [US5] Implement property validation logic in fbpDsl/src/commonMain/kotlin/validation/PropertyValidator.kt
 - [x] T090 [US5] Update code generators to use node configurations in kotlinCompiler/src/commonMain/kotlin/generator/ConfigAwareGenerator.kt
-- [ ] T091 [US5] Update code generators to use node configurations in goCompiler/src/commonMain/kotlin/generator/ConfigAwareGoGenerator.kt
+
 - [x] T092 [US5] Add property change tracking (undo/redo support) in graphEditor/src/jvmMain/kotlin/state/PropertyChangeTracker.kt
 
 **Checkpoint**: Node configuration should work end-to-end (edit properties → generate code → code reflects config)
-
----
-
-## Phase 8: User Story 6 - Flow Graph Validation and Error Detection (Priority: P6)
-
-**Goal**: Validate flow graphs and highlight errors before code generation
-
-**Independent Test**: Create invalid flow graphs (disconnected ports, cycles, type mismatches), verify system detects and reports errors clearly
-
-### Tests for User Story 6 (TDD - Write These FIRST) ⚠️
-
-- [ ] T093 [P] [US6] Unit test for unconnected port detection in fbpDsl/src/commonTest/kotlin/validation/PortValidationTest.kt
-- [ ] T094 [P] [US6] Unit test for cycle detection in fbpDsl/src/commonTest/kotlin/validation/CycleDetectorTest.kt
-- [ ] T095 [P] [US6] Unit test for type mismatch detection in fbpDsl/src/commonTest/kotlin/validation/TypeCheckerTest.kt
-- [ ] T096 [P] [US6] UI test for error highlighting in canvas in graphEditor/src/jvmTest/kotlin/ui/ErrorHighlightTest.kt
-- [ ] T097 [P] [US6] UI test for ValidationResultsPanel in graphEditor/src/jvmTest/kotlin/ui/ValidationResultsPanelTest.kt
-
-### Implementation for User Story 6
-
-- [ ] T098 [P] [US6] Create ValidationService in fbpDsl/src/commonMain/kotlin/validation/ValidationService.kt
-- [ ] T099 [P] [US6] Implement UnconnectedPortRule in fbpDsl/src/commonMain/kotlin/validation/rules/UnconnectedPortRule.kt
-- [ ] T100 [P] [US6] Implement CycleDetectionRule in fbpDsl/src/commonMain/kotlin/validation/rules/CycleDetectionRule.kt
-- [ ] T101 [P] [US6] Implement TypeMismatchRule in fbpDsl/src/commonMain/kotlin/validation/rules/TypeMismatchRule.kt
-- [ ] T102 [US6] Implement ValidationResultsPanel Composable in graphEditor/src/jvmMain/kotlin/ui/ValidationResultsPanel.kt
-- [ ] T103 [US6] Implement error highlighting in canvas (red borders on invalid nodes) in graphEditor/src/jvmMain/kotlin/ui/ErrorHighlighting.kt
-- [ ] T104 [US6] Add "click error to navigate" functionality in graphEditor/src/jvmMain/kotlin/ui/ErrorNavigation.kt
-- [ ] T105 [US6] Block code generation if validation errors exist in idePlugin/src/main/kotlin/actions/ValidationGate.kt
-
-**Checkpoint**: All user stories should now be independently functional with validation support
-
----
-
-## Phase 9: Circuit Simulator (Enhancement)
-
-**Purpose**: Add debugging capabilities via circuit simulator
-
-- [ ] T106 [P] Create SimulatorEngine for FBP execution in circuitSimulator/src/jvmMain/kotlin/engine/SimulatorEngine.kt
-- [ ] T107 [P] Implement pause/resume controls in circuitSimulator/src/jvmMain/kotlin/ui/SimulatorControls.kt
-- [ ] T108 [P] Implement speed attenuation (0.1x - 10x) in circuitSimulator/src/jvmMain/kotlin/engine/SpeedController.kt
-- [ ] T109 Implement IP visualization (animated flow through connections) in circuitSimulator/src/jvmMain/kotlin/visualization/IPVisualizer.kt
-- [ ] T110 Create IDE action "Open Circuit Simulator" in idePlugin/src/main/kotlin/actions/OpenCircuitSimulatorAction.kt
 
 ---
 
@@ -262,35 +195,15 @@
 
 - [ ] T111 [P] Implement "New Flow Graph" action in idePlugin/src/main/kotlin/actions/NewFlowGraphAction.kt
 - [ ] T112 [P] Implement "Open Graph Editor" action in idePlugin/src/main/kotlin/actions/OpenGraphEditorAction.kt
-- [ ] T113 [P] Implement "Validate Flow Graph" action in idePlugin/src/main/kotlin/actions/ValidateFlowGraphAction.kt
+
 - [x] T114 [P] Create FlowGraphManager service in idePlugin/src/main/kotlin/io/codenode/ideplugin/services/FlowGraphManager.kt
 - [ ] T115 [P] Create CodeGenerationService in idePlugin/src/main/kotlin/services/CodeGenerationService.kt
 - [x] T116 [P] Register file type for .flow.kts files in idePlugin/src/main/kotlin/io/codenode/ideplugin/filetype/FlowGraphFileType.kt
 - [x] T117 [P] Add custom icon for flow graph files in idePlugin/src/main/resources/icons/flowgraph.svg
 - [x] T118 Implement graph editor tool window in idePlugin/src/main/kotlin/io/codenode/ideplugin/toolwindow/GraphEditorToolWindowFactory.kt
-- [ ] T119 Implement validation results tool window in idePlugin/src/main/kotlin/toolwindows/ValidationResultsToolWindow.kt
-- [ ] T120 Add keyboard shortcuts for common actions in plugin.xml
 
 ---
 
-## Phase 11: Polish & Cross-Cutting Concerns
-
-**Purpose**: Improvements that affect multiple user stories
-
-- [ ] T121 [P] Add accessibility support (keyboard navigation, focus management) in graphEditor/src/jvmMain/kotlin/accessibility/
-- [ ] T122 [P] Implement high-contrast theme in graphEditor/src/jvmMain/kotlin/ui/themes/
-- [ ] T123 [P] Add performance benchmarks for graph rendering in graphEditor/src/jvmTest/kotlin/benchmarks/
-- [ ] T124 [P] Add performance benchmarks for code generation in kotlinCompiler/src/commonTest/kotlin/benchmarks/
-- [ ] T125 [P] Create user documentation in docs/
-- [ ] T126 [P] Create developer documentation (contributing guide) in CONTRIBUTING.md
-- [ ] T127 [P] Add logging framework integration in all modules
-- [ ] T128 [P] Implement telemetry for plugin usage (opt-in) in idePlugin/src/main/kotlin/telemetry/
-- [ ] T129 Code cleanup and refactoring across all modules
-- [ ] T130 Final integration testing across all user stories
-- [ ] T131 Run quickstart.md validation (ensure Hello World example works)
-- [ ] T132 License header verification (all .kt/.kts files have project header)
-
----
 
 ## Dependencies & Execution Order
 

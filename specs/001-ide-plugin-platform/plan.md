@@ -78,10 +78,6 @@ CodeNodeIO is a JetBrains IDE plugin that enables developers to create full-stac
   - Status: PASS (IntelliJ Platform SDK = Apache 2.0, Compose Multiplatform = Apache 2.0, Kotlin = Apache 2.0)
   - Action: Verify transitive dependencies during research phase
 
-- [x] **Go Module Protocol**: Run `go list -m all` to ensure no Copyleft modules
-  - Status: DEFERRED (no Go dependencies selected yet)
-  - Action: Phase 0 must identify Go libraries for code generation and validate licenses
-
 - [x] **File Header Management**: All .kt and .kts files must have project header above package declaration
   - Status: PASS (will be enforced during implementation)
 
@@ -97,8 +93,6 @@ CodeNodeIO is a JetBrains IDE plugin that enables developers to create full-stac
   - Status: PASS
   - Architecture: UseCase pattern with 7 typed base classes (TransformerUseCase, FilterUseCase, ValidatorUseCase, SplitterUseCase, MergerUseCase, GeneratorUseCase, SinkUseCase)
 
-- [x] **Documentation**: Complex algorithms (FBP execution, code generation) will require explanatory comments
-  - Status: PENDING (to be enforced during implementation)
 
 ### Test-Driven Development
 
@@ -120,13 +114,6 @@ CodeNodeIO is a JetBrains IDE plugin that enables developers to create full-stac
 - [x] **Design System**: Compose Multiplatform provides consistent UI components
   - Status: PASS
 
-- [x] **Accessibility**: WCAG 2.1 AA compliance for visual editor
-  - Status: NEEDS REVIEW (Compose Desktop accessibility capabilities need research)
-  - Action: Phase 0 must research Compose Desktop accessibility support
-
-- [x] **Error Handling**: Validation errors must be actionable (per FR-006, FR-016)
-  - Status: PASS (requirements include clear error messages)
-
 - [x] **Response Time**: <100ms for UI interactions (per SC-002)
   - Status: PASS (performance goal defined)
 
@@ -147,16 +134,6 @@ CodeNodeIO is a JetBrains IDE plugin that enables developers to create full-stac
 - [x] **Monitoring**: IDE plugin metrics via IntelliJ Platform diagnostic tools
   - Status: PENDING (monitoring strategy to be defined)
 
-### Observability & Debugging
-
-- [x] **Structured Logging**: Plugin must log to IntelliJ Platform logging framework
-  - Status: PASS
-
-- [x] **Error Context**: Exceptions must include graph state, node IDs, operation context
-  - Status: PLANNED
-
-- [x] **Feature Flags**: circuitSimulator provides debugging (pause/resume/speed control)
-  - Status: PASS (built into architecture)
 
 ### Gate Evaluation
 
