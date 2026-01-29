@@ -115,17 +115,17 @@ Based on plan.md, this is a multi-module Kotlin Multiplatform project:
 
 ### Tests for User Story 4 (TDD - Write FIRST, must FAIL before implementation)
 
-- [ ] T030 [P] [US4] Write serialization test for generic node with _genericType metadata in graphEditor/src/jvmTest/kotlin/io/codenode/grapheditor/serialization/GenericNodeSerializationTest.kt
-- [ ] T031 [P] [US4] Write serialization test for generic node with _useCaseClass metadata in graphEditor/src/jvmTest/kotlin/io/codenode/grapheditor/serialization/GenericNodeSerializationTest.kt
-- [ ] T032 [P] [US4] Write serialization test for generic node with custom port names in graphEditor/src/jvmTest/kotlin/io/codenode/grapheditor/serialization/GenericNodeSerializationTest.kt
-- [ ] T033 [P] [US4] Write roundtrip deserialization test in graphEditor/src/jvmTest/kotlin/io/codenode/grapheditor/serialization/GenericNodeSerializationTest.kt
+- [x] T030 [P] [US4] Write serialization test for generic node with _genericType metadata in graphEditor/src/jvmTest/kotlin/io/codenode/grapheditor/serialization/GenericNodeSerializationTest.kt
+- [x] T031 [P] [US4] Write serialization test for generic node with _useCaseClass metadata in graphEditor/src/jvmTest/kotlin/io/codenode/grapheditor/serialization/GenericNodeSerializationTest.kt
+- [x] T032 [P] [US4] Write serialization test for generic node with custom port names in graphEditor/src/jvmTest/kotlin/io/codenode/grapheditor/serialization/GenericNodeSerializationTest.kt
+- [x] T033 [P] [US4] Write roundtrip deserialization test in graphEditor/src/jvmTest/kotlin/io/codenode/grapheditor/serialization/GenericNodeSerializationTest.kt
 
 ### Implementation for User Story 4
 
-- [ ] T034 [US4] Update serializeCodeNode in FlowGraphSerializer to include _genericType metadata when present in graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/serialization/FlowGraphSerializer.kt
-- [ ] T035 [US4] Update serializeCodeNode to include _useCaseClass metadata when present in graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/serialization/FlowGraphSerializer.kt
-- [ ] T036 [US4] Verify FlowGraphDeserializer handles generic node metadata correctly in graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/serialization/FlowGraphDeserializer.kt
-- [ ] T037 [US4] Verify all T030-T033 tests pass after implementation
+- [x] T034 [US4] Update serializeCodeNode in FlowGraphSerializer to include _genericType metadata when present in graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/serialization/FlowGraphSerializer.kt
+- [x] T035 [US4] Update serializeCodeNode to include _useCaseClass metadata when present in graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/serialization/FlowGraphSerializer.kt
+- [x] T036 [US4] Verify FlowGraphDeserializer handles generic node metadata correctly in graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/serialization/FlowGraphDeserializer.kt
+- [x] T037 [US4] Verify all T030-T033 tests pass after implementation
 
 **Checkpoint**: User Story 4 complete - generic nodes serialize and deserialize correctly
 

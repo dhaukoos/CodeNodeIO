@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+  <!-- Generic node icon: configurable node with input/output ports -->
+
+  <!-- Main node body -->
+  <rect x="3" y="2" width="10" height="12" rx="1" fill="#E8E8E8" stroke="#808080" stroke-width="0.8"/>
+
+  <!-- Header bar (indicates configurable) -->
+  <rect x="3" y="2" width="10" height="3" rx="1" fill="#9E9E9E" stroke="#808080" stroke-width="0.5"/>
+
+  <!-- Input ports (left side - green) -->
+  <circle cx="3" cy="7" r="1.2" fill="#4CAF50" stroke="#2E7D32" stroke-width="0.4"/>
+  <circle cx="3" cy="10" r="1.2" fill="#4CAF50" stroke="#2E7D32" stroke-width="0.4"/>
+
+  <!-- Output ports (right side - blue) -->
+  <circle cx="13" cy="8.5" r="1.2" fill="#2196F3" stroke="#1565C0" stroke-width="0.4"/>
+
+  <!-- Gear symbol (indicates configurable) -->
+  <circle cx="8" cy="3.5" r="1" fill="none" stroke="#FFFFFF" stroke-width="0.6"/>
+  <line x1="8" y1="2" x2="8" y2="2.3" stroke="#FFFFFF" stroke-width="0.5"/>
+  <line x1="8" y1="4.7" x2="8" y2="5" stroke="#FFFFFF" stroke-width="0.5"/>
+  <line x1="6.5" y1="3.5" x2="6.8" y2="3.5" stroke="#FFFFFF" stroke-width="0.5"/>
+  <line x1="9.2" y1="3.5" x2="9.5" y2="3.5" stroke="#FFFFFF" stroke-width="0.5"/>
+
+  <!-- Connection lines hint -->
+  <line x1="1" y1="7" x2="1.8" y2="7" stroke="#808080" stroke-width="0.6"/>
+  <line x1="1" y1="10" x2="1.8" y2="10" stroke="#808080" stroke-width="0.6"/>
+  <line x1="14.2" y1="8.5" x2="15" y2="8.5" stroke="#808080" stroke-width="0.6"/>
+</svg>

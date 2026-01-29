@@ -181,6 +181,15 @@ object FlowGraphDeserializer {
                     ))
                 }
 
+                // Parse configuration (including _genericType, _useCaseClass, and other config)
+                val configuration = mutableMapOf<String, String>()
+                val configPattern = Regex("""config\s*\(\s*"([^"]*)"\s*,\s*"([^"]*)"\s*\)""")
+                configPattern.findAll(nodeBody).forEach { configMatch ->
+                    val configKey = configMatch.groupValues[1]
+                    val configValue = configMatch.groupValues[2]
+                    configuration[configKey] = configValue
+                }
+
                 val node = CodeNode(
                     id = nodeId,
                     name = nodeName,
@@ -188,7 +197,8 @@ object FlowGraphDeserializer {
                     description = nodeDesc,
                     position = Node.Position(x, y),
                     inputPorts = inputPorts,
-                    outputPorts = outputPorts
+                    outputPorts = outputPorts,
+                    configuration = configuration
                 )
 
                 nodes.add(node)
