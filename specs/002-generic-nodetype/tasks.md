@@ -58,21 +58,21 @@ Based on plan.md, this is a multi-module Kotlin Multiplatform project:
 
 ### Tests for User Story 1 (TDD - Write FIRST, must FAIL before implementation)
 
-- [ ] T007 [P] [US1] Write unit tests for createGenericNodeType factory function in fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/factory/GenericNodeTypeFactoryTest.kt - test valid ranges (0-5)
-- [ ] T008 [P] [US1] Write unit tests for factory invalid inputs (negative, >5) in fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/factory/GenericNodeTypeFactoryTest.kt
-- [ ] T009 [P] [US1] Write unit tests for default naming pattern "in{M}out{N}" in fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/factory/GenericNodeTypeFactoryTest.kt
-- [ ] T010 [P] [US1] Write unit tests for port template generation (input1, input2, output1, etc.) in fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/factory/GenericNodeTypeFactoryTest.kt
-- [ ] T011 [P] [US1] Write unit tests for getAllGenericNodeTypes returning 36 combinations in fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/factory/GenericNodeTypeFactoryTest.kt
-- [ ] T012 [P] [US1] Write unit tests for getCommonGenericNodeTypes returning 5 common types in fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/factory/GenericNodeTypeFactoryTest.kt
+- [x] T007 [P] [US1] Write unit tests for createGenericNodeType factory function in fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/factory/GenericNodeTypeFactoryTest.kt - test valid ranges (0-5)
+- [x] T008 [P] [US1] Write unit tests for factory invalid inputs (negative, >5) in fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/factory/GenericNodeTypeFactoryTest.kt
+- [x] T009 [P] [US1] Write unit tests for default naming pattern "in{M}out{N}" in fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/factory/GenericNodeTypeFactoryTest.kt
+- [x] T010 [P] [US1] Write unit tests for port template generation (input1, input2, output1, etc.) in fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/factory/GenericNodeTypeFactoryTest.kt
+- [x] T011 [P] [US1] Write unit tests for getAllGenericNodeTypes returning 36 combinations in fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/factory/GenericNodeTypeFactoryTest.kt
+- [x] T012 [P] [US1] Write unit tests for getCommonGenericNodeTypes returning 5 common types in fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/factory/GenericNodeTypeFactoryTest.kt
 
 ### Implementation for User Story 1
 
-- [ ] T013 [US1] Implement createGenericNodeType factory function in fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/factory/GenericNodeTypeFactory.kt
-- [ ] T014 [US1] Implement getAllGenericNodeTypes with lazy caching in fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/factory/GenericNodeTypeFactory.kt
-- [ ] T015 [US1] Implement getCommonGenericNodeTypes (in0out1, in1out0, in1out1, in1out2, in2out1) in fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/factory/GenericNodeTypeFactory.kt
-- [ ] T016 [US1] Add generic node types to sample nodes in graphEditor/src/jvmMain/kotlin/Main.kt createSampleNodeTypes() function
-- [ ] T017 [US1] Write integration test verifying generic nodes appear in palette in graphEditor/src/jvmTest/kotlin/io/codenode/grapheditor/ui/GenericNodePaletteTest.kt
-- [ ] T018 [US1] Verify all T007-T012 tests pass after implementation
+- [x] T013 [US1] Implement createGenericNodeType factory function in fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/factory/GenericNodeTypeFactory.kt
+- [x] T014 [US1] Implement getAllGenericNodeTypes with lazy caching in fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/factory/GenericNodeTypeFactory.kt
+- [x] T015 [US1] Implement getCommonGenericNodeTypes (in0out1, in1out0, in1out1, in1out2, in2out1) in fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/factory/GenericNodeTypeFactory.kt
+- [x] T016 [US1] Add generic node types to sample nodes in graphEditor/src/jvmMain/kotlin/Main.kt createSampleNodeTypes() function
+- [x] T017 [US1] Write integration test verifying generic nodes appear in palette in graphEditor/src/jvmTest/kotlin/ui/GenericNodePaletteTest.kt
+- [x] T018 [US1] Verify all T007-T012 tests pass after implementation
 
 **Checkpoint**: User Story 1 complete - generic nodes can be created from palette with correct ports
 

@@ -63,14 +63,12 @@ fun TextFieldEditor(
     placeholder: String = "",
     modifier: Modifier = Modifier
 ) {
-    var isFocused by remember { mutableStateOf(false) }
-
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
         modifier = modifier
             .fillMaxWidth()
-            .height(40.dp),
+            .defaultMinSize(minHeight = 52.dp),
         textStyle = TextStyle(fontSize = 12.sp),
         singleLine = true,
         isError = isError,
@@ -121,7 +119,7 @@ fun NumberFieldEditor(
         },
         modifier = modifier
             .fillMaxWidth()
-            .height(40.dp),
+            .defaultMinSize(minHeight = 52.dp),
         textStyle = TextStyle(fontSize = 12.sp),
         singleLine = true,
         isError = isError,
@@ -202,7 +200,7 @@ fun DropdownEditor(
             onValueChange = {},
             modifier = Modifier
                 .fillMaxWidth()
-                .height(40.dp)
+                .defaultMinSize(minHeight = 52.dp)
                 .clickable { expanded = true },
             textStyle = TextStyle(fontSize = 12.sp),
             readOnly = true,
@@ -307,7 +305,7 @@ fun ColorEditor(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .height(40.dp),
+            .defaultMinSize(minHeight = 52.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         // Color preview
@@ -329,7 +327,7 @@ fun ColorEditor(
                     onValueChange(if (newValue.startsWith("#")) newValue else "#$newValue")
                 }
             },
-            modifier = Modifier.weight(1f),
+            modifier = Modifier.weight(1f).defaultMinSize(minHeight = 52.dp),
             textStyle = TextStyle(fontSize = 12.sp),
             singleLine = true,
             placeholder = {

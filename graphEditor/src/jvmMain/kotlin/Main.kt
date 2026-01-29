@@ -43,6 +43,7 @@ import io.codenode.fbpdsl.model.Port
 import io.codenode.fbpdsl.model.CodeNode
 import io.codenode.fbpdsl.model.CodeNodeType
 import io.codenode.fbpdsl.model.Connection
+import io.codenode.fbpdsl.factory.getCommonGenericNodeTypes
 import androidx.compose.ui.geometry.Offset
 import java.io.File
 import javax.swing.JFileChooser
@@ -50,9 +51,13 @@ import javax.swing.filechooser.FileNameExtensionFilter
 
 /**
  * Creates sample node types for the palette
+ * Includes both specialized node types and common generic node types
  */
 fun createSampleNodeTypes(): List<NodeTypeDefinition> {
-    return listOf(
+    // Add common generic node types (in0out1, in1out0, in1out1, in1out2, in2out1)
+    val genericTypes = getCommonGenericNodeTypes()
+
+    val specializedTypes = listOf(
         NodeTypeDefinition(
             id = "nodeType_generator",
             name = "Data Generator",
@@ -230,6 +235,9 @@ fun createSampleNodeTypes(): List<NodeTypeDefinition> {
             """.trimIndent()
         )
     )
+
+    // Return specialized types first, then generic types
+    return specializedTypes + genericTypes
 }
 
 /**
