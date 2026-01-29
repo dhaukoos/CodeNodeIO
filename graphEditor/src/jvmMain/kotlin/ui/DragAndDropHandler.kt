@@ -223,6 +223,7 @@ fun createNodeFromType(nodeType: NodeTypeDefinition, position: Offset): CodeNode
         NodeTypeDefinition.NodeCategory.VALIDATOR -> CodeNodeType.VALIDATOR
         NodeTypeDefinition.NodeCategory.API_ENDPOINT -> CodeNodeType.API_ENDPOINT
         NodeTypeDefinition.NodeCategory.DATABASE -> CodeNodeType.DATABASE
+        NodeTypeDefinition.NodeCategory.GENERIC -> CodeNodeType.TRANSFORMER // Generic nodes use flexible transformer type
     }
 
     // Create input ports from templates

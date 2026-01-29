@@ -76,7 +76,10 @@ data class NodeTypeDefinition(
         API_ENDPOINT,
 
         /** Database operation nodes (query, insert, update) */
-        DATABASE
+        DATABASE,
+
+        /** Generic nodes with configurable inputs/outputs (0-5 each) */
+        GENERIC
     }
 
     init {
