@@ -25,6 +25,7 @@ import io.codenode.grapheditor.state.rememberUndoRedoManager
 import io.codenode.grapheditor.state.AddNodeCommand
 import io.codenode.grapheditor.state.MoveNodeCommand
 import io.codenode.grapheditor.state.AddConnectionCommand
+import io.codenode.grapheditor.state.RemoveNodeCommand
 import io.codenode.grapheditor.ui.CanvasControls
 import io.codenode.grapheditor.ui.CompactCanvasControls
 import io.codenode.grapheditor.ui.ConnectionErrorDisplay
@@ -45,6 +46,10 @@ import io.codenode.fbpdsl.model.CodeNodeType
 import io.codenode.fbpdsl.model.Connection
 import io.codenode.fbpdsl.factory.getCommonGenericNodeTypes
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.input.key.*
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.foundation.focusable
 import java.io.File
 import javax.swing.JFileChooser
 import javax.swing.filechooser.FileNameExtensionFilter
@@ -289,8 +294,41 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
 
             Divider()
 
-            // Main content area
-            Box(modifier = Modifier.fillMaxSize().weight(1f)) {
+            // Focus requester for keyboard handling
+            val focusRequester = remember { FocusRequester() }
+
+            // Request focus when composition completes
+            LaunchedEffect(Unit) {
+                focusRequester.requestFocus()
+            }
+
+            // Main content area with keyboard handling
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .weight(1f)
+                    .focusRequester(focusRequester)
+                    .focusable()
+                    .onKeyEvent { keyEvent ->
+                        if (keyEvent.type == KeyEventType.KeyDown) {
+                            when (keyEvent.key) {
+                                Key.Delete, Key.Backspace -> {
+                                    // Delete the selected node
+                                    graphState.selectedNodeId?.let { nodeId ->
+                                        val command = RemoveNodeCommand(nodeId)
+                                        undoRedoManager.execute(command, graphState)
+                                        graphState.selectNode(null)
+                                        statusMessage = "Deleted node"
+                                    }
+                                    true
+                                }
+                                else -> false
+                            }
+                        } else {
+                            false
+                        }
+                    }
+            ) {
                 // Layout: NodePalette on left, Canvas on right
                 Row(modifier = Modifier.fillMaxSize()) {
                     // Node Palette

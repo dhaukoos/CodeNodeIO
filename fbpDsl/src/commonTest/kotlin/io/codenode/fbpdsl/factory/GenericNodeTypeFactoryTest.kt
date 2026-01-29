@@ -320,4 +320,261 @@ class GenericNodeTypeFactoryTest {
         val allIds = allTypes.map { it.id }.toSet()
         assertTrue(commonTypes.all { allIds.contains(it.id) }, "Common types should be subset of all types")
     }
+
+    // ========== T019: Custom Name Override Tests ==========
+
+    @Test
+    fun `createGenericNodeType uses customName when provided`() {
+        val nodeType = createGenericNodeType(
+            numInputs = 1,
+            numOutputs = 1,
+            customName = "MyValidator"
+        )
+        assertEquals("MyValidator", nodeType.name)
+    }
+
+    @Test
+    fun `createGenericNodeType generates id from customName`() {
+        val nodeType = createGenericNodeType(
+            numInputs = 1,
+            numOutputs = 1,
+            customName = "Email Validator"
+        )
+        assertEquals("email_validator", nodeType.id)
+    }
+
+    @Test
+    fun `createGenericNodeType sanitizes customName for id`() {
+        val nodeType = createGenericNodeType(
+            numInputs = 1,
+            numOutputs = 1,
+            customName = "My-Node.v2!"
+        )
+        // ID should only contain alphanumeric and underscore
+        assertTrue(nodeType.id.all { it.isLetterOrDigit() || it == '_' })
+    }
+
+    @Test
+    fun `createGenericNodeType uses customDescription when provided`() {
+        val nodeType = createGenericNodeType(
+            numInputs = 1,
+            numOutputs = 1,
+            customDescription = "Validates email addresses"
+        )
+        assertEquals("Validates email addresses", nodeType.description)
+    }
+
+    @Test
+    fun `createGenericNodeType uses default description when customDescription is null`() {
+        val nodeType = createGenericNodeType(numInputs = 2, numOutputs = 1)
+        assertTrue(nodeType.description.contains("Generic processing node"))
+    }
+
+    // ========== T020: Custom Port Names Tests ==========
+
+    @Test
+    fun `createGenericNodeType uses custom inputNames when provided`() {
+        val nodeType = createGenericNodeType(
+            numInputs = 2,
+            numOutputs = 0,
+            inputNames = listOf("email", "password")
+        )
+        val inputPorts = nodeType.getInputPortTemplates()
+        assertEquals(2, inputPorts.size)
+        assertEquals("email", inputPorts[0].name)
+        assertEquals("password", inputPorts[1].name)
+    }
+
+    @Test
+    fun `createGenericNodeType uses custom outputNames when provided`() {
+        val nodeType = createGenericNodeType(
+            numInputs = 0,
+            numOutputs = 3,
+            outputNames = listOf("success", "warning", "error")
+        )
+        val outputPorts = nodeType.getOutputPortTemplates()
+        assertEquals(3, outputPorts.size)
+        assertEquals("success", outputPorts[0].name)
+        assertEquals("warning", outputPorts[1].name)
+        assertEquals("error", outputPorts[2].name)
+    }
+
+    @Test
+    fun `createGenericNodeType uses default inputNames when custom not provided`() {
+        val nodeType = createGenericNodeType(numInputs = 2, numOutputs = 0)
+        val inputPorts = nodeType.getInputPortTemplates()
+        assertEquals("input1", inputPorts[0].name)
+        assertEquals("input2", inputPorts[1].name)
+    }
+
+    @Test
+    fun `createGenericNodeType uses default outputNames when custom not provided`() {
+        val nodeType = createGenericNodeType(numInputs = 0, numOutputs = 2)
+        val outputPorts = nodeType.getOutputPortTemplates()
+        assertEquals("output1", outputPorts[0].name)
+        assertEquals("output2", outputPorts[1].name)
+    }
+
+    @Test
+    fun `createGenericNodeType can mix custom and default port names`() {
+        val nodeType = createGenericNodeType(
+            numInputs = 2,
+            numOutputs = 2,
+            inputNames = listOf("data", "config"),
+            outputNames = null  // Use default output names
+        )
+        val inputPorts = nodeType.getInputPortTemplates()
+        val outputPorts = nodeType.getOutputPortTemplates()
+
+        assertEquals("data", inputPorts[0].name)
+        assertEquals("config", inputPorts[1].name)
+        assertEquals("output1", outputPorts[0].name)
+        assertEquals("output2", outputPorts[1].name)
+    }
+
+    // ========== T021: iconResource Parameter Tests ==========
+
+    @Test
+    fun `createGenericNodeType includes iconResource in defaultConfiguration`() {
+        val nodeType = createGenericNodeType(
+            numInputs = 1,
+            numOutputs = 1,
+            iconResource = "icons/my-custom-node.svg"
+        )
+        assertEquals("icons/my-custom-node.svg", nodeType.defaultConfiguration["_iconResource"])
+    }
+
+    @Test
+    fun `createGenericNodeType omits iconResource when null`() {
+        val nodeType = createGenericNodeType(numInputs = 1, numOutputs = 1)
+        assertTrue(!nodeType.defaultConfiguration.containsKey("_iconResource"))
+    }
+
+    @Test
+    fun `createGenericNodeType iconResource can be any path format`() {
+        val nodeType = createGenericNodeType(
+            numInputs = 1,
+            numOutputs = 1,
+            iconResource = "/absolute/path/to/icon.png"
+        )
+        assertEquals("/absolute/path/to/icon.png", nodeType.defaultConfiguration["_iconResource"])
+    }
+
+    // ========== T022: useCaseClassName Parameter Tests ==========
+
+    @Test
+    fun `createGenericNodeType includes useCaseClassName in defaultConfiguration`() {
+        val nodeType = createGenericNodeType(
+            numInputs = 1,
+            numOutputs = 1,
+            useCaseClassName = "com.example.validators.EmailValidator"
+        )
+        assertEquals(
+            "com.example.validators.EmailValidator",
+            nodeType.defaultConfiguration["_useCaseClass"]
+        )
+    }
+
+    @Test
+    fun `createGenericNodeType omits useCaseClass when null`() {
+        val nodeType = createGenericNodeType(numInputs = 1, numOutputs = 1)
+        assertTrue(!nodeType.defaultConfiguration.containsKey("_useCaseClass"))
+    }
+
+    @Test
+    fun `createGenericNodeType description includes UseCase name when provided`() {
+        val nodeType = createGenericNodeType(
+            numInputs = 1,
+            numOutputs = 1,
+            useCaseClassName = "com.example.validators.EmailValidator"
+        )
+        assertTrue(nodeType.description.contains("EmailValidator"))
+        assertTrue(nodeType.description.contains("UseCase"))
+    }
+
+    @Test
+    fun `createGenericNodeType code template references UseCase when provided`() {
+        val nodeType = createGenericNodeType(
+            numInputs = 1,
+            numOutputs = 1,
+            useCaseClassName = "com.example.MyUseCase"
+        )
+        val kmpTemplate = nodeType.getCodeTemplate("KMP")
+        assertTrue(kmpTemplate != null)
+        assertTrue(kmpTemplate!!.contains("com.example.MyUseCase"))
+    }
+
+    @Test
+    fun `createGenericNodeType code template has TODO when no UseCase`() {
+        val nodeType = createGenericNodeType(numInputs = 1, numOutputs = 1)
+        val kmpTemplate = nodeType.getCodeTemplate("KMP")
+        assertTrue(kmpTemplate != null)
+        assertTrue(kmpTemplate!!.contains("TODO"))
+    }
+
+    // ========== T023: Port Name Count Mismatch Validation Tests ==========
+
+    @Test
+    fun `createGenericNodeType throws when inputNames size does not match numInputs`() {
+        assertFailsWith<IllegalArgumentException> {
+            createGenericNodeType(
+                numInputs = 3,
+                numOutputs = 0,
+                inputNames = listOf("only_one")
+            )
+        }
+    }
+
+    @Test
+    fun `createGenericNodeType throws when outputNames size does not match numOutputs`() {
+        assertFailsWith<IllegalArgumentException> {
+            createGenericNodeType(
+                numInputs = 0,
+                numOutputs = 2,
+                outputNames = listOf("a", "b", "c", "d")
+            )
+        }
+    }
+
+    @Test
+    fun `createGenericNodeType throws when inputNames has more than numInputs`() {
+        assertFailsWith<IllegalArgumentException> {
+            createGenericNodeType(
+                numInputs = 1,
+                numOutputs = 0,
+                inputNames = listOf("a", "b", "c")
+            )
+        }
+    }
+
+    @Test
+    fun `createGenericNodeType throws when outputNames has fewer than numOutputs`() {
+        assertFailsWith<IllegalArgumentException> {
+            createGenericNodeType(
+                numInputs = 0,
+                numOutputs = 3,
+                outputNames = listOf("only_one")
+            )
+        }
+    }
+
+    @Test
+    fun `createGenericNodeType accepts empty inputNames when numInputs is 0`() {
+        val nodeType = createGenericNodeType(
+            numInputs = 0,
+            numOutputs = 1,
+            inputNames = emptyList()
+        )
+        assertEquals(0, nodeType.getInputPortTemplates().size)
+    }
+
+    @Test
+    fun `createGenericNodeType accepts empty outputNames when numOutputs is 0`() {
+        val nodeType = createGenericNodeType(
+            numInputs = 1,
+            numOutputs = 0,
+            outputNames = emptyList()
+        )
+        assertEquals(0, nodeType.getOutputPortTemplates().size)
+    }
 }

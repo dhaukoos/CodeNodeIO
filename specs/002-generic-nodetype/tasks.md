@@ -86,20 +86,20 @@ Based on plan.md, this is a multi-module Kotlin Multiplatform project:
 
 ### Tests for User Story 2 (TDD - Write FIRST, must FAIL before implementation)
 
-- [ ] T019 [P] [US2] Write unit tests for custom name override in factory in fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/factory/GenericNodeTypeFactoryTest.kt
-- [ ] T020 [P] [US2] Write unit tests for custom port names in factory in fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/factory/GenericNodeTypeFactoryTest.kt
-- [ ] T021 [P] [US2] Write unit tests for iconResource parameter in fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/factory/GenericNodeTypeFactoryTest.kt
-- [ ] T022 [P] [US2] Write unit tests for useCaseClassName parameter in fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/factory/GenericNodeTypeFactoryTest.kt
-- [ ] T023 [P] [US2] Write unit tests for port name count mismatch validation in fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/factory/GenericNodeTypeFactoryTest.kt
+- [x] T019 [P] [US2] Write unit tests for custom name override in factory in fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/factory/GenericNodeTypeFactoryTest.kt
+- [x] T020 [P] [US2] Write unit tests for custom port names in factory in fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/factory/GenericNodeTypeFactoryTest.kt
+- [x] T021 [P] [US2] Write unit tests for iconResource parameter in fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/factory/GenericNodeTypeFactoryTest.kt
+- [x] T022 [P] [US2] Write unit tests for useCaseClassName parameter in fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/factory/GenericNodeTypeFactoryTest.kt
+- [x] T023 [P] [US2] Write unit tests for port name count mismatch validation in fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/factory/GenericNodeTypeFactoryTest.kt
 
 ### Implementation for User Story 2
 
-- [ ] T024 [US2] Add customName parameter support to createGenericNodeType in fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/factory/GenericNodeTypeFactory.kt
-- [ ] T025 [US2] Add inputNames/outputNames parameters with validation in fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/factory/GenericNodeTypeFactory.kt
-- [ ] T026 [US2] Add iconResource parameter to createGenericNodeType in fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/factory/GenericNodeTypeFactory.kt
-- [ ] T027 [US2] Add useCaseClassName parameter to createGenericNodeType in fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/factory/GenericNodeTypeFactory.kt
-- [ ] T028 [US2] Create default generic node icon at idePlugin/src/main/resources/icons/generic-node.svg
-- [ ] T029 [US2] Verify all T019-T023 tests pass after implementation
+- [x] T024 [US2] Add customName parameter support to createGenericNodeType in fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/factory/GenericNodeTypeFactory.kt
+- [x] T025 [US2] Add inputNames/outputNames parameters with validation in fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/factory/GenericNodeTypeFactory.kt
+- [x] T026 [US2] Add iconResource parameter to createGenericNodeType in fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/factory/GenericNodeTypeFactory.kt
+- [x] T027 [US2] Add useCaseClassName parameter to createGenericNodeType in fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/factory/GenericNodeTypeFactory.kt
+- [x] T028 [US2] Create default generic node icon at idePlugin/src/main/resources/icons/generic-node.svg
+- [x] T029 [US2] Verify all T019-T023 tests pass after implementation
 
 **Checkpoint**: User Story 2 complete - generic nodes can be configured with custom properties
 
