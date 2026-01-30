@@ -274,6 +274,34 @@ class GraphState(initialGraph: FlowGraph = flowGraph(
         isDirty = true
     }
 
+    /**
+     * Updates a port's name on a node.
+     *
+     * @param nodeId The ID of the node containing the port
+     * @param portId The ID of the port to rename
+     * @param newName The new name for the port
+     */
+    fun updatePortName(nodeId: String, portId: String, newName: String) {
+        val node = flowGraph.findNode(nodeId) as? CodeNode ?: return
+
+        // Find and update the port in input or output ports
+        val updatedInputPorts = node.inputPorts.map { port ->
+            if (port.id == portId) port.copy(name = newName) else port
+        }
+        val updatedOutputPorts = node.outputPorts.map { port ->
+            if (port.id == portId) port.copy(name = newName) else port
+        }
+
+        val updatedNode = node.copy(
+            inputPorts = updatedInputPorts,
+            outputPorts = updatedOutputPorts
+        )
+
+        // Replace the node in the graph
+        flowGraph = flowGraph.removeNode(nodeId).addNode(updatedNode)
+        isDirty = true
+    }
+
     // ============================================================================
     // Selection Operations
     // ============================================================================

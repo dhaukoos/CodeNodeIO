@@ -45,8 +45,11 @@ data class PropertiesPanelState(
     val originalProperties: Map<String, String> = properties,
     val validationErrors: Map<String, String> = emptyMap(),
     val onPropertyChanged: ((String, String) -> Unit)? = null,
-    val onNodeNameChanged: ((String) -> Unit)? = null
+    val onNodeNameChanged: ((String) -> Unit)? = null,
+    val onPortNameChanged: ((String, String) -> Unit)? = null  // (portId, newName)
 ) {
+    /** Whether this is a generic node type */
+    val isGenericNode: Boolean get() = selectedNode?.configuration?.containsKey("_genericType") == true
     /** Whether no node is selected */
     val isEmptyState: Boolean get() = selectedNode == null
 
@@ -113,6 +116,13 @@ data class PropertiesPanelState(
      */
     fun updateProperty(key: String, value: String) {
         onPropertyChanged?.invoke(key, value)
+    }
+
+    /**
+     * Notifies listeners of port name change (for external state sync)
+     */
+    fun updatePortName(portId: String, newName: String) {
+        onPortNameChanged?.invoke(portId, newName)
     }
 
     /**
@@ -347,6 +357,9 @@ fun PropertiesPanel(
                         onStateChange(newState)
                         state.updateProperty(key, value)
                     },
+                    onPortNameChange = { portId, newName ->
+                        state.updatePortName(portId, newName)
+                    },
                     modifier = Modifier.weight(1f)
                 )
 
@@ -444,6 +457,7 @@ private fun PropertiesContent(
     state: PropertiesPanelState,
     onNameChange: (String) -> Unit,
     onPropertyChange: (String, String) -> Unit,
+    onPortNameChange: (String, String) -> Unit = { _, _ -> },
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -465,8 +479,85 @@ private fun PropertiesContent(
         )
         Spacer(modifier = Modifier.height(8.dp))
 
+        // Generic Node specific properties (port names)
+        if (state.isGenericNode) {
+            Divider(modifier = Modifier.padding(vertical = 4.dp))
+
+            // Section header
+            Text(
+                text = "Port Names",
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colors.primary,
+                modifier = Modifier.padding(vertical = 4.dp)
+            )
+
+            // Input Port Names
+            val inputPorts = state.selectedNode?.inputPorts ?: emptyList()
+            if (inputPorts.isNotEmpty()) {
+                Text(
+                    text = "Input Ports",
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = MaterialTheme.colors.onSurface.copy(alpha = 0.7f),
+                    modifier = Modifier.padding(vertical = 4.dp)
+                )
+                inputPorts.forEach { port ->
+                    PropertyEditorRow(
+                        definition = PropertyDefinition(
+                            name = "Input ${inputPorts.indexOf(port) + 1}",
+                            type = PropertyType.STRING,
+                            required = true
+                        ),
+                        value = port.name,
+                        error = if (port.name.isBlank()) "Port name is required" else null,
+                        onValueChange = { onPortNameChange(port.id, it) }
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                }
+                Spacer(modifier = Modifier.height(4.dp))
+            }
+
+            // Output Port Names
+            val outputPorts = state.selectedNode?.outputPorts ?: emptyList()
+            if (outputPorts.isNotEmpty()) {
+                Text(
+                    text = "Output Ports",
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = MaterialTheme.colors.onSurface.copy(alpha = 0.7f),
+                    modifier = Modifier.padding(vertical = 4.dp)
+                )
+                outputPorts.forEach { port ->
+                    PropertyEditorRow(
+                        definition = PropertyDefinition(
+                            name = "Output ${outputPorts.indexOf(port) + 1}",
+                            type = PropertyType.STRING,
+                            required = true
+                        ),
+                        value = port.name,
+                        error = if (port.name.isBlank()) "Port name is required" else null,
+                        onValueChange = { onPortNameChange(port.id, it) }
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                }
+            }
+        }
+
         Divider(modifier = Modifier.padding(vertical = 4.dp))
         Spacer(modifier = Modifier.height(4.dp))
+
+        // Configuration properties section header
+        val configProperties = state.properties.filterKeys { !it.startsWith("_") }
+        if (configProperties.isNotEmpty() || state.propertyDefinitions.isNotEmpty()) {
+            Text(
+                text = "Configuration",
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colors.primary,
+                modifier = Modifier.padding(vertical = 4.dp)
+            )
+        }
 
         // If we have property definitions, use them for ordering and types
         if (state.propertyDefinitions.isNotEmpty()) {
@@ -480,8 +571,8 @@ private fun PropertiesContent(
                 Spacer(modifier = Modifier.height(8.dp))
             }
         } else {
-            // No definitions - show all properties as text fields
-            state.properties.forEach { (key, value) ->
+            // No definitions - show non-internal properties as text fields
+            configProperties.forEach { (key, value) ->
                 PropertyEditorRow(
                     definition = PropertyDefinition(key, PropertyType.STRING),
                     value = value,
@@ -598,6 +689,7 @@ fun CompactPropertiesPanel(
     propertyDefinitions: List<PropertyDefinition> = emptyList(),
     onNodeNameChanged: (String) -> Unit = { _ -> },
     onPropertyChanged: (String, String) -> Unit = { _, _ -> },
+    onPortNameChanged: (String, String) -> Unit = { _, _ -> },
     modifier: Modifier = Modifier
 ) {
     var state by remember(selectedNode) {
@@ -607,7 +699,8 @@ fun CompactPropertiesPanel(
                     selectedNode = selectedNode,
                     propertyDefinitions = propertyDefinitions,
                     onNodeNameChanged = onNodeNameChanged,
-                    onPropertyChanged = onPropertyChanged
+                    onPropertyChanged = onPropertyChanged,
+                    onPortNameChanged = onPortNameChanged
                 )
             } else {
                 PropertiesPanelState()

@@ -450,6 +450,12 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                                 propertyChangeTracker.trackChange(node.id, key, oldValue, value)
                                 statusMessage = "Updated property: $key"
                             }
+                        },
+                        onPortNameChanged = { portId, newName ->
+                            selectedNode?.let { node ->
+                                graphState.updatePortName(node.id, portId, newName)
+                                statusMessage = "Renamed port to: $newName"
+                            }
                         }
                     )
                 }
