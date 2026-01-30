@@ -139,18 +139,18 @@ Based on plan.md, this is a multi-module Kotlin Multiplatform project:
 
 ### Tests for User Story 3 (TDD - Write FIRST, must FAIL before implementation)
 
-- [ ] T038 [P] [US3] Write contract test for generated component with UseCase delegation in kotlinCompiler/src/commonTest/kotlin/io/codenode/kotlincompiler/generator/GenericNodeGeneratorTest.kt
-- [ ] T039 [P] [US3] Write contract test for generated placeholder component (no UseCase) in kotlinCompiler/src/commonTest/kotlin/io/codenode/kotlincompiler/generator/GenericNodeGeneratorTest.kt
-- [ ] T040 [P] [US3] Write contract test for custom port names in generated component in kotlinCompiler/src/commonTest/kotlin/io/codenode/kotlincompiler/generator/GenericNodeGeneratorTest.kt
-- [ ] T041 [P] [US3] Write contract test for supportsGenericNode detection in kotlinCompiler/src/commonTest/kotlin/io/codenode/kotlincompiler/generator/GenericNodeGeneratorTest.kt
+- [x] T038 [P] [US3] Write contract test for generated component with UseCase delegation in kotlinCompiler/src/commonTest/kotlin/io/codenode/kotlincompiler/generator/GenericNodeGeneratorTest.kt
+- [x] T039 [P] [US3] Write contract test for generated placeholder component (no UseCase) in kotlinCompiler/src/commonTest/kotlin/io/codenode/kotlincompiler/generator/GenericNodeGeneratorTest.kt
+- [x] T040 [P] [US3] Write contract test for custom port names in generated component in kotlinCompiler/src/commonTest/kotlin/io/codenode/kotlincompiler/generator/GenericNodeGeneratorTest.kt
+- [x] T041 [P] [US3] Write contract test for supportsGenericNode detection in kotlinCompiler/src/commonTest/kotlin/io/codenode/kotlincompiler/generator/GenericNodeGeneratorTest.kt
 
 ### Implementation for User Story 3
 
-- [ ] T042 [US3] Create GenericNodeGenerator class with supportsGenericNode method in kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/GenericNodeGenerator.kt
-- [ ] T043 [US3] Implement generateComponent for nodes with UseCase reference in kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/GenericNodeGenerator.kt
-- [ ] T044 [US3] Implement generatePlaceholderComponent for nodes without UseCase in kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/GenericNodeGenerator.kt
-- [ ] T045 [US3] Integrate GenericNodeGenerator with KotlinCodeGenerator in kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/KotlinCodeGenerator.kt
-- [ ] T046 [US3] Verify all T038-T041 tests pass after implementation
+- [x] T042 [US3] Create GenericNodeGenerator class with supportsGenericNode method in kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/GenericNodeGenerator.kt
+- [x] T043 [US3] Implement generateComponent for nodes with UseCase reference in kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/GenericNodeGenerator.kt
+- [x] T044 [US3] Implement generatePlaceholderComponent for nodes without UseCase in kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/GenericNodeGenerator.kt
+- [x] T045 [US3] Integrate GenericNodeGenerator with KotlinCodeGenerator in kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/KotlinCodeGenerator.kt
+- [x] T046 [US3] Verify all T038-T041 tests pass after implementation
 
 **Checkpoint**: User Story 3 complete - code generation supports generic nodes
 

@@ -25,6 +25,7 @@ class KotlinCodeGenerator {
 
     private val componentGenerator = ComponentGenerator()
     private val flowGenerator = FlowGenerator()
+    private val genericNodeGenerator = GenericNodeGenerator()
 
     /**
      * Generates a complete KMP project from a FlowGraph
@@ -37,7 +38,7 @@ class KotlinCodeGenerator {
 
         // Generate component classes for each CodeNode
         flowGraph.getAllCodeNodes().forEach { node ->
-            files.add(componentGenerator.generateComponent(node))
+            files.add(generateNodeComponent(node))
         }
 
         // Generate flow orchestration
@@ -51,13 +52,19 @@ class KotlinCodeGenerator {
     }
 
     /**
-     * Generates a single component class from a CodeNode
+     * Generates a single component class from a CodeNode.
+     * Uses GenericNodeGenerator for generic nodes (nodes with _genericType),
+     * otherwise uses the standard ComponentGenerator.
      *
      * @param node The code node to generate a component for
      * @return FileSpec containing the generated Kotlin file
      */
     fun generateNodeComponent(node: CodeNode): FileSpec {
-        return componentGenerator.generateComponent(node)
+        return if (genericNodeGenerator.supportsGenericNode(node)) {
+            genericNodeGenerator.generateComponent(node)
+        } else {
+            componentGenerator.generateComponent(node)
+        }
     }
 
     /**
