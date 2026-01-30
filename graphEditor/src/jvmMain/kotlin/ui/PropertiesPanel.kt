@@ -38,17 +38,20 @@ import kotlinx.serialization.json.jsonPrimitive
  */
 data class PropertiesPanelState(
     val selectedNode: CodeNode? = null,
+    val nodeName: String = selectedNode?.name ?: "",
     val properties: Map<String, String> = selectedNode?.configuration ?: emptyMap(),
     val propertyDefinitions: List<PropertyDefinition> = emptyList(),
+    val originalNodeName: String = nodeName,
     val originalProperties: Map<String, String> = properties,
     val validationErrors: Map<String, String> = emptyMap(),
-    val onPropertyChanged: ((String, String) -> Unit)? = null
+    val onPropertyChanged: ((String, String) -> Unit)? = null,
+    val onNodeNameChanged: ((String) -> Unit)? = null
 ) {
     /** Whether no node is selected */
     val isEmptyState: Boolean get() = selectedNode == null
 
-    /** Whether properties have been modified since last save */
-    val isDirty: Boolean get() = properties != originalProperties
+    /** Whether properties or name have been modified since last save */
+    val isDirty: Boolean get() = properties != originalProperties || nodeName != originalNodeName
 
     /** Whether there are validation errors */
     val hasValidationErrors: Boolean get() = validationErrors.isNotEmpty()
@@ -62,7 +65,9 @@ data class PropertiesPanelState(
     fun selectNode(node: CodeNode): PropertiesPanelState {
         return copy(
             selectedNode = node,
+            nodeName = node.name,
             properties = node.configuration,
+            originalNodeName = node.name,
             originalProperties = node.configuration,
             validationErrors = emptyMap()
         )
@@ -74,10 +79,19 @@ data class PropertiesPanelState(
     fun clearSelection(): PropertiesPanelState {
         return copy(
             selectedNode = null,
+            nodeName = "",
             properties = emptyMap(),
+            originalNodeName = "",
             originalProperties = emptyMap(),
             validationErrors = emptyMap()
         )
+    }
+
+    /**
+     * Updates the node name
+     */
+    fun withNodeName(name: String): PropertiesPanelState {
+        return copy(nodeName = name)
     }
 
     /**
@@ -88,6 +102,13 @@ data class PropertiesPanelState(
     }
 
     /**
+     * Notifies listeners of node name change (for external state sync)
+     */
+    fun updateNodeName(name: String) {
+        onNodeNameChanged?.invoke(name)
+    }
+
+    /**
      * Notifies listeners of property change (for external state sync)
      */
     fun updateProperty(key: String, value: String) {
@@ -95,10 +116,10 @@ data class PropertiesPanelState(
     }
 
     /**
-     * Marks current properties as saved (resets dirty state)
+     * Marks current properties and name as saved (resets dirty state)
      */
     fun markSaved(): PropertiesPanelState {
-        return copy(originalProperties = properties)
+        return copy(originalNodeName = nodeName, originalProperties = properties)
     }
 
     /**
@@ -316,6 +337,11 @@ fun PropertiesPanel(
             } else {
                 PropertiesContent(
                     state = state,
+                    onNameChange = { name ->
+                        val newState = state.withNodeName(name)
+                        onStateChange(newState)
+                        state.updateNodeName(name)
+                    },
                     onPropertyChange = { key, value ->
                         val newState = state.withPropertyValue(key, value).validate()
                         onStateChange(newState)
@@ -416,6 +442,7 @@ private fun EmptyStateMessage() {
 @Composable
 private fun PropertiesContent(
     state: PropertiesPanelState,
+    onNameChange: (String) -> Unit,
     onPropertyChange: (String, String) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -424,6 +451,23 @@ private fun PropertiesContent(
             .fillMaxWidth()
             .verticalScroll(rememberScrollState())
     ) {
+        // Node Name - always at the top
+        PropertyEditorRow(
+            definition = PropertyDefinition(
+                name = "Name",
+                type = PropertyType.STRING,
+                required = true,
+                description = "Display name for this node"
+            ),
+            value = state.nodeName,
+            error = if (state.nodeName.isBlank()) "Name is required" else null,
+            onValueChange = onNameChange
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Divider(modifier = Modifier.padding(vertical = 4.dp))
+        Spacer(modifier = Modifier.height(4.dp))
+
         // If we have property definitions, use them for ordering and types
         if (state.propertyDefinitions.isNotEmpty()) {
             state.propertyDefinitions.forEach { def ->
@@ -552,6 +596,7 @@ private fun PropertiesActionBar(
 fun CompactPropertiesPanel(
     selectedNode: CodeNode?,
     propertyDefinitions: List<PropertyDefinition> = emptyList(),
+    onNodeNameChanged: (String) -> Unit = { _ -> },
     onPropertyChanged: (String, String) -> Unit = { _, _ -> },
     modifier: Modifier = Modifier
 ) {
@@ -561,6 +606,7 @@ fun CompactPropertiesPanel(
                 PropertiesPanelState(
                     selectedNode = selectedNode,
                     propertyDefinitions = propertyDefinitions,
+                    onNodeNameChanged = onNodeNameChanged,
                     onPropertyChanged = onPropertyChanged
                 )
             } else {

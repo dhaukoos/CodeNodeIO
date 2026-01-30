@@ -380,6 +380,14 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                             FlowGraphCanvas(
                                 flowGraph = graphState.flowGraph,
                                 selectedNodeId = graphState.selectedNodeId,
+                                scale = graphState.scale,
+                                panOffset = graphState.panOffset,
+                                onScaleChanged = { newScale ->
+                                    graphState.updateScale(newScale)
+                                },
+                                onPanOffsetChanged = { newOffset ->
+                                    graphState.updatePanOffset(newOffset)
+                                },
                                 onNodeSelected = { nodeId ->
                                     graphState.selectNode(nodeId)
                                     statusMessage = if (nodeId != null) "Selected node" else "Deselected"
@@ -430,6 +438,12 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                                 PropertiesPanelState.derivePropertyDefinitions(nodeType)
                             } ?: emptyList()
                         } ?: emptyList(),
+                        onNodeNameChanged = { newName ->
+                            selectedNode?.let { node ->
+                                graphState.updateNodeName(node.id, newName)
+                                statusMessage = "Renamed node to: $newName"
+                            }
+                        },
                         onPropertyChanged = { key, value ->
                             selectedNode?.let { node ->
                                 val oldValue = node.configuration[key] ?: ""

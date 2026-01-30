@@ -29,6 +29,10 @@ import io.codenode.fbpdsl.model.Port
  *
  * @param flowGraph The flow graph to display
  * @param selectedNodeId ID of the currently selected node (if any)
+ * @param scale Current zoom scale (1.0 = 100%)
+ * @param panOffset Current pan offset for scrolling the view
+ * @param onScaleChanged Callback when zoom scale changes from user interaction
+ * @param onPanOffsetChanged Callback when pan offset changes from user interaction
  * @param onNodeSelected Callback when a node is selected
  * @param onNodeMoved Callback when a node is dragged to a new position
  * @param onConnectionCreated Callback when a new connection is created
@@ -38,14 +42,16 @@ import io.codenode.fbpdsl.model.Port
 fun FlowGraphCanvas(
     flowGraph: FlowGraph,
     selectedNodeId: String? = null,
+    scale: Float = 1f,
+    panOffset: Offset = Offset.Zero,
+    onScaleChanged: (Float) -> Unit = {},
+    onPanOffsetChanged: (Offset) -> Unit = {},
     onNodeSelected: (String?) -> Unit = {},
     onNodeMoved: (nodeId: String, newX: Double, newY: Double) -> Unit = { _, _, _ -> },
     onConnectionCreated: (Connection) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
-    // Canvas state
-    var panOffset by remember { mutableStateOf(Offset.Zero) }
-    var scale by remember { mutableStateOf(1f) }
+    // Drag state (local only)
     var draggingNode by remember { mutableStateOf<String?>(null) }
     var dragOffset by remember { mutableStateOf(Offset.Zero) }
 
@@ -57,8 +63,8 @@ fun FlowGraphCanvas(
 
     // Create a stable reference to current state values that gesture detectors can read
     val currentFlowGraph = remember { mutableStateOf(flowGraph) }
-    val currentPanOffset = remember { mutableStateOf(Offset.Zero) }
-    val currentScale = remember { mutableStateOf(1f) }
+    val currentPanOffset = remember { mutableStateOf(panOffset) }
+    val currentScale = remember { mutableStateOf(scale) }
 
     // Keep the references updated
     currentFlowGraph.value = flowGraph
@@ -109,8 +115,8 @@ fun FlowGraphCanvas(
                             // Update connection end position
                             connectionEndPosition += dragAmount
                         } else if (draggingNode == null) {
-                            // Pan the canvas
-                            panOffset += dragAmount
+                            // Pan the canvas - notify parent of new offset
+                            onPanOffsetChanged(currentPanOffset.value + dragAmount)
                         } else {
                             // Drag the node
                             dragOffset += dragAmount
@@ -214,9 +220,10 @@ fun FlowGraphCanvas(
                         val nodeWidth = 180f * scale
                         val headerHeight = 30f * scale
 
+                        // Convert graph coordinates to screen coordinates
                         val sourceNodePos = Offset(
-                            sourceNode.position.x.toFloat() + panOffset.x,
-                            sourceNode.position.y.toFloat() + panOffset.y
+                            sourceNode.position.x.toFloat() * scale + panOffset.x,
+                            sourceNode.position.y.toFloat() * scale + panOffset.y
                         )
 
                         val sourcePortPos = Offset(
@@ -249,18 +256,22 @@ fun FlowGraphCanvas(
                 val isSelected = node.id == selectedNodeId
                 val isDragging = node.id == draggingNode
 
-                val nodeOffset = if (isDragging) {
-                    Offset(
-                        node.position.x.toFloat() + dragOffset.x,
-                        node.position.y.toFloat() + dragOffset.y
-                    )
+                // Convert graph coordinates to screen coordinates: screenPos = graphPos * scale + panOffset
+                val screenPosition = Offset(
+                    node.position.x.toFloat() * transformedScale + transformedOffset.x,
+                    node.position.y.toFloat() * transformedScale + transformedOffset.y
+                )
+
+                // Add drag offset (already in screen pixels) if dragging
+                val finalPosition = if (isDragging) {
+                    screenPosition + dragOffset
                 } else {
-                    Offset(node.position.x.toFloat(), node.position.y.toFloat())
+                    screenPosition
                 }
 
                 drawNode(
                     node = node,
-                    position = nodeOffset + transformedOffset,
+                    position = finalPosition,
                     scale = transformedScale,
                     isSelected = isSelected,
                     isDragging = isDragging
@@ -373,15 +384,16 @@ private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawConnection(
     val nodeWidth = 180f * scale
     val headerHeight = 30f * scale
 
-    // Apply drag offset if this node is being dragged
+    // Convert graph coordinates to screen coordinates: screenPos = graphPos * scale + offset
+    // Apply drag offset (in screen pixels) if this node is being dragged
     val sourceNodePos = Offset(
-        sourceNode.position.x.toFloat() + offset.x,
-        sourceNode.position.y.toFloat() + offset.y
+        sourceNode.position.x.toFloat() * scale + offset.x,
+        sourceNode.position.y.toFloat() * scale + offset.y
     ) + if (sourceNode.id == draggingNodeId) dragOffset else Offset.Zero
 
     val targetNodePos = Offset(
-        targetNode.position.x.toFloat() + offset.x,
-        targetNode.position.y.toFloat() + offset.y
+        targetNode.position.x.toFloat() * scale + offset.x,
+        targetNode.position.y.toFloat() * scale + offset.y
     ) + if (targetNode.id == draggingNodeId) dragOffset else Offset.Zero
 
     val sourcePortIndex = sourceNode.outputPorts.indexOf(sourcePort)
@@ -540,9 +552,10 @@ private fun findPortAtPosition(
         val portSpacing = 25f * scale
         val nodeWidth = 180f * scale
         val headerHeight = 30f * scale
+        // Convert graph coordinates to screen coordinates: screenPos = graphPos * scale + panOffset
         val nodePos = Offset(
-            node.position.x.toFloat() + panOffset.x,
-            node.position.y.toFloat() + panOffset.y
+            node.position.x.toFloat() * scale + panOffset.x,
+            node.position.y.toFloat() * scale + panOffset.y
         )
 
         // Check input ports (left side)
@@ -588,9 +601,10 @@ private fun findNodeAtPosition(
         val maxPorts = maxOf(node.inputPorts.size, node.outputPorts.size)
         val nodeHeight = headerHeight + (maxPorts.coerceAtLeast(1) * portSpacing) + 20f * scale
 
+        // Convert graph coordinates to screen coordinates: screenPos = graphPos * scale + panOffset
         val nodePos = Offset(
-            node.position.x.toFloat() + panOffset.x,
-            node.position.y.toFloat() + panOffset.y
+            node.position.x.toFloat() * scale + panOffset.x,
+            node.position.y.toFloat() * scale + panOffset.y
         )
 
         tapPosition.x >= nodePos.x &&

@@ -258,6 +258,22 @@ class GraphState(initialGraph: FlowGraph = flowGraph(
         isDirty = true
     }
 
+    /**
+     * Updates a node's display name.
+     *
+     * @param nodeId The ID of the node to update
+     * @param newName The new display name for the node
+     */
+    fun updateNodeName(nodeId: String, newName: String) {
+        val node = flowGraph.findNode(nodeId) as? CodeNode ?: return
+
+        val updatedNode = node.copy(name = newName)
+
+        // Replace the node in the graph
+        flowGraph = flowGraph.removeNode(nodeId).addNode(updatedNode)
+        isDirty = true
+    }
+
     // ============================================================================
     // Selection Operations
     // ============================================================================
