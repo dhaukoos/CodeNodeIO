@@ -58,13 +58,13 @@
 
 > **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
 
-- [ ] T011 [P] [US1] UI test for IPPalette component in graphEditor/src/jvmTest/kotlin/ui/IPPaletteTest.kt
+- [x] T011 [P] [US1] UI test for IPPalette component in graphEditor/src/jvmTest/kotlin/ui/IPPaletteTest.kt
 
 ### Implementation for User Story 1
 
-- [ ] T012 [P] [US1] Implement IPPalette Composable with search field and type list in graphEditor/src/jvmMain/kotlin/ui/IPPalette.kt
-- [ ] T013 [US1] Integrate IPPalette into Main.kt layout alongside NodePalette in graphEditor/src/jvmMain/kotlin/Main.kt
-- [ ] T014 [US1] Add IP type selection callback to display type code in TextualView in graphEditor/src/jvmMain/kotlin/ui/TextualView.kt
+- [x] T012 [P] [US1] Implement IPPalette Composable with search field and type list in graphEditor/src/jvmMain/kotlin/ui/IPPalette.kt
+- [x] T013 [US1] Integrate IPPalette into Main.kt layout alongside NodePalette in graphEditor/src/jvmMain/kotlin/Main.kt
+- [x] T014 [US1] Add IP type selection callback to display type code in TextualView in graphEditor/src/jvmMain/kotlin/ui/TextualView.kt
 
 **Checkpoint**: At this point, User Story 1 should be fully functional and testable independently
 

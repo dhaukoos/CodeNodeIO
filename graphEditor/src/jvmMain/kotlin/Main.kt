@@ -43,6 +43,9 @@ import io.codenode.fbpdsl.model.Port
 import io.codenode.fbpdsl.model.CodeNode
 import io.codenode.fbpdsl.model.CodeNodeType
 import io.codenode.fbpdsl.factory.getCommonGenericNodeTypes
+import io.codenode.fbpdsl.model.InformationPacketType
+import io.codenode.grapheditor.state.IPTypeRegistry
+import io.codenode.grapheditor.ui.IPPalette
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.key.*
 import androidx.compose.ui.focus.FocusRequester
@@ -259,6 +262,9 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
     val undoRedoManager = rememberUndoRedoManager()
     val propertyChangeTracker = rememberPropertyChangeTracker(undoRedoManager, graphState)
     val nodeTypes = remember { createSampleNodeTypes() }
+    val ipTypeRegistry = remember { IPTypeRegistry.withDefaults() }
+    val ipTypes = remember { ipTypeRegistry.getAllTypes() }
+    var selectedIPType by remember { mutableStateOf<InformationPacketType?>(null) }
     var showSaveDialog by remember { mutableStateOf(false) }
     var showOpenDialog by remember { mutableStateOf(false) }
     var statusMessage by remember { mutableStateOf("Ready - Create a new graph or open an existing one") }
@@ -333,6 +339,8 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                     NodePalette(
                         nodeTypes = nodeTypes,
                         onNodeSelected = { nodeType ->
+                            // Clear IP type selection when working with nodes
+                            selectedIPType = null
                             // Create a new node from the selected type
                             // Offset each new node so they don't stack on top of each other
                             val nodeId = "node_${System.currentTimeMillis()}"
@@ -372,10 +380,22 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                         }
                     )
 
+                    // IP Palette
+                    IPPalette(
+                        ipTypes = ipTypes,
+                        selectedTypeId = selectedIPType?.id,
+                        onTypeSelected = { ipType ->
+                            selectedIPType = ipType
+                            statusMessage = "Selected IP type: ${ipType.typeName}"
+                        }
+                    )
+
                     // Main Canvas with View Toggle (Visual/Textual/Split)
                     GraphEditorWithToggle(
                         flowGraph = graphState.flowGraph,
                         initialMode = ViewMode.VISUAL,
+                        overrideText = selectedIPType?.toCode(),
+                        overrideTitle = selectedIPType?.let { "IP Type: ${it.typeName}" },
                         onVisualViewContent = {
                             FlowGraphCanvas(
                                 flowGraph = graphState.flowGraph,

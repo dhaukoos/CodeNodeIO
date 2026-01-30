@@ -116,13 +116,17 @@ private fun ToggleButton(
  * @param viewMode The current view mode
  * @param onVisualViewContent Composable content for visual view
  * @param modifier Modifier for the view container
+ * @param overrideText Optional text to display in textual view instead of generated DSL
+ * @param overrideTitle Optional title for textual view when showing override text
  */
 @Composable
 fun GraphViewContainer(
     flowGraph: FlowGraph,
     viewMode: ViewMode,
     onVisualViewContent: @Composable () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    overrideText: String? = null,
+    overrideTitle: String? = null
 ) {
     when (viewMode) {
         ViewMode.VISUAL -> {
@@ -134,7 +138,8 @@ fun GraphViewContainer(
         ViewMode.TEXTUAL -> {
             TextualView(
                 flowGraph = flowGraph,
-                modifier = modifier.fillMaxSize()
+                modifier = modifier.fillMaxSize(),
+                overrideText = overrideText
             )
         }
 
@@ -162,7 +167,9 @@ fun GraphViewContainer(
                     flowGraph = flowGraph,
                     modifier = Modifier
                         .weight(1f)
-                        .fillMaxHeight()
+                        .fillMaxHeight(),
+                    overrideText = overrideText,
+                    overrideTitle = overrideTitle
                 )
             }
         }
@@ -176,13 +183,17 @@ fun GraphViewContainer(
  * @param initialMode Initial view mode (defaults to Visual)
  * @param onVisualViewContent Composable content for visual view
  * @param modifier Modifier for the component
+ * @param overrideText Optional text to display in textual view instead of generated DSL
+ * @param overrideTitle Optional title for textual view when showing override text
  */
 @Composable
 fun GraphEditorWithToggle(
     flowGraph: FlowGraph,
     initialMode: ViewMode = ViewMode.VISUAL,
     onVisualViewContent: @Composable () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    overrideText: String? = null,
+    overrideTitle: String? = null
 ) {
     var currentMode by remember { mutableStateOf(initialMode) }
 
@@ -207,7 +218,9 @@ fun GraphEditorWithToggle(
             onVisualViewContent = onVisualViewContent,
             modifier = Modifier
                 .fillMaxWidth()
-                .weight(1f)
+                .weight(1f),
+            overrideText = overrideText,
+            overrideTitle = overrideTitle
         )
     }
 }

@@ -34,16 +34,18 @@ import io.codenode.fbpdsl.model.FlowGraph
  * @param flowGraph The flow graph to display
  * @param modifier Modifier for the view
  * @param enableSyntaxHighlighting Whether to enable syntax highlighting
+ * @param overrideText Optional text to display instead of generated DSL (e.g., IP type code)
  */
 @Composable
 fun TextualView(
     flowGraph: FlowGraph,
     modifier: Modifier = Modifier,
-    enableSyntaxHighlighting: Boolean = true
+    enableSyntaxHighlighting: Boolean = true,
+    overrideText: String? = null
 ) {
-    // Generate DSL text from flow graph
-    val dslText = remember(flowGraph) {
-        TextGenerator.generate(flowGraph)
+    // Use override text if provided, otherwise generate DSL text from flow graph
+    val dslText = remember(flowGraph, overrideText) {
+        overrideText ?: TextGenerator.generate(flowGraph)
     }
 
     // Apply syntax highlighting if enabled
@@ -84,11 +86,15 @@ fun TextualView(
  *
  * @param flowGraph The flow graph to display
  * @param modifier Modifier for the view
+ * @param overrideText Optional text to display instead of generated DSL
+ * @param overrideTitle Optional title to display when showing override text
  */
 @Composable
 fun CompactTextualView(
     flowGraph: FlowGraph,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    overrideText: String? = null,
+    overrideTitle: String? = null
 ) {
     Column(
         modifier = modifier
@@ -97,7 +103,7 @@ fun CompactTextualView(
     ) {
         // Header
         Text(
-            text = "Textual View: ${flowGraph.name}",
+            text = overrideTitle ?: "Textual View: ${flowGraph.name}",
             modifier = Modifier.padding(8.dp),
             fontFamily = FontFamily.Monospace,
             fontSize = 12.sp,
@@ -108,7 +114,8 @@ fun CompactTextualView(
         // Textual view
         TextualView(
             flowGraph = flowGraph,
-            modifier = Modifier.weight(1f)
+            modifier = Modifier.weight(1f),
+            overrideText = overrideText
         )
     }
 }
