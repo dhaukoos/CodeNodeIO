@@ -501,7 +501,7 @@ class GenericNodeTypeFactoryTest {
         )
         val kmpTemplate = nodeType.getCodeTemplate("KMP")
         assertTrue(kmpTemplate != null)
-        assertTrue(kmpTemplate!!.contains("com.example.MyUseCase"))
+        assertTrue(kmpTemplate.contains("com.example.MyUseCase"))
     }
 
     @Test
@@ -509,7 +509,7 @@ class GenericNodeTypeFactoryTest {
         val nodeType = createGenericNodeType(numInputs = 1, numOutputs = 1)
         val kmpTemplate = nodeType.getCodeTemplate("KMP")
         assertTrue(kmpTemplate != null)
-        assertTrue(kmpTemplate!!.contains("TODO"))
+        assertTrue(kmpTemplate.contains("TODO"))
     }
 
     // ========== T023: Port Name Count Mismatch Validation Tests ==========

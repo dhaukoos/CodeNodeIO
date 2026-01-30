@@ -6,7 +6,7 @@
 
 package io.codenode.grapheditor
 
-import androidx.compose.desktop.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.runtime.*
@@ -26,7 +26,6 @@ import io.codenode.grapheditor.state.AddNodeCommand
 import io.codenode.grapheditor.state.MoveNodeCommand
 import io.codenode.grapheditor.state.AddConnectionCommand
 import io.codenode.grapheditor.state.RemoveNodeCommand
-import io.codenode.grapheditor.ui.CanvasControls
 import io.codenode.grapheditor.ui.CompactCanvasControls
 import io.codenode.grapheditor.ui.ConnectionErrorDisplay
 import io.codenode.grapheditor.ui.FlowGraphCanvas
@@ -43,7 +42,6 @@ import io.codenode.fbpdsl.model.PortTemplate
 import io.codenode.fbpdsl.model.Port
 import io.codenode.fbpdsl.model.CodeNode
 import io.codenode.fbpdsl.model.CodeNodeType
-import io.codenode.fbpdsl.model.Connection
 import io.codenode.fbpdsl.factory.getCommonGenericNodeTypes
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.key.*

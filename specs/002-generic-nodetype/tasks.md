@@ -160,11 +160,11 @@ Based on plan.md, this is a multi-module Kotlin Multiplatform project:
 
 **Purpose**: Final validation and documentation
 
-- [ ] T047 [P] Run full test suite to verify all 4 user stories work together
-- [ ] T048 [P] Verify quickstart.md scenarios work as documented
-- [ ] T049 [P] Verify backward compatibility - existing graphs still load correctly
-- [ ] T050 Update Main.kt to include 5 common generic nodes in default palette
-- [ ] T051 Final code review for Apache 2.0 header compliance on all new files
+- [x] T047 [P] Run full test suite to verify all 4 user stories work together
+- [x] T048 [P] Verify quickstart.md scenarios work as documented
+- [x] T049 [P] Verify backward compatibility - existing graphs still load correctly
+- [x] T050 Update Main.kt to include 5 common generic nodes in default palette
+- [x] T051 Final code review for Apache 2.0 header compliance on all new files
 
 ---
 
