@@ -30,6 +30,7 @@ import kotlinx.serialization.Serializable
  * @property targetPortId Reference to the target INPUT Port
  * @property channelCapacity Buffer size for the channel (0 = unbuffered, default)
  * @property parentScopeId Optional reference to parent GraphNode or FlowGraph
+ * @property ipTypeId Optional reference to InformationPacketType for typed connections
  *
  * @sample
  * ```kotlin
@@ -51,7 +52,8 @@ data class Connection(
     val targetNodeId: String,
     val targetPortId: String,
     val channelCapacity: Int = 0,
-    val parentScopeId: String? = null
+    val parentScopeId: String? = null,
+    val ipTypeId: String? = null
 ) {
 
     init {
@@ -225,4 +227,28 @@ data class Connection(
      * @return true if parentScopeId is null
      */
     fun isRootLevel(): Boolean = parentScopeId == null
+
+    /**
+     * Creates a copy of this connection with a new IP type
+     *
+     * @param typeId The InformationPacketType ID to assign (or null to clear)
+     * @return New Connection instance with updated ipTypeId
+     */
+    fun withIPType(typeId: String?): Connection {
+        return copy(ipTypeId = typeId)
+    }
+
+    /**
+     * Checks if this connection has an assigned IP type
+     *
+     * @return true if ipTypeId is not null
+     */
+    fun hasIPType(): Boolean = ipTypeId != null
+
+    /**
+     * Checks if this connection is untyped (no IP type assigned)
+     *
+     * @return true if ipTypeId is null
+     */
+    fun isUntyped(): Boolean = ipTypeId == null
 }
