@@ -78,12 +78,12 @@
 
 ### Tests for User Story 2 (TDD - Write These FIRST) ⚠️
 
-- [ ] T015 [P] [US2] UI test for connection selection in graphEditor/src/jvmTest/kotlin/ui/ConnectionSelectionTest.kt
-- [ ] T016 [P] [US2] UI test for ColorEditor component in graphEditor/src/jvmTest/kotlin/ui/ColorEditorTest.kt
+- [x] T015 [P] [US2] UI test for connection selection in graphEditor/src/jvmTest/kotlin/ui/ConnectionSelectionTest.kt
+- [x] T016 [P] [US2] UI test for ColorEditor component in graphEditor/src/jvmTest/kotlin/ui/ColorEditorTest.kt
 
 ### Implementation for User Story 2
 
-- [ ] T017 [P] [US2] Create ColorEditor Composable with color swatch and RGB input in graphEditor/src/jvmMain/kotlin/ui/ColorEditor.kt
+- [x] T017 [P] [US2] Create ColorEditor Composable with color swatch and RGB input in graphEditor/src/jvmMain/kotlin/ui/ColorEditor.kt
 - [ ] T018 [US2] Add selectedConnectionId state and selectConnection method to GraphState in graphEditor/src/jvmMain/kotlin/state/GraphState.kt
 - [ ] T019 [US2] Implement findConnectionAtPosition function with Bezier hit detection in graphEditor/src/jvmMain/kotlin/ui/FlowGraphCanvas.kt
 - [ ] T020 [US2] Add connection click handling to FlowGraphCanvas (left-click to select) in graphEditor/src/jvmMain/kotlin/ui/FlowGraphCanvas.kt
