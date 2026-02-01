@@ -22,6 +22,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.codenode.fbpdsl.model.CodeNode
+import io.codenode.fbpdsl.model.Connection
+import io.codenode.fbpdsl.model.FlowGraph
 import io.codenode.fbpdsl.model.NodeTypeDefinition
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
@@ -686,31 +688,146 @@ private fun PropertiesActionBar(
 @Composable
 fun CompactPropertiesPanel(
     selectedNode: CodeNode?,
+    selectedConnection: Connection? = null,
+    flowGraph: FlowGraph? = null,
     propertyDefinitions: List<PropertyDefinition> = emptyList(),
     onNodeNameChanged: (String) -> Unit = { _ -> },
     onPropertyChanged: (String, String) -> Unit = { _, _ -> },
     onPortNameChanged: (String, String) -> Unit = { _, _ -> },
     modifier: Modifier = Modifier
 ) {
-    var state by remember(selectedNode) {
-        mutableStateOf(
-            if (selectedNode != null) {
-                PropertiesPanelState(
-                    selectedNode = selectedNode,
-                    propertyDefinitions = propertyDefinitions,
-                    onNodeNameChanged = onNodeNameChanged,
-                    onPropertyChanged = onPropertyChanged,
-                    onPortNameChanged = onPortNameChanged
-                )
-            } else {
-                PropertiesPanelState()
-            }
+    // Show connection properties if a connection is selected
+    if (selectedConnection != null && flowGraph != null) {
+        ConnectionPropertiesPanel(
+            connection = selectedConnection,
+            flowGraph = flowGraph,
+            modifier = modifier.width(280.dp)
+        )
+    } else {
+        var state by remember(selectedNode) {
+            mutableStateOf(
+                if (selectedNode != null) {
+                    PropertiesPanelState(
+                        selectedNode = selectedNode,
+                        propertyDefinitions = propertyDefinitions,
+                        onNodeNameChanged = onNodeNameChanged,
+                        onPropertyChanged = onPropertyChanged,
+                        onPortNameChanged = onPortNameChanged
+                    )
+                } else {
+                    PropertiesPanelState()
+                }
+            )
+        }
+
+        PropertiesPanel(
+            state = state,
+            onStateChange = { state = it },
+            modifier = modifier.width(280.dp)
         )
     }
+}
 
-    PropertiesPanel(
-        state = state,
-        onStateChange = { state = it },
-        modifier = modifier.width(280.dp)
-    )
+/**
+ * Properties panel for displaying connection information
+ */
+@Composable
+fun ConnectionPropertiesPanel(
+    connection: Connection,
+    flowGraph: FlowGraph,
+    modifier: Modifier = Modifier
+) {
+    val sourceNode = flowGraph.findNode(connection.sourceNodeId)
+    val targetNode = flowGraph.findNode(connection.targetNodeId)
+    val sourcePort = sourceNode?.outputPorts?.find { it.id == connection.sourcePortId }
+    val targetPort = targetNode?.inputPorts?.find { it.id == connection.targetPortId }
+
+    Surface(
+        modifier = modifier.fillMaxHeight(),
+        color = MaterialTheme.colors.surface,
+        elevation = 4.dp
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(8.dp)
+        ) {
+            // Header
+            Text(
+                text = "Connection Properties",
+                fontWeight = FontWeight.Bold,
+                fontSize = 14.sp
+            )
+
+            Divider(modifier = Modifier.padding(vertical = 8.dp))
+
+            // Connection details
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState())
+            ) {
+                // Source information
+                Text(
+                    text = "Source",
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colors.primary
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                ConnectionInfoRow(label = "Node", value = sourceNode?.name ?: "Unknown")
+                ConnectionInfoRow(label = "Port", value = sourcePort?.name ?: "Unknown")
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // Target information
+                Text(
+                    text = "Target",
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colors.primary
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                ConnectionInfoRow(label = "Node", value = targetNode?.name ?: "Unknown")
+                ConnectionInfoRow(label = "Port", value = targetPort?.name ?: "Unknown")
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // Connection ID
+                Text(
+                    text = "Details",
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colors.primary
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                ConnectionInfoRow(label = "ID", value = connection.id)
+            }
+        }
+    }
+}
+
+/**
+ * A simple row displaying a label and value for connection info
+ */
+@Composable
+private fun ConnectionInfoRow(
+    label: String,
+    value: String
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(
+            text = label,
+            fontSize = 11.sp,
+            color = MaterialTheme.colors.onSurface.copy(alpha = 0.7f)
+        )
+        Text(
+            text = value,
+            fontSize = 11.sp,
+            fontWeight = FontWeight.Medium
+        )
+    }
 }

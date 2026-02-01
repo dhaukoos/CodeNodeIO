@@ -317,14 +317,27 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                         if (keyEvent.type == KeyEventType.KeyDown) {
                             when (keyEvent.key) {
                                 Key.Delete, Key.Backspace -> {
-                                    // Delete the selected node
-                                    graphState.selectedNodeId?.let { nodeId ->
+                                    // Delete selected node or connection
+                                    val nodeId = graphState.selectedNodeId
+                                    val connectionIds = graphState.selectedConnectionIds
+
+                                    if (nodeId != null) {
                                         val command = RemoveNodeCommand(nodeId)
                                         undoRedoManager.execute(command, graphState)
                                         graphState.selectNode(null)
                                         statusMessage = "Deleted node"
+                                        true
+                                    } else if (connectionIds.isNotEmpty()) {
+                                        // Delete selected connections
+                                        connectionIds.forEach { connectionId ->
+                                            graphState.removeConnection(connectionId)
+                                        }
+                                        graphState.clearSelection()
+                                        statusMessage = "Deleted connection"
+                                        true
+                                    } else {
+                                        false
                                     }
-                                    true
                                 }
                                 else -> false
                             }
@@ -400,6 +413,7 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                             FlowGraphCanvas(
                                 flowGraph = graphState.flowGraph,
                                 selectedNodeId = graphState.selectedNodeId,
+                                selectedConnectionIds = graphState.selectedConnectionIds,
                                 scale = graphState.scale,
                                 panOffset = graphState.panOffset,
                                 onScaleChanged = { newScale ->
@@ -410,7 +424,16 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                                 },
                                 onNodeSelected = { nodeId ->
                                     graphState.selectNode(nodeId)
-                                    statusMessage = if (nodeId != null) "Selected node" else "Deselected"
+                                    statusMessage = if (nodeId != null) "Selected node" else ""
+                                },
+                                onConnectionSelected = { connectionId ->
+                                    if (connectionId != null) {
+                                        graphState.selectConnection(connectionId)
+                                        statusMessage = "Selected connection"
+                                    } else if (graphState.selectedConnectionIds.isNotEmpty()) {
+                                        graphState.clearSelection()
+                                        statusMessage = ""
+                                    }
                                 },
                                 onNodeMoved = { nodeId, newX, newY ->
                                     // Get old position before moving
@@ -445,13 +468,20 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                         modifier = Modifier.weight(1f)
                     )
 
-                    // Properties Panel (right side) - shows when a node is selected
+                    // Properties Panel (right side) - shows when a node or connection is selected
                     val selectedNode = graphState.selectedNodeId?.let { nodeId ->
                         graphState.flowGraph.findNode(nodeId) as? CodeNode
                     }
 
+                    // Get the first selected connection (if any)
+                    val selectedConnection = graphState.selectedConnectionIds.firstOrNull()?.let { connectionId ->
+                        graphState.flowGraph.connections.find { it.id == connectionId }
+                    }
+
                     CompactPropertiesPanel(
                         selectedNode = selectedNode,
+                        selectedConnection = selectedConnection,
+                        flowGraph = graphState.flowGraph,
                         propertyDefinitions = selectedNode?.let { node ->
                             // Derive property definitions from node type or use defaults
                             nodeTypes.find { it.name == node.name }?.let { nodeType ->

@@ -84,12 +84,12 @@
 ### Implementation for User Story 2
 
 - [x] T017 [P] [US2] Create ColorEditor Composable with color swatch and RGB input in graphEditor/src/jvmMain/kotlin/ui/ColorEditor.kt
-- [ ] T018 [US2] Add selectedConnectionId state and selectConnection method to GraphState in graphEditor/src/jvmMain/kotlin/state/GraphState.kt
-- [ ] T019 [US2] Implement findConnectionAtPosition function with Bezier hit detection in graphEditor/src/jvmMain/kotlin/ui/FlowGraphCanvas.kt
-- [ ] T020 [US2] Add connection click handling to FlowGraphCanvas (left-click to select) in graphEditor/src/jvmMain/kotlin/ui/FlowGraphCanvas.kt
-- [ ] T021 [US2] Add visual highlighting for selected connections in graphEditor/src/jvmMain/kotlin/rendering/ConnectionRenderer.kt
-- [ ] T022 [US2] Add connection properties section to PropertiesPanel (IP type name, color swatch, RGB editor) in graphEditor/src/jvmMain/kotlin/ui/PropertiesPanel.kt
-- [ ] T023 [US2] Wire up color change from PropertiesPanel to update IP type color in graphEditor/src/jvmMain/kotlin/Main.kt
+- [x] T018 [US2] Add selectedConnectionId state and selectConnection method to GraphState in graphEditor/src/jvmMain/kotlin/state/GraphState.kt
+- [x] T019 [US2] Implement findConnectionAtPosition function with Bezier hit detection in graphEditor/src/jvmMain/kotlin/ui/FlowGraphCanvas.kt
+- [x] T020 [US2] Add connection click handling to FlowGraphCanvas (left-click to select) in graphEditor/src/jvmMain/kotlin/ui/FlowGraphCanvas.kt
+- [x] T021 [US2] Add visual highlighting for selected connections in graphEditor/src/jvmMain/kotlin/ui/FlowGraphCanvas.kt
+- [x] T022 [US2] Add connection properties section to PropertiesPanel (IP type name, color swatch, RGB editor) in graphEditor/src/jvmMain/kotlin/ui/PropertiesPanel.kt
+- [x] T023 [US2] Wire up connection selection and deletion in graphEditor/src/jvmMain/kotlin/Main.kt
 
 **Checkpoint**: At this point, User Stories 1 AND 2 should both work independently
 

@@ -8,6 +8,7 @@ package io.codenode.grapheditor.ui
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
@@ -18,6 +19,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.*
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
 import io.codenode.fbpdsl.model.FlowGraph
 import io.codenode.fbpdsl.model.Node
@@ -29,11 +31,13 @@ import io.codenode.fbpdsl.model.Port
  *
  * @param flowGraph The flow graph to display
  * @param selectedNodeId ID of the currently selected node (if any)
+ * @param selectedConnectionIds Set of selected connection IDs (for multi-select support)
  * @param scale Current zoom scale (1.0 = 100%)
  * @param panOffset Current pan offset for scrolling the view
  * @param onScaleChanged Callback when zoom scale changes from user interaction
  * @param onPanOffsetChanged Callback when pan offset changes from user interaction
  * @param onNodeSelected Callback when a node is selected
+ * @param onConnectionSelected Callback when a connection is selected
  * @param onNodeMoved Callback when a node is dragged to a new position
  * @param onConnectionCreated Callback when a new connection is created
  * @param modifier Modifier for the canvas
@@ -42,11 +46,13 @@ import io.codenode.fbpdsl.model.Port
 fun FlowGraphCanvas(
     flowGraph: FlowGraph,
     selectedNodeId: String? = null,
+    selectedConnectionIds: Set<String> = emptySet(),
     scale: Float = 1f,
     panOffset: Offset = Offset.Zero,
     onScaleChanged: (Float) -> Unit = {},
     onPanOffsetChanged: (Offset) -> Unit = {},
     onNodeSelected: (String?) -> Unit = {},
+    onConnectionSelected: (String?) -> Unit = {},
     onNodeMoved: (nodeId: String, newX: Double, newY: Double) -> Unit = { _, _, _ -> },
     onConnectionCreated: (Connection) -> Unit = {},
     modifier: Modifier = Modifier
@@ -75,6 +81,43 @@ fun FlowGraphCanvas(
         modifier = modifier
             .fillMaxSize()
             .background(Color(0xFFF5F5F5))
+            .pointerInput(Unit) {
+                // Handle immediate pointer down for connection selection
+                // This fires before detectDragGestures which waits for movement
+                awaitPointerEventScope {
+                    while (true) {
+                        val down = awaitFirstDown(requireUnconsumed = false)
+                        val position = down.position
+
+                        // Check if clicking on a connection (but not on a node or port)
+                        val portInfo = findPortAtPosition(
+                            currentFlowGraph.value,
+                            position,
+                            currentPanOffset.value,
+                            currentScale.value
+                        )
+                        val nodeUnderPointer = findNodeAtPosition(
+                            currentFlowGraph.value,
+                            position,
+                            currentPanOffset.value,
+                            currentScale.value
+                        )
+
+                        if (portInfo == null && nodeUnderPointer == null) {
+                            val connectionUnderPointer = findConnectionAtPosition(
+                                currentFlowGraph.value,
+                                position,
+                                currentPanOffset.value,
+                                currentScale.value
+                            )
+                            if (connectionUnderPointer != null) {
+                                // Select connection immediately
+                                onConnectionSelected(connectionUnderPointer)
+                            }
+                        }
+                    }
+                }
+            }
             .pointerInput(Unit) {
                 // Handle dragging - use Unit key so it never recreates
                 detectDragGestures(
@@ -105,7 +148,22 @@ fun FlowGraphCanvas(
                                 draggingNode = nodeUnderPointer.id
                                 dragOffset = Offset.Zero
                             } else {
-                                draggingNode = null
+                                // Check if clicking on a connection
+                                val connectionUnderPointer = findConnectionAtPosition(
+                                    currentFlowGraph.value,
+                                    offset,
+                                    currentPanOffset.value,
+                                    currentScale.value
+                                )
+                                if (connectionUnderPointer != null) {
+                                    // Select connection immediately on mouse down
+                                    // Note: Don't call onNodeSelected(null) here because
+                                    // selectConnection() already clears node selection
+                                    onConnectionSelected(connectionUnderPointer)
+                                    draggingNode = "__connection__"  // Prevent panning
+                                } else {
+                                    draggingNode = null
+                                }
                             }
                         }
                     },
@@ -117,6 +175,9 @@ fun FlowGraphCanvas(
                         } else if (draggingNode == null) {
                             // Pan the canvas - notify parent of new offset
                             onPanOffsetChanged(currentPanOffset.value + dragAmount)
+                        } else if (draggingNode == "__connection__") {
+                            // On a connection - don't pan or drag, just consume the event
+                            // Selection will be handled by detectTapGestures
                         } else {
                             // Drag the node
                             dragOffset += dragAmount
@@ -150,6 +211,8 @@ fun FlowGraphCanvas(
                             creatingConnection = false
                             connectionSourceNode = null
                             connectionSourcePort = null
+                        } else if (draggingNode == "__connection__") {
+                            // Connection was already selected in onDragStart, nothing to do
                         } else if (draggingNode != null) {
                             val node = currentFlowGraph.value.findNode(draggingNode!!)
                             if (node != null) {
@@ -158,6 +221,7 @@ fun FlowGraphCanvas(
                                 onNodeMoved(draggingNode!!, newX, newY)
                             }
                             onNodeSelected(draggingNode)
+                            onConnectionSelected(null)  // Clear connection selection
                         }
                         draggingNode = null
                         dragOffset = Offset.Zero
@@ -175,14 +239,34 @@ fun FlowGraphCanvas(
                 // Handle taps for quick selection - use Unit key so it never recreates
                 detectTapGestures(
                     onTap = { offset ->
-                        // Read current values from the stable references
+                        // Priority: Node > Connection > Empty
                         val tappedNode = findNodeAtPosition(
                             currentFlowGraph.value,
                             offset,
                             currentPanOffset.value,
                             currentScale.value
                         )
-                        onNodeSelected(tappedNode?.id)
+
+                        if (tappedNode != null) {
+                            onNodeSelected(tappedNode.id)
+                            onConnectionSelected(null)  // Clear connection selection
+                        } else {
+                            val tappedConnection = findConnectionAtPosition(
+                                currentFlowGraph.value,
+                                offset,
+                                currentPanOffset.value,
+                                currentScale.value
+                            )
+
+                            if (tappedConnection != null) {
+                                // Connection was already selected on pointer down
+                                // Don't do anything here to avoid re-triggering
+                            } else {
+                                // Empty canvas tap - clear all
+                                onNodeSelected(null)
+                                onConnectionSelected(null)
+                            }
+                        }
                     }
                 )
             }
@@ -205,7 +289,8 @@ fun FlowGraphCanvas(
                     offset = transformedOffset,
                     scale = transformedScale,
                     draggingNodeId = draggingNode,
-                    dragOffset = dragOffset
+                    dragOffset = dragOffset,
+                    isSelected = connection.id in selectedConnectionIds
                 )
             }
 
@@ -370,7 +455,8 @@ private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawConnection(
     offset: Offset,
     scale: Float,
     draggingNodeId: String? = null,
-    dragOffset: Offset = Offset.Zero
+    dragOffset: Offset = Offset.Zero,
+    isSelected: Boolean = false
 ) {
     val sourceNode = nodes.find { it.id == connection.sourceNodeId } ?: return
     val targetNode = nodes.find { it.id == connection.targetNodeId } ?: return
@@ -410,8 +496,27 @@ private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawConnection(
         targetNodePos.y + headerHeight + 20f * scale + (targetPortIndex * portSpacing)
     )
 
-    // Draw Bezier curve
-    drawBezierConnection(sourcePos, targetPos, scale)
+    // Default connection color is dark gray (for "Any" type)
+    // Selected connections use blue highlighting
+    val baseColor = Color(0xFF424242)  // Dark gray for default/Any type
+    val selectedColor = Color(0xFF2196F3)  // Blue for selection
+
+    val strokeColor = if (isSelected) selectedColor else baseColor
+    val strokeWidth = if (isSelected) 4f else 3f
+
+    // Draw selection glow first (underneath)
+    if (isSelected) {
+        drawBezierConnection(
+            start = sourcePos,
+            end = targetPos,
+            scale = scale,
+            color = selectedColor.copy(alpha = 0.3f),
+            strokeWidth = 8f
+        )
+    }
+
+    // Draw main connection line
+    drawBezierConnection(sourcePos, targetPos, scale, strokeColor, strokeWidth)
 }
 
 /**
@@ -612,4 +717,87 @@ private fun findNodeAtPosition(
         tapPosition.y >= nodePos.y &&
         tapPosition.y <= nodePos.y + nodeHeight
     }
+}
+
+/**
+ * Computes a point on a cubic Bezier curve at parameter t
+ */
+private fun cubicBezier(p0: Offset, p1: Offset, p2: Offset, p3: Offset, t: Float): Offset {
+    val u = 1 - t
+    return Offset(
+        u*u*u*p0.x + 3*u*u*t*p1.x + 3*u*t*t*p2.x + t*t*t*p3.x,
+        u*u*u*p0.y + 3*u*u*t*p1.y + 3*u*t*t*p2.y + t*t*t*p3.y
+    )
+}
+
+/**
+ * Samples a cubic Bezier curve at evenly spaced t values
+ */
+private fun sampleBezierCurve(start: Offset, end: Offset, samples: Int = 20): List<Offset> {
+    val controlPointOffset = kotlin.math.abs(end.x - start.x) * 0.5f
+    val cp1 = Offset(start.x + controlPointOffset, start.y)
+    val cp2 = Offset(end.x - controlPointOffset, end.y)
+
+    return (0 until samples).map { i ->
+        val t = i.toFloat() / (samples - 1)
+        cubicBezier(start, cp1, cp2, end, t)
+    }
+}
+
+/**
+ * Finds a connection at the given screen position
+ * Returns connection ID or null, uses 8-pixel tolerance
+ */
+private fun findConnectionAtPosition(
+    flowGraph: FlowGraph,
+    position: Offset,
+    panOffset: Offset,
+    scale: Float,
+    tolerance: Float = 8f
+): String? {
+    val portSpacing = 25f * scale
+    val nodeWidth = 180f * scale
+    val headerHeight = 30f * scale
+
+    for (connection in flowGraph.connections) {
+        val sourceNode = flowGraph.findNode(connection.sourceNodeId) ?: continue
+        val targetNode = flowGraph.findNode(connection.targetNodeId) ?: continue
+
+        val sourcePort = sourceNode.outputPorts.find { it.id == connection.sourcePortId } ?: continue
+        val targetPort = targetNode.inputPorts.find { it.id == connection.targetPortId } ?: continue
+
+        // Calculate screen positions (same logic as drawConnection)
+        val sourceNodePos = Offset(
+            sourceNode.position.x.toFloat() * scale + panOffset.x,
+            sourceNode.position.y.toFloat() * scale + panOffset.y
+        )
+        val targetNodePos = Offset(
+            targetNode.position.x.toFloat() * scale + panOffset.x,
+            targetNode.position.y.toFloat() * scale + panOffset.y
+        )
+
+        val sourcePortIndex = sourceNode.outputPorts.indexOf(sourcePort)
+        val targetPortIndex = targetNode.inputPorts.indexOf(targetPort)
+
+        val sourcePos = Offset(
+            sourceNodePos.x + nodeWidth,
+            sourceNodePos.y + headerHeight + 20f * scale + (sourcePortIndex * portSpacing)
+        )
+        val targetPos = Offset(
+            targetNodePos.x,
+            targetNodePos.y + headerHeight + 20f * scale + (targetPortIndex * portSpacing)
+        )
+
+        // Sample the Bezier curve and check distance to click point
+        val samples = sampleBezierCurve(sourcePos, targetPos)
+        val minDistance = samples.minOfOrNull { sample ->
+            (position - sample).getDistance()
+        } ?: Float.MAX_VALUE
+
+        if (minDistance <= tolerance * scale) {
+            return connection.id
+        }
+    }
+
+    return null
 }
