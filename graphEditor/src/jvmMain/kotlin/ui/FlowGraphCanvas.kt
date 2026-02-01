@@ -32,12 +32,14 @@ import io.codenode.fbpdsl.model.Port
  * @param flowGraph The flow graph to display
  * @param selectedNodeId ID of the currently selected node (if any)
  * @param selectedConnectionIds Set of selected connection IDs (for multi-select support)
+ * @param connectionColors Map of connection IDs to their display colors (for IP type coloring)
  * @param scale Current zoom scale (1.0 = 100%)
  * @param panOffset Current pan offset for scrolling the view
  * @param onScaleChanged Callback when zoom scale changes from user interaction
  * @param onPanOffsetChanged Callback when pan offset changes from user interaction
  * @param onNodeSelected Callback when a node is selected
  * @param onConnectionSelected Callback when a connection is selected
+ * @param onConnectionRightClick Callback when a connection is right-clicked: (connectionId, screenPosition)
  * @param onNodeMoved Callback when a node is dragged to a new position
  * @param onConnectionCreated Callback when a new connection is created
  * @param modifier Modifier for the canvas
@@ -47,12 +49,14 @@ fun FlowGraphCanvas(
     flowGraph: FlowGraph,
     selectedNodeId: String? = null,
     selectedConnectionIds: Set<String> = emptySet(),
+    connectionColors: Map<String, Color> = emptyMap(),
     scale: Float = 1f,
     panOffset: Offset = Offset.Zero,
     onScaleChanged: (Float) -> Unit = {},
     onPanOffsetChanged: (Offset) -> Unit = {},
     onNodeSelected: (String?) -> Unit = {},
     onConnectionSelected: (String?) -> Unit = {},
+    onConnectionRightClick: (String, Offset) -> Unit = { _, _ -> },
     onNodeMoved: (nodeId: String, newX: Double, newY: Double) -> Unit = { _, _, _ -> },
     onConnectionCreated: (Connection) -> Unit = {},
     modifier: Modifier = Modifier
@@ -81,6 +85,32 @@ fun FlowGraphCanvas(
         modifier = modifier
             .fillMaxSize()
             .background(Color(0xFFF5F5F5))
+            .pointerInput(Unit) {
+                // Handle right-click for connection context menu
+                awaitPointerEventScope {
+                    while (true) {
+                        val event = awaitPointerEvent()
+                        if (event.type == PointerEventType.Press) {
+                            val isRightClick = event.buttons.isSecondaryPressed
+                            if (isRightClick) {
+                                val position = event.changes.first().position
+
+                                // Check if right-clicking on a connection
+                                val connectionUnderPointer = findConnectionAtPosition(
+                                    currentFlowGraph.value,
+                                    position,
+                                    currentPanOffset.value,
+                                    currentScale.value
+                                )
+                                if (connectionUnderPointer != null) {
+                                    onConnectionRightClick(connectionUnderPointer, position)
+                                    event.changes.forEach { it.consume() }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
             .pointerInput(Unit) {
                 // Handle immediate pointer down for connection selection
                 // This fires before detectDragGestures which waits for movement
@@ -290,7 +320,8 @@ fun FlowGraphCanvas(
                     scale = transformedScale,
                     draggingNodeId = draggingNode,
                     dragOffset = dragOffset,
-                    isSelected = connection.id in selectedConnectionIds
+                    isSelected = connection.id in selectedConnectionIds,
+                    ipTypeColor = connectionColors[connection.id]
                 )
             }
 
@@ -456,7 +487,8 @@ private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawConnection(
     scale: Float,
     draggingNodeId: String? = null,
     dragOffset: Offset = Offset.Zero,
-    isSelected: Boolean = false
+    isSelected: Boolean = false,
+    ipTypeColor: Color? = null
 ) {
     val sourceNode = nodes.find { it.id == connection.sourceNodeId } ?: return
     val targetNode = nodes.find { it.id == connection.targetNodeId } ?: return
@@ -496,9 +528,9 @@ private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawConnection(
         targetNodePos.y + headerHeight + 20f * scale + (targetPortIndex * portSpacing)
     )
 
-    // Default connection color is dark gray (for "Any" type)
+    // Use IP type color if provided, otherwise default to dark gray (for "Any" type)
     // Selected connections use blue highlighting
-    val baseColor = Color(0xFF424242)  // Dark gray for default/Any type
+    val baseColor = ipTypeColor ?: Color(0xFF424242)  // IP type color or dark gray for default/Any
     val selectedColor = Color(0xFF2196F3)  // Blue for selection
 
     val strokeColor = if (isSelected) selectedColor else baseColor

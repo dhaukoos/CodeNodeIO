@@ -103,16 +103,16 @@
 
 ### Tests for User Story 3 (TDD - Write These FIRST) ⚠️
 
-- [ ] T024 [P] [US3] UI test for ConnectionContextMenu component in graphEditor/src/jvmTest/kotlin/ui/ConnectionContextMenuTest.kt
+- [x] T024 [P] [US3] UI test for ConnectionContextMenu component in graphEditor/src/jvmTest/kotlin/ui/ConnectionContextMenuTest.kt
 
 ### Implementation for User Story 3
 
-- [ ] T025 [P] [US3] Create ConnectionContextMenu Composable with IP type dropdown in graphEditor/src/jvmMain/kotlin/ui/ConnectionContextMenu.kt
-- [ ] T026 [US3] Add connectionContextMenu state and methods to GraphState in graphEditor/src/jvmMain/kotlin/state/GraphState.kt
-- [ ] T027 [US3] Add right-click handling to FlowGraphCanvas for connections in graphEditor/src/jvmMain/kotlin/ui/FlowGraphCanvas.kt
-- [ ] T028 [US3] Implement updateConnectionIPType method in GraphState in graphEditor/src/jvmMain/kotlin/state/GraphState.kt
-- [ ] T029 [US3] Render ConnectionContextMenu in Main.kt when context menu state is set in graphEditor/src/jvmMain/kotlin/Main.kt
-- [ ] T030 [US3] Update connection visual color based on IP type in graphEditor/src/jvmMain/kotlin/rendering/ConnectionRenderer.kt
+- [x] T025 [P] [US3] Create ConnectionContextMenu Composable with IP type dropdown in graphEditor/src/jvmMain/kotlin/ui/ConnectionContextMenu.kt
+- [x] T026 [US3] Add connectionContextMenu state and methods to GraphState in graphEditor/src/jvmMain/kotlin/state/GraphState.kt
+- [x] T027 [US3] Add right-click handling to FlowGraphCanvas for connections in graphEditor/src/jvmMain/kotlin/ui/FlowGraphCanvas.kt
+- [x] T028 [US3] Implement updateConnectionIPType method in GraphState in graphEditor/src/jvmMain/kotlin/state/GraphState.kt
+- [x] T029 [US3] Render ConnectionContextMenu in Main.kt when context menu state is set in graphEditor/src/jvmMain/kotlin/Main.kt
+- [x] T030 [US3] Update connection visual color based on IP type in graphEditor/src/jvmMain/kotlin/ui/FlowGraphCanvas.kt
 
 **Checkpoint**: All user stories should now be independently functional
 

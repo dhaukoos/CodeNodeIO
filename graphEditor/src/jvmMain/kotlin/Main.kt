@@ -46,6 +46,7 @@ import io.codenode.fbpdsl.factory.getCommonGenericNodeTypes
 import io.codenode.fbpdsl.model.InformationPacketType
 import io.codenode.grapheditor.state.IPTypeRegistry
 import io.codenode.grapheditor.ui.IPPalette
+import io.codenode.grapheditor.ui.ConnectionContextMenu
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.key.*
 import androidx.compose.ui.focus.FocusRequester
@@ -403,6 +404,24 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                         }
                     )
 
+                    // Compute connection colors based on IP types
+                    val connectionColors: Map<String, Color> = remember(graphState.flowGraph.connections, ipTypeRegistry) {
+                        val colorMap = mutableMapOf<String, Color>()
+                        graphState.flowGraph.connections.forEach { connection ->
+                            connection.ipTypeId?.let { typeId ->
+                                ipTypeRegistry.getById(typeId)?.let { ipType ->
+                                    val ipColor = ipType.color
+                                    colorMap[connection.id] = Color(
+                                        red = ipColor.red / 255f,
+                                        green = ipColor.green / 255f,
+                                        blue = ipColor.blue / 255f
+                                    )
+                                }
+                            }
+                        }
+                        colorMap
+                    }
+
                     // Main Canvas with View Toggle (Visual/Textual/Split)
                     GraphEditorWithToggle(
                         flowGraph = graphState.flowGraph,
@@ -414,6 +433,7 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                                 flowGraph = graphState.flowGraph,
                                 selectedNodeId = graphState.selectedNodeId,
                                 selectedConnectionIds = graphState.selectedConnectionIds,
+                                connectionColors = connectionColors,
                                 scale = graphState.scale,
                                 panOffset = graphState.panOffset,
                                 onScaleChanged = { newScale ->
@@ -424,6 +444,7 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                                 },
                                 onNodeSelected = { nodeId ->
                                     graphState.selectNode(nodeId)
+                                    graphState.hideConnectionContextMenu()
                                     statusMessage = if (nodeId != null) "Selected node" else ""
                                 },
                                 onConnectionSelected = { connectionId ->
@@ -434,6 +455,9 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                                         graphState.clearSelection()
                                         statusMessage = ""
                                     }
+                                },
+                                onConnectionRightClick = { connectionId, position ->
+                                    graphState.showConnectionContextMenu(connectionId, position)
                                 },
                                 onNodeMoved = { nodeId, newX, newY ->
                                     // Get old position before moving
@@ -464,6 +488,23 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                                     }
                                 }
                             )
+
+                            // Connection Context Menu (rendered as overlay)
+                            graphState.connectionContextMenu?.let { menuState ->
+                                ConnectionContextMenu(
+                                    connectionId = menuState.connectionId,
+                                    position = menuState.position,
+                                    ipTypes = ipTypeRegistry.getAllTypes(),
+                                    currentTypeId = menuState.currentTypeId,
+                                    onTypeSelected = { connId, typeId ->
+                                        graphState.updateConnectionIPType(connId, typeId)
+                                        statusMessage = "Changed connection IP type"
+                                    },
+                                    onDismiss = {
+                                        graphState.hideConnectionContextMenu()
+                                    }
+                                )
+                            }
                         },
                         modifier = Modifier.weight(1f)
                     )

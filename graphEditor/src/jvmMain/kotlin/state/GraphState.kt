@@ -14,6 +14,7 @@ import io.codenode.fbpdsl.model.Node
 import io.codenode.fbpdsl.model.Connection
 import io.codenode.fbpdsl.model.CodeNode
 import io.codenode.fbpdsl.model.NodeTypeDefinition
+import io.codenode.grapheditor.ui.ConnectionContextMenuState
 
 /**
  * State holder for the visual flow graph editor.
@@ -101,6 +102,12 @@ class GraphState(initialGraph: FlowGraph = flowGraph(
     var hoveredPort by mutableStateOf<PortLocation?>(null)
         private set
 
+    /**
+     * Context menu state for connection right-click menu
+     */
+    var connectionContextMenu by mutableStateOf<ConnectionContextMenuState?>(null)
+        private set
+
     // ============================================================================
     // Graph Mutation Operations
     // ============================================================================
@@ -137,6 +144,7 @@ class GraphState(initialGraph: FlowGraph = flowGraph(
         pendingConnection = null
         hoveredNodeId = null
         hoveredPort = null
+        connectionContextMenu = null
     }
 
     /**
@@ -536,6 +544,50 @@ class GraphState(initialGraph: FlowGraph = flowGraph(
      */
     fun updateHoveredPort(port: PortLocation?) {
         hoveredPort = port
+    }
+
+    // ============================================================================
+    // Context Menu Operations
+    // ============================================================================
+
+    /**
+     * Shows the connection context menu at the specified position
+     *
+     * @param connectionId The ID of the connection to show the menu for
+     * @param position Screen position where the menu should appear
+     */
+    fun showConnectionContextMenu(connectionId: String, position: Offset) {
+        val connection = flowGraph.connections.find { it.id == connectionId }
+        connectionContextMenu = ConnectionContextMenuState(
+            connectionId = connectionId,
+            position = position,
+            currentTypeId = connection?.ipTypeId
+        )
+    }
+
+    /**
+     * Hides the connection context menu
+     */
+    fun hideConnectionContextMenu() {
+        connectionContextMenu = null
+    }
+
+    /**
+     * Updates the IP type of a connection
+     *
+     * @param connectionId The ID of the connection to update
+     * @param ipTypeId The new IP type ID to assign
+     */
+    fun updateConnectionIPType(connectionId: String, ipTypeId: String) {
+        val connection = flowGraph.connections.find { it.id == connectionId } ?: return
+
+        val updatedConnection = connection.copy(ipTypeId = ipTypeId)
+
+        // Remove old connection and add updated one
+        flowGraph = flowGraph.removeConnection(connectionId)
+        flowGraph = flowGraph.addConnection(updatedConnection)
+
+        isDirty = true
     }
 
     // ============================================================================
