@@ -205,14 +205,15 @@ object FlowGraphDeserializer {
                 nodeIdMap[varName] = nodeId
             }
 
-            // Parse connections
+            // Parse connections (with optional IP type)
             val connections = mutableListOf<Connection>()
-            val connPattern = Regex("""(\w+)\.output\s*\(\s*"([^"]*)"\s*\)\s*connect\s*(\w+)\.input\s*\(\s*"([^"]*)"\s*\)""")
+            val connPattern = Regex("""(\w+)\.output\s*\(\s*"([^"]*)"\s*\)\s*connect\s*(\w+)\.input\s*\(\s*"([^"]*)"\s*\)(?:\s*withType\s*"([^"]*)")?""")
             connPattern.findAll(dslContent).forEach { match ->
                 val sourceVar = match.groupValues[1]
                 val sourcePortName = match.groupValues[2]
                 val targetVar = match.groupValues[3]
                 val targetPortName = match.groupValues[4]
+                val ipTypeId = match.groupValues.getOrNull(5)?.takeIf { it.isNotEmpty() }
 
                 val sourceNodeId = nodeIdMap[sourceVar]
                 val targetNodeId = nodeIdMap[targetVar]
@@ -231,7 +232,8 @@ object FlowGraphDeserializer {
                             sourceNodeId = sourceNodeId,
                             sourcePortId = sourcePort.id,
                             targetNodeId = targetNodeId,
-                            targetPortId = targetPort.id
+                            targetPortId = targetPort.id,
+                            ipTypeId = ipTypeId
                         ))
                     }
                 }

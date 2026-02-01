@@ -122,12 +122,12 @@
 
 **Purpose**: Improvements that affect multiple user stories
 
-- [ ] T031 [P] Add keyboard support for context menu dismissal (Escape key) in graphEditor/src/jvmMain/kotlin/ui/ConnectionContextMenu.kt
-- [ ] T032 [P] Ensure proper z-ordering (nodes on top of connections) in FlowGraphCanvas in graphEditor/src/jvmMain/kotlin/ui/FlowGraphCanvas.kt
-- [ ] T033 [P] Add empty state message "No matching types" to IPPalette search in graphEditor/src/jvmMain/kotlin/ui/IPPalette.kt
-- [ ] T034 Update FlowGraphSerializer to serialize ipTypeId in connections in graphEditor/src/jvmMain/kotlin/serialization/FlowGraphSerializer.kt
-- [ ] T035 Update FlowGraphDeserializer to deserialize ipTypeId in connections in graphEditor/src/jvmMain/kotlin/serialization/FlowGraphDeserializer.kt
-- [ ] T036 Run quickstart.md validation scenarios to verify feature completeness
+- [x] T031 [P] Add keyboard support for context menu dismissal (Escape key) in graphEditor/src/jvmMain/kotlin/ui/ConnectionContextMenu.kt
+- [x] T032 [P] Ensure proper z-ordering (nodes on top of connections) in FlowGraphCanvas in graphEditor/src/jvmMain/kotlin/ui/FlowGraphCanvas.kt
+- [x] T033 [P] Add empty state message "No matching types" to IPPalette search in graphEditor/src/jvmMain/kotlin/ui/IPPalette.kt
+- [x] T034 Update FlowGraphSerializer to serialize ipTypeId in connections in graphEditor/src/jvmMain/kotlin/serialization/FlowGraphSerializer.kt
+- [x] T035 Update FlowGraphDeserializer to deserialize ipTypeId in connections in graphEditor/src/jvmMain/kotlin/serialization/FlowGraphDeserializer.kt
+- [x] T036 Run quickstart.md validation scenarios to verify feature completeness
 
 ---
 

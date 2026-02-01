@@ -211,7 +211,14 @@ object FlowGraphSerializer {
         val targetPortName = connection.targetPortId.substringAfterLast("_")
 
         builder.append("${indent}$sourceVar.output(\"$sourcePortName\") connect ")
-        builder.appendLine("$targetVar.input(\"$targetPortName\")")
+        builder.append("$targetVar.input(\"$targetPortName\")")
+
+        // Add IP type if specified
+        connection.ipTypeId?.let { ipTypeId ->
+            builder.append(" withType \"$ipTypeId\"")
+        }
+
+        builder.appendLine()
     }
 
     /**
