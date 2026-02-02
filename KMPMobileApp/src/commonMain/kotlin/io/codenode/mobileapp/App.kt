@@ -33,7 +33,7 @@ fun App() {
 }
 
 /**
- * Main content composable displaying a greeting.
+ * Main content composable displaying a greeting and analog clock.
  */
 @Composable
 fun MainContent() {
@@ -52,6 +52,12 @@ fun MainContent() {
             text = greet(),
             style = MaterialTheme.typography.bodyLarge,
             modifier = Modifier.padding(top = 8.dp)
+        )
+
+        // Analog Clock
+        AnalogClock(
+            modifier = Modifier.padding(top = 32.dp),
+            minSize = 200.dp
         )
     }
 }

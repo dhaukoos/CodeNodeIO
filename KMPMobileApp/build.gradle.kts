@@ -18,6 +18,7 @@ plugins {
 object LocalVersions {
     const val compose = "1.7.3"
     const val activityCompose = "1.9.0"
+    const val datetime = "0.6.1"
 }
 
 kotlin {
@@ -51,6 +52,8 @@ kotlin {
             implementation("org.jetbrains.compose.material3:material3:${LocalVersions.compose}")
             implementation("org.jetbrains.compose.ui:ui:${LocalVersions.compose}")
             implementation(libs.coroutines.core)
+            // Multiplatform datetime support
+            implementation("org.jetbrains.kotlinx:kotlinx-datetime:${LocalVersions.datetime}")
         }
 
         commonTest.dependencies {
