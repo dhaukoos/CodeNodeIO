@@ -138,7 +138,7 @@ fun AnalogClock(
                     val positionX = (radius * .75f) * cos(angleRadDifference) + size.center.x
                     val positionY = (radius * .75f) * sin(angleRadDifference) + size.center.y
                     val text = (it / 5).toString()
-                    val textSize = (radius * .15f).sp
+                    val textSize = (radius * .075f).sp
 
                     val textLayoutResult = textMeasurer.measure(
                         text = text,

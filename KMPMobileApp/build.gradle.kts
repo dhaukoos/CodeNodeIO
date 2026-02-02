@@ -64,6 +64,8 @@ kotlin {
             implementation("androidx.activity:activity-compose:${LocalVersions.activityCompose}")
             // fbpDsl is JVM-only, so we include it only for Android
             implementation(project(":fbpDsl"))
+            // Compose tooling for previews
+            implementation("org.jetbrains.compose.ui:ui-tooling-preview:${LocalVersions.compose}")
         }
 
         androidUnitTest.dependencies {
@@ -95,5 +97,9 @@ android {
 
     buildFeatures {
         compose = true
+    }
+
+    dependencies {
+        debugImplementation("org.jetbrains.compose.ui:ui-tooling:${LocalVersions.compose}")
     }
 }
