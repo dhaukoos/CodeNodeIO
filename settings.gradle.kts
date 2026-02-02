@@ -12,12 +12,14 @@ pluginManagement {
     }
 
     plugins {
-        kotlin("jvm") version "2.1.30"
-        kotlin("multiplatform") version "2.1.30"
-        kotlin("plugin.serialization") version "2.1.30"
+        kotlin("jvm") version "2.1.21"
+        kotlin("multiplatform") version "2.1.21"
+        kotlin("plugin.serialization") version "2.1.21"
         id("org.jetbrains.compose") version "1.11.1"
-        id("org.jetbrains.kotlin.plugin.compose") version "2.1.30"
-        id("org.jetbrains.kotlin.plugin.parcelize") version "2.1.30"
+        id("org.jetbrains.kotlin.plugin.compose") version "2.1.21"
+        id("org.jetbrains.kotlin.plugin.parcelize") version "2.1.21"
+        id("com.android.application") version "8.2.2"
+        id("com.android.library") version "8.2.2"
     }
 }
 
@@ -44,4 +46,7 @@ include(":circuitSimulator")
 include(":kotlinCompiler")
 include(":goCompiler")
 include(":idePlugin")
+
+// Mobile app module
+include(":KMPMobileApp")
 

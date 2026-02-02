@@ -3,10 +3,14 @@
 gradle = "8.8"
 kotlin = "2.1.21"
 kotlinPoet = "2.2.0"
+agp = "8.2.2"
 
 # Compose & UI
 compose = "1.10.0"
 composeDesktopResources = "1.10.0"
+
+# Android (for KMPMobileApp)
+androidx-activity-compose = "1.9.0"
 composeCompiler = "2.1.21"  # Matches Kotlin version for Kotlin 2.0+ architecture
 
 # Coroutines & Serialization
@@ -48,6 +52,9 @@ junit5-api = { group = "org.junit.jupiter", name = "junit-jupiter-api", version.
 junit5-engine = { group = "org.junit.jupiter", name = "junit-jupiter-engine", version.ref = "junit5" }
 junit5-all = { group = "org.junit.jupiter", name = "junit-jupiter", version.ref = "junit5" }
 
+# Android
+androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "androidx-activity-compose" }
+
 [bundles]
 coroutines = ["coroutines-core"]
 coroutines-swing = ["coroutines-core", "coroutines-swing"]
@@ -64,4 +71,6 @@ kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", versi
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 kotlin-parcelize = { id = "org.jetbrains.kotlin.plugin.parcelize", version.ref = "kotlin" }
 compose = { id = "org.jetbrains.compose", version.ref = "compose" }
+android-application = { id = "com.android.application", version.ref = "agp" }
+android-library = { id = "com.android.library", version.ref = "agp" }
 
