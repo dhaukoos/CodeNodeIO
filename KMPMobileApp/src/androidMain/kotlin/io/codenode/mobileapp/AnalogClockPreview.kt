@@ -13,3 +13,11 @@ private fun AnalogClockPreview() {
         isClockRunning = false
     )
 }
+
+@Preview
+@Composable
+private fun StopWatchPreview() {
+    StopWatch(
+        minSize = 200.dp
+    )
+}

@@ -33,7 +33,7 @@ fun App() {
 }
 
 /**
- * Main content composable displaying a greeting and analog clock.
+ * Main content composable displaying a greeting and stopwatch.
  */
 @Composable
 fun MainContent() {
@@ -44,10 +44,6 @@ fun MainContent() {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        AnalogClock(
-            modifier = Modifier.padding(top = 32.dp),
-            minSize = 400.dp
-        )
         Text(
             text = "CodeNodeIO Mobile",
             style = MaterialTheme.typography.headlineLarge
@@ -56,6 +52,10 @@ fun MainContent() {
             text = greet(),
             style = MaterialTheme.typography.bodyLarge,
             modifier = Modifier.padding(top = 8.dp)
+        )
+        StopWatch(
+            modifier = Modifier.padding(top = 32.dp),
+            minSize = 400.dp
         )
     }
 }
