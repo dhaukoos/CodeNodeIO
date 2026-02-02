@@ -58,6 +58,7 @@ out/
 .env
 .env.local
 .env.*.local
+local.properties
 
 # Generated code
 generated/
