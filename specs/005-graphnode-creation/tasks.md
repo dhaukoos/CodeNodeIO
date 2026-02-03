@@ -24,9 +24,9 @@
 
 **Purpose**: Project initialization and basic structure for GraphNode creation feature
 
-- [ ] T001 Verify existing GraphNode model has required properties (childNodes, internalConnections, portMappings) in fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/GraphNode.kt
-- [ ] T002 [P] Create factory package directory at fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/factory/
-- [ ] T003 [P] Create state test directory at graphEditor/src/jvmTest/kotlin/io/codenode/grapheditor/state/
+- [X] T001 Verify existing GraphNode model has required properties (childNodes, internalConnections, portMappings) in fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/GraphNode.kt
+- [X] T002 [P] Create factory package directory at fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/factory/
+- [X] T003 [P] Create state test directory at graphEditor/src/jvmTest/kotlin/io/codenode/grapheditor/state/
 
 ---
 
@@ -38,18 +38,18 @@
 
 ### Tests for Foundation (TDD - Write FIRST, must FAIL) ⚠️
 
-- [ ] T004 [P] Write unit tests for SelectionState data class (nodes and connections) in graphEditor/src/jvmTest/kotlin/io/codenode/grapheditor/state/SelectionStateTest.kt
-- [ ] T005 [P] Write unit tests for NavigationContext data class in graphEditor/src/jvmTest/kotlin/io/codenode/grapheditor/state/NavigationContextTest.kt
+- [X] T004 [P] Write unit tests for SelectionState data class (nodes and connections) in graphEditor/src/jvmTest/kotlin/io/codenode/grapheditor/state/SelectionStateTest.kt
+- [X] T005 [P] Write unit tests for NavigationContext data class in graphEditor/src/jvmTest/kotlin/io/codenode/grapheditor/state/NavigationContextTest.kt
 
 ### Implementation for Foundation
 
-- [ ] T006 [P] Create SelectionState data class with selectedNodeIds, selectedConnectionIds, selectionBox properties in graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/state/SelectionState.kt
-- [ ] T007 [P] Create NavigationContext data class with path, pushInto, popOut methods in graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/state/NavigationContext.kt
-- [ ] T008 Add selectionState property to GraphState in graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/state/GraphState.kt
-- [ ] T009 Add navigationContext property to GraphState in graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/state/GraphState.kt
-- [ ] T010 Add getNodesInCurrentContext() method to GraphState in graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/state/GraphState.kt
-- [ ] T011 Add getConnectionsInCurrentContext() method to GraphState in graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/state/GraphState.kt
-- [ ] T012 Verify T004-T005 tests pass after implementation
+- [X] T006 [P] Create SelectionState data class with selectedNodeIds, selectedConnectionIds, selectionBox properties in graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/state/SelectionState.kt
+- [X] T007 [P] Create NavigationContext data class with path, pushInto, popOut methods in graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/state/NavigationContext.kt
+- [X] T008 Add selectionState property to GraphState in graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/state/GraphState.kt
+- [X] T009 Add navigationContext property to GraphState in graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/state/GraphState.kt
+- [X] T010 Add getNodesInCurrentContext() method to GraphState in graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/state/GraphState.kt
+- [X] T011 Add getConnectionsInCurrentContext() method to GraphState in graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/state/GraphState.kt
+- [X] T012 Verify T004-T005 tests pass after implementation
 
 **Checkpoint**: Foundation ready - user story implementation can now begin
 

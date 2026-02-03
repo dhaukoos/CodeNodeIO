@@ -13,6 +13,7 @@ import io.codenode.fbpdsl.model.FlowGraph
 import io.codenode.fbpdsl.model.Node
 import io.codenode.fbpdsl.model.Connection
 import io.codenode.fbpdsl.model.CodeNode
+import io.codenode.fbpdsl.model.GraphNode
 import io.codenode.fbpdsl.model.NodeTypeDefinition
 import io.codenode.grapheditor.ui.ConnectionContextMenuState
 
@@ -106,6 +107,20 @@ class GraphState(initialGraph: FlowGraph = flowGraph(
      * Context menu state for connection right-click menu
      */
     var connectionContextMenu by mutableStateOf<ConnectionContextMenuState?>(null)
+        private set
+
+    /**
+     * Multi-selection state for nodes and connections.
+     * Manages Shift-click and rectangular selection.
+     */
+    var selectionState by mutableStateOf(SelectionState())
+        private set
+
+    /**
+     * Navigation context for hierarchical GraphNode traversal.
+     * Tracks the path from root to current view level.
+     */
+    var navigationContext by mutableStateOf(NavigationContext())
         private set
 
     // ============================================================================
@@ -687,6 +702,52 @@ class GraphState(initialGraph: FlowGraph = flowGraph(
             baseOffset + dragOffset / scale
         } else {
             baseOffset
+        }
+    }
+
+    // ============================================================================
+    // Navigation Context Operations
+    // ============================================================================
+
+    /**
+     * Gets the nodes visible in the current navigation context.
+     *
+     * - If at root: returns flowGraph.nodes (root-level nodes)
+     * - If navigated into a GraphNode: returns that GraphNode's childNodes
+     *
+     * @return List of nodes in the current view context
+     */
+    fun getNodesInCurrentContext(): List<Node> {
+        val currentGraphNodeId = navigationContext.currentGraphNodeId
+
+        return if (currentGraphNodeId == null) {
+            // At root level - return top-level nodes
+            flowGraph.rootNodes
+        } else {
+            // Inside a GraphNode - return its children
+            val graphNode = flowGraph.findNode(currentGraphNodeId) as? GraphNode
+            graphNode?.childNodes ?: emptyList()
+        }
+    }
+
+    /**
+     * Gets the connections visible in the current navigation context.
+     *
+     * - If at root: returns flowGraph.connections (root-level connections)
+     * - If navigated into a GraphNode: returns that GraphNode's internalConnections
+     *
+     * @return List of connections in the current view context
+     */
+    fun getConnectionsInCurrentContext(): List<Connection> {
+        val currentGraphNodeId = navigationContext.currentGraphNodeId
+
+        return if (currentGraphNodeId == null) {
+            // At root level - return top-level connections
+            flowGraph.connections
+        } else {
+            // Inside a GraphNode - return its internal connections
+            val graphNode = flowGraph.findNode(currentGraphNodeId) as? GraphNode
+            graphNode?.internalConnections ?: emptyList()
         }
     }
 }
