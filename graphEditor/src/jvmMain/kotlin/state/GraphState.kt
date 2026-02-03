@@ -460,6 +460,121 @@ class GraphState(initialGraph: FlowGraph = flowGraph(
         )
     }
 
+    fun addConnectionsToSelection(connectionIds: Set<String>) {
+        val connectionElements = connectionIds.map { SelectableElement.Connection(it) }.toSet()
+        selectionState = selectionState.copy(
+            selectedElements = selectionState.selectedElements + connectionElements
+        )
+    }
+
+    // ============================================================================
+    // Rectangular Selection Operations
+    // ============================================================================
+
+    /**
+     * Starts a rectangular selection at the given position.
+     * This is called when the user begins Shift-dragging on empty canvas.
+     *
+     * @param startPosition The starting position of the selection box (in screen coordinates)
+     */
+    fun startRectangularSelection(startPosition: Offset) {
+        selectionState = selectionState.copy(
+            selectionBoxStart = startPosition,
+            selectionBoxEnd = startPosition,
+            isRectangularSelectionActive = true
+        )
+    }
+
+    /**
+     * Updates the rectangular selection to the current drag position.
+     * This is called during Shift-drag to update the selection box.
+     *
+     * @param currentPosition The current drag position (in screen coordinates)
+     */
+    fun updateRectangularSelection(currentPosition: Offset) {
+        if (selectionState.isRectangularSelectionActive) {
+            selectionState = selectionState.copy(
+                selectionBoxEnd = currentPosition
+            )
+        }
+    }
+
+    /**
+     * Finishes the rectangular selection, selecting all nodes whose centers
+     * are within the selection box.
+     * This is called when the user releases the mouse after Shift-dragging.
+     */
+    fun finishRectangularSelection() {
+        val bounds = selectionState.selectionBoxBounds
+        if (bounds != null) {
+            // Find all nodes whose centers are inside the selection box
+            val nodesToSelect = getNodesInCurrentContext().filter { node ->
+                val nodeCenter = calculateNodeCenter(node)
+                bounds.contains(nodeCenter)
+            }.map { it.id }.toSet()
+
+            // Add selected nodes to existing selection
+            addNodesToSelection(nodesToSelect)
+
+            // Find all connections where both endpoints are inside the selection box
+            val connectionsToSelect = getConnectionsInCurrentContext().filter { connection ->
+                nodesToSelect.contains(connection.sourceNodeId) &&
+                nodesToSelect.contains(connection.targetNodeId)
+            }.map { it.id }.toSet()
+
+            // Add selected connections to existing selection
+            addConnectionsToSelection(connectionsToSelect)
+        }
+
+        // Clear selection box state
+        selectionState = selectionState.copy(
+            selectionBoxStart = null,
+            selectionBoxEnd = null,
+            isRectangularSelectionActive = false
+        )
+    }
+
+    /**
+     * Cancels the rectangular selection without selecting any nodes.
+     * This is called when the user presses Escape or the selection is otherwise cancelled.
+     */
+    fun cancelRectangularSelection() {
+        selectionState = selectionState.copy(
+            selectionBoxStart = null,
+            selectionBoxEnd = null,
+            isRectangularSelectionActive = false
+        )
+    }
+
+    /**
+     * Calculates the center point of a node for hit detection.
+     * Uses the node's position plus half its typical dimensions.
+     *
+     * @param node The node to calculate center for
+     * @return The center point in screen coordinates
+     */
+    private fun calculateNodeCenter(node: Node): Offset {
+        // Node dimensions from FlowGraphCanvas rendering
+        val nodeWidth = 180f * scale
+        val portSpacing = 25f * scale
+        val headerHeight = 30f * scale
+        val maxPorts = maxOf(
+            (node as? CodeNode)?.inputPorts?.size ?: 1,
+            (node as? CodeNode)?.outputPorts?.size ?: 1
+        ).coerceAtLeast(1)
+        val nodeHeight = headerHeight + (maxPorts * portSpacing) + 20f * scale
+
+        // Calculate screen position: graphPos * scale + panOffset
+        val screenX = node.position.x.toFloat() * scale + panOffset.x
+        val screenY = node.position.y.toFloat() * scale + panOffset.y
+
+        // Center is position + half dimensions
+        return Offset(
+            screenX + nodeWidth / 2f,
+            screenY + nodeHeight / 2f
+        )
+    }
+
     // ============================================================================
     // Viewport Operations
     // ============================================================================

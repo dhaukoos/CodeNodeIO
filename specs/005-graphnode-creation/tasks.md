@@ -90,19 +90,19 @@
 
 ### Tests for User Story 2 (TDD - Write FIRST, must FAIL) ⚠️
 
-- [ ] T024 [P] [US2] Write UI test for rectangular selection initiation in graphEditor/src/jvmTest/kotlin/io/codenode/grapheditor/ui/RectangularSelectionTest.kt
-- [ ] T025 [P] [US2] Write UI test for selection box rendering during drag in graphEditor/src/jvmTest/kotlin/io/codenode/grapheditor/ui/RectangularSelectionTest.kt
-- [ ] T026 [P] [US2] Write UI test for nodes enclosed in box are selected on release in graphEditor/src/jvmTest/kotlin/io/codenode/grapheditor/ui/RectangularSelectionTest.kt
+- [X] T024 [P] [US2] Write UI test for rectangular selection initiation in graphEditor/src/jvmTest/kotlin/io/codenode/grapheditor/ui/RectangularSelectionTest.kt
+- [X] T025 [P] [US2] Write UI test for selection box rendering during drag in graphEditor/src/jvmTest/kotlin/io/codenode/grapheditor/ui/RectangularSelectionTest.kt
+- [X] T026 [P] [US2] Write UI test for nodes enclosed in box are selected on release in graphEditor/src/jvmTest/kotlin/io/codenode/grapheditor/ui/RectangularSelectionTest.kt
 
 ### Implementation for User Story 2
 
-- [ ] T027 [P] [US2] Create SelectionBox Composable for dotted rectangle rendering in graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/SelectionBox.kt
-- [ ] T028 [US2] Add startRectangularSelection(startPosition: Offset) method to GraphState in graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/state/GraphState.kt
-- [ ] T029 [US2] Add updateRectangularSelection(currentPosition: Offset) method to GraphState in graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/state/GraphState.kt
-- [ ] T030 [US2] Add finishRectangularSelection() method to GraphState with node center detection in graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/state/GraphState.kt
-- [ ] T031 [US2] Modify FlowGraphCanvas to detect Shift+drag on empty canvas in graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/FlowGraphCanvas.kt
-- [ ] T032 [US2] Integrate SelectionBox rendering into FlowGraphCanvas when selection active in graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/FlowGraphCanvas.kt
-- [ ] T033 [US2] Verify T024-T026 tests pass after implementation
+- [X] T027 [P] [US2] Create SelectionBox Composable for dotted rectangle rendering in graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/SelectionBox.kt
+- [X] T028 [US2] Add startRectangularSelection(startPosition: Offset) method to GraphState in graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/state/GraphState.kt
+- [X] T029 [US2] Add updateRectangularSelection(currentPosition: Offset) method to GraphState in graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/state/GraphState.kt
+- [X] T030 [US2] Add finishRectangularSelection() method to GraphState with node center detection in graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/state/GraphState.kt
+- [X] T031 [US2] Modify FlowGraphCanvas to detect Shift+drag on empty canvas in graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/FlowGraphCanvas.kt
+- [X] T032 [US2] Integrate SelectionBox rendering into FlowGraphCanvas when selection active in graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/FlowGraphCanvas.kt
+- [X] T033 [US2] Verify T024-T026 tests pass after implementation
 
 **Checkpoint**: User Stories 1 AND 2 complete - both Shift-click and rectangular selection work
 

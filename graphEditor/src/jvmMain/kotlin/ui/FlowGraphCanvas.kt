@@ -21,6 +21,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.*
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.geometry.Rect
 import io.codenode.fbpdsl.model.FlowGraph
 import io.codenode.fbpdsl.model.Node
 import io.codenode.fbpdsl.model.Connection
@@ -46,6 +47,10 @@ import io.codenode.grapheditor.state.SelectableElement
  * @param onConnectionRightClick Callback when a connection is right-clicked: (connectionId, screenPosition)
  * @param onNodeMoved Callback when a node is dragged to a new position
  * @param onConnectionCreated Callback when a new connection is created
+ * @param selectionBoxBounds Current selection box bounds for rendering (null if not active)
+ * @param onRectangularSelectionStart Callback when Shift+drag starts on empty canvas
+ * @param onRectangularSelectionUpdate Callback during Shift+drag to update selection box
+ * @param onRectangularSelectionFinish Callback when Shift+drag ends
  * @param modifier Modifier for the canvas
  */
 @Composable
@@ -66,6 +71,10 @@ fun FlowGraphCanvas(
     onConnectionRightClick: (String, Offset) -> Unit = { _, _ -> },
     onNodeMoved: (nodeId: String, newX: Double, newY: Double) -> Unit = { _, _, _ -> },
     onConnectionCreated: (Connection) -> Unit = {},
+    selectionBoxBounds: Rect? = null,
+    onRectangularSelectionStart: (Offset) -> Unit = {},
+    onRectangularSelectionUpdate: (Offset) -> Unit = {},
+    onRectangularSelectionFinish: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     // Drag state (local only)
@@ -80,6 +89,9 @@ fun FlowGraphCanvas(
 
     // Track Shift state at pointer down for use in drag handler
     var shiftPressedAtPointerDown by remember { mutableStateOf(false) }
+
+    // Rectangular selection state
+    var isRectangularSelectionActive by remember { mutableStateOf(false) }
 
     // Create a stable reference to current state values that gesture detectors can read
     val currentFlowGraph = remember { mutableStateOf(flowGraph) }
@@ -212,6 +224,11 @@ fun FlowGraphCanvas(
                                         onConnectionSelected(connectionUnderPointer)
                                     }
                                     draggingNode = "__connection__"  // Prevent panning
+                                } else if (shiftPressedAtPointerDown) {
+                                    // Shift+drag on empty canvas: start rectangular selection
+                                    isRectangularSelectionActive = true
+                                    onRectangularSelectionStart(offset)
+                                    draggingNode = "__rectangular_selection__"
                                 } else {
                                     draggingNode = null
                                 }
@@ -223,6 +240,9 @@ fun FlowGraphCanvas(
                         if (creatingConnection) {
                             // Update connection end position
                             connectionEndPosition += dragAmount
+                        } else if (draggingNode == "__rectangular_selection__") {
+                            // Update rectangular selection box
+                            onRectangularSelectionUpdate(change.position)
                         } else if (draggingNode == null) {
                             // Pan the canvas - notify parent of new offset
                             onPanOffsetChanged(currentPanOffset.value + dragAmount)
@@ -262,6 +282,10 @@ fun FlowGraphCanvas(
                             creatingConnection = false
                             connectionSourceNode = null
                             connectionSourcePort = null
+                        } else if (draggingNode == "__rectangular_selection__") {
+                            // Finish rectangular selection and select enclosed nodes
+                            isRectangularSelectionActive = false
+                            onRectangularSelectionFinish()
                         } else if (draggingNode == "__connection__") {
                             // Connection was already selected in onDragStart, nothing to do
                         } else if (draggingNode != null) {
@@ -287,6 +311,7 @@ fun FlowGraphCanvas(
                         creatingConnection = false
                         connectionSourceNode = null
                         connectionSourcePort = null
+                        isRectangularSelectionActive = false
                     }
                 )
             }
@@ -446,6 +471,11 @@ fun FlowGraphCanvas(
                     isDragging = isDragging
                 )
             }
+        }
+
+        // Draw selection box overlay if active
+        if (selectionBoxBounds != null) {
+            SelectionBox(bounds = selectionBoxBounds)
         }
     }
 }

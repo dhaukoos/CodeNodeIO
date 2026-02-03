@@ -501,6 +501,23 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                                     } catch (e: Exception) {
                                         statusMessage = graphState.errorMessage ?: "Failed to create connection"
                                     }
+                                },
+                                // Rectangular selection callbacks
+                                selectionBoxBounds = graphState.selectionState.selectionBoxBounds,
+                                onRectangularSelectionStart = { position ->
+                                    graphState.startRectangularSelection(position)
+                                },
+                                onRectangularSelectionUpdate = { position ->
+                                    graphState.updateRectangularSelection(position)
+                                },
+                                onRectangularSelectionFinish = {
+                                    val beforeCount = graphState.selectionState.nodeSelectionCount
+                                    graphState.finishRectangularSelection()
+                                    val afterCount = graphState.selectionState.nodeSelectionCount
+                                    val newlySelected = afterCount - beforeCount
+                                    if (newlySelected > 0) {
+                                        statusMessage = "Selected $newlySelected node${if (newlySelected > 1) "s" else ""}"
+                                    }
                                 }
                             )
 
