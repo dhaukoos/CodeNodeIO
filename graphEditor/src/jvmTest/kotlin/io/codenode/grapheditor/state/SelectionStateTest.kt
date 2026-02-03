@@ -54,9 +54,7 @@ class SelectionStateTest {
 
     @Test
     fun `SelectionState should store selected node IDs`() {
-        val state = SelectionState(
-            selectedNodeIds = setOf("node1", "node2", "node3")
-        )
+        val state = SelectionState.withNodes(setOf("node1", "node2", "node3"))
         assertEquals(3, state.selectedNodeIds.size)
         assertTrue(state.selectedNodeIds.contains("node1"))
         assertTrue(state.selectedNodeIds.contains("node2"))
@@ -65,7 +63,7 @@ class SelectionStateTest {
 
     @Test
     fun `hasNodeSelection should return true when nodes are selected`() {
-        val state = SelectionState(selectedNodeIds = setOf("node1"))
+        val state = SelectionState.withNodes(setOf("node1"))
         assertTrue(state.hasNodeSelection)
     }
 
@@ -77,7 +75,7 @@ class SelectionStateTest {
 
     @Test
     fun `nodeSelectionCount should return correct count`() {
-        val state = SelectionState(selectedNodeIds = setOf("node1", "node2", "node3"))
+        val state = SelectionState.withNodes(setOf("node1", "node2", "node3"))
         assertEquals(3, state.nodeSelectionCount)
     }
 
@@ -87,9 +85,7 @@ class SelectionStateTest {
 
     @Test
     fun `SelectionState should store selected connection IDs`() {
-        val state = SelectionState(
-            selectedConnectionIds = setOf("conn1", "conn2")
-        )
+        val state = SelectionState.withConnections(setOf("conn1", "conn2"))
         assertEquals(2, state.selectedConnectionIds.size)
         assertTrue(state.selectedConnectionIds.contains("conn1"))
         assertTrue(state.selectedConnectionIds.contains("conn2"))
@@ -97,7 +93,7 @@ class SelectionStateTest {
 
     @Test
     fun `hasConnectionSelection should return true when connections are selected`() {
-        val state = SelectionState(selectedConnectionIds = setOf("conn1"))
+        val state = SelectionState.withConnections(setOf("conn1"))
         assertTrue(state.hasConnectionSelection)
     }
 
@@ -109,7 +105,7 @@ class SelectionStateTest {
 
     @Test
     fun `connectionSelectionCount should return correct count`() {
-        val state = SelectionState(selectedConnectionIds = setOf("conn1", "conn2"))
+        val state = SelectionState.withConnections(setOf("conn1", "conn2"))
         assertEquals(2, state.connectionSelectionCount)
     }
 
@@ -119,21 +115,23 @@ class SelectionStateTest {
 
     @Test
     fun `hasSelection should return true when nodes are selected`() {
-        val state = SelectionState(selectedNodeIds = setOf("node1"))
+        val state = SelectionState.withNodes(setOf("node1"))
         assertTrue(state.hasSelection)
     }
 
     @Test
     fun `hasSelection should return true when connections are selected`() {
-        val state = SelectionState(selectedConnectionIds = setOf("conn1"))
+        val state = SelectionState.withConnections(setOf("conn1"))
         assertTrue(state.hasSelection)
     }
 
     @Test
     fun `hasSelection should return true when both nodes and connections are selected`() {
         val state = SelectionState(
-            selectedNodeIds = setOf("node1"),
-            selectedConnectionIds = setOf("conn1")
+            selectedElements = setOf(
+                SelectableElement.Node("node1"),
+                SelectableElement.Connection("conn1")
+            )
         )
         assertTrue(state.hasSelection)
     }
@@ -147,8 +145,13 @@ class SelectionStateTest {
     @Test
     fun `totalSelectionCount should sum nodes and connections`() {
         val state = SelectionState(
-            selectedNodeIds = setOf("node1", "node2"),
-            selectedConnectionIds = setOf("conn1", "conn2", "conn3")
+            selectedElements = setOf(
+                SelectableElement.Node("node1"),
+                SelectableElement.Node("node2"),
+                SelectableElement.Connection("conn1"),
+                SelectableElement.Connection("conn2"),
+                SelectableElement.Connection("conn3")
+            )
         )
         assertEquals(5, state.totalSelectionCount)
     }
@@ -159,13 +162,13 @@ class SelectionStateTest {
 
     @Test
     fun `canGroup should return true when 2 or more nodes are selected`() {
-        val state = SelectionState(selectedNodeIds = setOf("node1", "node2"))
+        val state = SelectionState.withNodes(setOf("node1", "node2"))
         assertTrue(state.canGroup)
     }
 
     @Test
     fun `canGroup should return false when fewer than 2 nodes are selected`() {
-        val state = SelectionState(selectedNodeIds = setOf("node1"))
+        val state = SelectionState.withNodes(setOf("node1"))
         assertFalse(state.canGroup)
     }
 
@@ -178,8 +181,12 @@ class SelectionStateTest {
     @Test
     fun `canGroup should ignore connection selection count`() {
         val state = SelectionState(
-            selectedNodeIds = setOf("node1"),
-            selectedConnectionIds = setOf("conn1", "conn2", "conn3")
+            selectedElements = setOf(
+                SelectableElement.Node("node1"),
+                SelectableElement.Connection("conn1"),
+                SelectableElement.Connection("conn2"),
+                SelectableElement.Connection("conn3")
+            )
         )
         assertFalse(state.canGroup) // Only 1 node selected, connections don't count
     }
@@ -245,13 +252,79 @@ class SelectionStateTest {
     }
 
     // ============================================
+    // Toggle Tests
+    // ============================================
+
+    @Test
+    fun `toggleNode should add node to empty selection`() {
+        val state = SelectionState()
+        val newState = state.toggleNode("node1")
+        assertTrue(newState.containsNode("node1"))
+        assertEquals(1, newState.nodeSelectionCount)
+    }
+
+    @Test
+    fun `toggleNode should remove node from selection`() {
+        val state = SelectionState.withNodes(setOf("node1", "node2"))
+        val newState = state.toggleNode("node1")
+        assertFalse(newState.containsNode("node1"))
+        assertTrue(newState.containsNode("node2"))
+        assertEquals(1, newState.nodeSelectionCount)
+    }
+
+    @Test
+    fun `toggleConnection should add connection to empty selection`() {
+        val state = SelectionState()
+        val newState = state.toggleConnection("conn1")
+        assertTrue(newState.containsConnection("conn1"))
+        assertEquals(1, newState.connectionSelectionCount)
+    }
+
+    @Test
+    fun `toggleConnection should remove connection from selection`() {
+        val state = SelectionState.withConnections(setOf("conn1", "conn2"))
+        val newState = state.toggleConnection("conn1")
+        assertFalse(newState.containsConnection("conn1"))
+        assertTrue(newState.containsConnection("conn2"))
+        assertEquals(1, newState.connectionSelectionCount)
+    }
+
+    @Test
+    fun `toggleNode should preserve connection selection`() {
+        val state = SelectionState(
+            selectedElements = setOf(
+                SelectableElement.Node("node1"),
+                SelectableElement.Connection("conn1")
+            )
+        )
+        val newState = state.toggleNode("node2")
+        assertTrue(newState.containsNode("node1"))
+        assertTrue(newState.containsNode("node2"))
+        assertTrue(newState.containsConnection("conn1"))
+    }
+
+    @Test
+    fun `toggleConnection should preserve node selection`() {
+        val state = SelectionState(
+            selectedElements = setOf(
+                SelectableElement.Node("node1"),
+                SelectableElement.Connection("conn1")
+            )
+        )
+        val newState = state.toggleConnection("conn2")
+        assertTrue(newState.containsNode("node1"))
+        assertTrue(newState.containsConnection("conn1"))
+        assertTrue(newState.containsConnection("conn2"))
+    }
+
+    // ============================================
     // Immutability Tests
     // ============================================
 
     @Test
     fun `copy should create independent instance`() {
-        val original = SelectionState(selectedNodeIds = setOf("node1"))
-        val copy = original.copy(selectedNodeIds = setOf("node2"))
+        val original = SelectionState.withNodes(setOf("node1"))
+        val copy = original.copy(selectedElements = setOf(SelectableElement.Node("node2")))
 
         assertEquals(setOf("node1"), original.selectedNodeIds)
         assertEquals(setOf("node2"), copy.selectedNodeIds)

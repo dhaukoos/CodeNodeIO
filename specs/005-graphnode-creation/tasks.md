@@ -63,20 +63,20 @@
 
 ### Tests for User Story 1 (TDD - Write FIRST, must FAIL) ⚠️
 
-- [ ] T013 [P] [US1] Write UI test for Shift-click node selection in graphEditor/src/jvmTest/kotlin/io/codenode/grapheditor/ui/MultiSelectionTest.kt
-- [ ] T014 [P] [US1] Write UI test for selection highlight rendering in graphEditor/src/jvmTest/kotlin/io/codenode/grapheditor/ui/MultiSelectionTest.kt
-- [ ] T015 [P] [US1] Write UI test for click-to-clear selection in graphEditor/src/jvmTest/kotlin/io/codenode/grapheditor/ui/MultiSelectionTest.kt
+- [X] T013 [P] [US1] Write UI test for Shift-click node selection in graphEditor/src/jvmTest/kotlin/io/codenode/grapheditor/ui/MultiSelectionTest.kt
+- [X] T014 [P] [US1] Write UI test for selection highlight rendering in graphEditor/src/jvmTest/kotlin/io/codenode/grapheditor/ui/MultiSelectionTest.kt
+- [X] T015 [P] [US1] Write UI test for click-to-clear selection in graphEditor/src/jvmTest/kotlin/io/codenode/grapheditor/ui/MultiSelectionTest.kt
 
 ### Implementation for User Story 1
 
-- [ ] T016 [US1] Add toggleNodeInSelection(nodeId: String) method to GraphState in graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/state/GraphState.kt
-- [ ] T017 [US1] Add clearSelection() method to GraphState in graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/state/GraphState.kt
-- [ ] T018 [US1] Modify FlowGraphCanvas to detect Shift key modifier in graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/FlowGraphCanvas.kt
-- [ ] T019 [US1] Modify FlowGraphCanvas onClick to call toggleNodeInSelection when Shift held in graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/FlowGraphCanvas.kt
-- [ ] T020 [US1] Modify FlowGraphCanvas onClick to call clearSelection when clicking empty canvas without Shift in graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/FlowGraphCanvas.kt
-- [ ] T021 [US1] Modify NodeRenderer to render selection highlight for nodes in selectionState.selectedNodeIds in graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/rendering/NodeRenderer.kt
-- [ ] T022 [US1] Modify ConnectionRenderer to highlight connections between selected nodes in graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/rendering/ConnectionRenderer.kt
-- [ ] T023 [US1] Verify T013-T015 tests pass after implementation
+- [X] T016 [US1] Add toggleNodeInSelection(nodeId: String) method to GraphState in graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/state/GraphState.kt
+- [X] T017 [US1] Add clearSelection() method to GraphState in graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/state/GraphState.kt
+- [X] T018 [US1] Modify FlowGraphCanvas to detect Shift key modifier in graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/FlowGraphCanvas.kt
+- [X] T019 [US1] Modify FlowGraphCanvas onClick to call toggleNodeInSelection when Shift held in graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/FlowGraphCanvas.kt
+- [X] T020 [US1] Modify FlowGraphCanvas onClick to call clearSelection when clicking empty canvas without Shift in graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/FlowGraphCanvas.kt
+- [X] T021 [US1] Modify NodeRenderer to render selection highlight for nodes in selectionState.selectedNodeIds in graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/rendering/NodeRenderer.kt
+- [X] T022 [US1] Modify ConnectionRenderer to highlight connections between selected nodes in graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/rendering/ConnectionRenderer.kt
+- [X] T023 [US1] Verify T013-T015 tests pass after implementation
 
 **Checkpoint**: User Story 1 complete - multi-select via Shift-click works independently
 

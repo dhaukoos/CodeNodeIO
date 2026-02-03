@@ -378,6 +378,99 @@ class GraphState(initialGraph: FlowGraph = flowGraph(
     }
 
     // ============================================================================
+    // Multi-Selection Operations (Shift-Click Support)
+    // ============================================================================
+
+    /**
+     * Toggles a node in the multi-selection.
+     * If the node is not selected, it's added to the selection.
+     * If the node is already selected, it's removed from the selection.
+     *
+     * @param nodeId The ID of the node to toggle
+     */
+    fun toggleNodeInSelection(nodeId: String) {
+        selectionState = selectionState.toggleNode(nodeId)
+    }
+
+    /**
+     * Toggles a connection in the multi-selection.
+     * If the connection is not selected, it's added to the selection.
+     * If the connection is already selected, it's removed from the selection.
+     *
+     * @param connectionId The ID of the connection to toggle
+     */
+    fun toggleConnectionInSelection(connectionId: String) {
+        selectionState = selectionState.toggleConnection(connectionId)
+    }
+
+    /**
+     * Toggles any selectable element in the multi-selection.
+     *
+     * @param element The element to toggle
+     */
+    fun toggleElementInSelection(element: SelectableElement) {
+        selectionState = selectionState.toggle(element)
+    }
+
+    /**
+     * Clears the multi-selection (both nodes and connections).
+     * This is called when clicking on empty canvas without Shift.
+     */
+    fun clearMultiSelection() {
+        selectionState = SelectionState()
+    }
+
+    /**
+     * Checks if a node is in the multi-selection.
+     *
+     * @param nodeId The ID of the node to check
+     * @return true if the node is in the multi-selection
+     */
+    fun isNodeInMultiSelection(nodeId: String): Boolean {
+        return selectionState.containsNode(nodeId)
+    }
+
+    /**
+     * Checks if a connection is in the multi-selection.
+     *
+     * @param connectionId The ID of the connection to check
+     * @return true if the connection is in the multi-selection
+     */
+    fun isConnectionInMultiSelection(connectionId: String): Boolean {
+        return selectionState.containsConnection(connectionId)
+    }
+
+    /**
+     * Selects all connections that are between the given nodes.
+     * A connection is "between" the nodes if both its source and target are in the node set.
+     *
+     * @param nodeIds The set of node IDs to find internal connections for
+     */
+    fun selectConnectionsBetweenNodes(nodeIds: Set<String>) {
+        val internalConnectionElements = flowGraph.connections.filter { conn ->
+            conn.sourceNodeId in nodeIds && conn.targetNodeId in nodeIds
+        }.map { SelectableElement.Connection(it.id) }.toSet()
+
+        selectionState = selectionState.copy(
+            selectedElements = selectionState.selectedElements
+                .filterIsInstance<SelectableElement.Node>()
+                .toSet() + internalConnectionElements
+        )
+    }
+
+    /**
+     * Adds multiple nodes to the selection.
+     *
+     * @param nodeIds The set of node IDs to add
+     */
+    fun addNodesToSelection(nodeIds: Set<String>) {
+        val nodeElements = nodeIds.map { SelectableElement.Node(it) }.toSet()
+        selectionState = selectionState.copy(
+            selectedElements = selectionState.selectedElements + nodeElements
+        )
+    }
+
+    // ============================================================================
     // Viewport Operations
     // ============================================================================
 

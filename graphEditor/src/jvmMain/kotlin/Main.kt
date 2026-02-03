@@ -432,7 +432,8 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                             FlowGraphCanvas(
                                 flowGraph = graphState.flowGraph,
                                 selectedNodeId = graphState.selectedNodeId,
-                                selectedConnectionIds = graphState.selectedConnectionIds,
+                                selectedConnectionIds = graphState.selectedConnectionIds + graphState.selectionState.selectedConnectionIds,
+                                multiSelectedNodeIds = graphState.selectionState.selectedNodeIds,
                                 connectionColors = connectionColors,
                                 scale = graphState.scale,
                                 panOffset = graphState.panOffset,
@@ -443,6 +444,8 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                                     graphState.updatePanOffset(newOffset)
                                 },
                                 onNodeSelected = { nodeId ->
+                                    // Clear multi-selection when doing single selection
+                                    graphState.clearMultiSelection()
                                     graphState.selectNode(nodeId)
                                     graphState.hideConnectionContextMenu()
                                     statusMessage = if (nodeId != null) "Selected node" else ""
@@ -455,6 +458,23 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                                         graphState.clearSelection()
                                         statusMessage = ""
                                     }
+                                },
+                                onNodeShiftClicked = { nodeId ->
+                                    // Toggle node in multi-selection
+                                    graphState.toggleNodeInSelection(nodeId)
+                                    val count = graphState.selectionState.totalSelectionCount
+                                    statusMessage = "$count item${if (count != 1) "s" else ""} selected"
+                                },
+                                onConnectionShiftClicked = { connectionId ->
+                                    // Toggle connection in multi-selection
+                                    graphState.toggleConnectionInSelection(connectionId)
+                                    val count = graphState.selectionState.totalSelectionCount
+                                    statusMessage = "$count item${if (count != 1) "s" else ""} selected"
+                                },
+                                onEmptyCanvasClicked = {
+                                    // Clear all selections when clicking empty canvas
+                                    graphState.clearMultiSelection()
+                                    statusMessage = ""
                                 },
                                 onConnectionRightClick = { connectionId, position ->
                                     graphState.showConnectionContextMenu(connectionId, position)
