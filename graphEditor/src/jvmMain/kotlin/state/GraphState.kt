@@ -38,16 +38,30 @@ class GraphState(initialGraph: FlowGraph = flowGraph(
         private set
 
     /**
-     * Currently selected node ID (null if no selection)
+     * Unified selection state for nodes and connections.
+     * Single-selection is just a selection with one element.
+     * Multi-selection is a selection with multiple elements.
      */
-    var selectedNodeId by mutableStateOf<String?>(null)
+    var selectionState by mutableStateOf(SelectionState())
         private set
 
     /**
-     * Set of currently selected connection IDs
+     * Currently selected node ID (null if no node selection or multiple nodes selected).
+     * This is a convenience property - the source of truth is selectionState.
      */
-    var selectedConnectionIds by mutableStateOf<Set<String>>(emptySet())
-        private set
+    val selectedNodeId: String?
+        get() = if (selectionState.nodeSelectionCount == 1) {
+            selectionState.selectedNodeIds.firstOrNull()
+        } else {
+            null
+        }
+
+    /**
+     * Set of currently selected connection IDs.
+     * This is a convenience property - the source of truth is selectionState.
+     */
+    val selectedConnectionIds: Set<String>
+        get() = selectionState.selectedConnectionIds
 
     /**
      * Canvas pan offset (for scrolling/panning the view)
@@ -110,13 +124,6 @@ class GraphState(initialGraph: FlowGraph = flowGraph(
         private set
 
     /**
-     * Multi-selection state for nodes and connections.
-     * Manages Shift-click and rectangular selection.
-     */
-    var selectionState by mutableStateOf(SelectionState())
-        private set
-
-    /**
      * Navigation context for hierarchical GraphNode traversal.
      * Tracks the path from root to current view level.
      */
@@ -148,8 +155,7 @@ class GraphState(initialGraph: FlowGraph = flowGraph(
             name = "Untitled",
             version = "1.0.0"
         ) {}
-        selectedNodeId = null
-        selectedConnectionIds = emptySet()
+        selectionState = SelectionState()
         panOffset = Offset.Zero
         scale = 1f
         isDirty = false
@@ -194,9 +200,11 @@ class GraphState(initialGraph: FlowGraph = flowGraph(
             flowGraph = flowGraph.removeConnection(connection.id)
         }
 
-        // Clear selection if removed node was selected
-        if (selectedNodeId == nodeId) {
-            selectedNodeId = null
+        // Remove from selection if the node was selected
+        if (selectionState.containsNode(nodeId)) {
+            selectionState = selectionState.copy(
+                selectedElements = selectionState.selectedElements - SelectableElement.Node(nodeId)
+            )
         }
 
         isDirty = true
@@ -259,7 +267,12 @@ class GraphState(initialGraph: FlowGraph = flowGraph(
      */
     fun removeConnection(connectionId: String) {
         flowGraph = flowGraph.removeConnection(connectionId)
-        selectedConnectionIds = selectedConnectionIds - connectionId
+        // Remove from selection if the connection was selected
+        if (selectionState.containsConnection(connectionId)) {
+            selectionState = selectionState.copy(
+                selectedElements = selectionState.selectedElements - SelectableElement.Connection(connectionId)
+            )
+        }
         isDirty = true
     }
 
@@ -330,13 +343,17 @@ class GraphState(initialGraph: FlowGraph = flowGraph(
     // ============================================================================
 
     /**
-     * Selects a node (clears previous selection)
+     * Selects a single node (clears previous selection).
+     * This is equivalent to setting selectionState to contain only this node.
      *
      * @param nodeId The ID of the node to select (null to clear selection)
      */
     fun selectNode(nodeId: String?) {
-        selectedNodeId = nodeId
-        selectedConnectionIds = emptySet()
+        selectionState = if (nodeId != null) {
+            SelectionState(selectedElements = setOf(SelectableElement.Node(nodeId)))
+        } else {
+            SelectionState()
+        }
     }
 
     /**
@@ -345,19 +362,19 @@ class GraphState(initialGraph: FlowGraph = flowGraph(
      * @param nodeId The ID of the node to add to selection
      */
     fun addNodeToSelection(nodeId: String) {
-        // For now, we only support single selection
-        // Multi-select can be implemented later
-        selectNode(nodeId)
+        selectionState = selectionState.copy(
+            selectedElements = selectionState.selectedElements + SelectableElement.Node(nodeId)
+        )
     }
 
     /**
-     * Selects a connection (clears node selection)
+     * Selects a single connection (clears previous selection).
+     * This is equivalent to setting selectionState to contain only this connection.
      *
      * @param connectionId The ID of the connection to select
      */
     fun selectConnection(connectionId: String) {
-        selectedNodeId = null
-        selectedConnectionIds = setOf(connectionId)
+        selectionState = SelectionState(selectedElements = setOf(SelectableElement.Connection(connectionId)))
     }
 
     /**
@@ -366,23 +383,24 @@ class GraphState(initialGraph: FlowGraph = flowGraph(
      * @param connectionId The ID of the connection to add
      */
     fun addConnectionToSelection(connectionId: String) {
-        selectedConnectionIds = selectedConnectionIds + connectionId
+        selectionState = selectionState.copy(
+            selectedElements = selectionState.selectedElements + SelectableElement.Connection(connectionId)
+        )
     }
 
     /**
      * Clears all selections
      */
     fun clearSelection() {
-        selectedNodeId = null
-        selectedConnectionIds = emptySet()
+        selectionState = SelectionState()
     }
 
     // ============================================================================
-    // Multi-Selection Operations (Shift-Click Support)
+    // Toggle Selection Operations (for Shift-Click)
     // ============================================================================
 
     /**
-     * Toggles a node in the multi-selection.
+     * Toggles a node in the selection.
      * If the node is not selected, it's added to the selection.
      * If the node is already selected, it's removed from the selection.
      *
@@ -393,7 +411,7 @@ class GraphState(initialGraph: FlowGraph = flowGraph(
     }
 
     /**
-     * Toggles a connection in the multi-selection.
+     * Toggles a connection in the selection.
      * If the connection is not selected, it's added to the selection.
      * If the connection is already selected, it's removed from the selection.
      *
@@ -404,40 +422,12 @@ class GraphState(initialGraph: FlowGraph = flowGraph(
     }
 
     /**
-     * Toggles any selectable element in the multi-selection.
+     * Toggles any selectable element in the selection.
      *
      * @param element The element to toggle
      */
     fun toggleElementInSelection(element: SelectableElement) {
         selectionState = selectionState.toggle(element)
-    }
-
-    /**
-     * Clears the multi-selection (both nodes and connections).
-     * This is called when clicking on empty canvas without Shift.
-     */
-    fun clearMultiSelection() {
-        selectionState = SelectionState()
-    }
-
-    /**
-     * Checks if a node is in the multi-selection.
-     *
-     * @param nodeId The ID of the node to check
-     * @return true if the node is in the multi-selection
-     */
-    fun isNodeInMultiSelection(nodeId: String): Boolean {
-        return selectionState.containsNode(nodeId)
-    }
-
-    /**
-     * Checks if a connection is in the multi-selection.
-     *
-     * @param connectionId The ID of the connection to check
-     * @return true if the connection is in the multi-selection
-     */
-    fun isConnectionInMultiSelection(connectionId: String): Boolean {
-        return selectionState.containsConnection(connectionId)
     }
 
     /**
@@ -747,7 +737,7 @@ class GraphState(initialGraph: FlowGraph = flowGraph(
      * @return true if the node is selected
      */
     fun isNodeSelected(nodeId: String): Boolean {
-        return selectedNodeId == nodeId
+        return selectionState.containsNode(nodeId)
     }
 
     /**
@@ -757,7 +747,7 @@ class GraphState(initialGraph: FlowGraph = flowGraph(
      * @return true if the connection is selected
      */
     fun isConnectionSelected(connectionId: String): Boolean {
-        return connectionId in selectedConnectionIds
+        return selectionState.containsConnection(connectionId)
     }
 
     /**

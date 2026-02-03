@@ -25,6 +25,7 @@ import io.codenode.fbpdsl.model.FlowGraph
 import io.codenode.fbpdsl.model.Node
 import io.codenode.fbpdsl.model.Connection
 import io.codenode.fbpdsl.model.Port
+import io.codenode.grapheditor.state.SelectableElement
 
 /**
  * Main canvas component for rendering and interacting with flow graphs
@@ -40,8 +41,7 @@ import io.codenode.fbpdsl.model.Port
  * @param onPanOffsetChanged Callback when pan offset changes from user interaction
  * @param onNodeSelected Callback when a node is selected
  * @param onConnectionSelected Callback when a connection is selected
- * @param onNodeShiftClicked Callback when a node is Shift-clicked (for multi-selection toggle)
- * @param onConnectionShiftClicked Callback when a connection is Shift-clicked (for multi-selection toggle)
+ * @param onElementShiftClicked Callback when any element is Shift-clicked (for multi-selection toggle)
  * @param onEmptyCanvasClicked Callback when empty canvas is clicked (for clearing selection)
  * @param onConnectionRightClick Callback when a connection is right-clicked: (connectionId, screenPosition)
  * @param onNodeMoved Callback when a node is dragged to a new position
@@ -61,8 +61,7 @@ fun FlowGraphCanvas(
     onPanOffsetChanged: (Offset) -> Unit = {},
     onNodeSelected: (String?) -> Unit = {},
     onConnectionSelected: (String?) -> Unit = {},
-    onNodeShiftClicked: (String) -> Unit = {},
-    onConnectionShiftClicked: (String) -> Unit = {},
+    onElementShiftClicked: (SelectableElement) -> Unit = {},
     onEmptyCanvasClicked: () -> Unit = {},
     onConnectionRightClick: (String, Offset) -> Unit = { _, _ -> },
     onNodeMoved: (nodeId: String, newX: Double, newY: Double) -> Unit = { _, _, _ -> },
@@ -272,8 +271,12 @@ fun FlowGraphCanvas(
                                 val newY = node.position.y + dragOffset.y / currentScale.value
                                 onNodeMoved(draggingNode!!, newX, newY)
                             }
-                            onNodeSelected(draggingNode)
-                            onConnectionSelected(null)  // Clear connection selection
+                            // Only do single-selection if Shift was NOT pressed
+                            // Shift-click selection is handled by the tap handler
+                            if (!shiftPressedAtPointerDown) {
+                                onNodeSelected(draggingNode)
+                                onConnectionSelected(null)  // Clear connection selection
+                            }
                         }
                         draggingNode = null
                         dragOffset = Offset.Zero
@@ -310,8 +313,8 @@ fun FlowGraphCanvas(
 
                                 if (tappedNode != null) {
                                     if (isShiftPressed) {
-                                        // Shift-click: toggle node in multi-selection
-                                        onNodeShiftClicked(tappedNode.id)
+                                        // Shift-click: toggle element in selection
+                                        onElementShiftClicked(SelectableElement.Node(tappedNode.id))
                                     } else {
                                         // Normal click: single selection
                                         onNodeSelected(tappedNode.id)
@@ -327,8 +330,8 @@ fun FlowGraphCanvas(
 
                                     if (tappedConnection != null) {
                                         if (isShiftPressed) {
-                                            // Shift-click: toggle connection in multi-selection
-                                            onConnectionShiftClicked(tappedConnection)
+                                            // Shift-click: toggle element in selection
+                                            onElementShiftClicked(SelectableElement.Connection(tappedConnection))
                                         }
                                         // Normal click: connection was already selected on pointer down
                                     } else {
@@ -360,10 +363,6 @@ fun FlowGraphCanvas(
 
             // Draw connections first (behind nodes)
             flowGraph.connections.forEach { connection ->
-                // Check if connection is between multi-selected nodes
-                val isBetweenMultiSelected = connection.sourceNodeId in multiSelectedNodeIds &&
-                        connection.targetNodeId in multiSelectedNodeIds
-
                 drawConnection(
                     connection = connection,
                     nodes = flowGraph.rootNodes,
@@ -372,7 +371,6 @@ fun FlowGraphCanvas(
                     draggingNodeId = draggingNode,
                     dragOffset = dragOffset,
                     isSelected = connection.id in selectedConnectionIds,
-                    isBetweenMultiSelected = isBetweenMultiSelected,
                     ipTypeColor = connectionColors[connection.id]
                 )
             }
@@ -542,7 +540,6 @@ private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawGrid(
  * @param draggingNodeId ID of node being dragged (if any)
  * @param dragOffset Current drag offset
  * @param isSelected Whether the connection is selected
- * @param isBetweenMultiSelected Whether both endpoints are in multi-selection
  * @param ipTypeColor Optional color based on IP type
  */
 private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawConnection(
@@ -553,7 +550,6 @@ private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawConnection(
     draggingNodeId: String? = null,
     dragOffset: Offset = Offset.Zero,
     isSelected: Boolean = false,
-    isBetweenMultiSelected: Boolean = false,
     ipTypeColor: Color? = null
 ) {
     val sourceNode = nodes.find { it.id == connection.sourceNodeId } ?: return
@@ -595,30 +591,20 @@ private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawConnection(
     )
 
     // Use IP type color if provided, otherwise default to dark gray (for "Any" type)
-    // Selected or multi-selected connections use blue highlighting
+    // Selected connections use blue highlighting
     val baseColor = ipTypeColor ?: Color(0xFF424242)  // IP type color or dark gray for default/Any
     val selectedColor = Color(0xFF2196F3)  // Blue for selection
-    val multiSelectedColor = Color(0xFF1976D2)  // Darker blue for multi-selection
 
-    val strokeColor = when {
-        isSelected -> selectedColor
-        isBetweenMultiSelected -> multiSelectedColor
-        else -> baseColor
-    }
-    val strokeWidth = when {
-        isSelected -> 4f
-        isBetweenMultiSelected -> 3.5f
-        else -> 3f
-    }
+    val strokeColor = if (isSelected) selectedColor else baseColor
+    val strokeWidth = if (isSelected) 4f else 3f
 
-    // Draw selection glow first (underneath) for selected or multi-selected
-    if (isSelected || isBetweenMultiSelected) {
-        val glowColor = if (isSelected) selectedColor else multiSelectedColor
+    // Draw selection glow first (underneath) for selected connections
+    if (isSelected) {
         drawBezierConnection(
             start = sourcePos,
             end = targetPos,
             scale = scale,
-            color = glowColor.copy(alpha = 0.3f),
+            color = selectedColor.copy(alpha = 0.3f),
             strokeWidth = 8f
         )
     }

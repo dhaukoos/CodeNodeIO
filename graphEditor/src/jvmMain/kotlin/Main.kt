@@ -21,6 +21,7 @@ import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
 import io.codenode.fbpdsl.dsl.flowGraph
 import io.codenode.grapheditor.state.GraphState
+import io.codenode.grapheditor.state.SelectableElement
 import io.codenode.grapheditor.state.rememberUndoRedoManager
 import io.codenode.grapheditor.state.AddNodeCommand
 import io.codenode.grapheditor.state.MoveNodeCommand
@@ -432,7 +433,7 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                             FlowGraphCanvas(
                                 flowGraph = graphState.flowGraph,
                                 selectedNodeId = graphState.selectedNodeId,
-                                selectedConnectionIds = graphState.selectedConnectionIds + graphState.selectionState.selectedConnectionIds,
+                                selectedConnectionIds = graphState.selectedConnectionIds,
                                 multiSelectedNodeIds = graphState.selectionState.selectedNodeIds,
                                 connectionColors = connectionColors,
                                 scale = graphState.scale,
@@ -445,7 +446,7 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                                 },
                                 onNodeSelected = { nodeId ->
                                     // Clear multi-selection when doing single selection
-                                    graphState.clearMultiSelection()
+                                    graphState.clearSelection()
                                     graphState.selectNode(nodeId)
                                     graphState.hideConnectionContextMenu()
                                     statusMessage = if (nodeId != null) "Selected node" else ""
@@ -459,21 +460,15 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                                         statusMessage = ""
                                     }
                                 },
-                                onNodeShiftClicked = { nodeId ->
-                                    // Toggle node in multi-selection
-                                    graphState.toggleNodeInSelection(nodeId)
-                                    val count = graphState.selectionState.totalSelectionCount
-                                    statusMessage = "$count item${if (count != 1) "s" else ""} selected"
-                                },
-                                onConnectionShiftClicked = { connectionId ->
-                                    // Toggle connection in multi-selection
-                                    graphState.toggleConnectionInSelection(connectionId)
+                                onElementShiftClicked = { element ->
+                                    // Toggle element in selection (unified for nodes and connections)
+                                    graphState.toggleElementInSelection(element)
                                     val count = graphState.selectionState.totalSelectionCount
                                     statusMessage = "$count item${if (count != 1) "s" else ""} selected"
                                 },
                                 onEmptyCanvasClicked = {
                                     // Clear all selections when clicking empty canvas
-                                    graphState.clearMultiSelection()
+                                    graphState.clearSelection()
                                     statusMessage = ""
                                 },
                                 onConnectionRightClick = { connectionId, position ->
@@ -529,15 +524,21 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                         modifier = Modifier.weight(1f)
                     )
 
-                    // Properties Panel (right side) - shows when a node or connection is selected
-                    val selectedNode = graphState.selectedNodeId?.let { nodeId ->
-                        graphState.flowGraph.findNode(nodeId) as? CodeNode
-                    }
+                    // Properties Panel (right side) - shows when exactly one element is selected
+                    // When multiple elements are selected, panel should be empty
+                    val hasSingleSelection = graphState.selectionState.totalSelectionCount == 1
 
-                    // Get the first selected connection (if any)
-                    val selectedConnection = graphState.selectedConnectionIds.firstOrNull()?.let { connectionId ->
-                        graphState.flowGraph.connections.find { it.id == connectionId }
-                    }
+                    val selectedNode = if (hasSingleSelection) {
+                        graphState.selectedNodeId?.let { nodeId ->
+                            graphState.flowGraph.findNode(nodeId) as? CodeNode
+                        }
+                    } else null
+
+                    val selectedConnection = if (hasSingleSelection) {
+                        graphState.selectedConnectionIds.firstOrNull()?.let { connectionId ->
+                            graphState.flowGraph.connections.find { it.id == connectionId }
+                        }
+                    } else null
 
                     CompactPropertiesPanel(
                         selectedNode = selectedNode,

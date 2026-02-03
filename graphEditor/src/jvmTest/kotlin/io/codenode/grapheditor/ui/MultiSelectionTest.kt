@@ -117,7 +117,7 @@ class MultiSelectionTest {
     // ============================================
 
     @Test
-    fun `isNodeInMultiSelection should return true for selected nodes`() {
+    fun `isNodeSelected should return true for selected nodes`() {
         // Given: A graph with selected nodes
         val graph = flowGraph(name = "TestGraph", version = "1.0.0") {
             codeNode("Node1") { output("out", String::class) }
@@ -128,12 +128,12 @@ class MultiSelectionTest {
         val node1Id = graph.rootNodes[0].id
         graphState.toggleNodeInSelection(node1Id)
 
-        // Then: isNodeInMultiSelection should return true for selected node
-        assertTrue(graphState.isNodeInMultiSelection(node1Id))
+        // Then: isNodeSelected should return true for selected node
+        assertTrue(graphState.isNodeSelected(node1Id))
     }
 
     @Test
-    fun `isNodeInMultiSelection should return false for non-selected nodes`() {
+    fun `isNodeSelected should return false for non-selected nodes`() {
         // Given: A graph with some nodes selected
         val graph = flowGraph(name = "TestGraph", version = "1.0.0") {
             codeNode("Node1") { output("out", String::class) }
@@ -145,8 +145,8 @@ class MultiSelectionTest {
         val node2Id = graph.rootNodes[1].id
         graphState.toggleNodeInSelection(node1Id)
 
-        // Then: isNodeInMultiSelection should return false for non-selected node
-        assertFalse(graphState.isNodeInMultiSelection(node2Id))
+        // Then: isNodeSelected should return false for non-selected node
+        assertFalse(graphState.isNodeSelected(node2Id))
     }
 
     @Test
@@ -200,7 +200,7 @@ class MultiSelectionTest {
     // ============================================
 
     @Test
-    fun `clearMultiSelection should remove all nodes from selection`() {
+    fun `clearSelection should remove all nodes from selection`() {
         // Given: A graph with multiple selected nodes
         val graph = flowGraph(name = "TestGraph", version = "1.0.0") {
             codeNode("Node1") { output("out", String::class) }
@@ -215,7 +215,7 @@ class MultiSelectionTest {
         assertEquals(3, graphState.selectionState.nodeSelectionCount)
 
         // When: Clear selection
-        graphState.clearMultiSelection()
+        graphState.clearSelection()
 
         // Then: Selection should be empty
         assertEquals(0, graphState.selectionState.nodeSelectionCount)
@@ -223,7 +223,7 @@ class MultiSelectionTest {
     }
 
     @Test
-    fun `clearMultiSelection should also clear connection selection`() {
+    fun `clearSelection should also clear connection selection`() {
         // Given: A graph with selected nodes and connections
         val graph = flowGraph(name = "TestGraph", version = "1.0.0") {
             val n1 = codeNode("Node1") { output("out", String::class) }
@@ -236,7 +236,7 @@ class MultiSelectionTest {
         graphState.toggleConnectionInSelection(graph.connections[0].id)
 
         // When: Clear selection
-        graphState.clearMultiSelection()
+        graphState.clearSelection()
 
         // Then: Both node and connection selection should be cleared
         assertEquals(0, graphState.selectionState.nodeSelectionCount)
@@ -245,7 +245,7 @@ class MultiSelectionTest {
     }
 
     @Test
-    fun `clearMultiSelection on empty selection should be no-op`() {
+    fun `clearSelection on empty selection should be no-op`() {
         // Given: A graph with empty selection
         val graph = flowGraph(name = "TestGraph", version = "1.0.0") {
             codeNode("Node1") { output("out", String::class) }
@@ -253,7 +253,7 @@ class MultiSelectionTest {
         val graphState = GraphState(graph)
 
         // When: Clear empty selection
-        graphState.clearMultiSelection()
+        graphState.clearSelection()
 
         // Then: Should not throw and selection should still be empty
         assertEquals(0, graphState.selectionState.nodeSelectionCount)
