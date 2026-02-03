@@ -24,9 +24,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.geometry.Rect
 import io.codenode.fbpdsl.model.FlowGraph
 import io.codenode.fbpdsl.model.Node
+import io.codenode.fbpdsl.model.GraphNode
 import io.codenode.fbpdsl.model.Connection
 import io.codenode.fbpdsl.model.Port
 import io.codenode.grapheditor.state.SelectableElement
+import io.codenode.grapheditor.ui.GraphNodeRenderer.drawGraphNode
 
 /**
  * Main canvas component for rendering and interacting with flow graphs
@@ -51,6 +53,9 @@ import io.codenode.grapheditor.state.SelectableElement
  * @param onRectangularSelectionStart Callback when Shift+drag starts on empty canvas
  * @param onRectangularSelectionUpdate Callback during Shift+drag to update selection box
  * @param onRectangularSelectionFinish Callback when Shift+drag ends
+ * @param onGraphNodeExpandClicked Callback when the expand icon on a GraphNode is clicked (for drill-down navigation)
+ * @param displayNodes Optional list of nodes to display (defaults to nodesToRender if null)
+ * @param displayConnections Optional list of connections to display (defaults to connectionsToRender if null)
  * @param modifier Modifier for the canvas
  */
 @Composable
@@ -75,8 +80,15 @@ fun FlowGraphCanvas(
     onRectangularSelectionStart: (Offset) -> Unit = {},
     onRectangularSelectionUpdate: (Offset) -> Unit = {},
     onRectangularSelectionFinish: () -> Unit = {},
+    onGraphNodeExpandClicked: (graphNodeId: String) -> Unit = {},
+    displayNodes: List<Node>? = null,
+    displayConnections: List<Connection>? = null,
     modifier: Modifier = Modifier
 ) {
+    // Use provided nodes/connections or default to flowGraph's root level
+    val nodesToRender = displayNodes ?: flowGraph.rootNodes
+    val connectionsToRender = displayConnections ?: flowGraph.connections
+
     // Drag state (local only)
     var draggingNode by remember { mutableStateOf<String?>(null) }
     var dragOffset by remember { mutableStateOf(Offset.Zero) }
@@ -93,22 +105,26 @@ fun FlowGraphCanvas(
     // Rectangular selection state
     var isRectangularSelectionActive by remember { mutableStateOf(false) }
 
-    // Create a stable reference to current state values that gesture detectors can read
+    // Create stable references to current state values that gesture detectors can read
     val currentFlowGraph = remember { mutableStateOf(flowGraph) }
     val currentPanOffset = remember { mutableStateOf(panOffset) }
     val currentScale = remember { mutableStateOf(scale) }
+    val currentNodesToRender = remember { mutableStateOf(nodesToRender) }
+    val currentConnectionsToRender = remember { mutableStateOf(connectionsToRender) }
 
     // Keep the references updated
     currentFlowGraph.value = flowGraph
     currentPanOffset.value = panOffset
     currentScale.value = scale
+    currentNodesToRender.value = nodesToRender
+    currentConnectionsToRender.value = connectionsToRender
 
     Box(
         modifier = modifier
             .fillMaxSize()
             .background(Color(0xFFF5F5F5))
             .pointerInput(Unit) {
-                // Handle right-click for connection context menu
+                // Handle right-click for context menus (connection or group)
                 awaitPointerEventScope {
                     while (true) {
                         val event = awaitPointerEvent()
@@ -122,7 +138,9 @@ fun FlowGraphCanvas(
                                     currentFlowGraph.value,
                                     position,
                                     currentPanOffset.value,
-                                    currentScale.value
+                                    currentScale.value,
+                                    currentNodesToRender.value,
+                                    currentConnectionsToRender.value
                                 )
                                 if (connectionUnderPointer != null) {
                                     onConnectionRightClick(connectionUnderPointer, position)
@@ -155,13 +173,15 @@ fun FlowGraphCanvas(
                                 currentFlowGraph.value,
                                 position,
                                 currentPanOffset.value,
-                                currentScale.value
+                                currentScale.value,
+                                currentNodesToRender.value
                             )
                             val nodeUnderPointer = findNodeAtPosition(
                                 currentFlowGraph.value,
                                 position,
                                 currentPanOffset.value,
-                                currentScale.value
+                                currentScale.value,
+                                currentNodesToRender.value
                             )
 
                             if (portInfo == null && nodeUnderPointer == null) {
@@ -169,7 +189,8 @@ fun FlowGraphCanvas(
                                     currentFlowGraph.value,
                                     position,
                                     currentPanOffset.value,
-                                    currentScale.value
+                                    currentScale.value,
+                                    currentNodesToRender.value
                                 )
                                 if (connectionUnderPointer != null) {
                                     // Select connection immediately (normal click only)
@@ -184,12 +205,26 @@ fun FlowGraphCanvas(
                 // Handle dragging - use Unit key so it never recreates
                 detectDragGestures(
                     onDragStart = { offset ->
+                        // First check if clicking on a GraphNode's expand icon - don't drag in that case
+                        val expandIconGraphNode = findGraphNodeExpandIconAtPosition(
+                            currentNodesToRender.value,
+                            offset,
+                            currentPanOffset.value,
+                            currentScale.value
+                        )
+                        if (expandIconGraphNode != null) {
+                            // Clicking on expand icon - don't start drag, let tap handler deal with it
+                            draggingNode = "__expand_icon__"
+                            return@detectDragGestures
+                        }
+
                         // Check if we're starting a connection from an output port
                         val portInfo = findPortAtPosition(
                             currentFlowGraph.value,
                             offset,
                             currentPanOffset.value,
-                            currentScale.value
+                            currentScale.value,
+                            currentNodesToRender.value
                         )
 
                         if (portInfo != null && portInfo.direction == Port.Direction.OUTPUT) {
@@ -204,7 +239,8 @@ fun FlowGraphCanvas(
                                 currentFlowGraph.value,
                                 offset,
                                 currentPanOffset.value,
-                                currentScale.value
+                                currentScale.value,
+                                currentNodesToRender.value
                             )
                             if (nodeUnderPointer != null) {
                                 draggingNode = nodeUnderPointer.id
@@ -215,7 +251,9 @@ fun FlowGraphCanvas(
                                     currentFlowGraph.value,
                                     offset,
                                     currentPanOffset.value,
-                                    currentScale.value
+                                    currentScale.value,
+                                    currentNodesToRender.value,
+                                    currentConnectionsToRender.value
                                 )
                                 if (connectionUnderPointer != null) {
                                     // Only do single-selection if Shift was NOT pressed
@@ -249,6 +287,8 @@ fun FlowGraphCanvas(
                         } else if (draggingNode == "__connection__") {
                             // On a connection - don't pan or drag, just consume the event
                             // Selection will be handled by detectTapGestures
+                        } else if (draggingNode == "__expand_icon__") {
+                            // On expand icon - don't drag, tap handler will handle it
                         } else {
                             // Drag the node
                             dragOffset += dragAmount
@@ -261,7 +301,8 @@ fun FlowGraphCanvas(
                                 currentFlowGraph.value,
                                 connectionEndPosition,
                                 currentPanOffset.value,
-                                currentScale.value
+                                currentScale.value,
+                                currentNodesToRender.value
                             )
 
                             if (targetPortInfo != null &&
@@ -288,6 +329,8 @@ fun FlowGraphCanvas(
                             onRectangularSelectionFinish()
                         } else if (draggingNode == "__connection__") {
                             // Connection was already selected in onDragStart, nothing to do
+                        } else if (draggingNode == "__expand_icon__") {
+                            // Clicked on expand icon - tap handler will handle navigation
                         } else if (draggingNode != null) {
                             val node = currentFlowGraph.value.findNode(draggingNode!!)
                             if (node != null) {
@@ -328,29 +371,44 @@ fun FlowGraphCanvas(
                                 val offset = change.position
                                 val isShiftPressed = event.keyboardModifiers.isShiftPressed
 
-                                // Priority: Node > Connection > Empty
-                                val tappedNode = findNodeAtPosition(
-                                    currentFlowGraph.value,
+                                // Priority: GraphNode expand icon > Node > Connection > Empty
+                                // First check if clicking on a GraphNode's expand icon
+                                val expandedGraphNode = findGraphNodeExpandIconAtPosition(
+                                    currentNodesToRender.value,
                                     offset,
                                     currentPanOffset.value,
                                     currentScale.value
                                 )
 
-                                if (tappedNode != null) {
-                                    if (isShiftPressed) {
-                                        // Shift-click: toggle element in selection
-                                        onElementShiftClicked(SelectableElement.Node(tappedNode.id))
-                                    } else {
-                                        // Normal click: single selection
-                                        onNodeSelected(tappedNode.id)
-                                        onConnectionSelected(null)
-                                    }
+                                if (expandedGraphNode != null && !isShiftPressed) {
+                                    // Clicked on expand icon - navigate into the GraphNode
+                                    onGraphNodeExpandClicked(expandedGraphNode.id)
                                 } else {
+                                    val tappedNode = findNodeAtPosition(
+                                        currentFlowGraph.value,
+                                        offset,
+                                        currentPanOffset.value,
+                                        currentScale.value,
+                                        currentNodesToRender.value
+                                    )
+
+                                    if (tappedNode != null) {
+                                        if (isShiftPressed) {
+                                            // Shift-click: toggle element in selection
+                                            onElementShiftClicked(SelectableElement.Node(tappedNode.id))
+                                        } else {
+                                            // Normal click: single selection
+                                            onNodeSelected(tappedNode.id)
+                                            onConnectionSelected(null)
+                                        }
+                                    } else {
                                     val tappedConnection = findConnectionAtPosition(
                                         currentFlowGraph.value,
                                         offset,
                                         currentPanOffset.value,
-                                        currentScale.value
+                                        currentScale.value,
+                                        currentNodesToRender.value,
+                                        currentConnectionsToRender.value
                                     )
 
                                     if (tappedConnection != null) {
@@ -359,15 +417,16 @@ fun FlowGraphCanvas(
                                             onElementShiftClicked(SelectableElement.Connection(tappedConnection))
                                         }
                                         // Normal click: connection was already selected on pointer down
-                                    } else {
-                                        // Empty canvas tap
-                                        if (!isShiftPressed) {
-                                            // Without Shift: clear all selections
-                                            onEmptyCanvasClicked()
-                                            onNodeSelected(null)
-                                            onConnectionSelected(null)
+                                        } else {
+                                            // Empty canvas tap
+                                            if (!isShiftPressed) {
+                                                // Without Shift: clear all selections
+                                                onEmptyCanvasClicked()
+                                                onNodeSelected(null)
+                                                onConnectionSelected(null)
+                                            }
+                                            // With Shift on empty canvas: do nothing (preserve selection)
                                         }
-                                        // With Shift on empty canvas: do nothing (preserve selection)
                                     }
                                 }
                             }
@@ -387,10 +446,10 @@ fun FlowGraphCanvas(
             val transformedScale = scale
 
             // Draw connections first (behind nodes)
-            flowGraph.connections.forEach { connection ->
+            connectionsToRender.forEach { connection ->
                 drawConnection(
                     connection = connection,
-                    nodes = flowGraph.rootNodes,
+                    nodes = nodesToRender,
                     offset = transformedOffset,
                     scale = transformedScale,
                     draggingNodeId = draggingNode,
@@ -443,7 +502,7 @@ fun FlowGraphCanvas(
             }
 
             // Draw nodes
-            flowGraph.rootNodes.forEach { node ->
+            nodesToRender.forEach { node ->
                 // Node is selected if it's the single selection OR in multi-selection
                 val isSelected = node.id == selectedNodeId || node.id in multiSelectedNodeIds
                 val isDragging = node.id == draggingNode
@@ -661,6 +720,20 @@ private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawNode(
     isDragging: Boolean,
     isMultiSelected: Boolean = false
 ) {
+    // Use GraphNodeRenderer for GraphNode types
+    if (node is GraphNode) {
+        drawGraphNode(
+            graphNode = node,
+            position = position,
+            scale = scale,
+            isSelected = isSelected,
+            isDragging = isDragging,
+            isMultiSelected = isMultiSelected
+        )
+        return
+    }
+
+    // CodeNode rendering (default)
     val portSpacing = 25f * scale
     val portRadius = 6f * scale
     val nodeWidth = 180f * scale
@@ -793,12 +866,13 @@ private fun findPortAtPosition(
     flowGraph: FlowGraph,
     tapPosition: Offset,
     panOffset: Offset,
-    scale: Float
+    scale: Float,
+    nodes: List<Node> = flowGraph.rootNodes
 ): PortInfo? {
     val portRadius = 6f * scale
     val clickRadius = 12f * scale // Larger hit area for easier clicking
 
-    flowGraph.rootNodes.forEach { node ->
+    nodes.forEach { node ->
         val portSpacing = 25f * scale
         val nodeWidth = 180f * scale
         val headerHeight = 30f * scale
@@ -835,15 +909,48 @@ private fun findPortAtPosition(
 }
 
 /**
+ * Finds a GraphNode with its expand icon at the given position.
+ * Returns the GraphNode if the click is on the expand icon area, null otherwise.
+ */
+private fun findGraphNodeExpandIconAtPosition(
+    nodes: List<Node>,
+    tapPosition: Offset,
+    panOffset: Offset,
+    scale: Float
+): GraphNode? {
+    val nodeWidth = 180f * scale
+    val headerHeight = 30f * scale
+    val iconSize = 12f * scale
+    val clickRadius = 16f * scale  // Larger hit area for easier clicking
+
+    return nodes.filterIsInstance<GraphNode>().findLast { graphNode ->
+        // Convert graph coordinates to screen coordinates
+        val nodePos = Offset(
+            graphNode.position.x.toFloat() * scale + panOffset.x,
+            graphNode.position.y.toFloat() * scale + panOffset.y
+        )
+
+        // Calculate expand icon position (matches GraphNodeRenderer)
+        val iconX = nodePos.x + nodeWidth - iconSize - 24f * scale
+        val iconY = nodePos.y + (headerHeight - iconSize) / 2f
+        val iconCenter = Offset(iconX + iconSize / 2f, iconY + iconSize / 2f)
+
+        // Check if click is within the icon's hit area
+        (tapPosition - iconCenter).getDistance() <= clickRadius
+    }
+}
+
+/**
  * Finds a node at the given canvas position
  */
 private fun findNodeAtPosition(
     flowGraph: FlowGraph,
     tapPosition: Offset,
     panOffset: Offset,
-    scale: Float
+    scale: Float,
+    nodes: List<Node> = flowGraph.rootNodes
 ): Node? {
-    return flowGraph.rootNodes.findLast { node ->
+    return nodes.findLast { node ->
         // Calculate node dimensions (same as drawNode)
         val portSpacing = 25f * scale
         val nodeWidth = 180f * scale
@@ -898,15 +1005,17 @@ private fun findConnectionAtPosition(
     position: Offset,
     panOffset: Offset,
     scale: Float,
+    nodes: List<Node> = flowGraph.rootNodes,
+    connections: List<Connection> = flowGraph.connections,
     tolerance: Float = 8f
 ): String? {
     val portSpacing = 25f * scale
     val nodeWidth = 180f * scale
     val headerHeight = 30f * scale
 
-    for (connection in flowGraph.connections) {
-        val sourceNode = flowGraph.findNode(connection.sourceNodeId) ?: continue
-        val targetNode = flowGraph.findNode(connection.targetNodeId) ?: continue
+    for (connection in connections) {
+        val sourceNode = nodes.find { it.id == connection.sourceNodeId } ?: continue
+        val targetNode = nodes.find { it.id == connection.targetNodeId } ?: continue
 
         val sourcePort = sourceNode.outputPorts.find { it.id == connection.sourcePortId } ?: continue
         val targetPort = targetNode.inputPorts.find { it.id == connection.targetPortId } ?: continue

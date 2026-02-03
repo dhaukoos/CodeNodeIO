@@ -271,17 +271,33 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
     var showOpenDialog by remember { mutableStateOf(false) }
     var statusMessage by remember { mutableStateOf("Ready - Create a new graph or open an existing one") }
 
+    // Derive button states from selection - these update automatically when selection changes
+    val selectionState = graphState.selectionState  // Read selection state to ensure reactivity
+    val canGroup = selectionState.selectedNodeIds.size >= 2
+    val canUngroup = selectionState.selectedNodeIds.size == 1 &&
+        graphState.flowGraph.findNode(selectionState.selectedNodeIds.firstOrNull() ?: "") is io.codenode.fbpdsl.model.GraphNode
+
+    // Navigation state for GraphNode drill-down
+    val navigationContext = graphState.navigationContext
+    val isInsideGraphNode = !navigationContext.isAtRoot
+    val currentGraphNodeName = graphState.getCurrentGraphNodeName()
+
     MaterialTheme {
         Column(modifier = modifier.fillMaxSize()) {
             // Top toolbar
             TopToolbar(
                 undoRedoManager = undoRedoManager,
+                canGroup = canGroup,
+                canUngroup = canUngroup,
+                isInsideGraphNode = isInsideGraphNode,
+                currentGraphNodeName = currentGraphNodeName,
                 onNew = {
                     val newGraph = flowGraph(
                         name = "New Graph",
                         version = "1.0.0"
                     ) {}
                     graphState.setGraph(newGraph, markDirty = false)
+                    graphState.navigateToRoot()
                     statusMessage = "New graph created"
                 },
                 onOpen = { showOpenDialog = true },
@@ -294,6 +310,21 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                 onRedo = {
                     if (undoRedoManager.redo(graphState)) {
                         statusMessage = "Redo: ${undoRedoManager.getUndoDescription() ?: "action"}"
+                    }
+                },
+                onGroup = {
+                    val graphNode = graphState.groupSelectedNodes()
+                    if (graphNode != null) {
+                        statusMessage = "Created group: ${graphNode.name}"
+                    }
+                },
+                onUngroup = {
+                    // TODO: Implement ungroup functionality
+                    statusMessage = "Ungroup not yet implemented"
+                },
+                onNavigateBack = {
+                    if (graphState.navigateOut()) {
+                        statusMessage = "Navigated back to parent"
                     }
                 }
             )
@@ -518,7 +549,16 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                                     if (newlySelected > 0) {
                                         statusMessage = "Selected $newlySelected node${if (newlySelected > 1) "s" else ""}"
                                     }
-                                }
+                                },
+                                // GraphNode navigation
+                                onGraphNodeExpandClicked = { graphNodeId ->
+                                    if (graphState.navigateIntoGraphNode(graphNodeId)) {
+                                        val nodeName = graphState.getCurrentGraphNodeName() ?: graphNodeId
+                                        statusMessage = "Navigated into: $nodeName"
+                                    }
+                                },
+                                displayNodes = graphState.getNodesInCurrentContext(),
+                                displayConnections = graphState.getConnectionsInCurrentContext()
                             )
 
                             // Connection Context Menu (rendered as overlay)
@@ -662,16 +702,23 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
 }
 
 /**
- * Top toolbar with file operations and undo/redo
+ * Top toolbar with file operations, undo/redo, group/ungroup, and navigation
  */
 @Composable
 fun TopToolbar(
     undoRedoManager: io.codenode.grapheditor.state.UndoRedoManager,
+    canGroup: Boolean = false,
+    canUngroup: Boolean = false,
+    isInsideGraphNode: Boolean = false,
+    currentGraphNodeName: String? = null,
     onNew: () -> Unit,
     onOpen: () -> Unit,
     onSave: () -> Unit,
     onUndo: () -> Unit,
     onRedo: () -> Unit,
+    onGroup: () -> Unit = {},
+    onUngroup: () -> Unit = {},
+    onNavigateBack: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     Surface(
@@ -684,9 +731,28 @@ fun TopToolbar(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            // Title
+            // Back button (only visible when inside a GraphNode)
+            if (isInsideGraphNode) {
+                TextButton(
+                    onClick = onNavigateBack,
+                    colors = ButtonDefaults.textButtonColors(contentColor = Color.White)
+                ) {
+                    Text("\u2190 Back")  // Left arrow
+                }
+
+                Divider(
+                    modifier = Modifier.width(1.dp).height(32.dp),
+                    color = Color.White.copy(alpha = 0.3f)
+                )
+            }
+
+            // Title with optional breadcrumb
             Text(
-                text = "CodeNodeIO Graph Editor",
+                text = if (isInsideGraphNode && currentGraphNodeName != null) {
+                    "Inside: $currentGraphNodeName"
+                } else {
+                    "CodeNodeIO Graph Editor"
+                },
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color.White
@@ -736,6 +802,28 @@ fun TopToolbar(
                 colors = ButtonDefaults.textButtonColors(contentColor = Color.White)
             ) {
                 Text("Redo")
+            }
+
+            Divider(
+                modifier = Modifier.width(1.dp).height(32.dp),
+                color = Color.White.copy(alpha = 0.3f)
+            )
+
+            // Group/Ungroup
+            TextButton(
+                onClick = onGroup,
+                enabled = canGroup,
+                colors = ButtonDefaults.textButtonColors(contentColor = Color.White)
+            ) {
+                Text("Group")
+            }
+
+            TextButton(
+                onClick = onUngroup,
+                enabled = canUngroup,
+                colors = ButtonDefaults.textButtonColors(contentColor = Color.White)
+            ) {
+                Text("Ungroup")
             }
         }
     }

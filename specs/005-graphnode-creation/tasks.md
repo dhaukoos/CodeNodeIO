@@ -116,49 +116,71 @@
 
 ### Tests for User Story 3 (TDD - Write FIRST, must FAIL) ⚠️
 
-- [ ] T034 [P] [US3] Write unit test for GraphNodeFactory.createFromSelection() in fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/factory/GraphNodeFactoryTest.kt
-- [ ] T035 [P] [US3] Write unit test for port mapping generation from external connections in fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/factory/GraphNodeFactoryTest.kt
-- [ ] T036 [P] [US3] Write UI test for GroupContextMenu rendering in graphEditor/src/jvmTest/kotlin/io/codenode/grapheditor/ui/GroupContextMenuTest.kt
-- [ ] T037 [P] [US3] Write integration test for grouping operation in graphEditor/src/jvmTest/kotlin/io/codenode/grapheditor/ui/GroupContextMenuTest.kt
+- [X] T034 [P] [US3] Write unit test for GraphNodeFactory.createFromSelection() in fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/factory/GraphNodeFactoryTest.kt
+- [X] T035 [P] [US3] Write unit test for port mapping generation from external connections in fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/factory/GraphNodeFactoryTest.kt
+- [X] T036 [P] [US3] Write UI test for GroupContextMenu rendering in graphEditor/src/jvmTest/kotlin/io/codenode/grapheditor/ui/GroupContextMenuTest.kt
+- [X] T037 [P] [US3] Write integration test for grouping operation in graphEditor/src/jvmTest/kotlin/io/codenode/grapheditor/ui/GroupContextMenuTest.kt
 
 ### Implementation for User Story 3
 
-- [ ] T038 [P] [US3] Create GraphNodeFactory with createFromSelection() method in fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/factory/GraphNodeFactory.kt
-- [ ] T039 [US3] Implement generatePortMappings() for detecting external connections in fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/factory/GraphNodeFactory.kt
-- [ ] T040 [P] [US3] Create GroupContextMenuState data class in graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/state/GroupContextMenuState.kt
-- [ ] T041 [P] [US3] Create GroupContextMenu Composable with "Group" option in graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/GroupContextMenu.kt
-- [ ] T042 [US3] Add showGroupContextMenu() method to GraphState in graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/state/GraphState.kt
-- [ ] T043 [US3] Add groupSelectedNodes() method to GraphState using GraphNodeFactory in graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/state/GraphState.kt
-- [ ] T044 [US3] Modify FlowGraphCanvas to show GroupContextMenu on right-click with selection in graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/FlowGraphCanvas.kt
-- [ ] T045 [P] [US3] Create GraphNodeRenderer for distinct GraphNode visual in graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/GraphNodeRenderer.kt
-- [ ] T046 [US3] Integrate GraphNodeRenderer into NodeRenderer for GraphNode type in graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/rendering/NodeRenderer.kt
-- [ ] T047 [US3] Verify T034-T037 tests pass after implementation
+- [X] T038 [P] [US3] Create GraphNodeFactory with createFromSelection() method in fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/factory/GraphNodeFactory.kt
+- [X] T039 [US3] Implement generatePortMappings() for detecting external connections in fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/factory/GraphNodeFactory.kt
+- [X] T040 [P] [US3] Create GroupContextMenuState data class in graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/state/GroupContextMenuState.kt
+- [X] T041 [P] [US3] Create GroupContextMenu Composable with "Group" option in graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/GroupContextMenu.kt
+- [X] T042 [US3] Add showGroupContextMenu() method to GraphState in graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/state/GraphState.kt
+- [X] T043 [US3] Add groupSelectedNodes() method to GraphState using GraphNodeFactory in graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/state/GraphState.kt
+- [X] T044 [US3] Modify FlowGraphCanvas to show GroupContextMenu on right-click with selection in graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/FlowGraphCanvas.kt
+- [X] T045 [P] [US3] Create GraphNodeRenderer for distinct GraphNode visual in graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/GraphNodeRenderer.kt
+- [X] T046 [US3] Integrate GraphNodeRenderer into NodeRenderer for GraphNode type in graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/FlowGraphCanvas.kt
+- [X] T047 [US3] Verify T034-T037 tests pass after implementation
 
 **Checkpoint**: User Story 3 complete - nodes can be grouped into GraphNodes
 
 ---
 
-## Phase 6: User Story 4 - Ungroup GraphNode via Context Menu (Priority: P4)
+## Phase 5A: Toolbar Group/Ungroup Buttons (Priority: P3.5) - UI Revision
+
+**Goal**: Replace context menu with toolbar buttons for Group/Ungroup actions
+
+**Rationale**: Right-clicking on selected elements causes deselection due to event handling issues. Moving to toolbar buttons provides more reliable UX and follows common editor patterns.
+
+**Plan Reference**: See `specs/005-graphnode-creation/toolbar-group-buttons-plan.md`
+
+### Implementation for Toolbar Transition
+
+- [ ] T048A [US3] Add canGroupSelection() helper to GraphState - returns true when 2+ nodes selected in graphEditor/src/jvmMain/kotlin/state/GraphState.kt
+- [ ] T048B [US3] Add canUngroupSelection() helper to GraphState - returns true when single GraphNode selected in graphEditor/src/jvmMain/kotlin/state/GraphState.kt
+- [ ] T048C [US3] Add Group button to TopToolbar (enabled when canGroupSelection) in graphEditor/src/jvmMain/kotlin/Main.kt
+- [ ] T048D [US3/US4] Add Ungroup button to TopToolbar (enabled when canUngroupSelection) in graphEditor/src/jvmMain/kotlin/Main.kt
+- [ ] T048E [US3] Remove GroupContextMenu composable call from Main.kt UI tree in graphEditor/src/jvmMain/kotlin/Main.kt
+- [ ] T048F [US3] Remove onGroupRightClick parameter and handler from FlowGraphCanvas in graphEditor/src/jvmMain/kotlin/ui/FlowGraphCanvas.kt
+- [ ] T048G [US3] Remove groupContextMenu state, showGroupContextMenu(), hideGroupContextMenu() from GraphState in graphEditor/src/jvmMain/kotlin/state/GraphState.kt
+- [ ] T048H [US3] Update GroupContextMenuTest to test toolbar button behavior in graphEditor/src/jvmTest/kotlin/io/codenode/grapheditor/ui/GroupContextMenuTest.kt
+
+**Checkpoint**: Group/Ungroup now accessible via toolbar buttons instead of context menu
+
+---
+
+## Phase 6: User Story 4 - Ungroup GraphNode via Toolbar (Priority: P4)
 
 **Goal**: Enable developers to ungroup a GraphNode back into its constituent nodes
 
-**Independent Test**: Right-click on GraphNode, select "Ungroup", verify internal nodes appear on canvas with connections restored
+**Independent Test**: Select GraphNode, click "Ungroup" in toolbar, verify internal nodes appear on canvas with connections restored
 
 ### Tests for User Story 4 (TDD - Write FIRST, must FAIL) ⚠️
 
-- [ ] T048 [P] [US4] Write unit test for ungroupGraphNode() restoring child nodes in graphEditor/src/jvmTest/kotlin/io/codenode/grapheditor/state/GraphStateTest.kt
-- [ ] T049 [P] [US4] Write unit test for connection restoration after ungroup in graphEditor/src/jvmTest/kotlin/io/codenode/grapheditor/state/GraphStateTest.kt
-- [ ] T050 [P] [US4] Write UI test for Ungroup option in context menu in graphEditor/src/jvmTest/kotlin/io/codenode/grapheditor/ui/GroupContextMenuTest.kt
+- [ ] T049 [P] [US4] Write unit test for ungroupGraphNode() restoring child nodes in graphEditor/src/jvmTest/kotlin/io/codenode/grapheditor/state/GraphStateTest.kt
+- [ ] T050 [P] [US4] Write unit test for connection restoration after ungroup in graphEditor/src/jvmTest/kotlin/io/codenode/grapheditor/state/GraphStateTest.kt
+- [ ] T051 [P] [US4] Write UI test for Ungroup toolbar button behavior in graphEditor/src/jvmTest/kotlin/io/codenode/grapheditor/ui/ToolbarGroupButtonsTest.kt
 
 ### Implementation for User Story 4
 
-- [ ] T051 [US4] Add "Ungroup" option to GroupContextMenu when GraphNode selected in graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/GroupContextMenu.kt
 - [ ] T052 [US4] Add ungroupGraphNode(graphNodeId: String) method to GraphState in graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/state/GraphState.kt
 - [ ] T053 [US4] Implement node positioning algorithm for ungrouped nodes (avoid overlap) in graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/state/GraphState.kt
 - [ ] T054 [US4] Implement connection restoration from port mappings in ungroupGraphNode in graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/state/GraphState.kt
-- [ ] T055 [US4] Verify T048-T050 tests pass after implementation
+- [ ] T055 [US4] Verify T049-T051 tests pass after implementation
 
-**Checkpoint**: User Stories 3 AND 4 complete - full group/ungroup cycle works
+**Checkpoint**: User Stories 3 AND 4 complete - full group/ungroup cycle works via toolbar
 
 ---
 
@@ -239,14 +261,13 @@
 
 **Purpose**: Improvements that affect multiple user stories
 
-- [ ] T083 [P] Add keyboard shortcut Escape to dismiss GroupContextMenu in graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/GroupContextMenu.kt
-- [ ] T084 [P] Add selection count badge to status bar in graphEditor/src/jvmMain/kotlin/Main.kt
-- [ ] T085 [P] Add undo/redo support for group/ungroup operations in graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/state/UndoRedoManager.kt
-- [ ] T086 Verify edge case: grouping single node disabled in graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/GroupContextMenu.kt
-- [ ] T087 Verify edge case: ungroup on CodeNode not available in graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/GroupContextMenu.kt
-- [ ] T088 Run quickstart.md validation scenarios (all 7 scenarios pass)
-- [ ] T089 Performance test: select 50+ nodes in <100ms
-- [ ] T090 Final code review for Apache 2.0 header compliance on all new files
+- [ ] T083 [P] Add selection count badge to status bar in graphEditor/src/jvmMain/kotlin/Main.kt
+- [ ] T084 [P] Add undo/redo support for group/ungroup operations in graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/state/UndoRedoManager.kt
+- [ ] T085 Verify edge case: Group button disabled when single node selected in graphEditor/src/jvmMain/kotlin/Main.kt
+- [ ] T086 Verify edge case: Ungroup button disabled when CodeNode selected in graphEditor/src/jvmMain/kotlin/Main.kt
+- [ ] T087 Run quickstart.md validation scenarios (all 7 scenarios pass)
+- [ ] T088 Performance test: select 50+ nodes in <100ms
+- [ ] T089 Final code review for Apache 2.0 header compliance on all new files
 
 ---
 
@@ -259,7 +280,8 @@
 - **User Stories (Phase 3-8)**: All depend on Foundational phase completion
   - US1 and US2 can run in parallel (different features)
   - US3 depends on US1 or US2 (needs selection)
-  - US4 depends on US3 (needs GraphNodes to ungroup)
+  - **Phase 5A (Toolbar Transition)**: Depends on US3 completion - switches from context menu to toolbar
+  - US4 depends on Phase 5A (needs toolbar buttons in place)
   - US5 depends on US3 (needs GraphNodes to navigate into)
   - US6 depends on US5 (needs internal view to navigate out from)
 - **Serialization (Phase 9)**: Can run after US3 (needs GraphNodes), parallel with US4-US6
@@ -280,6 +302,9 @@ US1 (P1)            US2 (P2)
     └──────┬───────────┘
            ▼
         US3 (P3) ◄───── Serialization (Phase 9)
+           │
+           ▼
+    Phase 5A (Toolbar)
            │
     ┌──────┼──────┐
     ▼             ▼
@@ -392,7 +417,7 @@ With multiple developers:
 
 ---
 
-## Total Task Count: 90 tasks
+## Total Task Count: 96 tasks
 
 ### Tasks per Phase:
 - **Setup**: 3 tasks
@@ -400,20 +425,22 @@ With multiple developers:
 - **US1 (Multi-select)**: 11 tasks (3 tests + 8 implementation)
 - **US2 (Rectangular)**: 10 tasks (3 tests + 7 implementation)
 - **US3 (Group)**: 14 tasks (4 tests + 10 implementation)
-- **US4 (Ungroup)**: 8 tasks (3 tests + 5 implementation)
+- **Phase 5A (Toolbar Transition)**: 8 tasks (UI revision)
+- **US4 (Ungroup)**: 7 tasks (3 tests + 4 implementation)
 - **US5 (Zoom In)**: 10 tasks (3 tests + 7 implementation)
 - **US6 (Zoom Out)**: 9 tasks (3 tests + 6 implementation)
 - **Serialization**: 8 tasks (3 tests + 5 implementation)
-- **Polish**: 8 tasks
+- **Polish**: 7 tasks
 
 ### Parallel Opportunities:
 - **Setup phase**: 2 tasks can run in parallel
 - **Foundational phase**: 4 tasks can run in parallel
 - **US1-US2**: Can run in parallel after Foundational
-- **Serialization**: Can run in parallel with US4-US6
+- **Phase 5A**: Sequential after US3, before US4
+- **Serialization**: Can run in parallel with Phase 5A, US4-US6
 - **Polish**: 3+ tasks can run in parallel
 
 ### Suggested MVP Scope:
-**Phases 1-5 only (Setup + Foundational + US1 + US2 + US3)** = 47 tasks
+**Phases 1-5A only (Setup + Foundational + US1 + US2 + US3 + Toolbar Transition)** = 55 tasks
 
-**Deliverable**: Working multi-selection (Shift-click and rectangular) with grouping into GraphNodes with auto-generated ports. Users can create hierarchical graph structures.
+**Deliverable**: Working multi-selection (Shift-click and rectangular) with grouping into GraphNodes via toolbar buttons. Users can create hierarchical graph structures.

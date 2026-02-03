@@ -576,6 +576,121 @@ class GraphState(initialGraph: FlowGraph = flowGraph(
     }
 
     // ============================================================================
+    // Group/Ungroup Operations
+    // ============================================================================
+
+    /**
+     * Returns true if the current selection can be grouped (2+ nodes selected).
+     */
+    fun canGroupSelection(): Boolean {
+        return selectionState.selectedNodeIds.size >= 2
+    }
+
+    /**
+     * Returns true if the current selection can be ungrouped (single GraphNode selected).
+     */
+    fun canUngroupSelection(): Boolean {
+        val selectedIds = selectionState.selectedNodeIds
+        if (selectedIds.size != 1) return false
+        val node = flowGraph.findNode(selectedIds.first())
+        return node is GraphNode
+    }
+
+    /**
+     * Groups the currently selected nodes into a new GraphNode.
+     *
+     * This method:
+     * 1. Uses GraphNodeFactory to create a GraphNode from selected nodes
+     * 2. Removes the selected nodes from the flow graph
+     * 3. Adds the new GraphNode to the flow graph
+     * 4. Redirects external connections to the GraphNode's ports
+     * 5. Clears selection and selects the new GraphNode
+     *
+     * @return The created GraphNode, or null if grouping was not possible
+     */
+    fun groupSelectedNodes(): GraphNode? {
+        val selectedNodeIds = selectionState.selectedNodeIds
+        if (selectedNodeIds.size < 2) {
+            return null
+        }
+
+        // Create the GraphNode using the factory
+        val graphNode = io.codenode.fbpdsl.factory.GraphNodeFactory.createFromSelection(
+            selectedNodeIds = selectedNodeIds,
+            allNodes = flowGraph.rootNodes,
+            allConnections = flowGraph.connections,
+            graphNodeName = "Group"
+        ) ?: return null
+
+        // Get the port mappings for connection redirection
+        val portMappings = io.codenode.fbpdsl.factory.GraphNodeFactory.generatePortMappings(
+            selectedNodeIds = selectedNodeIds,
+            allConnections = flowGraph.connections
+        )
+
+        // Build a map of external connection ID to GraphNode port info for redirection
+        val connectionRedirects = portMappings.associate { mapping ->
+            mapping.externalConnectionId to Triple(
+                mapping.graphNodePortDirection,
+                graphNode.id,
+                mapping.graphNodePortName
+            )
+        }
+
+        // Remove selected nodes from the graph
+        var updatedGraph = flowGraph
+        selectedNodeIds.forEach { nodeId ->
+            updatedGraph = updatedGraph.removeNode(nodeId)
+        }
+
+        // Remove internal connections (they're now inside the GraphNode)
+        val internalConnectionIds = flowGraph.connections
+            .filter { conn ->
+                conn.sourceNodeId in selectedNodeIds && conn.targetNodeId in selectedNodeIds
+            }
+            .map { it.id }
+        internalConnectionIds.forEach { connId ->
+            updatedGraph = updatedGraph.removeConnection(connId)
+        }
+
+        // Redirect external connections to the GraphNode's ports
+        connectionRedirects.forEach { (connId, redirectInfo) ->
+            val (direction, graphNodeId, portName) = redirectInfo
+            val existingConn = updatedGraph.connections.find { it.id == connId }
+            if (existingConn != null) {
+                val updatedConn = if (direction == io.codenode.fbpdsl.model.Port.Direction.INPUT) {
+                    // Incoming connection: update target to GraphNode
+                    existingConn.copy(
+                        targetNodeId = graphNodeId,
+                        targetPortId = portName
+                    )
+                } else {
+                    // Outgoing connection: update source to GraphNode
+                    existingConn.copy(
+                        sourceNodeId = graphNodeId,
+                        sourcePortId = portName
+                    )
+                }
+                updatedGraph = updatedGraph.removeConnection(connId)
+                updatedGraph = updatedGraph.addConnection(updatedConn)
+            }
+        }
+
+        // Add the GraphNode to the graph
+        updatedGraph = updatedGraph.addNode(graphNode)
+
+        // Update the flow graph
+        flowGraph = updatedGraph
+        isDirty = true
+
+        // Clear selection and select the new GraphNode
+        clearSelection()
+        toggleNodeInSelection(graphNode.id)
+
+        return graphNode
+    }
+
+    // ============================================================================
     // Viewport Operations
     // ============================================================================
 
@@ -947,6 +1062,55 @@ class GraphState(initialGraph: FlowGraph = flowGraph(
             val graphNode = flowGraph.findNode(currentGraphNodeId) as? GraphNode
             graphNode?.internalConnections ?: emptyList()
         }
+    }
+
+    /**
+     * Navigates into a GraphNode to view its internal structure.
+     * Updates the navigation context to show the GraphNode's children.
+     *
+     * @param graphNodeId The ID of the GraphNode to navigate into
+     * @return true if navigation was successful, false if the node doesn't exist or isn't a GraphNode
+     */
+    fun navigateIntoGraphNode(graphNodeId: String): Boolean {
+        val node = flowGraph.findNode(graphNodeId)
+        if (node !is GraphNode) {
+            return false
+        }
+        navigationContext = navigationContext.pushInto(graphNodeId)
+        clearSelection()
+        return true
+    }
+
+    /**
+     * Navigates out of the current GraphNode to its parent level.
+     * If at root, this has no effect.
+     *
+     * @return true if navigation occurred, false if already at root
+     */
+    fun navigateOut(): Boolean {
+        if (navigationContext.isAtRoot) {
+            return false
+        }
+        navigationContext = navigationContext.popOut()
+        clearSelection()
+        return true
+    }
+
+    /**
+     * Resets navigation to the root FlowGraph level.
+     */
+    fun navigateToRoot() {
+        navigationContext = navigationContext.reset()
+        clearSelection()
+    }
+
+    /**
+     * Gets the name of the currently viewed GraphNode, or null if at root.
+     */
+    fun getCurrentGraphNodeName(): String? {
+        val currentId = navigationContext.currentGraphNodeId ?: return null
+        val node = flowGraph.findNode(currentId) as? GraphNode
+        return node?.name
     }
 }
 
