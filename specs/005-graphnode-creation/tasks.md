@@ -148,14 +148,14 @@
 
 ### Implementation for Toolbar Transition
 
-- [ ] T048A [US3] Add canGroupSelection() helper to GraphState - returns true when 2+ nodes selected in graphEditor/src/jvmMain/kotlin/state/GraphState.kt
-- [ ] T048B [US3] Add canUngroupSelection() helper to GraphState - returns true when single GraphNode selected in graphEditor/src/jvmMain/kotlin/state/GraphState.kt
-- [ ] T048C [US3] Add Group button to TopToolbar (enabled when canGroupSelection) in graphEditor/src/jvmMain/kotlin/Main.kt
-- [ ] T048D [US3/US4] Add Ungroup button to TopToolbar (enabled when canUngroupSelection) in graphEditor/src/jvmMain/kotlin/Main.kt
-- [ ] T048E [US3] Remove GroupContextMenu composable call from Main.kt UI tree in graphEditor/src/jvmMain/kotlin/Main.kt
-- [ ] T048F [US3] Remove onGroupRightClick parameter and handler from FlowGraphCanvas in graphEditor/src/jvmMain/kotlin/ui/FlowGraphCanvas.kt
-- [ ] T048G [US3] Remove groupContextMenu state, showGroupContextMenu(), hideGroupContextMenu() from GraphState in graphEditor/src/jvmMain/kotlin/state/GraphState.kt
-- [ ] T048H [US3] Update GroupContextMenuTest to test toolbar button behavior in graphEditor/src/jvmTest/kotlin/io/codenode/grapheditor/ui/GroupContextMenuTest.kt
+- [X] T048A [US3] Add canGroupSelection() helper to GraphState - returns true when 2+ nodes selected in graphEditor/src/jvmMain/kotlin/state/GraphState.kt
+- [X] T048B [US3] Add canUngroupSelection() helper to GraphState - returns true when single GraphNode selected in graphEditor/src/jvmMain/kotlin/state/GraphState.kt
+- [X] T048C [US3] Add Group button to TopToolbar (enabled when canGroupSelection) in graphEditor/src/jvmMain/kotlin/Main.kt
+- [X] T048D [US3/US4] Add Ungroup button to TopToolbar (enabled when canUngroupSelection) in graphEditor/src/jvmMain/kotlin/Main.kt
+- [X] T048E [US3] Remove GroupContextMenu composable call from Main.kt UI tree in graphEditor/src/jvmMain/kotlin/Main.kt
+- [X] T048F [US3] Remove onGroupRightClick parameter and handler from FlowGraphCanvas in graphEditor/src/jvmMain/kotlin/ui/FlowGraphCanvas.kt
+- [X] T048G [US3] Remove groupContextMenu state, showGroupContextMenu(), hideGroupContextMenu() from GraphState in graphEditor/src/jvmMain/kotlin/state/GraphState.kt
+- [X] T048H [US3] Update GroupContextMenuTest to test toolbar button behavior in graphEditor/src/jvmTest/kotlin/io/codenode/grapheditor/ui/GroupContextMenuTest.kt
 
 **Checkpoint**: Group/Ungroup now accessible via toolbar buttons instead of context menu
 
