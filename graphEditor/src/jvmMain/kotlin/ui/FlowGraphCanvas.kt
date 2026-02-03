@@ -190,7 +190,8 @@ fun FlowGraphCanvas(
                                     position,
                                     currentPanOffset.value,
                                     currentScale.value,
-                                    currentNodesToRender.value
+                                    currentNodesToRender.value,
+                                    currentConnectionsToRender.value
                                 )
                                 if (connectionUnderPointer != null) {
                                     // Select connection immediately (normal click only)

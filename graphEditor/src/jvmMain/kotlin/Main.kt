@@ -593,7 +593,7 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
 
                     val selectedConnection = if (hasSingleSelection) {
                         graphState.selectedConnectionIds.firstOrNull()?.let { connectionId ->
-                            graphState.flowGraph.connections.find { it.id == connectionId }
+                            graphState.getConnectionsInCurrentContext().find { it.id == connectionId }
                         }
                     } else null
 
