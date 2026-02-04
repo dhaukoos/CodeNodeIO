@@ -1229,6 +1229,54 @@ class GraphState(initialGraph: FlowGraph = flowGraph(
         val node = flowGraph.findNode(currentId) as? GraphNode
         return node?.name
     }
+
+    /**
+     * Gets a map of GraphNode IDs to their names for breadcrumb display.
+     * Includes all GraphNodes in the current navigation path.
+     *
+     * @return Map of GraphNode ID to display name
+     */
+    fun getGraphNodeNamesInPath(): Map<String, String> {
+        return navigationContext.path.mapNotNull { nodeId ->
+            val node = flowGraph.findNode(nodeId) as? GraphNode
+            node?.let { nodeId to it.name }
+        }.toMap()
+    }
+
+    /**
+     * Navigates to a specific depth in the navigation path.
+     * Depth 0 navigates to root, depth 1 navigates to inside the first GraphNode, etc.
+     *
+     * @param targetDepth The target depth to navigate to
+     * @return true if navigation was performed, false if already at that depth
+     */
+    fun navigateToDepth(targetDepth: Int): Boolean {
+        val currentDepth = navigationContext.depth
+        if (targetDepth >= currentDepth) {
+            return false  // Can't navigate forward with this method
+        }
+        if (targetDepth < 0) {
+            return false  // Invalid depth
+        }
+
+        // Pop out until we reach the target depth
+        while (navigationContext.depth > targetDepth) {
+            navigationContext = navigationContext.popOut()
+        }
+        clearSelection()
+        return true
+    }
+
+    /**
+     * Gets the current GraphNode being viewed, or null if at root level.
+     * Used for boundary rendering in the internal view.
+     *
+     * @return The current GraphNode or null if at root
+     */
+    fun getCurrentGraphNode(): GraphNode? {
+        val currentId = navigationContext.currentGraphNodeId ?: return null
+        return flowGraph.findNode(currentId) as? GraphNode
+    }
 }
 
 /**

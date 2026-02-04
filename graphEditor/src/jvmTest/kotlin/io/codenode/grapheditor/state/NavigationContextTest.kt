@@ -6,6 +6,12 @@
 
 package io.codenode.grapheditor.state
 
+import io.codenode.fbpdsl.dsl.flowGraph
+import io.codenode.fbpdsl.model.CodeNode
+import io.codenode.fbpdsl.model.CodeNodeType
+import io.codenode.fbpdsl.model.GraphNode
+import io.codenode.fbpdsl.model.Node
+import io.codenode.fbpdsl.model.Port
 import kotlin.test.*
 
 /**
@@ -276,5 +282,536 @@ class NavigationContextTest {
         assertEquals("first", context.path[0])
         assertEquals("second", context.path[1])
         assertEquals("third", context.path[2])
+    }
+
+    // ============================================
+    // T056: GraphState.navigateInto() Tests
+    // These tests verify that navigateIntoGraphNode() correctly
+    // updates NavigationContext via pushInto()
+    // ============================================
+
+    @Test
+    fun `navigateIntoGraphNode should update NavigationContext path`() {
+        // Given: A graph with a GraphNode
+        val child1 = createTestCodeNode("child1", "Child1", 0.0, 0.0)
+        val graphNode = GraphNode(
+            id = "graphNode1",
+            name = "TestGroup",
+            position = Node.Position(100.0, 100.0),
+            childNodes = listOf(child1),
+            internalConnections = emptyList(),
+            inputPorts = emptyList(),
+            outputPorts = emptyList(),
+            portMappings = emptyMap()
+        )
+        val graph = flowGraph(name = "TestGraph", version = "1.0.0") {}
+            .addNode(graphNode)
+
+        val graphState = GraphState(graph)
+        assertTrue(graphState.navigationContext.isAtRoot, "Should start at root")
+
+        // When: Navigating into the GraphNode
+        val success = graphState.navigateIntoGraphNode("graphNode1")
+
+        // Then: NavigationContext should be updated
+        assertTrue(success, "Navigation should succeed")
+        assertEquals(listOf("graphNode1"), graphState.navigationContext.path)
+        assertEquals("graphNode1", graphState.navigationContext.currentGraphNodeId)
+    }
+
+    @Test
+    fun `navigateIntoGraphNode should fail for non-existent node`() {
+        // Given: An empty graph
+        val graph = flowGraph(name = "TestGraph", version = "1.0.0") {}
+        val graphState = GraphState(graph)
+
+        // When: Trying to navigate into non-existent node
+        val success = graphState.navigateIntoGraphNode("nonExistent")
+
+        // Then: Navigation should fail, context unchanged
+        assertFalse(success, "Navigation should fail for non-existent node")
+        assertTrue(graphState.navigationContext.isAtRoot, "Should remain at root")
+    }
+
+    @Test
+    fun `navigateIntoGraphNode should fail for CodeNode`() {
+        // Given: A graph with only a CodeNode (not a GraphNode)
+        val codeNode = createTestCodeNode("codeNode1", "CodeNode1", 100.0, 100.0)
+        val graph = flowGraph(name = "TestGraph", version = "1.0.0") {}
+            .addNode(codeNode)
+
+        val graphState = GraphState(graph)
+
+        // When: Trying to navigate into a CodeNode
+        val success = graphState.navigateIntoGraphNode("codeNode1")
+
+        // Then: Navigation should fail
+        assertFalse(success, "Navigation should fail for CodeNode")
+        assertTrue(graphState.navigationContext.isAtRoot, "Should remain at root")
+    }
+
+    @Test
+    fun `navigateIntoGraphNode should support nested navigation`() {
+        // Given: Nested GraphNodes
+        val deepChild = createTestCodeNode("deepChild", "DeepChild", 25.0, 25.0)
+        val innerGraphNode = GraphNode(
+            id = "innerGraphNode",
+            name = "InnerGroup",
+            position = Node.Position(50.0, 50.0),
+            childNodes = listOf(deepChild),
+            internalConnections = emptyList(),
+            inputPorts = emptyList(),
+            outputPorts = emptyList(),
+            portMappings = emptyMap()
+        )
+        val outerGraphNode = GraphNode(
+            id = "outerGraphNode",
+            name = "OuterGroup",
+            position = Node.Position(100.0, 100.0),
+            childNodes = listOf(innerGraphNode),
+            internalConnections = emptyList(),
+            inputPorts = emptyList(),
+            outputPorts = emptyList(),
+            portMappings = emptyMap()
+        )
+        val graph = flowGraph(name = "TestGraph", version = "1.0.0") {}
+            .addNode(outerGraphNode)
+
+        val graphState = GraphState(graph)
+
+        // When: Navigating two levels deep
+        graphState.navigateIntoGraphNode("outerGraphNode")
+        graphState.navigateIntoGraphNode("innerGraphNode")
+
+        // Then: Path should have both nodes
+        assertEquals(listOf("outerGraphNode", "innerGraphNode"), graphState.navigationContext.path)
+        assertEquals(2, graphState.navigationContext.depth)
+        assertEquals("innerGraphNode", graphState.navigationContext.currentGraphNodeId)
+        assertEquals("outerGraphNode", graphState.navigationContext.parentGraphNodeId)
+    }
+
+    @Test
+    fun `navigateIntoGraphNode should clear selection`() {
+        // Given: A GraphNode that is selected
+        val child1 = createTestCodeNode("child1", "Child1", 0.0, 0.0)
+        val graphNode = GraphNode(
+            id = "graphNode1",
+            name = "TestGroup",
+            position = Node.Position(100.0, 100.0),
+            childNodes = listOf(child1),
+            internalConnections = emptyList(),
+            inputPorts = emptyList(),
+            outputPorts = emptyList(),
+            portMappings = emptyMap()
+        )
+        val graph = flowGraph(name = "TestGraph", version = "1.0.0") {}
+            .addNode(graphNode)
+
+        val graphState = GraphState(graph)
+        graphState.toggleNodeInSelection("graphNode1")
+        assertTrue(graphState.selectionState.selectedNodeIds.isNotEmpty())
+
+        // When: Navigating into the GraphNode
+        graphState.navigateIntoGraphNode("graphNode1")
+
+        // Then: Selection should be cleared
+        assertTrue(graphState.selectionState.selectedNodeIds.isEmpty(), "Selection should be cleared")
+    }
+
+    @Test
+    fun `navigateIntoGraphNode should update canNavigateOut`() {
+        // Given: A graph with a GraphNode
+        val child1 = createTestCodeNode("child1", "Child1", 0.0, 0.0)
+        val graphNode = GraphNode(
+            id = "graphNode1",
+            name = "TestGroup",
+            position = Node.Position(100.0, 100.0),
+            childNodes = listOf(child1),
+            internalConnections = emptyList(),
+            inputPorts = emptyList(),
+            outputPorts = emptyList(),
+            portMappings = emptyMap()
+        )
+        val graph = flowGraph(name = "TestGraph", version = "1.0.0") {}
+            .addNode(graphNode)
+
+        val graphState = GraphState(graph)
+        assertFalse(graphState.navigationContext.canNavigateOut, "Should not be able to navigate out at root")
+
+        // When: Navigating into the GraphNode
+        graphState.navigateIntoGraphNode("graphNode1")
+
+        // Then: Should now be able to navigate out
+        assertTrue(graphState.navigationContext.canNavigateOut, "Should be able to navigate out after navigating in")
+    }
+
+    @Test
+    fun `navigateIntoGraphNode followed by navigateOut should return to root`() {
+        // Given: Navigated into a GraphNode
+        val child1 = createTestCodeNode("child1", "Child1", 0.0, 0.0)
+        val graphNode = GraphNode(
+            id = "graphNode1",
+            name = "TestGroup",
+            position = Node.Position(100.0, 100.0),
+            childNodes = listOf(child1),
+            internalConnections = emptyList(),
+            inputPorts = emptyList(),
+            outputPorts = emptyList(),
+            portMappings = emptyMap()
+        )
+        val graph = flowGraph(name = "TestGraph", version = "1.0.0") {}
+            .addNode(graphNode)
+
+        val graphState = GraphState(graph)
+        graphState.navigateIntoGraphNode("graphNode1")
+        assertFalse(graphState.navigationContext.isAtRoot)
+
+        // When: Navigating out
+        val success = graphState.navigateOut()
+
+        // Then: Should be back at root
+        assertTrue(success, "Navigate out should succeed")
+        assertTrue(graphState.navigationContext.isAtRoot, "Should be at root")
+    }
+
+    @Test
+    fun `navigateIntoGraphNode should update isAtRoot to false`() {
+        // Given: A graph with a GraphNode at root
+        val child1 = createTestCodeNode("child1", "Child1", 0.0, 0.0)
+        val graphNode = GraphNode(
+            id = "graphNode1",
+            name = "TestGroup",
+            position = Node.Position(100.0, 100.0),
+            childNodes = listOf(child1),
+            internalConnections = emptyList(),
+            inputPorts = emptyList(),
+            outputPorts = emptyList(),
+            portMappings = emptyMap()
+        )
+        val graph = flowGraph(name = "TestGraph", version = "1.0.0") {}
+            .addNode(graphNode)
+
+        val graphState = GraphState(graph)
+        assertTrue(graphState.navigationContext.isAtRoot)
+
+        // When: Navigating into the GraphNode
+        graphState.navigateIntoGraphNode("graphNode1")
+
+        // Then: isAtRoot should be false
+        assertFalse(graphState.navigationContext.isAtRoot)
+    }
+
+    @Test
+    fun `navigateIntoGraphNode should support 5 levels deep`() {
+        // Given: 5 nested GraphNodes
+        fun createNestedGraphNodes(level: Int): GraphNode {
+            return if (level == 5) {
+                val leaf = createTestCodeNode("leaf", "Leaf", 0.0, 0.0)
+                GraphNode(
+                    id = "level$level",
+                    name = "Level$level",
+                    position = Node.Position(0.0, 0.0),
+                    childNodes = listOf(leaf),
+                    internalConnections = emptyList(),
+                    inputPorts = emptyList(),
+                    outputPorts = emptyList(),
+                    portMappings = emptyMap()
+                )
+            } else {
+                GraphNode(
+                    id = "level$level",
+                    name = "Level$level",
+                    position = Node.Position(0.0, 0.0),
+                    childNodes = listOf(createNestedGraphNodes(level + 1)),
+                    internalConnections = emptyList(),
+                    inputPorts = emptyList(),
+                    outputPorts = emptyList(),
+                    portMappings = emptyMap()
+                )
+            }
+        }
+
+        val rootGraphNode = createNestedGraphNodes(1)
+        val graph = flowGraph(name = "TestGraph", version = "1.0.0") {}
+            .addNode(rootGraphNode)
+
+        val graphState = GraphState(graph)
+
+        // When: Navigating 5 levels deep
+        graphState.navigateIntoGraphNode("level1")
+        graphState.navigateIntoGraphNode("level2")
+        graphState.navigateIntoGraphNode("level3")
+        graphState.navigateIntoGraphNode("level4")
+        graphState.navigateIntoGraphNode("level5")
+
+        // Then: Should be at depth 5
+        assertEquals(5, graphState.navigationContext.depth)
+        assertEquals("level5", graphState.navigationContext.currentGraphNodeId)
+        assertEquals(listOf("level1", "level2", "level3", "level4", "level5"), graphState.navigationContext.path)
+    }
+
+    // ============================================
+    // navigateToDepth Tests (Breadcrumb Navigation)
+    // ============================================
+
+    @Test
+    fun `navigateToDepth should navigate to root when depth is 0`() {
+        // Given: Navigated 3 levels deep
+        val graphState = createNestedGraphStateAtDepth(3)
+        assertEquals(3, graphState.navigationContext.depth)
+
+        // When: Navigating to depth 0
+        val success = graphState.navigateToDepth(0)
+
+        // Then: Should be at root
+        assertTrue(success)
+        assertTrue(graphState.navigationContext.isAtRoot)
+        assertEquals(0, graphState.navigationContext.depth)
+    }
+
+    @Test
+    fun `navigateToDepth should navigate to intermediate level`() {
+        // Given: Navigated 3 levels deep
+        val graphState = createNestedGraphStateAtDepth(3)
+        assertEquals(3, graphState.navigationContext.depth)
+
+        // When: Navigating to depth 1
+        val success = graphState.navigateToDepth(1)
+
+        // Then: Should be at depth 1
+        assertTrue(success)
+        assertEquals(1, graphState.navigationContext.depth)
+        assertEquals("level1", graphState.navigationContext.currentGraphNodeId)
+    }
+
+    @Test
+    fun `navigateToDepth should fail for current or higher depth`() {
+        // Given: At depth 2
+        val graphState = createNestedGraphStateAtDepth(2)
+
+        // When: Trying to navigate to same depth or higher
+        val successSame = graphState.navigateToDepth(2)
+        val successHigher = graphState.navigateToDepth(3)
+
+        // Then: Both should fail
+        assertFalse(successSame)
+        assertFalse(successHigher)
+        assertEquals(2, graphState.navigationContext.depth) // Unchanged
+    }
+
+    @Test
+    fun `navigateToDepth should fail for negative depth`() {
+        // Given: At depth 2
+        val graphState = createNestedGraphStateAtDepth(2)
+
+        // When: Trying to navigate to negative depth
+        val success = graphState.navigateToDepth(-1)
+
+        // Then: Should fail
+        assertFalse(success)
+        assertEquals(2, graphState.navigationContext.depth) // Unchanged
+    }
+
+    @Test
+    fun `navigateToDepth should clear selection`() {
+        // Given: At depth 2 with a selection
+        val graphState = createNestedGraphStateAtDepth(2)
+        graphState.toggleNodeInSelection("someNode")
+
+        // When: Navigating to depth 0
+        graphState.navigateToDepth(0)
+
+        // Then: Selection should be cleared
+        assertTrue(graphState.selectionState.selectedNodeIds.isEmpty())
+    }
+
+    // ============================================
+    // getGraphNodeNamesInPath Tests
+    // ============================================
+
+    @Test
+    fun `getGraphNodeNamesInPath should return empty map at root`() {
+        // Given: At root
+        val graph = flowGraph(name = "TestGraph", version = "1.0.0") {}
+        val graphState = GraphState(graph)
+
+        // When/Then
+        assertTrue(graphState.getGraphNodeNamesInPath().isEmpty())
+    }
+
+    @Test
+    fun `getGraphNodeNamesInPath should return name for single level`() {
+        // Given: Inside one GraphNode
+        val child = createTestCodeNode("child", "Child", 0.0, 0.0)
+        val graphNode = GraphNode(
+            id = "group1",
+            name = "MyGroup",
+            position = Node.Position(0.0, 0.0),
+            childNodes = listOf(child),
+            internalConnections = emptyList(),
+            inputPorts = emptyList(),
+            outputPorts = emptyList(),
+            portMappings = emptyMap()
+        )
+        val graph = flowGraph(name = "TestGraph", version = "1.0.0") {}
+            .addNode(graphNode)
+
+        val graphState = GraphState(graph)
+        graphState.navigateIntoGraphNode("group1")
+
+        // When/Then
+        val names = graphState.getGraphNodeNamesInPath()
+        assertEquals(1, names.size)
+        assertEquals("MyGroup", names["group1"])
+    }
+
+    @Test
+    fun `getGraphNodeNamesInPath should return names for multiple levels`() {
+        // Given: 3 levels deep
+        val graphState = createNestedGraphStateAtDepth(3)
+
+        // When/Then
+        val names = graphState.getGraphNodeNamesInPath()
+        assertEquals(3, names.size)
+        assertEquals("Level1", names["level1"])
+        assertEquals("Level2", names["level2"])
+        assertEquals("Level3", names["level3"])
+    }
+
+    // ============================================
+    // getCurrentGraphNode Tests
+    // ============================================
+
+    @Test
+    fun `getCurrentGraphNode should return null at root`() {
+        // Given: At root
+        val graph = flowGraph(name = "TestGraph", version = "1.0.0") {}
+        val graphState = GraphState(graph)
+
+        // When/Then
+        assertNull(graphState.getCurrentGraphNode())
+    }
+
+    @Test
+    fun `getCurrentGraphNode should return the GraphNode when inside one`() {
+        // Given: Inside a GraphNode
+        val child = createTestCodeNode("child", "Child", 0.0, 0.0)
+        val graphNode = GraphNode(
+            id = "group1",
+            name = "MyGroup",
+            position = Node.Position(0.0, 0.0),
+            childNodes = listOf(child),
+            internalConnections = emptyList(),
+            inputPorts = emptyList(),
+            outputPorts = emptyList(),
+            portMappings = emptyMap()
+        )
+        val graph = flowGraph(name = "TestGraph", version = "1.0.0") {}
+            .addNode(graphNode)
+
+        val graphState = GraphState(graph)
+        graphState.navigateIntoGraphNode("group1")
+
+        // When/Then
+        val currentNode = graphState.getCurrentGraphNode()
+        assertNotNull(currentNode)
+        assertEquals("group1", currentNode.id)
+        assertEquals("MyGroup", currentNode.name)
+    }
+
+    @Test
+    fun `getCurrentGraphNode should return innermost GraphNode when nested`() {
+        // Given: 2 levels deep
+        val graphState = createNestedGraphStateAtDepth(2)
+
+        // When/Then
+        val currentNode = graphState.getCurrentGraphNode()
+        assertNotNull(currentNode)
+        assertEquals("level2", currentNode.id)
+    }
+
+    // ============================================
+    // Helper Functions
+    // ============================================
+
+    /**
+     * Creates a GraphState with nested GraphNodes and navigates to the specified depth.
+     */
+    private fun createNestedGraphStateAtDepth(depth: Int): GraphState {
+        fun createNestedGraphNodes(level: Int, maxLevel: Int): GraphNode {
+            return if (level == maxLevel) {
+                val leaf = createTestCodeNode("leaf", "Leaf", 0.0, 0.0)
+                GraphNode(
+                    id = "level$level",
+                    name = "Level$level",
+                    position = Node.Position(0.0, 0.0),
+                    childNodes = listOf(leaf),
+                    internalConnections = emptyList(),
+                    inputPorts = emptyList(),
+                    outputPorts = emptyList(),
+                    portMappings = emptyMap()
+                )
+            } else {
+                GraphNode(
+                    id = "level$level",
+                    name = "Level$level",
+                    position = Node.Position(0.0, 0.0),
+                    childNodes = listOf(createNestedGraphNodes(level + 1, maxLevel)),
+                    internalConnections = emptyList(),
+                    inputPorts = emptyList(),
+                    outputPorts = emptyList(),
+                    portMappings = emptyMap()
+                )
+            }
+        }
+
+        val rootGraphNode = createNestedGraphNodes(1, depth)
+        val graph = flowGraph(name = "TestGraph", version = "1.0.0") {}
+            .addNode(rootGraphNode)
+
+        val graphState = GraphState(graph)
+
+        // Navigate to the target depth
+        for (level in 1..depth) {
+            graphState.navigateIntoGraphNode("level$level")
+        }
+
+        return graphState
+    }
+
+    // ============================================
+    // Helper Functions for T056 Tests
+    // ============================================
+
+    private fun createTestCodeNode(
+        id: String,
+        name: String,
+        x: Double,
+        y: Double
+    ): CodeNode {
+        return CodeNode(
+            id = id,
+            name = name,
+            codeNodeType = CodeNodeType.TRANSFORMER,
+            position = Node.Position(x, y),
+            inputPorts = listOf(
+                Port(
+                    id = "${id}_in",
+                    name = "${id}_in",
+                    direction = Port.Direction.INPUT,
+                    dataType = String::class,
+                    owningNodeId = id
+                )
+            ),
+            outputPorts = listOf(
+                Port(
+                    id = "${id}_out",
+                    name = "${id}_out",
+                    direction = Port.Direction.OUTPUT,
+                    dataType = String::class,
+                    owningNodeId = id
+                )
+            )
+        )
     }
 }

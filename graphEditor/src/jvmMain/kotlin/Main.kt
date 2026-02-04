@@ -48,6 +48,7 @@ import io.codenode.fbpdsl.model.InformationPacketType
 import io.codenode.grapheditor.state.IPTypeRegistry
 import io.codenode.grapheditor.ui.IPPalette
 import io.codenode.grapheditor.ui.ConnectionContextMenu
+import io.codenode.grapheditor.ui.NavigationBreadcrumbBar
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.key.*
 import androidx.compose.ui.focus.FocusRequester
@@ -334,6 +335,21 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
 
             Divider()
 
+            // Navigation breadcrumb bar (only visible when inside a GraphNode)
+            NavigationBreadcrumbBar(
+                navigationContext = graphState.navigationContext,
+                graphNodeNames = graphState.getGraphNodeNamesInPath(),
+                onNavigateToRoot = {
+                    graphState.navigateToRoot()
+                    statusMessage = "Navigated to root"
+                },
+                onNavigateToLevel = { depth ->
+                    graphState.navigateToDepth(depth)
+                    val name = graphState.getCurrentGraphNodeName() ?: "parent"
+                    statusMessage = "Navigated to $name"
+                }
+            )
+
             // Focus requester for keyboard handling
             val focusRequester = remember { FocusRequester() }
 
@@ -561,7 +577,8 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                                     }
                                 },
                                 displayNodes = graphState.getNodesInCurrentContext(),
-                                displayConnections = graphState.getConnectionsInCurrentContext()
+                                displayConnections = graphState.getConnectionsInCurrentContext(),
+                                currentGraphNode = graphState.getCurrentGraphNode()
                             )
 
                             // Connection Context Menu (rendered as overlay)

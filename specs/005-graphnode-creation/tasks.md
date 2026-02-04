@@ -192,19 +192,19 @@
 
 ### Tests for User Story 5 (TDD - Write FIRST, must FAIL) ⚠️
 
-- [ ] T056 [P] [US5] Write unit test for navigateInto() updating NavigationContext in graphEditor/src/jvmTest/kotlin/io/codenode/grapheditor/state/NavigationContextTest.kt
-- [ ] T057 [P] [US5] Write UI test for zoom-in button rendering on GraphNode in graphEditor/src/jvmTest/kotlin/io/codenode/grapheditor/ui/GraphNodeRendererTest.kt
-- [ ] T058 [P] [US5] Write UI test for internal view rendering with boundary in graphEditor/src/jvmTest/kotlin/io/codenode/grapheditor/ui/InternalViewTest.kt
+- [X] T056 [P] [US5] Write unit test for navigateInto() updating NavigationContext in graphEditor/src/jvmTest/kotlin/io/codenode/grapheditor/state/NavigationContextTest.kt
+- [X] T057 [P] [US5] Write UI test for zoom-in button rendering on GraphNode in graphEditor/src/jvmTest/kotlin/io/codenode/grapheditor/ui/GraphNodeRendererTest.kt
+- [X] T058 [P] [US5] Write UI test for internal view rendering with boundary in graphEditor/src/jvmTest/kotlin/io/codenode/grapheditor/ui/InternalViewTest.kt
 
 ### Implementation for User Story 5
 
-- [ ] T059 [US5] Add navigateInto(graphNodeId: String) method to GraphState in graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/state/GraphState.kt
-- [ ] T060 [US5] Add zoom-in button to GraphNodeRenderer in graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/GraphNodeRenderer.kt
-- [ ] T061 [US5] Create NavigationBreadcrumb Composable in graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/NavigationBreadcrumb.kt
-- [ ] T062 [US5] Modify FlowGraphCanvas to render based on NavigationContext (internal vs root view) in graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/FlowGraphCanvas.kt
-- [ ] T063 [US5] Implement boundary rendering with ports in internal view in graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/FlowGraphCanvas.kt
-- [ ] T064 [US5] Integrate NavigationBreadcrumb into Main.kt layout in graphEditor/src/jvmMain/kotlin/Main.kt
-- [ ] T065 [US5] Verify T056-T058 tests pass after implementation
+- [X] T059 [US5] Add navigateInto(graphNodeId: String) method to GraphState in graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/state/GraphState.kt
+- [X] T060 [US5] Add zoom-in button to GraphNodeRenderer in graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/GraphNodeRenderer.kt
+- [X] T061 [US5] Create NavigationBreadcrumb Composable in graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/NavigationBreadcrumb.kt
+- [X] T062 [US5] Modify FlowGraphCanvas to render based on NavigationContext (internal vs root view) in graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/FlowGraphCanvas.kt
+- [X] T063 [US5] Implement boundary rendering with ports in internal view in graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/FlowGraphCanvas.kt
+- [X] T064 [US5] Integrate NavigationBreadcrumb into Main.kt layout in graphEditor/src/jvmMain/kotlin/Main.kt
+- [X] T065 [US5] Verify T056-T058 tests pass after implementation
 
 **Checkpoint**: User Story 5 complete - can navigate into GraphNodes
 

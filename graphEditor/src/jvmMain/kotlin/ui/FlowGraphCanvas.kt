@@ -56,6 +56,7 @@ import io.codenode.grapheditor.ui.GraphNodeRenderer.drawGraphNode
  * @param onGraphNodeExpandClicked Callback when the expand icon on a GraphNode is clicked (for drill-down navigation)
  * @param displayNodes Optional list of nodes to display (defaults to nodesToRender if null)
  * @param displayConnections Optional list of connections to display (defaults to connectionsToRender if null)
+ * @param currentGraphNode The GraphNode currently being viewed (null if at root level) - used for boundary rendering
  * @param modifier Modifier for the canvas
  */
 @Composable
@@ -83,6 +84,7 @@ fun FlowGraphCanvas(
     onGraphNodeExpandClicked: (graphNodeId: String) -> Unit = {},
     displayNodes: List<Node>? = null,
     displayConnections: List<Connection>? = null,
+    currentGraphNode: GraphNode? = null,
     modifier: Modifier = Modifier
 ) {
     // Use provided nodes/connections or default to flowGraph's root level
@@ -445,6 +447,15 @@ fun FlowGraphCanvas(
             // Apply pan and scale transformations
             val transformedOffset = panOffset
             val transformedScale = scale
+
+            // Draw GraphNode boundary with ports when inside a GraphNode
+            if (currentGraphNode != null) {
+                drawGraphNodeBoundary(
+                    graphNode = currentGraphNode,
+                    canvasSize = size,
+                    scale = transformedScale
+                )
+            }
 
             // Draw connections first (behind nodes)
             connectionsToRender.forEach { connection ->
@@ -1055,4 +1066,217 @@ private fun findConnectionAtPosition(
     }
 
     return null
+}
+
+/**
+ * Draws the boundary of the current GraphNode when viewing its internal structure.
+ * Shows input ports on the left edge and output ports on the right edge.
+ *
+ * @param graphNode The GraphNode whose boundary to draw
+ * @param canvasSize Size of the canvas
+ * @param scale Current zoom scale
+ */
+private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawGraphNodeBoundary(
+    graphNode: GraphNode,
+    canvasSize: androidx.compose.ui.geometry.Size,
+    scale: Float
+) {
+    val boundaryColor = Color(0xFF1565C0)  // Blue to match GraphNode style
+    val boundaryColorLight = Color(0xFF64B5F6)
+    val portRadius = 8f * scale
+    val portSpacing = 30f * scale
+    val edgePadding = 20f * scale
+    val labelWidth = 60f * scale
+
+    // Draw left edge indicator (input ports area)
+    if (graphNode.inputPorts.isNotEmpty()) {
+        // Draw left edge line
+        drawLine(
+            color = boundaryColor,
+            start = Offset(edgePadding, 0f),
+            end = Offset(edgePadding, canvasSize.height),
+            strokeWidth = 2f * scale,
+            pathEffect = androidx.compose.ui.graphics.PathEffect.dashPathEffect(
+                floatArrayOf(10f * scale, 5f * scale)
+            )
+        )
+
+        // Draw input ports along left edge
+        val startY = 100f * scale
+        graphNode.inputPorts.forEachIndexed { index, port ->
+            val portY = startY + (index * portSpacing)
+            val portX = edgePadding
+
+            // Draw port circle with filled background
+            drawCircle(
+                color = Color(0xFF4CAF50),  // Green for input
+                radius = portRadius,
+                center = Offset(portX, portY)
+            )
+            drawCircle(
+                color = Color(0xFF2E7D32),
+                radius = portRadius,
+                center = Offset(portX, portY),
+                style = Stroke(width = 2f * scale)
+            )
+
+            // Draw connector line extending into canvas
+            drawLine(
+                color = Color(0xFF757575),
+                start = Offset(portX + portRadius, portY),
+                end = Offset(portX + labelWidth, portY),
+                strokeWidth = 1.5f * scale
+            )
+
+            // Draw small arrow indicator
+            val arrowSize = 4f * scale
+            val arrowX = portX + portRadius + 8f * scale
+            drawLine(
+                color = Color(0xFF757575),
+                start = Offset(arrowX, portY - arrowSize),
+                end = Offset(arrowX + arrowSize, portY),
+                strokeWidth = 1.5f * scale
+            )
+            drawLine(
+                color = Color(0xFF757575),
+                start = Offset(arrowX, portY + arrowSize),
+                end = Offset(arrowX + arrowSize, portY),
+                strokeWidth = 1.5f * scale
+            )
+        }
+
+        // Draw "INPUT" label background
+        drawRect(
+            color = boundaryColorLight.copy(alpha = 0.3f),
+            topLeft = Offset(0f, 60f * scale),
+            size = androidx.compose.ui.geometry.Size(edgePadding + 10f * scale, 30f * scale)
+        )
+    }
+
+    // Draw right edge indicator (output ports area)
+    if (graphNode.outputPorts.isNotEmpty()) {
+        val rightEdgeX = canvasSize.width - edgePadding
+
+        // Draw right edge line
+        drawLine(
+            color = boundaryColor,
+            start = Offset(rightEdgeX, 0f),
+            end = Offset(rightEdgeX, canvasSize.height),
+            strokeWidth = 2f * scale,
+            pathEffect = androidx.compose.ui.graphics.PathEffect.dashPathEffect(
+                floatArrayOf(10f * scale, 5f * scale)
+            )
+        )
+
+        // Draw output ports along right edge
+        val startY = 100f * scale
+        graphNode.outputPorts.forEachIndexed { index, port ->
+            val portY = startY + (index * portSpacing)
+            val portX = rightEdgeX
+
+            // Draw port circle with filled background
+            drawCircle(
+                color = Color(0xFF2196F3),  // Blue for output
+                radius = portRadius,
+                center = Offset(portX, portY)
+            )
+            drawCircle(
+                color = Color(0xFF1565C0),
+                radius = portRadius,
+                center = Offset(portX, portY),
+                style = Stroke(width = 2f * scale)
+            )
+
+            // Draw connector line extending into canvas
+            drawLine(
+                color = Color(0xFF757575),
+                start = Offset(portX - portRadius, portY),
+                end = Offset(portX - labelWidth, portY),
+                strokeWidth = 1.5f * scale
+            )
+
+            // Draw small arrow indicator pointing right (outward)
+            val arrowSize = 4f * scale
+            val arrowX = portX - portRadius - 8f * scale
+            drawLine(
+                color = Color(0xFF757575),
+                start = Offset(arrowX, portY - arrowSize),
+                end = Offset(arrowX - arrowSize, portY),
+                strokeWidth = 1.5f * scale
+            )
+            drawLine(
+                color = Color(0xFF757575),
+                start = Offset(arrowX, portY + arrowSize),
+                end = Offset(arrowX - arrowSize, portY),
+                strokeWidth = 1.5f * scale
+            )
+        }
+
+        // Draw "OUTPUT" label background
+        drawRect(
+            color = boundaryColorLight.copy(alpha = 0.3f),
+            topLeft = Offset(rightEdgeX - 10f * scale, 60f * scale),
+            size = androidx.compose.ui.geometry.Size(edgePadding + 10f * scale, 30f * scale)
+        )
+    }
+
+    // Draw corner indicators to show this is an "inside" view
+    val cornerSize = 30f * scale
+    val cornerColor = boundaryColor.copy(alpha = 0.5f)
+
+    // Top-left corner
+    drawLine(
+        color = cornerColor,
+        start = Offset(0f, cornerSize),
+        end = Offset(0f, 0f),
+        strokeWidth = 3f * scale
+    )
+    drawLine(
+        color = cornerColor,
+        start = Offset(0f, 0f),
+        end = Offset(cornerSize, 0f),
+        strokeWidth = 3f * scale
+    )
+
+    // Top-right corner
+    drawLine(
+        color = cornerColor,
+        start = Offset(canvasSize.width - cornerSize, 0f),
+        end = Offset(canvasSize.width, 0f),
+        strokeWidth = 3f * scale
+    )
+    drawLine(
+        color = cornerColor,
+        start = Offset(canvasSize.width, 0f),
+        end = Offset(canvasSize.width, cornerSize),
+        strokeWidth = 3f * scale
+    )
+
+    // Bottom-left corner
+    drawLine(
+        color = cornerColor,
+        start = Offset(0f, canvasSize.height - cornerSize),
+        end = Offset(0f, canvasSize.height),
+        strokeWidth = 3f * scale
+    )
+    drawLine(
+        color = cornerColor,
+        start = Offset(0f, canvasSize.height),
+        end = Offset(cornerSize, canvasSize.height),
+        strokeWidth = 3f * scale
+    )
+
+    // Bottom-right corner
+    drawLine(
+        color = cornerColor,
+        start = Offset(canvasSize.width - cornerSize, canvasSize.height),
+        end = Offset(canvasSize.width, canvasSize.height),
+        strokeWidth = 3f * scale
+    )
+    drawLine(
+        color = cornerColor,
+        start = Offset(canvasSize.width, canvasSize.height - cornerSize),
+        end = Offset(canvasSize.width, canvasSize.height),
+        strokeWidth = 3f * scale
+    )
 }
