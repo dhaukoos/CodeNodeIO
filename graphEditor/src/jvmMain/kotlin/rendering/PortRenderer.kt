@@ -35,6 +35,9 @@ object PortDimensions {
     /** Base size of a port in dp */
     const val BASE_SIZE = 8f
 
+    /** Square port size multiplier (75% larger than circles) */
+    const val SQUARE_SIZE_MULTIPLIER = 1.75f
+
     /** Hover size multiplier */
     const val HOVER_MULTIPLIER = 1.5f
 
@@ -52,17 +55,36 @@ object PortColors {
     /** Unconnected port stroke color */
     val UNCONNECTED_STROKE = Color(0xFF757575)
 
-    /** Connected port fill and stroke color */
-    val CONNECTED = Color(0xFF2196F3)
+    /** INPUT port fill color (green) */
+    val INPUT_FILL = Color(0xFF4CAF50)
 
-    /** Hovered port fill color */
-    val HOVERED = Color(0xFF64B5F6)
+    /** INPUT port stroke color (darker green) */
+    val INPUT_STROKE = Color(0xFF2E7D32)
+
+    /** OUTPUT port fill color (blue) */
+    val OUTPUT_FILL = Color(0xFF2196F3)
+
+    /** OUTPUT port stroke color (darker blue) */
+    val OUTPUT_STROKE = Color(0xFF1565C0)
+
+    /** Hovered INPUT port fill color (lighter green) */
+    val INPUT_HOVERED = Color(0xFF81C784)
+
+    /** Hovered OUTPUT port fill color (lighter blue) */
+    val OUTPUT_HOVERED = Color(0xFF64B5F6)
 
     /** Invalid port color */
     val INVALID = Color(0xFFF44336)
 
     /** Transparent fill for unconnected ports */
     val UNCONNECTED_FILL = Color.Transparent
+
+    // Legacy colors for backward compatibility
+    /** Connected port fill and stroke color */
+    val CONNECTED = Color(0xFF2196F3)
+
+    /** Hovered port fill color */
+    val HOVERED = Color(0xFF64B5F6)
 }
 
 /**
@@ -102,19 +124,19 @@ fun DrawScope.renderPort(
     scale: Float = 1f
 ) {
     val baseSize = PortDimensions.BASE_SIZE * scale
-    val size = if (isHovered) baseSize * PortDimensions.HOVER_MULTIPLIER else baseSize
+    // Square ports are 75% larger than circle ports
+    val shapeMultiplier = if (shape == PortShape.SQUARE) PortDimensions.SQUARE_SIZE_MULTIPLIER else 1f
+    val size = baseSize * shapeMultiplier * (if (isHovered) PortDimensions.HOVER_MULTIPLIER else 1f)
     val strokeWidth = PortDimensions.STROKE_WIDTH * scale
 
-    val fillColor = when {
-        isHovered -> PortColors.HOVERED
-        isConnected -> PortColors.CONNECTED
-        else -> PortColors.UNCONNECTED_FILL
-    }
-
-    val strokeColor = when {
-        isHovered -> PortColors.CONNECTED
-        isConnected -> PortColors.CONNECTED
-        else -> PortColors.UNCONNECTED_STROKE
+    // Use direction-based colors: INPUT = green, OUTPUT = blue
+    val (fillColor, strokeColor) = when {
+        isHovered && direction == Port.Direction.INPUT -> PortColors.INPUT_HOVERED to PortColors.INPUT_STROKE
+        isHovered && direction == Port.Direction.OUTPUT -> PortColors.OUTPUT_HOVERED to PortColors.OUTPUT_STROKE
+        isConnected && direction == Port.Direction.INPUT -> PortColors.INPUT_FILL to PortColors.INPUT_STROKE
+        isConnected && direction == Port.Direction.OUTPUT -> PortColors.OUTPUT_FILL to PortColors.OUTPUT_STROKE
+        direction == Port.Direction.INPUT -> PortColors.UNCONNECTED_FILL to PortColors.INPUT_STROKE
+        else -> PortColors.UNCONNECTED_FILL to PortColors.OUTPUT_STROKE
     }
 
     when (shape) {

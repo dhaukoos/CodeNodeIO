@@ -9,6 +9,7 @@ package io.codenode.fbpdsl.factory
 import io.codenode.fbpdsl.model.Connection
 import io.codenode.fbpdsl.model.GraphNode
 import io.codenode.fbpdsl.model.Node
+import io.codenode.fbpdsl.model.PassThruPort
 import io.codenode.fbpdsl.model.Port
 
 /**
@@ -28,7 +29,11 @@ object GraphNodeFactory {
         val graphNodePortDirection: Port.Direction,
         val childNodeId: String,
         val childPortId: String,
-        val externalConnectionId: String
+        val externalConnectionId: String,
+        /** The external node ID (outside the GraphNode boundary) */
+        val externalNodeId: String = "",
+        /** The external port ID (on the external node) */
+        val externalPortId: String = ""
     )
 
     /**
@@ -81,41 +86,40 @@ object GraphNodeFactory {
         // Generate port mappings for external connections
         val portMappings = generatePortMappings(selectedNodeIds, allConnections)
 
-        // Create input ports from incoming external connections
-        val inputPorts = portMappings
-            .filter { it.graphNodePortDirection == Port.Direction.INPUT }
-            .distinctBy { "${it.childNodeId}_${it.childPortId}" } // Deduplicate same target port
-            .map { mapping ->
-                createPort(
-                    id = mapping.graphNodePortId,
-                    name = mapping.graphNodePortName,
-                    direction = Port.Direction.INPUT,
-                    owningNodeId = graphNodeId
-                )
-            }
+        // Create PassThruPorts for boundary-crossing connections
+        val passThruPortResults = createPassThruPorts(graphNodeId, portMappings)
 
-        // Create output ports from outgoing external connections
-        val outputPorts = portMappings
-            .filter { it.graphNodePortDirection == Port.Direction.OUTPUT }
-            .distinctBy { "${it.childNodeId}_${it.childPortId}" } // Deduplicate same source port
-            .map { mapping ->
-                createPort(
-                    id = mapping.graphNodePortId,
-                    name = mapping.graphNodePortName,
-                    direction = Port.Direction.OUTPUT,
-                    owningNodeId = graphNodeId
-                )
-            }
+        // Check for any failures in PassThruPort creation (T022: error handling)
+        val failures = passThruPortResults.filter { it.isFailure }
+        if (failures.isNotEmpty()) {
+            // Return null if any PassThruPort creation fails (type mismatch, etc.)
+            return null
+        }
+
+        // Extract successful PassThruPorts
+        val passThruPorts = passThruPortResults.mapNotNull { it.getOrNull() }
+
+        // Separate into input and output ports
+        // Note: We store the underlying Port from PassThruPort for GraphNode compatibility.
+        // PassThruPort metadata (upstream/downstream refs) is preserved in portMappings.
+        val inputPorts: List<Port<*>> = passThruPorts
+            .filter { it.direction == Port.Direction.INPUT }
+            .map { it.port }
+
+        val outputPorts: List<Port<*>> = passThruPorts
+            .filter { it.direction == Port.Direction.OUTPUT }
+            .map { it.port }
 
         // Build port mappings map (GraphNode port name -> child port reference)
-        val portMappingsMap = portMappings
-            .distinctBy { "${it.childNodeId}_${it.childPortId}" }
-            .associate { mapping ->
-                mapping.graphNodePortName to GraphNode.PortMapping(
-                    childNodeId = mapping.childNodeId,
-                    childPortName = mapping.childPortId
-                )
-            }
+        // Use PassThruPort names for consistency
+        val portMappingsMap = passThruPorts.associate { passThru ->
+            passThru.name to GraphNode.PortMapping(
+                childNodeId = if (passThru.direction == Port.Direction.INPUT)
+                    passThru.downstreamNodeId else passThru.upstreamNodeId,
+                childPortName = if (passThru.direction == Port.Direction.INPUT)
+                    passThru.downstreamPortId else passThru.upstreamPortId
+            )
+        }
 
         // Calculate centroid position
         val centroidX = selectedNodes.map { it.position.x }.average()
@@ -170,7 +174,9 @@ object GraphNodeFactory {
                             graphNodePortDirection = Port.Direction.OUTPUT,
                             childNodeId = conn.sourceNodeId,
                             childPortId = conn.sourcePortId,
-                            externalConnectionId = conn.id
+                            externalConnectionId = conn.id,
+                            externalNodeId = conn.targetNodeId,
+                            externalPortId = conn.targetPortId
                         )
                     )
                 } else {
@@ -183,7 +189,9 @@ object GraphNodeFactory {
                             graphNodePortDirection = Port.Direction.INPUT,
                             childNodeId = conn.targetNodeId,
                             childPortId = conn.targetPortId,
-                            externalConnectionId = conn.id
+                            externalConnectionId = conn.id,
+                            externalNodeId = conn.sourceNodeId,
+                            externalPortId = conn.sourcePortId
                         )
                     )
                 }
@@ -195,10 +203,37 @@ object GraphNodeFactory {
     }
 
     /**
+     * Creates PassThruPorts for all port mappings using PassThruPortFactory.
+     *
+     * @param graphNodeId The ID of the GraphNode being created
+     * @param portMappings The port mappings describing boundary-crossing connections
+     * @return List of Results, each containing a PassThruPort or an error
+     */
+    private fun createPassThruPorts(
+        graphNodeId: String,
+        portMappings: List<GeneratedPortMapping>
+    ): List<Result<PassThruPort<Any>>> {
+        return portMappings
+            .distinctBy { "${it.childNodeId}_${it.childPortId}" }
+            .map { mapping ->
+                PassThruPortFactory.createFromBoundaryCrossing(
+                    graphNodeId = graphNodeId,
+                    externalNodeId = mapping.externalNodeId,
+                    externalPortId = mapping.externalPortId,
+                    internalNodeId = mapping.childNodeId,
+                    internalPortId = mapping.childPortId,
+                    direction = mapping.graphNodePortDirection
+                )
+            }
+    }
+
+    /**
      * Creates a Port with the specified properties.
      * Uses String as the default data type since we don't have type information
      * from the connection alone.
+     * @deprecated Use PassThruPortFactory.create() instead for boundary ports
      */
+    @Deprecated("Use PassThruPortFactory.create() instead", ReplaceWith("PassThruPortFactory.create(...)"))
     private fun createPort(
         id: String,
         name: String,

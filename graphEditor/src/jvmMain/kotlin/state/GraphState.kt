@@ -628,12 +628,26 @@ class GraphState(initialGraph: FlowGraph = flowGraph(
             allConnections = flowGraph.connections
         )
 
+        // Build a lookup from child port (nodeId_portId) to actual GraphNode port ID
+        // This ensures we use the correct port IDs that were created on the GraphNode
+        val childPortToGraphNodePort = mutableMapOf<String, String>()
+        graphNode.portMappings.forEach { (portName, mapping) ->
+            val childKey = "${mapping.childNodeId}_${mapping.childPortName}"
+            // Find the actual port ID by matching the port name
+            val port = (graphNode.inputPorts + graphNode.outputPorts).find { it.name == portName }
+            if (port != null) {
+                childPortToGraphNodePort[childKey] = port.id
+            }
+        }
+
         // Build a map of external connection ID to GraphNode port info for redirection
         val connectionRedirects = portMappings.associate { mapping ->
+            val childKey = "${mapping.childNodeId}_${mapping.childPortId}"
+            val actualPortId = childPortToGraphNodePort[childKey] ?: mapping.graphNodePortName
             mapping.externalConnectionId to Triple(
                 mapping.graphNodePortDirection,
                 graphNode.id,
-                mapping.graphNodePortName
+                actualPortId
             )
         }
 

@@ -63,20 +63,20 @@
 
 ### Tests for User Story 1 (TDD - Write FIRST, must FAIL) ⚠️
 
-- [ ] T013 [P] [US1] Write unit tests for PassThruPortFactory.create() in fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/factory/PassThruPortFactoryTest.kt
-- [ ] T014 [P] [US1] Write unit tests for PassThruPort type validation (matching dataTypes) in fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/factory/PassThruPortFactoryTest.kt
-- [ ] T015 [P] [US1] Write unit tests for PassThruPort direction validation in fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/factory/PassThruPortFactoryTest.kt
-- [ ] T016 [P] [US1] Write integration test for grouping creating PassThruPorts in graphEditor/src/jvmTest/kotlin/io/codenode/grapheditor/state/PassThruPortCreationTest.kt
+- [X] T013 [P] [US1] Write unit tests for PassThruPortFactory.create() in fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/factory/PassThruPortFactoryTest.kt
+- [X] T014 [P] [US1] Write unit tests for PassThruPort type validation (matching dataTypes) in fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/factory/PassThruPortFactoryTest.kt
+- [X] T015 [P] [US1] Write unit tests for PassThruPort direction validation in fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/factory/PassThruPortFactoryTest.kt
+- [X] T016 [P] [US1] Write integration test for grouping creating PassThruPorts in graphEditor/src/jvmTest/kotlin/io/codenode/grapheditor/state/PassThruPortCreationTest.kt
 
 ### Implementation for User Story 1
 
-- [ ] T017 [US1] Create PassThruPortFactory object with create() method in fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/factory/PassThruPortFactory.kt
-- [ ] T018 [US1] Implement type compatibility validation in PassThruPortFactory in fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/factory/PassThruPortFactory.kt
-- [ ] T019 [US1] Implement direction matching validation in PassThruPortFactory in fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/factory/PassThruPortFactory.kt
-- [ ] T020 [US1] Modify GraphNodeFactory.createFromSelection() to call PassThruPortFactory in fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/factory/GraphNodeFactory.kt
-- [ ] T021 [US1] Update GraphNodeFactory to add PassThruPorts to inputPorts/outputPorts in fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/factory/GraphNodeFactory.kt
-- [ ] T022 [US1] Add error handling for type mismatch failures in GraphNodeFactory in fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/factory/GraphNodeFactory.kt
-- [ ] T023 [US1] Verify T013-T016 tests pass after implementation
+- [X] T017 [US1] Create PassThruPortFactory object with create() method in fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/factory/PassThruPortFactory.kt
+- [X] T018 [US1] Implement type compatibility validation in PassThruPortFactory in fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/factory/PassThruPortFactory.kt
+- [X] T019 [US1] Implement direction matching validation in PassThruPortFactory in fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/factory/PassThruPortFactory.kt
+- [X] T020 [US1] Modify GraphNodeFactory.createFromSelection() to call PassThruPortFactory in fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/factory/GraphNodeFactory.kt
+- [X] T021 [US1] Update GraphNodeFactory to add PassThruPorts to inputPorts/outputPorts in fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/factory/GraphNodeFactory.kt
+- [X] T022 [US1] Add error handling for type mismatch failures in GraphNodeFactory in fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/factory/GraphNodeFactory.kt
+- [X] T023 [US1] Verify T013-T016 tests pass after implementation
 
 **Checkpoint**: User Story 1 complete - PassThruPorts are automatically created when grouping
 

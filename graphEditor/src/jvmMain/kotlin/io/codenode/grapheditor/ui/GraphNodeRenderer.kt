@@ -15,6 +15,9 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import io.codenode.fbpdsl.model.GraphNode
+import io.codenode.fbpdsl.model.Port
+import io.codenode.grapheditor.rendering.PortShape
+import io.codenode.grapheditor.rendering.renderPort
 
 /**
  * Renders a GraphNode with distinct visual styling.
@@ -172,22 +175,19 @@ object GraphNodeRenderer {
             style = Stroke(width = 2f * scale)
         )
 
-        // Draw input ports on the left
+        // Draw input ports on the left (as squares for PassThruPorts)
         graphNode.inputPorts.forEachIndexed { index, port ->
             val portY = position.y + headerHeight + 20f * scale + (index * portSpacing)
             val portX = position.x
 
-            // Draw port circle with distinct style for GraphNode
-            drawCircle(
-                color = Color(0xFF4CAF50),
-                radius = portRadius,
-                center = Offset(portX, portY)
-            )
-            drawCircle(
-                color = Color(0xFF2E7D32),
-                radius = portRadius,
-                center = Offset(portX, portY),
-                style = Stroke(width = 1.5f * scale)
+            // Draw port as SQUARE (PassThruPort style for GraphNode boundary)
+            renderPort(
+                position = Offset(portX, portY),
+                direction = Port.Direction.INPUT,
+                shape = PortShape.SQUARE,
+                isHovered = false,
+                isConnected = true,  // Assume connected for now
+                scale = scale
             )
 
             // Draw port connector line
@@ -199,22 +199,19 @@ object GraphNodeRenderer {
             )
         }
 
-        // Draw output ports on the right
+        // Draw output ports on the right (as squares for PassThruPorts)
         graphNode.outputPorts.forEachIndexed { index, port ->
             val portY = position.y + headerHeight + 20f * scale + (index * portSpacing)
             val portX = position.x + nodeWidth
 
-            // Draw port circle
-            drawCircle(
-                color = Color(0xFF2196F3),
-                radius = portRadius,
-                center = Offset(portX, portY)
-            )
-            drawCircle(
-                color = Color(0xFF1565C0),
-                radius = portRadius,
-                center = Offset(portX, portY),
-                style = Stroke(width = 1.5f * scale)
+            // Draw port as SQUARE (PassThruPort style for GraphNode boundary)
+            renderPort(
+                position = Offset(portX, portY),
+                direction = Port.Direction.OUTPUT,
+                shape = PortShape.SQUARE,
+                isHovered = false,
+                isConnected = true,  // Assume connected for now
+                scale = scale
             )
 
             // Draw port connector line
