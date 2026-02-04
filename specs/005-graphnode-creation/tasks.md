@@ -218,18 +218,18 @@
 
 ### Tests for User Story 6 (TDD - Write FIRST, must FAIL) ⚠️
 
-- [ ] T066 [P] [US6] Write unit test for navigateOut() updating NavigationContext in graphEditor/src/jvmTest/kotlin/io/codenode/grapheditor/state/NavigationContextTest.kt
-- [ ] T067 [P] [US6] Write UI test for zoom-out button in internal view in graphEditor/src/jvmTest/kotlin/io/codenode/grapheditor/ui/InternalViewTest.kt
-- [ ] T068 [P] [US6] Write integration test for nested navigation (3+ levels) in graphEditor/src/jvmTest/kotlin/io/codenode/grapheditor/ui/NavigationTest.kt
+- [X] T066 [P] [US6] Write unit test for navigateOut() updating NavigationContext in graphEditor/src/jvmTest/kotlin/io/codenode/grapheditor/state/NavigationContextTest.kt
+- [X] T067 [P] [US6] Write UI test for zoom-out button in internal view in graphEditor/src/jvmTest/kotlin/io/codenode/grapheditor/ui/InternalViewTest.kt
+- [X] T068 [P] [US6] Write integration test for nested navigation (3+ levels) in graphEditor/src/jvmTest/kotlin/io/codenode/grapheditor/ui/NavigationTest.kt
 
 ### Implementation for User Story 6
 
-- [ ] T069 [US6] Add navigateOut() method to GraphState in graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/state/GraphState.kt
-- [ ] T070 [US6] Add NavigationZoomOutButton Composable in graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/NavigationZoomOutButton.kt
-- [ ] T071 [US6] Integrate zoom-out button into FlowGraphCanvas internal view in graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/FlowGraphCanvas.kt
-- [ ] T072 [US6] Add breadcrumb click navigation in NavigationBreadcrumb in graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/NavigationBreadcrumb.kt
-- [ ] T073 [US6] Disable zoom-out button when at root level in graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/NavigationZoomOutButton.kt
-- [ ] T074 [US6] Verify T066-T068 tests pass after implementation
+- [X] T069 [US6] Add navigateOut() method to GraphState in graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/state/GraphState.kt
+- [X] T070 [US6] Add NavigationZoomOutButton Composable in graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/NavigationZoomOutButton.kt
+- [X] T071 [US6] Integrate zoom-out button into FlowGraphCanvas internal view in graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/FlowGraphCanvas.kt
+- [X] T072 [US6] Add breadcrumb click navigation in NavigationBreadcrumb in graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/NavigationBreadcrumb.kt
+- [X] T073 [US6] Disable zoom-out button when at root level in graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/NavigationZoomOutButton.kt
+- [X] T074 [US6] Verify T066-T068 tests pass after implementation
 
 **Checkpoint**: All navigation features complete - full hierarchical traversal works
 

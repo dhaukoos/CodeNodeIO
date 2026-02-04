@@ -626,6 +626,133 @@ class NavigationContextTest {
     }
 
     // ============================================
+    // T066: GraphState.navigateOut() Tests
+    // Tests for zoom-out / navigate back functionality
+    // ============================================
+
+    @Test
+    fun `navigateOut should return false when at root`() {
+        // Given: At root level
+        val graph = flowGraph(name = "TestGraph", version = "1.0.0") {}
+        val graphState = GraphState(graph)
+        assertTrue(graphState.navigationContext.isAtRoot)
+
+        // When: Trying to navigate out
+        val success = graphState.navigateOut()
+
+        // Then: Should fail and remain at root
+        assertFalse(success, "Should return false when already at root")
+        assertTrue(graphState.navigationContext.isAtRoot)
+    }
+
+    @Test
+    fun `navigateOut should update NavigationContext path`() {
+        // Given: Navigated 2 levels deep
+        val graphState = createNestedGraphStateAtDepth(2)
+        assertEquals(2, graphState.navigationContext.depth)
+        assertEquals(listOf("level1", "level2"), graphState.navigationContext.path)
+
+        // When: Navigating out once
+        val success = graphState.navigateOut()
+
+        // Then: Should be at depth 1
+        assertTrue(success)
+        assertEquals(1, graphState.navigationContext.depth)
+        assertEquals(listOf("level1"), graphState.navigationContext.path)
+        assertEquals("level1", graphState.navigationContext.currentGraphNodeId)
+    }
+
+    @Test
+    fun `navigateOut should clear selection`() {
+        // Given: Inside a GraphNode with a selection
+        val graphState = createNestedGraphStateAtDepth(1)
+        graphState.toggleNodeInSelection("leaf")
+        assertTrue(graphState.selectionState.selectedNodeIds.isNotEmpty())
+
+        // When: Navigating out
+        graphState.navigateOut()
+
+        // Then: Selection should be cleared
+        assertTrue(graphState.selectionState.selectedNodeIds.isEmpty())
+    }
+
+    @Test
+    fun `navigateOut from depth 1 should return to root`() {
+        // Given: At depth 1
+        val graphState = createNestedGraphStateAtDepth(1)
+        assertEquals(1, graphState.navigationContext.depth)
+        assertFalse(graphState.navigationContext.isAtRoot)
+
+        // When: Navigating out
+        val success = graphState.navigateOut()
+
+        // Then: Should be at root
+        assertTrue(success)
+        assertTrue(graphState.navigationContext.isAtRoot)
+        assertEquals(0, graphState.navigationContext.depth)
+        assertNull(graphState.navigationContext.currentGraphNodeId)
+    }
+
+    @Test
+    fun `navigateOut should update canNavigateOut correctly`() {
+        // Given: At depth 2
+        val graphState = createNestedGraphStateAtDepth(2)
+        assertTrue(graphState.navigationContext.canNavigateOut)
+
+        // When: Navigating out to depth 1
+        graphState.navigateOut()
+
+        // Then: Should still be able to navigate out
+        assertTrue(graphState.navigationContext.canNavigateOut)
+
+        // When: Navigating out to root
+        graphState.navigateOut()
+
+        // Then: Should NOT be able to navigate out
+        assertFalse(graphState.navigationContext.canNavigateOut)
+    }
+
+    @Test
+    fun `navigateOut multiple times should reach root`() {
+        // Given: At depth 3
+        val graphState = createNestedGraphStateAtDepth(3)
+        assertEquals(3, graphState.navigationContext.depth)
+
+        // When: Navigating out 3 times
+        assertTrue(graphState.navigateOut())
+        assertEquals(2, graphState.navigationContext.depth)
+
+        assertTrue(graphState.navigateOut())
+        assertEquals(1, graphState.navigationContext.depth)
+
+        assertTrue(graphState.navigateOut())
+        assertEquals(0, graphState.navigationContext.depth)
+
+        // Then: Should be at root and further navigation should fail
+        assertTrue(graphState.navigationContext.isAtRoot)
+        assertFalse(graphState.navigateOut())
+    }
+
+    @Test
+    fun `navigateOut should update parentGraphNodeId correctly`() {
+        // Given: At depth 3
+        val graphState = createNestedGraphStateAtDepth(3)
+        assertEquals("level2", graphState.navigationContext.parentGraphNodeId)
+
+        // When: Navigating out to depth 2
+        graphState.navigateOut()
+
+        // Then: Parent should be level1
+        assertEquals("level1", graphState.navigationContext.parentGraphNodeId)
+
+        // When: Navigating out to depth 1
+        graphState.navigateOut()
+
+        // Then: Parent should be null (at root)
+        assertNull(graphState.navigationContext.parentGraphNodeId)
+    }
+
+    // ============================================
     // getGraphNodeNamesInPath Tests
     // ============================================
 

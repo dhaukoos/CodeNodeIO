@@ -49,6 +49,7 @@ import io.codenode.grapheditor.state.IPTypeRegistry
 import io.codenode.grapheditor.ui.IPPalette
 import io.codenode.grapheditor.ui.ConnectionContextMenu
 import io.codenode.grapheditor.ui.NavigationBreadcrumbBar
+import io.codenode.grapheditor.ui.NavigationZoomOutButton
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.key.*
 import androidx.compose.ui.focus.FocusRequester
@@ -656,6 +657,23 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                 ) {
                     CompactCanvasControls(
                         graphState = graphState,
+                        modifier = Modifier.padding(16.dp)
+                    )
+                }
+
+                // Navigation zoom-out button overlay (bottom left) - only visible when inside a GraphNode
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.BottomStart
+                ) {
+                    NavigationZoomOutButton(
+                        enabled = isInsideGraphNode,
+                        currentGraphNodeName = currentGraphNodeName,
+                        onClick = {
+                            if (graphState.navigateOut()) {
+                                statusMessage = "Navigated back to parent"
+                            }
+                        },
                         modifier = Modifier.padding(16.dp)
                     )
                 }

@@ -441,6 +441,216 @@ class InternalViewTest {
     }
 
     // ============================================
+    // T067: Zoom-Out Button Tests
+    // Tests for zoom-out/back navigation in internal view
+    // ============================================
+
+    @Test
+    fun `zoom-out should be available when inside a GraphNode`() {
+        // Given: Inside a GraphNode
+        val child1 = createTestCodeNode("child1", "Child1", 50.0, 50.0)
+        val graphNode = GraphNode(
+            id = "graphNode1",
+            name = "TestGroup",
+            position = Node.Position(100.0, 100.0),
+            childNodes = listOf(child1),
+            internalConnections = emptyList(),
+            inputPorts = emptyList(),
+            outputPorts = emptyList(),
+            portMappings = emptyMap()
+        )
+        val graph = flowGraph(name = "TestGraph", version = "1.0.0") {}
+            .addNode(graphNode)
+
+        val graphState = GraphState(graph)
+        graphState.navigateIntoGraphNode("graphNode1")
+
+        // Then: canNavigateOut should be true (zoom-out available)
+        assertTrue(graphState.navigationContext.canNavigateOut, "Zoom-out should be available inside GraphNode")
+    }
+
+    @Test
+    fun `zoom-out should not be available at root level`() {
+        // Given: At root level
+        val child1 = createTestCodeNode("child1", "Child1", 50.0, 50.0)
+        val graphNode = GraphNode(
+            id = "graphNode1",
+            name = "TestGroup",
+            position = Node.Position(100.0, 100.0),
+            childNodes = listOf(child1),
+            internalConnections = emptyList(),
+            inputPorts = emptyList(),
+            outputPorts = emptyList(),
+            portMappings = emptyMap()
+        )
+        val graph = flowGraph(name = "TestGraph", version = "1.0.0") {}
+            .addNode(graphNode)
+
+        val graphState = GraphState(graph)
+
+        // Then: canNavigateOut should be false at root
+        assertFalse(graphState.navigationContext.canNavigateOut, "Zoom-out should NOT be available at root")
+    }
+
+    @Test
+    fun `clicking zoom-out should return to parent GraphNode`() {
+        // Given: Nested 2 levels deep (inside innerGraphNode)
+        val deepChild = createTestCodeNode("deepChild", "DeepChild", 25.0, 25.0)
+        val innerGraphNode = GraphNode(
+            id = "innerGraphNode",
+            name = "InnerGroup",
+            position = Node.Position(50.0, 50.0),
+            childNodes = listOf(deepChild),
+            internalConnections = emptyList(),
+            inputPorts = emptyList(),
+            outputPorts = emptyList(),
+            portMappings = emptyMap()
+        )
+        val outerGraphNode = GraphNode(
+            id = "outerGraphNode",
+            name = "OuterGroup",
+            position = Node.Position(100.0, 100.0),
+            childNodes = listOf(innerGraphNode),
+            internalConnections = emptyList(),
+            inputPorts = emptyList(),
+            outputPorts = emptyList(),
+            portMappings = emptyMap()
+        )
+        val graph = flowGraph(name = "TestGraph", version = "1.0.0") {}
+            .addNode(outerGraphNode)
+
+        val graphState = GraphState(graph)
+        graphState.navigateIntoGraphNode("outerGraphNode")
+        graphState.navigateIntoGraphNode("innerGraphNode")
+        assertEquals(2, graphState.navigationContext.depth)
+
+        // When: Simulating zoom-out button click
+        graphState.navigateOut()
+
+        // Then: Should be inside outerGraphNode
+        assertEquals(1, graphState.navigationContext.depth)
+        assertEquals("outerGraphNode", graphState.navigationContext.currentGraphNodeId)
+
+        // And: Should now see innerGraphNode as the only child
+        val nodesInView = graphState.getNodesInCurrentContext()
+        assertEquals(1, nodesInView.size)
+        assertEquals("innerGraphNode", nodesInView.first().id)
+    }
+
+    @Test
+    fun `clicking zoom-out from depth 1 should return to root`() {
+        // Given: Inside a GraphNode at depth 1
+        val child1 = createTestCodeNode("child1", "Child1", 50.0, 50.0)
+        val graphNode = GraphNode(
+            id = "graphNode1",
+            name = "TestGroup",
+            position = Node.Position(100.0, 100.0),
+            childNodes = listOf(child1),
+            internalConnections = emptyList(),
+            inputPorts = emptyList(),
+            outputPorts = emptyList(),
+            portMappings = emptyMap()
+        )
+        val graph = flowGraph(name = "TestGraph", version = "1.0.0") {}
+            .addNode(graphNode)
+
+        val graphState = GraphState(graph)
+        graphState.navigateIntoGraphNode("graphNode1")
+        assertEquals(1, graphState.navigationContext.depth)
+
+        // When: Clicking zoom-out
+        graphState.navigateOut()
+
+        // Then: Should be at root and see the GraphNode
+        assertTrue(graphState.navigationContext.isAtRoot)
+        val nodesInView = graphState.getNodesInCurrentContext()
+        assertEquals(1, nodesInView.size)
+        assertEquals("graphNode1", nodesInView.first().id)
+    }
+
+    @Test
+    fun `zoom-out should preserve parent view state`() {
+        // Given: Navigated into a GraphNode
+        val child1 = createTestCodeNode("child1", "Child1", 50.0, 50.0)
+        val graphNode = GraphNode(
+            id = "graphNode1",
+            name = "TestGroup",
+            position = Node.Position(100.0, 100.0),
+            childNodes = listOf(child1),
+            internalConnections = emptyList(),
+            inputPorts = emptyList(),
+            outputPorts = emptyList(),
+            portMappings = emptyMap()
+        )
+        val rootNode = createTestCodeNode("rootNode", "RootNode", 300.0, 100.0)
+        val graph = flowGraph(name = "TestGraph", version = "1.0.0") {}
+            .addNode(graphNode)
+            .addNode(rootNode)
+
+        val graphState = GraphState(graph)
+
+        // Verify root has 2 nodes
+        assertEquals(2, graphState.getNodesInCurrentContext().size)
+
+        // Navigate in and then out
+        graphState.navigateIntoGraphNode("graphNode1")
+        assertEquals(1, graphState.getNodesInCurrentContext().size)  // Only child1
+
+        graphState.navigateOut()
+
+        // Then: Should see both root nodes again
+        val nodesInView = graphState.getNodesInCurrentContext()
+        assertEquals(2, nodesInView.size, "Should see both root nodes after zoom-out")
+        assertTrue(nodesInView.any { it.id == "graphNode1" })
+        assertTrue(nodesInView.any { it.id == "rootNode" })
+    }
+
+    @Test
+    fun `zoom-out should update current GraphNode name for display`() {
+        // Given: 2 levels deep
+        val deepChild = createTestCodeNode("deepChild", "DeepChild", 25.0, 25.0)
+        val innerGraphNode = GraphNode(
+            id = "innerGraphNode",
+            name = "Inner Processing",
+            position = Node.Position(50.0, 50.0),
+            childNodes = listOf(deepChild),
+            internalConnections = emptyList(),
+            inputPorts = emptyList(),
+            outputPorts = emptyList(),
+            portMappings = emptyMap()
+        )
+        val outerGraphNode = GraphNode(
+            id = "outerGraphNode",
+            name = "Outer Pipeline",
+            position = Node.Position(100.0, 100.0),
+            childNodes = listOf(innerGraphNode),
+            internalConnections = emptyList(),
+            inputPorts = emptyList(),
+            outputPorts = emptyList(),
+            portMappings = emptyMap()
+        )
+        val graph = flowGraph(name = "TestGraph", version = "1.0.0") {}
+            .addNode(outerGraphNode)
+
+        val graphState = GraphState(graph)
+        graphState.navigateIntoGraphNode("outerGraphNode")
+        graphState.navigateIntoGraphNode("innerGraphNode")
+        assertEquals("Inner Processing", graphState.getCurrentGraphNodeName())
+
+        // When: Zooming out
+        graphState.navigateOut()
+
+        // Then: Current name should be "Outer Pipeline"
+        assertEquals("Outer Pipeline", graphState.getCurrentGraphNodeName())
+
+        // When: Zooming out again to root
+        graphState.navigateOut()
+
+        // Then: Current name should be null
+        assertNull(graphState.getCurrentGraphNodeName())
+    }
+
+    // ============================================
     // Helper Functions
     // ============================================
 
