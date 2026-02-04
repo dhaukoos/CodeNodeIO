@@ -90,18 +90,18 @@
 
 ### Tests for User Story 2 (TDD - Write FIRST, must FAIL) ⚠️
 
-- [ ] T024 [P] [US2] Write unit tests for Connection.computeSegments() single segment case in fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/model/ConnectionSegmentTest.kt
-- [ ] T025 [P] [US2] Write unit tests for Connection.computeSegments() two segment case in fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/model/ConnectionSegmentTest.kt
-- [ ] T026 [P] [US2] Write unit tests for Connection.computeSegments() three segment case (nested) in fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/model/ConnectionSegmentTest.kt
-- [ ] T027 [P] [US2] Write unit tests for segment chain validation in fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/model/ConnectionSegmentTest.kt
+- [X] T024 [P] [US2] Write unit tests for Connection.computeSegments() single segment case in fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/model/ConnectionSegmentTest.kt
+- [X] T025 [P] [US2] Write unit tests for Connection.computeSegments() two segment case in fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/model/ConnectionSegmentTest.kt
+- [X] T026 [P] [US2] Write unit tests for Connection.computeSegments() three segment case (nested) in fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/model/ConnectionSegmentTest.kt
+- [X] T027 [P] [US2] Write unit tests for segment chain validation in fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/model/ConnectionSegmentTest.kt
 
 ### Implementation for User Story 2
 
-- [ ] T028 [US2] Implement Connection.computeSegments() for direct CodeNode-to-CodeNode in fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/Connection.kt
-- [ ] T029 [US2] Implement Connection.computeSegments() for single boundary crossing in fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/Connection.kt
-- [ ] T030 [US2] Implement Connection.computeSegments() for nested boundary crossings in fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/Connection.kt
-- [ ] T031 [US2] Add validateSegmentChain() method to Connection in fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/Connection.kt
-- [ ] T032 [US2] Verify T024-T027 tests pass after implementation
+- [X] T028 [US2] Implement Connection.computeSegments() for direct CodeNode-to-CodeNode in fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/Connection.kt
+- [X] T029 [US2] Implement Connection.computeSegments() for single boundary crossing in fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/Connection.kt
+- [X] T030 [US2] Implement Connection.computeSegments() for nested boundary crossings in fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/Connection.kt
+- [X] T031 [US2] Add validateSegmentChain() method to Connection in fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/Connection.kt
+- [X] T032 [US2] Verify T024-T027 tests pass after implementation
 
 **Checkpoint**: User Story 2 complete - Connections correctly segment at boundaries
 

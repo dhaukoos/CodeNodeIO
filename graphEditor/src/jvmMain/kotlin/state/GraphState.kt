@@ -222,10 +222,29 @@ class GraphState(initialGraph: FlowGraph = flowGraph(
 
         val updatedNode = when (node) {
             is CodeNode -> node.copy(position = Node.Position(newX, newY))
+            is GraphNode -> node.copy(position = Node.Position(newX, newY))
             else -> node
         }
 
-        // Replace the node in the graph
+        // Check if we're inside a GraphNode - if so, update the child node within that GraphNode
+        val currentGraphNodeId = navigationContext.currentGraphNodeId
+        if (currentGraphNodeId != null) {
+            // We're inside a GraphNode - update the child node within the GraphNode
+            val parentGraphNode = flowGraph.findNode(currentGraphNodeId) as? GraphNode
+            if (parentGraphNode != null && parentGraphNode.childNodes.any { it.id == nodeId }) {
+                // Update the child node within the GraphNode
+                val updatedChildNodes = parentGraphNode.childNodes.map { childNode ->
+                    if (childNode.id == nodeId) updatedNode else childNode
+                }
+                val updatedGraphNode = parentGraphNode.copy(childNodes = updatedChildNodes)
+                // Replace the GraphNode at the root level
+                flowGraph = flowGraph.removeNode(currentGraphNodeId).addNode(updatedGraphNode)
+                isDirty = true
+                return
+            }
+        }
+
+        // Default: update at root level (for root-level nodes)
         flowGraph = flowGraph.removeNode(nodeId).addNode(updatedNode)
         isDirty = true
     }

@@ -109,6 +109,322 @@ data class Connection(
     }
 
     /**
+     * Information about a boundary port for segment computation.
+     * Used to determine where connections cross GraphNode boundaries.
+     */
+    data class BoundaryPortInfo(
+        val direction: String,  // "INPUT" or "OUTPUT"
+        val externalNodeId: String,
+        val externalPortId: String,
+        val internalNodeId: String,
+        val internalPortId: String
+    )
+
+    /**
+     * Computes the segment list for this connection with full graph context.
+     * This method determines if the connection crosses GraphNode boundaries
+     * and creates appropriate segments for each scope.
+     *
+     * @param graphContext Map of GraphNode ID to list of child node IDs
+     * @param boundaryPorts Map of GraphNode ID to its boundary ports (PassThruPorts)
+     * @return List of ConnectionSegment representing this connection's visual path
+     */
+    fun computeSegmentsWithContext(
+        graphContext: Map<String, List<String>> = emptyMap(),
+        boundaryPorts: Map<String, Map<String, BoundaryPortInfo>> = emptyMap()
+    ): List<ConnectionSegment> {
+        // If no graph context provided, return simple single segment
+        if (graphContext.isEmpty() && boundaryPorts.isEmpty()) {
+            return listOf(
+                ConnectionSegment(
+                    id = "${id}_seg_0",
+                    sourceNodeId = sourceNodeId,
+                    sourcePortId = sourcePortId,
+                    targetNodeId = targetNodeId,
+                    targetPortId = targetPortId,
+                    scopeNodeId = parentScopeId,
+                    parentConnectionId = id
+                )
+            )
+        }
+
+        // Find which GraphNode (if any) contains the source and target nodes
+        val sourceContainer = findContainingGraphNode(sourceNodeId, graphContext)
+        val targetContainer = findContainingGraphNode(targetNodeId, graphContext)
+
+        // Case 1: Both nodes in same scope (or both at root level)
+        if (sourceContainer == targetContainer) {
+            return listOf(
+                ConnectionSegment(
+                    id = "${id}_seg_0",
+                    sourceNodeId = sourceNodeId,
+                    sourcePortId = sourcePortId,
+                    targetNodeId = targetNodeId,
+                    targetPortId = targetPortId,
+                    scopeNodeId = sourceContainer,  // null for root, graphNodeId for internal
+                    parentConnectionId = id
+                )
+            )
+        }
+
+        // Case 2: Connection crosses boundary - need to compute segments
+        return computeBoundaryCrossingSegments(
+            sourceContainer,
+            targetContainer,
+            graphContext,
+            boundaryPorts
+        )
+    }
+
+    /**
+     * Finds which GraphNode directly contains the given node ID.
+     * Returns null if the node is at root level.
+     */
+    private fun findContainingGraphNode(
+        nodeId: String,
+        graphContext: Map<String, List<String>>
+    ): String? {
+        for ((graphNodeId, childIds) in graphContext) {
+            if (nodeId in childIds) {
+                return graphNodeId
+            }
+        }
+        return null
+    }
+
+    /**
+     * Computes segments for a connection that crosses one or more GraphNode boundaries.
+     */
+    private fun computeBoundaryCrossingSegments(
+        sourceContainer: String?,
+        targetContainer: String?,
+        graphContext: Map<String, List<String>>,
+        boundaryPorts: Map<String, Map<String, BoundaryPortInfo>>
+    ): List<ConnectionSegment> {
+        val segments = mutableListOf<ConnectionSegment>()
+        var segmentIndex = 0
+
+        // Determine the path from source to target through boundary ports
+        // Build the ancestry chain for both source and target
+        val sourcePath = buildAncestryPath(sourceContainer, graphContext)
+        val targetPath = buildAncestryPath(targetContainer, graphContext)
+
+        // Find common ancestor (LCA)
+        val commonAncestor = findCommonAncestor(sourcePath, targetPath)
+
+        // Segments going OUT from source to common ancestor
+        var currentNode = sourceNodeId
+        var currentPort = sourcePortId
+        var currentScope = sourceContainer
+
+        // Go up from source container to common ancestor
+        val sourceToCommon = getPathToAncestor(sourceContainer, commonAncestor, graphContext)
+        for (graphNodeId in sourceToCommon) {
+            val ports = boundaryPorts[graphNodeId] ?: continue
+            val boundaryPort = ports.values.find {
+                it.direction == "OUTPUT" &&
+                    it.internalNodeId == currentNode &&
+                    it.internalPortId == currentPort
+            } ?: continue
+
+            val portId = ports.entries.find { it.value == boundaryPort }?.key ?: continue
+
+            // Add interior segment
+            segments.add(
+                ConnectionSegment(
+                    id = "${id}_seg_${segmentIndex++}",
+                    sourceNodeId = currentNode,
+                    sourcePortId = currentPort,
+                    targetNodeId = graphNodeId,
+                    targetPortId = portId,
+                    scopeNodeId = graphNodeId,
+                    parentConnectionId = id
+                )
+            )
+
+            currentNode = graphNodeId
+            currentPort = portId
+            currentScope = findContainingGraphNode(graphNodeId, graphContext)
+        }
+
+        // Add segment at common ancestor level (or root)
+        val commonToTarget = getPathFromAncestor(commonAncestor, targetContainer, graphContext)
+
+        if (commonToTarget.isNotEmpty()) {
+            val nextGraphNode = commonToTarget.first()
+            val ports = boundaryPorts[nextGraphNode] ?: emptyMap()
+            val boundaryPort = ports.values.find {
+                it.direction == "INPUT" &&
+                    (it.externalNodeId == currentNode || it.externalPortId == currentPort)
+            }
+
+            if (boundaryPort != null) {
+                val portId = ports.entries.find { it.value == boundaryPort }?.key ?: ""
+
+                // Exterior segment to next GraphNode
+                segments.add(
+                    ConnectionSegment(
+                        id = "${id}_seg_${segmentIndex++}",
+                        sourceNodeId = currentNode,
+                        sourcePortId = currentPort,
+                        targetNodeId = nextGraphNode,
+                        targetPortId = portId,
+                        scopeNodeId = commonAncestor,
+                        parentConnectionId = id
+                    )
+                )
+
+                currentNode = nextGraphNode
+                currentPort = portId
+                currentScope = nextGraphNode
+            }
+        }
+
+        // Go down from common ancestor to target container
+        for (i in 1 until commonToTarget.size) {
+            val graphNodeId = commonToTarget[i]
+            val ports = boundaryPorts[graphNodeId] ?: continue
+            val boundaryPort = ports.values.find {
+                it.direction == "INPUT" &&
+                    it.externalNodeId == currentNode
+            } ?: continue
+
+            val portId = ports.entries.find { it.value == boundaryPort }?.key ?: continue
+
+            segments.add(
+                ConnectionSegment(
+                    id = "${id}_seg_${segmentIndex++}",
+                    sourceNodeId = currentNode,
+                    sourcePortId = currentPort,
+                    targetNodeId = graphNodeId,
+                    targetPortId = portId,
+                    scopeNodeId = currentScope,
+                    parentConnectionId = id
+                )
+            )
+
+            currentNode = graphNodeId
+            currentPort = portId
+            currentScope = graphNodeId
+        }
+
+        // Add final segment to target
+        if (currentNode != targetNodeId || currentPort != targetPortId) {
+            segments.add(
+                ConnectionSegment(
+                    id = "${id}_seg_${segmentIndex++}",
+                    sourceNodeId = currentNode,
+                    sourcePortId = currentPort,
+                    targetNodeId = targetNodeId,
+                    targetPortId = targetPortId,
+                    scopeNodeId = targetContainer,
+                    parentConnectionId = id
+                )
+            )
+        }
+
+        return if (segments.isEmpty()) {
+            // Fallback: single segment if no boundary crossings detected
+            listOf(
+                ConnectionSegment(
+                    id = "${id}_seg_0",
+                    sourceNodeId = sourceNodeId,
+                    sourcePortId = sourcePortId,
+                    targetNodeId = targetNodeId,
+                    targetPortId = targetPortId,
+                    scopeNodeId = parentScopeId,
+                    parentConnectionId = id
+                )
+            )
+        } else {
+            segments
+        }
+    }
+
+    /**
+     * Builds ancestry path from a node up to root (list of containing GraphNode IDs).
+     */
+    private fun buildAncestryPath(
+        containerId: String?,
+        graphContext: Map<String, List<String>>
+    ): List<String> {
+        if (containerId == null) return emptyList()
+
+        val path = mutableListOf(containerId)
+        var current: String = containerId
+
+        while (true) {
+            val parent = findContainingGraphNode(current, graphContext)
+            if (parent == null) break
+            path.add(parent)
+            current = parent
+        }
+
+        return path.reversed()  // From root to node
+    }
+
+    /**
+     * Finds the lowest common ancestor of two paths.
+     */
+    private fun findCommonAncestor(
+        path1: List<String>,
+        path2: List<String>
+    ): String? {
+        var common: String? = null
+        for (i in 0 until minOf(path1.size, path2.size)) {
+            if (path1[i] == path2[i]) {
+                common = path1[i]
+            } else {
+                break
+            }
+        }
+        return common
+    }
+
+    /**
+     * Gets path from a node up to an ancestor (exclusive of ancestor).
+     */
+    private fun getPathToAncestor(
+        fromId: String?,
+        ancestorId: String?,
+        graphContext: Map<String, List<String>>
+    ): List<String> {
+        if (fromId == null || fromId == ancestorId) return emptyList()
+
+        val path = mutableListOf<String>()
+        var current = fromId
+
+        while (current != null && current != ancestorId) {
+            path.add(current)
+            current = findContainingGraphNode(current, graphContext)
+        }
+
+        return path
+    }
+
+    /**
+     * Gets path from an ancestor down to a node (inclusive of node, exclusive of ancestor).
+     */
+    private fun getPathFromAncestor(
+        ancestorId: String?,
+        toId: String?,
+        graphContext: Map<String, List<String>>
+    ): List<String> {
+        if (toId == null) return emptyList()
+        if (ancestorId == toId) return emptyList()
+
+        val path = mutableListOf<String>()
+        var current = toId
+
+        while (current != null && current != ancestorId) {
+            path.add(0, current)  // Prepend to get correct order
+            current = findContainingGraphNode(current, graphContext)
+        }
+
+        return path
+    }
+
+    /**
      * Validates that segments form a continuous path from source to target.
      *
      * Checks:

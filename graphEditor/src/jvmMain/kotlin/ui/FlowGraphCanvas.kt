@@ -29,6 +29,8 @@ import io.codenode.fbpdsl.model.Connection
 import io.codenode.fbpdsl.model.Port
 import io.codenode.grapheditor.state.SelectableElement
 import io.codenode.grapheditor.ui.GraphNodeRenderer.drawGraphNode
+import io.codenode.grapheditor.rendering.PortShape
+import io.codenode.grapheditor.rendering.renderPort
 
 /**
  * Main canvas component for rendering and interacting with flow graphs
@@ -57,6 +59,7 @@ import io.codenode.grapheditor.ui.GraphNodeRenderer.drawGraphNode
  * @param displayNodes Optional list of nodes to display (defaults to nodesToRender if null)
  * @param displayConnections Optional list of connections to display (defaults to connectionsToRender if null)
  * @param currentGraphNode The GraphNode currently being viewed (null if at root level) - used for boundary rendering
+ * @param boundaryConnectionColors Map of boundary port IDs to their display colors (for IP type coloring of boundary segments)
  * @param modifier Modifier for the canvas
  */
 @Composable
@@ -66,6 +69,7 @@ fun FlowGraphCanvas(
     selectedConnectionIds: Set<String> = emptySet(),
     multiSelectedNodeIds: Set<String> = emptySet(),
     connectionColors: Map<String, Color> = emptyMap(),
+    boundaryConnectionColors: Map<String, Color> = emptyMap(),
     scale: Float = 1f,
     panOffset: Offset = Offset.Zero,
     onScaleChanged: (Float) -> Unit = {},
@@ -454,6 +458,18 @@ fun FlowGraphCanvas(
                     graphNode = currentGraphNode,
                     canvasSize = size,
                     scale = transformedScale
+                )
+
+                // Draw connection segments from boundary ports to internal child nodes
+                drawBoundaryConnectionSegments(
+                    graphNode = currentGraphNode,
+                    childNodes = nodesToRender,
+                    canvasSize = size,
+                    offset = transformedOffset,
+                    scale = transformedScale,
+                    draggingNodeId = draggingNode,
+                    dragOffset = dragOffset,
+                    boundaryPortColors = boundaryConnectionColors
                 )
             }
 
@@ -1101,36 +1117,33 @@ private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawGraphNodeBounda
             )
         )
 
-        // Draw input ports along left edge
+        // Draw input ports along left edge as SQUARES (PassThruPorts)
         val startY = 100f * scale
         graphNode.inputPorts.forEachIndexed { index, port ->
             val portY = startY + (index * portSpacing)
             val portX = edgePadding
 
-            // Draw port circle with filled background
-            drawCircle(
-                color = Color(0xFF4CAF50),  // Green for input
-                radius = portRadius,
-                center = Offset(portX, portY)
-            )
-            drawCircle(
-                color = Color(0xFF2E7D32),
-                radius = portRadius,
-                center = Offset(portX, portY),
-                style = Stroke(width = 2f * scale)
+            // Draw port as SQUARE (PassThruPort style for GraphNode boundary)
+            renderPort(
+                position = Offset(portX, portY),
+                direction = Port.Direction.INPUT,
+                shape = PortShape.SQUARE,
+                isHovered = false,
+                isConnected = true,  // Boundary ports are always "connected"
+                scale = scale
             )
 
             // Draw connector line extending into canvas
             drawLine(
                 color = Color(0xFF757575),
-                start = Offset(portX + portRadius, portY),
+                start = Offset(portX + portRadius * 1.75f, portY),  // 1.75f for square size multiplier
                 end = Offset(portX + labelWidth, portY),
                 strokeWidth = 1.5f * scale
             )
 
             // Draw small arrow indicator
             val arrowSize = 4f * scale
-            val arrowX = portX + portRadius + 8f * scale
+            val arrowX = portX + portRadius * 1.75f + 8f * scale
             drawLine(
                 color = Color(0xFF757575),
                 start = Offset(arrowX, portY - arrowSize),
@@ -1168,36 +1181,33 @@ private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawGraphNodeBounda
             )
         )
 
-        // Draw output ports along right edge
+        // Draw output ports along right edge as SQUARES (PassThruPorts)
         val startY = 100f * scale
         graphNode.outputPorts.forEachIndexed { index, port ->
             val portY = startY + (index * portSpacing)
             val portX = rightEdgeX
 
-            // Draw port circle with filled background
-            drawCircle(
-                color = Color(0xFF2196F3),  // Blue for output
-                radius = portRadius,
-                center = Offset(portX, portY)
-            )
-            drawCircle(
-                color = Color(0xFF1565C0),
-                radius = portRadius,
-                center = Offset(portX, portY),
-                style = Stroke(width = 2f * scale)
+            // Draw port as SQUARE (PassThruPort style for GraphNode boundary)
+            renderPort(
+                position = Offset(portX, portY),
+                direction = Port.Direction.OUTPUT,
+                shape = PortShape.SQUARE,
+                isHovered = false,
+                isConnected = true,  // Boundary ports are always "connected"
+                scale = scale
             )
 
             // Draw connector line extending into canvas
             drawLine(
                 color = Color(0xFF757575),
-                start = Offset(portX - portRadius, portY),
+                start = Offset(portX - portRadius * 1.75f, portY),  // 1.75f for square size multiplier
                 end = Offset(portX - labelWidth, portY),
                 strokeWidth = 1.5f * scale
             )
 
             // Draw small arrow indicator pointing right (outward)
             val arrowSize = 4f * scale
-            val arrowX = portX - portRadius - 8f * scale
+            val arrowX = portX - portRadius * 1.75f - 8f * scale
             drawLine(
                 color = Color(0xFF757575),
                 start = Offset(arrowX, portY - arrowSize),
@@ -1279,4 +1289,127 @@ private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawGraphNodeBounda
         end = Offset(canvasSize.width, canvasSize.height),
         strokeWidth = 3f * scale
     )
+}
+
+/**
+ * Draws connection segments from boundary PassThruPorts to internal child nodes.
+ * Uses portMappings to determine which boundary port connects to which child node port.
+ *
+ * @param graphNode The GraphNode whose interior we are viewing
+ * @param childNodes The child nodes currently displayed
+ * @param canvasSize Size of the canvas
+ * @param offset Current pan offset
+ * @param scale Current zoom scale
+ * @param draggingNodeId ID of node being dragged (if any)
+ * @param dragOffset Current drag offset
+ * @param boundaryPortColors Map of boundary port IDs to their colors (from parent-level connections' IP types)
+ */
+private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawBoundaryConnectionSegments(
+    graphNode: GraphNode,
+    childNodes: List<Node>,
+    canvasSize: androidx.compose.ui.geometry.Size,
+    offset: Offset,
+    scale: Float,
+    draggingNodeId: String? = null,
+    dragOffset: Offset = Offset.Zero,
+    boundaryPortColors: Map<String, Color> = emptyMap()
+) {
+    val portSpacing = 30f * scale
+    val edgePadding = 20f * scale
+    val startY = 100f * scale
+    val nodeWidth = 180f * scale
+    val headerHeight = 30f * scale
+    val childPortSpacing = 25f * scale
+
+    // Default color for connections without IP type (dark gray)
+    val defaultConnectionColor = Color(0xFF424242)
+    val connectionStrokeWidth = 3f
+
+    // Draw segments from INPUT boundary ports to child node input ports
+    graphNode.inputPorts.forEachIndexed { index, boundaryPort ->
+        val boundaryPortY = startY + (index * portSpacing)
+        val boundaryPortX = edgePadding
+        val boundaryPortPos = Offset(boundaryPortX, boundaryPortY)
+
+        // Get the color for this boundary port (from parent connection's IP type)
+        val portColor = boundaryPortColors[boundaryPort.id] ?: defaultConnectionColor
+
+        // Find the port mapping for this boundary port
+        val mapping = graphNode.portMappings[boundaryPort.name]
+        if (mapping != null) {
+            // Find the child node
+            val childNode = childNodes.find { it.id == mapping.childNodeId }
+            if (childNode != null) {
+                // Find the child port index (childPortName is actually the port ID)
+                val childPortIndex = childNode.inputPorts.indexOfFirst { it.id == mapping.childPortName }
+                if (childPortIndex >= 0) {
+                    // Calculate child node port position (in screen coordinates)
+                    // Apply drag offset if this node is being dragged
+                    val childNodePos = Offset(
+                        childNode.position.x.toFloat() * scale + offset.x,
+                        childNode.position.y.toFloat() * scale + offset.y
+                    ) + if (childNode.id == draggingNodeId) dragOffset else Offset.Zero
+
+                    val childPortPos = Offset(
+                        childNodePos.x,  // Input port is on left side of node
+                        childNodePos.y + headerHeight + 20f * scale + (childPortIndex * childPortSpacing)
+                    )
+
+                    // Draw bezier connection from boundary port to child port
+                    drawBezierConnection(
+                        start = boundaryPortPos,
+                        end = childPortPos,
+                        scale = scale,
+                        color = portColor,
+                        strokeWidth = connectionStrokeWidth,
+                        isDashed = false
+                    )
+                }
+            }
+        }
+    }
+
+    // Draw segments from child node output ports to OUTPUT boundary ports
+    graphNode.outputPorts.forEachIndexed { index, boundaryPort ->
+        val boundaryPortY = startY + (index * portSpacing)
+        val boundaryPortX = canvasSize.width - edgePadding
+        val boundaryPortPos = Offset(boundaryPortX, boundaryPortY)
+
+        // Get the color for this boundary port (from parent connection's IP type)
+        val portColor = boundaryPortColors[boundaryPort.id] ?: defaultConnectionColor
+
+        // Find the port mapping for this boundary port
+        val mapping = graphNode.portMappings[boundaryPort.name]
+        if (mapping != null) {
+            // Find the child node
+            val childNode = childNodes.find { it.id == mapping.childNodeId }
+            if (childNode != null) {
+                // Find the child port index (childPortName is actually the port ID)
+                val childPortIndex = childNode.outputPorts.indexOfFirst { it.id == mapping.childPortName }
+                if (childPortIndex >= 0) {
+                    // Calculate child node port position (in screen coordinates)
+                    // Apply drag offset if this node is being dragged
+                    val childNodePos = Offset(
+                        childNode.position.x.toFloat() * scale + offset.x,
+                        childNode.position.y.toFloat() * scale + offset.y
+                    ) + if (childNode.id == draggingNodeId) dragOffset else Offset.Zero
+
+                    val childPortPos = Offset(
+                        childNodePos.x + nodeWidth,  // Output port is on right side of node
+                        childNodePos.y + headerHeight + 20f * scale + (childPortIndex * childPortSpacing)
+                    )
+
+                    // Draw bezier connection from child port to boundary port
+                    drawBezierConnection(
+                        start = childPortPos,
+                        end = boundaryPortPos,
+                        scale = scale,
+                        color = portColor,
+                        strokeWidth = connectionStrokeWidth,
+                        isDashed = false
+                    )
+                }
+            }
+        }
+    }
 }

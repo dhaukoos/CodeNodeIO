@@ -480,6 +480,50 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                         colorMap
                     }
 
+                    // Compute boundary port colors for interior view of GraphNodes
+                    // Maps boundary port ID to color from the parent-level connection's IP type
+                    val currentGraphNode = graphState.getCurrentGraphNode()
+                    val boundaryConnectionColors: Map<String, Color> = remember(
+                        graphState.flowGraph.connections,
+                        ipTypeRegistry,
+                        currentGraphNode?.id
+                    ) {
+                        if (currentGraphNode == null) {
+                            emptyMap()
+                        } else {
+                            val colorMap = mutableMapOf<String, Color>()
+                            graphState.flowGraph.connections.forEach { connection ->
+                                // Check if this connection targets the current GraphNode (input boundary)
+                                if (connection.targetNodeId == currentGraphNode.id) {
+                                    connection.ipTypeId?.let { typeId ->
+                                        ipTypeRegistry.getById(typeId)?.let { ipType ->
+                                            val ipColor = ipType.color
+                                            colorMap[connection.targetPortId] = Color(
+                                                red = ipColor.red / 255f,
+                                                green = ipColor.green / 255f,
+                                                blue = ipColor.blue / 255f
+                                            )
+                                        }
+                                    }
+                                }
+                                // Check if this connection sources from the current GraphNode (output boundary)
+                                if (connection.sourceNodeId == currentGraphNode.id) {
+                                    connection.ipTypeId?.let { typeId ->
+                                        ipTypeRegistry.getById(typeId)?.let { ipType ->
+                                            val ipColor = ipType.color
+                                            colorMap[connection.sourcePortId] = Color(
+                                                red = ipColor.red / 255f,
+                                                green = ipColor.green / 255f,
+                                                blue = ipColor.blue / 255f
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                            colorMap
+                        }
+                    }
+
                     // Main Canvas with View Toggle (Visual/Textual/Split)
                     GraphEditorWithToggle(
                         flowGraph = graphState.flowGraph,
@@ -493,6 +537,7 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                                 selectedConnectionIds = graphState.selectedConnectionIds,
                                 multiSelectedNodeIds = graphState.selectionState.selectedNodeIds,
                                 connectionColors = connectionColors,
+                                boundaryConnectionColors = boundaryConnectionColors,
                                 scale = graphState.scale,
                                 panOffset = graphState.panOffset,
                                 onScaleChanged = { newScale ->
