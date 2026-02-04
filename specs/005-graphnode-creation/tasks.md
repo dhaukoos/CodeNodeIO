@@ -241,17 +241,17 @@
 
 ### Tests for Serialization (TDD - Write FIRST, must FAIL) ⚠️
 
-- [ ] T075 [P] Write unit test for GraphNode serialization with children in graphEditor/src/jvmTest/kotlin/io/codenode/grapheditor/serialization/GraphNodeSerializationTest.kt
-- [ ] T076 [P] Write unit test for GraphNode deserialization roundtrip in graphEditor/src/jvmTest/kotlin/io/codenode/grapheditor/serialization/GraphNodeSerializationTest.kt
-- [ ] T077 [P] Write unit test for nested GraphNode serialization in graphEditor/src/jvmTest/kotlin/io/codenode/grapheditor/serialization/GraphNodeSerializationTest.kt
+- [X] T075 [P] Write unit test for GraphNode serialization with children in graphEditor/src/jvmTest/kotlin/io/codenode/grapheditor/serialization/GraphNodeSerializationTest.kt
+- [X] T076 [P] Write unit test for GraphNode deserialization roundtrip in graphEditor/src/jvmTest/kotlin/io/codenode/grapheditor/serialization/GraphNodeSerializationTest.kt
+- [X] T077 [P] Write unit test for nested GraphNode serialization in graphEditor/src/jvmTest/kotlin/io/codenode/grapheditor/serialization/GraphNodeSerializationTest.kt
 
 ### Implementation for Serialization
 
-- [ ] T078 Complete serializeGraphNode() with recursive child serialization in graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/serialization/FlowGraphSerializer.kt
-- [ ] T079 Add internalConnections serialization to serializeGraphNode() in graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/serialization/FlowGraphSerializer.kt
-- [ ] T080 Add portMappings serialization to serializeGraphNode() in graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/serialization/FlowGraphSerializer.kt
-- [ ] T081 Complete deserializeGraphNode() with recursive child parsing in graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/serialization/FlowGraphDeserializer.kt
-- [ ] T082 Verify T075-T077 tests pass after implementation
+- [X] T078 Complete serializeGraphNode() with recursive child serialization in graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/serialization/FlowGraphSerializer.kt
+- [X] T079 Add internalConnections serialization to serializeGraphNode() in graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/serialization/FlowGraphSerializer.kt
+- [X] T080 Add portMappings serialization to serializeGraphNode() in graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/serialization/FlowGraphSerializer.kt
+- [X] T081 Complete deserializeGraphNode() with recursive child parsing in graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/serialization/FlowGraphDeserializer.kt
+- [X] T082 Verify T075-T077 tests pass after implementation
 
 **Checkpoint**: Serialization complete - GraphNodes persist and reload correctly
 

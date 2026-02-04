@@ -165,7 +165,10 @@ object FlowGraphSerializer {
     }
 
     /**
-     * Serializes a GraphNode to DSL format
+     * Serializes a GraphNode to DSL format with full support for:
+     * - Recursive child node serialization (T078)
+     * - Internal connections (T079)
+     * - Port mappings (T080)
      */
     private fun serializeGraphNode(
         node: GraphNode,
@@ -185,13 +188,103 @@ object FlowGraphSerializer {
         // Add position
         builder.appendLine("${innerIndent}position(${node.position.x}, ${node.position.y})")
 
-        // Add child nodes recursively (simplified - would need full recursive handling)
+        // T078: Serialize child nodes recursively
         if (node.childNodes.isNotEmpty()) {
-            builder.appendLine("${innerIndent}// Child nodes (${node.childNodes.size})")
-            builder.appendLine("${innerIndent}// Note: Nested nodes serialization not yet implemented")
+            builder.appendLine()
+            builder.appendLine("${innerIndent}// Child nodes")
+            val childVariables = mutableMapOf<String, String>()
+
+            node.childNodes.forEachIndexed { index, childNode ->
+                val childVarName = "child_${sanitizeVariableName(childNode.name)}" +
+                    if (index > 0) "_$index" else ""
+                childVariables[childNode.id] = childVarName
+
+                when (childNode) {
+                    is CodeNode -> serializeCodeNode(childNode, childVarName, builder, innerIndent)
+                    is GraphNode -> serializeGraphNode(childNode, childVarName, builder, innerIndent)
+                    else -> builder.appendLine("${innerIndent}// Unknown child node type: ${childNode::class.simpleName}")
+                }
+                builder.appendLine()
+            }
+
+            // T079: Serialize internal connections
+            if (node.internalConnections.isNotEmpty()) {
+                builder.appendLine("${innerIndent}// Internal connections")
+                node.internalConnections.forEach { connection ->
+                    serializeInternalConnection(connection, childVariables, node.childNodes, builder, innerIndent)
+                }
+                builder.appendLine()
+            }
+        }
+
+        // T080: Serialize port mappings
+        if (node.portMappings.isNotEmpty()) {
+            builder.appendLine("${innerIndent}// Port mappings")
+            node.portMappings.forEach { (portName, mapping) ->
+                builder.appendLine("${innerIndent}portMapping(\"${escapeString(portName)}\", \"${escapeString(mapping.childNodeId)}\", \"${escapeString(mapping.childPortName)}\")")
+            }
+        }
+
+        // Serialize GraphNode's own input/output ports if present
+        if (node.inputPorts.isNotEmpty()) {
+            builder.appendLine()
+            builder.appendLine("${innerIndent}// Exposed input ports")
+            node.inputPorts.forEach { port ->
+                builder.append("${innerIndent}exposeInput(\"${escapeString(port.name)}\", ${port.dataType.simpleName ?: "Any"}::class")
+                if (port.required) {
+                    builder.append(", required = true")
+                }
+                builder.appendLine(")")
+            }
+        }
+
+        if (node.outputPorts.isNotEmpty()) {
+            builder.appendLine()
+            builder.appendLine("${innerIndent}// Exposed output ports")
+            node.outputPorts.forEach { port ->
+                builder.append("${innerIndent}exposeOutput(\"${escapeString(port.name)}\", ${port.dataType.simpleName ?: "Any"}::class")
+                if (port.required) {
+                    builder.append(", required = true")
+                }
+                builder.appendLine(")")
+            }
         }
 
         builder.appendLine("${indent}}")
+    }
+
+    /**
+     * Serializes an internal connection within a GraphNode.
+     * Looks up actual port names from the child nodes instead of extracting from IDs.
+     */
+    private fun serializeInternalConnection(
+        connection: Connection,
+        childVariables: Map<String, String>,
+        childNodes: List<Node>,
+        builder: StringBuilder,
+        indent: String
+    ) {
+        val sourceVar = childVariables[connection.sourceNodeId] ?: "unknownChild"
+        val targetVar = childVariables[connection.targetNodeId] ?: "unknownChild"
+
+        // Look up actual port names from the child nodes
+        val sourceNode = childNodes.find { it.id == connection.sourceNodeId }
+        val targetNode = childNodes.find { it.id == connection.targetNodeId }
+
+        val sourcePort = sourceNode?.outputPorts?.find { it.id == connection.sourcePortId }
+        val targetPort = targetNode?.inputPorts?.find { it.id == connection.targetPortId }
+
+        val sourcePortName = sourcePort?.name ?: connection.sourcePortId.substringAfterLast("_")
+        val targetPortName = targetPort?.name ?: connection.targetPortId.substringAfterLast("_")
+
+        builder.append("${indent}internalConnection($sourceVar, \"$sourcePortName\", $targetVar, \"$targetPortName\")")
+
+        // Add IP type if specified
+        connection.ipTypeId?.let { ipTypeId ->
+            builder.append(" withType \"$ipTypeId\"")
+        }
+
+        builder.appendLine()
     }
 
     /**

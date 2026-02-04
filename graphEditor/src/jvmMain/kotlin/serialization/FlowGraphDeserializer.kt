@@ -10,6 +10,7 @@ import io.codenode.fbpdsl.model.FlowGraph
 import io.codenode.fbpdsl.model.ValidationResult
 import io.codenode.fbpdsl.model.CodeNode
 import io.codenode.fbpdsl.model.CodeNodeType
+import io.codenode.fbpdsl.model.GraphNode
 import io.codenode.fbpdsl.model.Node
 import io.codenode.fbpdsl.model.Port
 import io.codenode.fbpdsl.model.Connection
@@ -114,9 +115,8 @@ object FlowGraphDeserializer {
     }
 
     /**
-     * Manual deserialization fallback (simplified parsing)
-     * This is a basic implementation that handles simple cases
-     * For production use, proper Kotlin script evaluation should be used
+     * Manual deserialization fallback with full GraphNode support (T081)
+     * Handles recursive parsing of nested GraphNodes, internal connections, and port mappings
      */
     private fun deserializeManually(dslContent: String): DeserializationResult {
         return try {
@@ -129,115 +129,19 @@ object FlowGraphDeserializer {
             val version = flowGraphMatch.groupValues[2]
             val description = flowGraphMatch.groupValues.getOrNull(3)?.takeIf { it.isNotEmpty() }
 
-            // Parse nodes
-            val nodes = mutableListOf<CodeNode>()
+            // Parse all nodes (both CodeNodes and GraphNodes)
+            val nodes = mutableListOf<Node>()
             val nodeIdMap = mutableMapOf<String, String>() // variable name -> node ID
+            val allNodes = mutableMapOf<String, Node>() // node ID -> Node (for connection resolution)
 
-            val nodePattern = Regex("""val\s+(\w+)\s*=\s*codeNode\s*\(\s*"([^"]*)"\s*(?:,\s*nodeType\s*=\s*"([^"]*)"\s*)?\)\s*\{([^}]*)\}""", RegexOption.DOT_MATCHES_ALL)
-            nodePattern.findAll(dslContent).forEach { match ->
-                val varName = match.groupValues[1]
-                val nodeName = match.groupValues[2]
-                val nodeBody = match.groupValues[4]
+            // Parse CodeNodes at root level
+            parseCodeNodes(dslContent, nodes, nodeIdMap, allNodes)
 
-                // Parse position
-                val posPattern = Regex("""position\s*\(\s*([\d.]+)\s*,\s*([\d.]+)\s*\)""")
-                val posMatch = posPattern.find(nodeBody)
-                val x = posMatch?.groupValues?.get(1)?.toDoubleOrNull() ?: 0.0
-                val y = posMatch?.groupValues?.get(2)?.toDoubleOrNull() ?: 0.0
+            // Parse GraphNodes at root level (with recursive child parsing)
+            parseGraphNodes(dslContent, nodes, nodeIdMap, allNodes)
 
-                // Parse description
-                val descPattern = Regex("""description\s*=\s*"([^"]*)"""")
-                val nodeDesc = descPattern.find(nodeBody)?.groupValues?.get(1)
-
-                val nodeId = "node_${System.currentTimeMillis()}_${(0..9999).random()}"
-
-                // Parse input ports
-                val inputPorts = mutableListOf<Port<Any>>()
-                val inputPattern = Regex("""input\s*\(\s*"([^"]*)"\s*,\s*(\w+)::class(?:\s*,\s*required\s*=\s*(true|false))?\s*\)""")
-                inputPattern.findAll(nodeBody).forEach { inputMatch ->
-                    val portName = inputMatch.groupValues[1]
-                    val portId = "port_${System.currentTimeMillis()}_${(0..9999).random()}_$portName"
-                    inputPorts.add(Port<Any>(
-                        id = portId,
-                        name = portName,
-                        direction = Port.Direction.INPUT,
-                        dataType = Any::class,
-                        owningNodeId = nodeId
-                    ))
-                }
-
-                // Parse output ports
-                val outputPorts = mutableListOf<Port<Any>>()
-                val outputPattern = Regex("""output\s*\(\s*"([^"]*)"\s*,\s*(\w+)::class(?:\s*,\s*required\s*=\s*(true|false))?\s*\)""")
-                outputPattern.findAll(nodeBody).forEach { outputMatch ->
-                    val portName = outputMatch.groupValues[1]
-                    val portId = "port_${System.currentTimeMillis()}_${(0..9999).random()}_$portName"
-                    outputPorts.add(Port<Any>(
-                        id = portId,
-                        name = portName,
-                        direction = Port.Direction.OUTPUT,
-                        dataType = Any::class,
-                        owningNodeId = nodeId
-                    ))
-                }
-
-                // Parse configuration (including _genericType, _useCaseClass, and other config)
-                val configuration = mutableMapOf<String, String>()
-                val configPattern = Regex("""config\s*\(\s*"([^"]*)"\s*,\s*"([^"]*)"\s*\)""")
-                configPattern.findAll(nodeBody).forEach { configMatch ->
-                    val configKey = configMatch.groupValues[1]
-                    val configValue = configMatch.groupValues[2]
-                    configuration[configKey] = configValue
-                }
-
-                val node = CodeNode(
-                    id = nodeId,
-                    name = nodeName,
-                    codeNodeType = CodeNodeType.CUSTOM,
-                    description = nodeDesc,
-                    position = Node.Position(x, y),
-                    inputPorts = inputPorts,
-                    outputPorts = outputPorts,
-                    configuration = configuration
-                )
-
-                nodes.add(node)
-                nodeIdMap[varName] = nodeId
-            }
-
-            // Parse connections (with optional IP type)
-            val connections = mutableListOf<Connection>()
-            val connPattern = Regex("""(\w+)\.output\s*\(\s*"([^"]*)"\s*\)\s*connect\s*(\w+)\.input\s*\(\s*"([^"]*)"\s*\)(?:\s*withType\s*"([^"]*)")?""")
-            connPattern.findAll(dslContent).forEach { match ->
-                val sourceVar = match.groupValues[1]
-                val sourcePortName = match.groupValues[2]
-                val targetVar = match.groupValues[3]
-                val targetPortName = match.groupValues[4]
-                val ipTypeId = match.groupValues.getOrNull(5)?.takeIf { it.isNotEmpty() }
-
-                val sourceNodeId = nodeIdMap[sourceVar]
-                val targetNodeId = nodeIdMap[targetVar]
-
-                if (sourceNodeId != null && targetNodeId != null) {
-                    // Find the actual port IDs
-                    val sourceNode = nodes.find { it.id == sourceNodeId }
-                    val targetNode = nodes.find { it.id == targetNodeId }
-
-                    val sourcePort = sourceNode?.outputPorts?.find { it.name == sourcePortName }
-                    val targetPort = targetNode?.inputPorts?.find { it.name == targetPortName }
-
-                    if (sourcePort != null && targetPort != null) {
-                        connections.add(Connection(
-                            id = "conn_${System.currentTimeMillis()}_${(0..9999).random()}",
-                            sourceNodeId = sourceNodeId,
-                            sourcePortId = sourcePort.id,
-                            targetNodeId = targetNodeId,
-                            targetPortId = targetPort.id,
-                            ipTypeId = ipTypeId
-                        ))
-                    }
-                }
-            }
+            // Parse root-level connections (with optional IP type)
+            val connections = parseConnections(dslContent, nodeIdMap, allNodes)
 
             // Create the FlowGraph manually
             val graphId = "graph_${System.currentTimeMillis()}_${(0..999999).random()}"
@@ -259,6 +163,382 @@ object FlowGraphDeserializer {
                 e
             )
         }
+    }
+
+    /**
+     * Finds the ranges of all graphNode blocks in the content.
+     * Used to exclude nested CodeNodes from root-level parsing.
+     */
+    private fun findGraphNodeRanges(content: String): List<IntRange> {
+        val ranges = mutableListOf<IntRange>()
+        val graphNodeStarts = Regex("""val\s+\w+\s*=\s*graphNode\s*\(\s*"[^"]*"\s*\)\s*\{""")
+
+        graphNodeStarts.findAll(content).forEach { match ->
+            val startIndex = match.range.first
+            val bodyStart = match.range.last + 1
+            val body = extractBalancedBraces(content, bodyStart)
+            val endIndex = bodyStart + body.length + 1 // +1 for closing brace
+            ranges.add(startIndex..endIndex)
+        }
+
+        return ranges
+    }
+
+    /**
+     * Checks if a position is inside any of the given ranges
+     */
+    private fun isInsideAnyRange(position: Int, ranges: List<IntRange>): Boolean {
+        return ranges.any { position in it }
+    }
+
+    /**
+     * Parses CodeNode declarations from DSL content (root level only)
+     */
+    private fun parseCodeNodes(
+        content: String,
+        nodes: MutableList<Node>,
+        nodeIdMap: MutableMap<String, String>,
+        allNodes: MutableMap<String, Node>
+    ) {
+        // Find all graphNode block ranges to exclude nested CodeNodes
+        val graphNodeRanges = findGraphNodeRanges(content)
+
+        val nodePattern = Regex("""val\s+(\w+)\s*=\s*codeNode\s*\(\s*"([^"]*)"\s*(?:,\s*nodeType\s*=\s*"([^"]*)"\s*)?\)\s*\{([^}]*)\}""", RegexOption.DOT_MATCHES_ALL)
+        nodePattern.findAll(content).forEach { match ->
+            // Skip CodeNodes that are inside a graphNode block
+            if (isInsideAnyRange(match.range.first, graphNodeRanges)) {
+                return@forEach
+            }
+
+            val varName = match.groupValues[1]
+            val nodeName = match.groupValues[2]
+            val nodeBody = match.groupValues[4]
+
+            val node = parseCodeNodeBody(varName, nodeName, nodeBody)
+            nodes.add(node)
+            nodeIdMap[varName] = node.id
+            allNodes[node.id] = node
+        }
+    }
+
+    /**
+     * Parses a CodeNode body and creates a CodeNode instance
+     */
+    private fun parseCodeNodeBody(varName: String, nodeName: String, nodeBody: String): CodeNode {
+        // Parse position
+        val posPattern = Regex("""position\s*\(\s*([\d.]+)\s*,\s*([\d.]+)\s*\)""")
+        val posMatch = posPattern.find(nodeBody)
+        val x = posMatch?.groupValues?.get(1)?.toDoubleOrNull() ?: 0.0
+        val y = posMatch?.groupValues?.get(2)?.toDoubleOrNull() ?: 0.0
+
+        // Parse description
+        val descPattern = Regex("""description\s*=\s*"([^"]*)"""")
+        val nodeDesc = descPattern.find(nodeBody)?.groupValues?.get(1)
+
+        val nodeId = "node_${System.currentTimeMillis()}_${(0..9999).random()}"
+
+        // Parse input ports
+        val inputPorts = mutableListOf<Port<Any>>()
+        val inputPattern = Regex("""input\s*\(\s*"([^"]*)"\s*,\s*(\w+)::class(?:\s*,\s*required\s*=\s*(true|false))?\s*\)""")
+        inputPattern.findAll(nodeBody).forEach { inputMatch ->
+            val portName = inputMatch.groupValues[1]
+            val portId = "port_${System.currentTimeMillis()}_${(0..9999).random()}_$portName"
+            inputPorts.add(Port<Any>(
+                id = portId,
+                name = portName,
+                direction = Port.Direction.INPUT,
+                dataType = Any::class,
+                owningNodeId = nodeId
+            ))
+        }
+
+        // Parse output ports
+        val outputPorts = mutableListOf<Port<Any>>()
+        val outputPattern = Regex("""output\s*\(\s*"([^"]*)"\s*,\s*(\w+)::class(?:\s*,\s*required\s*=\s*(true|false))?\s*\)""")
+        outputPattern.findAll(nodeBody).forEach { outputMatch ->
+            val portName = outputMatch.groupValues[1]
+            val portId = "port_${System.currentTimeMillis()}_${(0..9999).random()}_$portName"
+            outputPorts.add(Port<Any>(
+                id = portId,
+                name = portName,
+                direction = Port.Direction.OUTPUT,
+                dataType = Any::class,
+                owningNodeId = nodeId
+            ))
+        }
+
+        // Parse configuration
+        val configuration = mutableMapOf<String, String>()
+        val configPattern = Regex("""config\s*\(\s*"([^"]*)"\s*,\s*"([^"]*)"\s*\)""")
+        configPattern.findAll(nodeBody).forEach { configMatch ->
+            val configKey = configMatch.groupValues[1]
+            val configValue = configMatch.groupValues[2]
+            configuration[configKey] = configValue
+        }
+
+        return CodeNode(
+            id = nodeId,
+            name = nodeName,
+            codeNodeType = CodeNodeType.CUSTOM,
+            description = nodeDesc,
+            position = Node.Position(x, y),
+            inputPorts = inputPorts,
+            outputPorts = outputPorts,
+            configuration = configuration
+        )
+    }
+
+    /**
+     * Parses GraphNode declarations from DSL content with recursive child handling (T081)
+     */
+    private fun parseGraphNodes(
+        content: String,
+        nodes: MutableList<Node>,
+        nodeIdMap: MutableMap<String, String>,
+        allNodes: MutableMap<String, Node>
+    ) {
+        // Find graphNode declarations - need to handle nested braces
+        val graphNodeStarts = Regex("""val\s+(\w+)\s*=\s*graphNode\s*\(\s*"([^"]*)"\s*\)\s*\{""")
+        graphNodeStarts.findAll(content).forEach { match ->
+            val varName = match.groupValues[1]
+            val nodeName = match.groupValues[2]
+            val startIndex = match.range.last + 1
+
+            // Extract the body by counting braces
+            val body = extractBalancedBraces(content, startIndex)
+
+            val graphNode = parseGraphNodeBody(varName, nodeName, body, allNodes)
+            nodes.add(graphNode)
+            nodeIdMap[varName] = graphNode.id
+            allNodes[graphNode.id] = graphNode
+        }
+    }
+
+    /**
+     * Extracts content within balanced braces starting from a given index
+     */
+    private fun extractBalancedBraces(content: String, startIndex: Int): String {
+        var braceCount = 1
+        var endIndex = startIndex
+
+        while (braceCount > 0 && endIndex < content.length) {
+            when (content[endIndex]) {
+                '{' -> braceCount++
+                '}' -> braceCount--
+            }
+            if (braceCount > 0) endIndex++
+        }
+
+        return content.substring(startIndex, endIndex)
+    }
+
+    /**
+     * Parses a GraphNode body and creates a GraphNode instance with children (T081)
+     */
+    private fun parseGraphNodeBody(
+        varName: String,
+        nodeName: String,
+        nodeBody: String,
+        allNodes: MutableMap<String, Node>
+    ): GraphNode {
+        val nodeId = "graphnode_${System.currentTimeMillis()}_${(0..9999).random()}"
+
+        // Parse position
+        val posPattern = Regex("""position\s*\(\s*([\d.]+)\s*,\s*([\d.]+)\s*\)""")
+        val posMatch = posPattern.find(nodeBody)
+        val x = posMatch?.groupValues?.get(1)?.toDoubleOrNull() ?: 0.0
+        val y = posMatch?.groupValues?.get(2)?.toDoubleOrNull() ?: 0.0
+
+        // Parse description
+        val descPattern = Regex("""description\s*=\s*"([^"]*)"""")
+        val graphNodeDesc = descPattern.find(nodeBody)?.groupValues?.get(1)
+
+        // Parse child nodes recursively
+        val childNodes = mutableListOf<Node>()
+        val childNodeIdMap = mutableMapOf<String, String>()
+
+        // Parse child CodeNodes
+        val childCodeNodePattern = Regex("""val\s+(child_\w+)\s*=\s*codeNode\s*\(\s*"([^"]*)"\s*(?:,\s*nodeType\s*=\s*"([^"]*)"\s*)?\)\s*\{([^}]*)\}""", RegexOption.DOT_MATCHES_ALL)
+        childCodeNodePattern.findAll(nodeBody).forEach { match ->
+            val childVarName = match.groupValues[1]
+            val childNodeName = match.groupValues[2]
+            val childNodeBody = match.groupValues[4]
+
+            val childNode = parseCodeNodeBody(childVarName, childNodeName, childNodeBody)
+            childNodes.add(childNode)
+            childNodeIdMap[childVarName] = childNode.id
+            allNodes[childNode.id] = childNode
+        }
+
+        // Parse nested GraphNodes recursively
+        val nestedGraphNodePattern = Regex("""val\s+(child_\w+)\s*=\s*graphNode\s*\(\s*"([^"]*)"\s*\)\s*\{""")
+        nestedGraphNodePattern.findAll(nodeBody).forEach { match ->
+            val childVarName = match.groupValues[1]
+            val childNodeName = match.groupValues[2]
+            val startIndex = match.range.last + 1
+
+            val childBody = extractBalancedBraces(nodeBody, startIndex)
+            val nestedGraphNode = parseGraphNodeBody(childVarName, childNodeName, childBody, allNodes)
+            childNodes.add(nestedGraphNode)
+            childNodeIdMap[childVarName] = nestedGraphNode.id
+            allNodes[nestedGraphNode.id] = nestedGraphNode
+        }
+
+        // Parse internal connections
+        val internalConnections = parseInternalConnections(nodeBody, childNodeIdMap, allNodes)
+
+        // Parse port mappings
+        val portMappings = parsePortMappings(nodeBody)
+
+        // Parse exposed input ports
+        val inputPorts = mutableListOf<Port<Any>>()
+        val exposeInputPattern = Regex("""exposeInput\s*\(\s*"([^"]*)"\s*,\s*(\w+)::class(?:\s*,\s*required\s*=\s*(true|false))?\s*\)""")
+        exposeInputPattern.findAll(nodeBody).forEach { inputMatch ->
+            val portName = inputMatch.groupValues[1]
+            val portId = "port_${System.currentTimeMillis()}_${(0..9999).random()}_$portName"
+            inputPorts.add(Port<Any>(
+                id = portId,
+                name = portName,
+                direction = Port.Direction.INPUT,
+                dataType = Any::class,
+                owningNodeId = nodeId
+            ))
+        }
+
+        // Parse exposed output ports
+        val outputPorts = mutableListOf<Port<Any>>()
+        val exposeOutputPattern = Regex("""exposeOutput\s*\(\s*"([^"]*)"\s*,\s*(\w+)::class(?:\s*,\s*required\s*=\s*(true|false))?\s*\)""")
+        exposeOutputPattern.findAll(nodeBody).forEach { outputMatch ->
+            val portName = outputMatch.groupValues[1]
+            val portId = "port_${System.currentTimeMillis()}_${(0..9999).random()}_$portName"
+            outputPorts.add(Port<Any>(
+                id = portId,
+                name = portName,
+                direction = Port.Direction.OUTPUT,
+                dataType = Any::class,
+                owningNodeId = nodeId
+            ))
+        }
+
+        return GraphNode(
+            id = nodeId,
+            name = nodeName,
+            description = graphNodeDesc,
+            position = Node.Position(x, y),
+            childNodes = childNodes,
+            internalConnections = internalConnections,
+            inputPorts = inputPorts,
+            outputPorts = outputPorts,
+            portMappings = portMappings
+        )
+    }
+
+    /**
+     * Parses internal connections within a GraphNode body
+     */
+    private fun parseInternalConnections(
+        nodeBody: String,
+        childNodeIdMap: Map<String, String>,
+        allNodes: Map<String, Node>
+    ): List<Connection> {
+        val connections = mutableListOf<Connection>()
+
+        // Pattern for internalConnection(source, "port", target, "port")
+        val internalConnPattern = Regex("""internalConnection\s*\(\s*(\w+)\s*,\s*"([^"]*)"\s*,\s*(\w+)\s*,\s*"([^"]*)"\s*\)(?:\s*withType\s*"([^"]*)")?""")
+        internalConnPattern.findAll(nodeBody).forEach { match ->
+            val sourceVar = match.groupValues[1]
+            val sourcePortName = match.groupValues[2]
+            val targetVar = match.groupValues[3]
+            val targetPortName = match.groupValues[4]
+            val ipTypeId = match.groupValues.getOrNull(5)?.takeIf { it.isNotEmpty() }
+
+            val sourceNodeId = childNodeIdMap[sourceVar]
+            val targetNodeId = childNodeIdMap[targetVar]
+
+            if (sourceNodeId != null && targetNodeId != null) {
+                val sourceNode = allNodes[sourceNodeId]
+                val targetNode = allNodes[targetNodeId]
+
+                val sourcePort = sourceNode?.outputPorts?.find { it.name == sourcePortName }
+                val targetPort = targetNode?.inputPorts?.find { it.name == targetPortName }
+
+                if (sourcePort != null && targetPort != null) {
+                    connections.add(Connection(
+                        id = "internal_conn_${System.currentTimeMillis()}_${(0..9999).random()}",
+                        sourceNodeId = sourceNodeId,
+                        sourcePortId = sourcePort.id,
+                        targetNodeId = targetNodeId,
+                        targetPortId = targetPort.id,
+                        ipTypeId = ipTypeId
+                    ))
+                }
+            }
+        }
+
+        return connections
+    }
+
+    /**
+     * Parses port mappings from GraphNode body
+     */
+    private fun parsePortMappings(nodeBody: String): Map<String, GraphNode.PortMapping> {
+        val mappings = mutableMapOf<String, GraphNode.PortMapping>()
+
+        // Pattern for portMapping("portName", "childNodeId", "childPortName")
+        val mappingPattern = Regex("""portMapping\s*\(\s*"([^"]*)"\s*,\s*"([^"]*)"\s*,\s*"([^"]*)"\s*\)""")
+        mappingPattern.findAll(nodeBody).forEach { match ->
+            val portName = match.groupValues[1]
+            val childNodeId = match.groupValues[2]
+            val childPortName = match.groupValues[3]
+
+            mappings[portName] = GraphNode.PortMapping(childNodeId, childPortName)
+        }
+
+        return mappings
+    }
+
+    /**
+     * Parses connections from DSL content
+     */
+    private fun parseConnections(
+        content: String,
+        nodeIdMap: Map<String, String>,
+        allNodes: Map<String, Node>
+    ): List<Connection> {
+        val connections = mutableListOf<Connection>()
+        val connPattern = Regex("""(\w+)\.output\s*\(\s*"([^"]*)"\s*\)\s*connect\s*(\w+)\.input\s*\(\s*"([^"]*)"\s*\)(?:\s*withType\s*"([^"]*)")?""")
+
+        connPattern.findAll(content).forEach { match ->
+            val sourceVar = match.groupValues[1]
+            val sourcePortName = match.groupValues[2]
+            val targetVar = match.groupValues[3]
+            val targetPortName = match.groupValues[4]
+            val ipTypeId = match.groupValues.getOrNull(5)?.takeIf { it.isNotEmpty() }
+
+            val sourceNodeId = nodeIdMap[sourceVar]
+            val targetNodeId = nodeIdMap[targetVar]
+
+            if (sourceNodeId != null && targetNodeId != null) {
+                val sourceNode = allNodes[sourceNodeId]
+                val targetNode = allNodes[targetNodeId]
+
+                val sourcePort = sourceNode?.outputPorts?.find { it.name == sourcePortName }
+                val targetPort = targetNode?.inputPorts?.find { it.name == targetPortName }
+
+                if (sourcePort != null && targetPort != null) {
+                    connections.add(Connection(
+                        id = "conn_${System.currentTimeMillis()}_${(0..9999).random()}",
+                        sourceNodeId = sourceNodeId,
+                        sourcePortId = sourcePort.id,
+                        targetNodeId = targetNodeId,
+                        targetPortId = targetPort.id,
+                        ipTypeId = ipTypeId
+                    ))
+                }
+            }
+        }
+
+        return connections
     }
 
     /**
