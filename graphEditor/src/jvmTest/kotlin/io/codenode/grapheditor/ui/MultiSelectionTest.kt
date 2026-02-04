@@ -336,4 +336,65 @@ class MultiSelectionTest {
         assertNotNull(conn1to2)
         assertTrue(graphState.selectionState.selectedConnectionIds.contains(conn1to2.id))
     }
+
+    // ============================================
+    // T088: Performance Test - Select 50+ nodes in <100ms
+    // ============================================
+
+    @Test
+    fun `selecting 50 nodes should complete in under 100ms`() {
+        // Given: A graph with 50+ nodes
+        val graph = flowGraph(name = "TestGraph", version = "1.0.0") {
+            repeat(50) { i ->
+                codeNode("Node$i") {
+                    input("in", String::class)
+                    output("out", String::class)
+                }
+            }
+        }
+        val graphState = GraphState(graph)
+
+        // When: Select all nodes and measure time
+        val startTime = System.currentTimeMillis()
+        graph.rootNodes.forEach { node ->
+            graphState.toggleNodeInSelection(node.id)
+        }
+        val endTime = System.currentTimeMillis()
+        val duration = endTime - startTime
+
+        // Then: Selection should complete in under 100ms
+        assertEquals(50, graphState.selectionState.nodeSelectionCount)
+        assertTrue(
+            duration < 100,
+            "Selecting 50 nodes took ${duration}ms, should be under 100ms"
+        )
+    }
+
+    @Test
+    fun `adding nodes to selection should scale linearly`() {
+        // Given: A graph with 100 nodes
+        val graph = flowGraph(name = "TestGraph", version = "1.0.0") {
+            repeat(100) { i ->
+                codeNode("Node$i") {
+                    input("in", String::class)
+                    output("out", String::class)
+                }
+            }
+        }
+        val graphState = GraphState(graph)
+
+        // When: Select all nodes
+        val startTime = System.currentTimeMillis()
+        val nodeIds = graph.rootNodes.map { it.id }.toSet()
+        graphState.addNodesToSelection(nodeIds)
+        val endTime = System.currentTimeMillis()
+        val duration = endTime - startTime
+
+        // Then: Selection should complete in under 100ms (allowing for overhead)
+        assertEquals(100, graphState.selectionState.nodeSelectionCount)
+        assertTrue(
+            duration < 100,
+            "Adding 100 nodes to selection took ${duration}ms, should be under 100ms"
+        )
+    }
 }

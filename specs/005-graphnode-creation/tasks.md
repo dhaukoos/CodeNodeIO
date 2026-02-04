@@ -261,13 +261,13 @@
 
 **Purpose**: Improvements that affect multiple user stories
 
-- [ ] T083 [P] Add selection count badge to status bar in graphEditor/src/jvmMain/kotlin/Main.kt
-- [ ] T084 [P] Add undo/redo support for group/ungroup operations in graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/state/UndoRedoManager.kt
-- [ ] T085 Verify edge case: Group button disabled when single node selected in graphEditor/src/jvmMain/kotlin/Main.kt
-- [ ] T086 Verify edge case: Ungroup button disabled when CodeNode selected in graphEditor/src/jvmMain/kotlin/Main.kt
-- [ ] T087 Run quickstart.md validation scenarios (all 7 scenarios pass)
-- [ ] T088 Performance test: select 50+ nodes in <100ms
-- [ ] T089 Final code review for Apache 2.0 header compliance on all new files
+- [X] T083 [P] Add selection count badge to status bar in graphEditor/src/jvmMain/kotlin/Main.kt
+- [X] T084 [P] Add undo/redo support for group/ungroup operations in graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/state/UndoRedoManager.kt
+- [X] T085 Verify edge case: Group button disabled when single node selected in graphEditor/src/jvmMain/kotlin/Main.kt
+- [X] T086 Verify edge case: Ungroup button disabled when CodeNode selected in graphEditor/src/jvmMain/kotlin/Main.kt
+- [X] T087 Run quickstart.md validation scenarios (all 7 scenarios pass)
+- [X] T088 Performance test: select 50+ nodes in <100ms
+- [X] T089 Final code review for Apache 2.0 header compliance on all new files
 
 ---
 

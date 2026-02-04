@@ -9,6 +9,7 @@ package io.codenode.grapheditor.state
 import androidx.compose.runtime.*
 import io.codenode.fbpdsl.model.FlowGraph
 import io.codenode.fbpdsl.model.Node
+import io.codenode.fbpdsl.model.GraphNode
 import io.codenode.fbpdsl.model.Connection
 
 /**
@@ -281,6 +282,80 @@ class CompositeCommand(
     override fun undo(graphState: GraphState) {
         // Undo in reverse order
         commands.reversed().forEach { it.undo(graphState) }
+    }
+}
+
+/**
+ * Command to group selected nodes into a GraphNode
+ * Captures both before and after states to enable proper undo/redo
+ */
+class GroupNodesCommand(
+    private val selectedNodeIds: Set<String>
+) : Command {
+    // State captured during first execute for undo/redo
+    private var beforeGraph: FlowGraph? = null
+    private var afterGraph: FlowGraph? = null
+    private var isFirstExecution = true
+
+    override val description = "Group ${selectedNodeIds.size} nodes"
+
+    override fun execute(graphState: GraphState) {
+        if (isFirstExecution) {
+            // First execution: capture before state, perform grouping, capture after state
+            beforeGraph = graphState.flowGraph
+            graphState.groupSelectedNodes()
+            afterGraph = graphState.flowGraph
+            isFirstExecution = false
+        } else {
+            // Redo: restore the grouped state
+            afterGraph?.let { graph ->
+                graphState.setGraph(graph)
+            }
+        }
+    }
+
+    override fun undo(graphState: GraphState) {
+        // Restore the original ungrouped graph
+        beforeGraph?.let { graph ->
+            graphState.setGraph(graph)
+        }
+    }
+}
+
+/**
+ * Command to ungroup a GraphNode back into its constituent nodes
+ * Captures both before and after states to enable proper undo/redo
+ */
+class UngroupNodeCommand(
+    private val graphNodeId: String
+) : Command {
+    // State captured during first execute for undo/redo
+    private var beforeGraph: FlowGraph? = null
+    private var afterGraph: FlowGraph? = null
+    private var isFirstExecution = true
+
+    override val description = "Ungroup node"
+
+    override fun execute(graphState: GraphState) {
+        if (isFirstExecution) {
+            // First execution: capture before state, perform ungrouping, capture after state
+            beforeGraph = graphState.flowGraph
+            graphState.ungroupGraphNode(graphNodeId)
+            afterGraph = graphState.flowGraph
+            isFirstExecution = false
+        } else {
+            // Redo: restore the ungrouped state
+            afterGraph?.let { graph ->
+                graphState.setGraph(graph)
+            }
+        }
+    }
+
+    override fun undo(graphState: GraphState) {
+        // Restore the original grouped graph
+        beforeGraph?.let { graph ->
+            graphState.setGraph(graph)
+        }
     }
 }
 

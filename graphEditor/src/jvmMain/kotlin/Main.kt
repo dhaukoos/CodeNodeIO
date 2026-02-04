@@ -27,6 +27,8 @@ import io.codenode.grapheditor.state.AddNodeCommand
 import io.codenode.grapheditor.state.MoveNodeCommand
 import io.codenode.grapheditor.state.AddConnectionCommand
 import io.codenode.grapheditor.state.RemoveNodeCommand
+import io.codenode.grapheditor.state.GroupNodesCommand
+import io.codenode.grapheditor.state.UngroupNodeCommand
 import io.codenode.grapheditor.ui.CompactCanvasControls
 import io.codenode.grapheditor.ui.ConnectionErrorDisplay
 import io.codenode.grapheditor.ui.FlowGraphCanvas
@@ -315,14 +317,18 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                     }
                 },
                 onGroup = {
-                    val graphNode = graphState.groupSelectedNodes()
-                    if (graphNode != null) {
-                        statusMessage = "Created group: ${graphNode.name}"
+                    val selectedIds = graphState.selectionState.selectedNodeIds.toSet()
+                    if (selectedIds.size >= 2) {
+                        val command = GroupNodesCommand(selectedIds)
+                        undoRedoManager.execute(command, graphState)
+                        statusMessage = "Created group from ${selectedIds.size} nodes"
                     }
                 },
                 onUngroup = {
                     val selectedId = graphState.selectionState.selectedNodeIds.firstOrNull()
-                    if (selectedId != null && graphState.ungroupGraphNode(selectedId)) {
+                    if (selectedId != null) {
+                        val command = UngroupNodeCommand(selectedId)
+                        undoRedoManager.execute(command, graphState)
                         val childCount = graphState.selectionState.selectedNodeIds.size
                         statusMessage = "Ungrouped into $childCount node${if (childCount != 1) "s" else ""}"
                     }
@@ -696,7 +702,8 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
             StatusBar(
                 message = statusMessage,
                 nodeCount = graphState.flowGraph.rootNodes.size,
-                connectionCount = graphState.flowGraph.connections.size
+                connectionCount = graphState.flowGraph.connections.size,
+                selectionCount = graphState.selectionState.totalSelectionCount
             )
         }
 
@@ -875,6 +882,7 @@ fun StatusBar(
     message: String,
     nodeCount: Int,
     connectionCount: Int,
+    selectionCount: Int = 0,
     modifier: Modifier = Modifier
 ) {
     Surface(
@@ -894,6 +902,21 @@ fun StatusBar(
             )
 
             Spacer(modifier = Modifier.weight(1f))
+
+            // Selection count badge (only show when 2+ items selected)
+            if (selectionCount >= 2) {
+                Surface(
+                    color = Color(0xFF2196F3),
+                    shape = androidx.compose.foundation.shape.RoundedCornerShape(12.dp)
+                ) {
+                    Text(
+                        text = "$selectionCount selected",
+                        fontSize = 11.sp,
+                        color = Color.White,
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
+                    )
+                }
+            }
 
             Text(
                 text = "Nodes: $nodeCount",

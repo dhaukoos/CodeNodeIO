@@ -712,24 +712,14 @@ class GraphState(initialGraph: FlowGraph = flowGraph(
         }
 
         val graphNode = node
-        val graphNodePosition = graphNode.position
 
-        // Step 2: Prepare child nodes with adjusted positions and cleared parentNodeId
-        // Child positions are relative to the GraphNode, so we offset them by GraphNode position
+        // Step 2: Prepare child nodes with cleared parentNodeId
+        // Child positions are already absolute (preserved from when they were grouped),
+        // so we just clear the parentNodeId without adjusting positions
         val restoredChildNodes = graphNode.childNodes.map { childNode ->
-            val adjustedPosition = Node.Position(
-                x = childNode.position.x + graphNodePosition.x,
-                y = childNode.position.y + graphNodePosition.y
-            )
             when (childNode) {
-                is CodeNode -> childNode.copy(
-                    position = adjustedPosition,
-                    parentNodeId = null
-                )
-                is GraphNode -> childNode.copy(
-                    position = adjustedPosition,
-                    parentNodeId = null
-                )
+                is CodeNode -> childNode.copy(parentNodeId = null)
+                is GraphNode -> childNode.copy(parentNodeId = null)
                 else -> childNode.withParent(null)
             }
         }

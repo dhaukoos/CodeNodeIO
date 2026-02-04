@@ -27,6 +27,59 @@ import kotlin.test.*
 class ToolbarGroupButtonsTest {
 
     // ============================================
+    // T085: Verify Group button disabled when single node selected
+    // ============================================
+
+    @Test
+    fun `Group button should be disabled when single node is selected`() {
+        // Given: A graph with a CodeNode selected
+        val codeNode = createTestCodeNode("node1", "Node1", 100.0, 100.0)
+        val graph = flowGraph(name = "TestGraph", version = "1.0.0") {}
+            .addNode(codeNode)
+
+        val graphState = GraphState(graph)
+        graphState.toggleNodeInSelection("node1")
+
+        // Then: canGroupSelection should return false (only 1 node selected)
+        assertFalse(graphState.canGroupSelection(), "Group should be disabled for single node selection")
+    }
+
+    @Test
+    fun `Group button should be disabled when no nodes are selected`() {
+        // Given: A graph with nodes but nothing selected
+        val codeNode = createTestCodeNode("node1", "Node1", 100.0, 100.0)
+        val graph = flowGraph(name = "TestGraph", version = "1.0.0") {}
+            .addNode(codeNode)
+
+        val graphState = GraphState(graph)
+
+        // Then: canGroupSelection should return false (nothing selected)
+        assertFalse(graphState.canGroupSelection(), "Group should be disabled when nothing selected")
+    }
+
+    @Test
+    fun `Group button should be enabled when two or more nodes are selected`() {
+        // Given: A graph with two nodes selected
+        val node1 = createTestCodeNode("node1", "Node1", 100.0, 100.0)
+        val node2 = createTestCodeNode("node2", "Node2", 200.0, 100.0)
+        val graph = flowGraph(name = "TestGraph", version = "1.0.0") {}
+            .addNode(node1)
+            .addNode(node2)
+
+        val graphState = GraphState(graph)
+        graphState.toggleNodeInSelection("node1")
+        graphState.toggleNodeInSelection("node2")
+
+        // Then: canGroupSelection should return true
+        assertTrue(graphState.canGroupSelection(), "Group should be enabled when 2+ nodes selected")
+    }
+
+    // ============================================
+    // T086: Verify Ungroup button disabled when CodeNode selected
+    // (Already covered by existing test: `Ungroup button should be disabled when CodeNode is selected`)
+    // ============================================
+
+    // ============================================
     // T051: Tests for Ungroup toolbar button behavior
     // ============================================
 

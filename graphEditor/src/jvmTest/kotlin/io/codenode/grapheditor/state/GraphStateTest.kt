@@ -57,14 +57,16 @@ class GraphStateTest {
     }
 
     @Test
-    fun `ungroupGraphNode should preserve child node positions relative to GraphNode position`() {
-        // Given: A GraphNode with child nodes at relative positions
-        val child1 = createTestCodeNode("child1", "Child1", 0.0, 0.0)
-        val child2 = createTestCodeNode("child2", "Child2", 100.0, 50.0)
+    fun `ungroupGraphNode should preserve child node original positions`() {
+        // Given: A GraphNode with child nodes at their original absolute positions
+        // (When nodes are grouped, they keep their absolute positions - the GraphNode
+        // is just placed at their centroid)
+        val child1 = createTestCodeNode("child1", "Child1", 100.0, 100.0)
+        val child2 = createTestCodeNode("child2", "Child2", 200.0, 150.0)
         val graphNode = GraphNode(
             id = "graphNode1",
             name = "TestGroup",
-            position = Node.Position(200.0, 200.0),
+            position = Node.Position(150.0, 125.0), // Centroid of children
             childNodes = listOf(child1, child2),
             internalConnections = emptyList(),
             inputPorts = emptyList(),
@@ -79,18 +81,18 @@ class GraphStateTest {
         // When: Ungrouping the GraphNode
         graphState.ungroupGraphNode("graphNode1")
 
-        // Then: Child nodes should have positions offset by GraphNode position
+        // Then: Child nodes should keep their original absolute positions (no offset)
         val restoredChild1 = graphState.flowGraph.findNode("child1")
         val restoredChild2 = graphState.flowGraph.findNode("child2")
 
         assertNotNull(restoredChild1, "child1 should exist in graph")
         assertNotNull(restoredChild2, "child2 should exist in graph")
 
-        // Child positions should be offset by GraphNode position (200, 200)
-        assertEquals(200.0, restoredChild1.position.x, "child1 x position should be offset")
-        assertEquals(200.0, restoredChild1.position.y, "child1 y position should be offset")
-        assertEquals(300.0, restoredChild2.position.x, "child2 x position should be offset")
-        assertEquals(250.0, restoredChild2.position.y, "child2 y position should be offset")
+        // Child positions should be preserved exactly as they were
+        assertEquals(100.0, restoredChild1.position.x, "child1 x position should be preserved")
+        assertEquals(100.0, restoredChild1.position.y, "child1 y position should be preserved")
+        assertEquals(200.0, restoredChild2.position.x, "child2 x position should be preserved")
+        assertEquals(150.0, restoredChild2.position.y, "child2 y position should be preserved")
     }
 
     @Test
