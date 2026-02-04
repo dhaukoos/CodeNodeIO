@@ -7,6 +7,7 @@
 package io.codenode.fbpdsl.model
 
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 
 /**
  * Connection represents a data flow link between two ports in the FBP graph.
@@ -55,6 +56,114 @@ data class Connection(
     val parentScopeId: String? = null,
     val ipTypeId: String? = null
 ) {
+    // ==================== Segment Support ====================
+
+    /**
+     * Cached segments list - computed on first access, invalidated when graph changes
+     */
+    @Transient
+    private var _segments: List<ConnectionSegment>? = null
+
+    /**
+     * Ordered list of segments composing this connection.
+     * Single-segment for direct connections (CodeNode to CodeNode).
+     * Multi-segment for connections crossing GraphNode boundaries.
+     *
+     * Segments are computed lazily and cached for performance.
+     * Call invalidateSegments() after graph structure changes.
+     */
+    val segments: List<ConnectionSegment>
+        get() = _segments ?: computeSegments().also { _segments = it }
+
+    /**
+     * Invalidates the cached segments list.
+     * Call this after any graph structure change that affects this connection
+     * (e.g., grouping nodes, ungrouping, adding/removing PassThruPorts).
+     */
+    fun invalidateSegments() {
+        _segments = null
+    }
+
+    /**
+     * Computes the segment list for this connection.
+     * For now, creates a single segment representing direct connections.
+     * Multi-segment computation for boundary crossings will be enhanced
+     * in User Story 2 (T028-T030).
+     *
+     * @return List of ConnectionSegment representing this connection's visual path
+     */
+    private fun computeSegments(): List<ConnectionSegment> {
+        // Default: single segment for direct CodeNode-to-CodeNode connections
+        // This will be enhanced to detect boundary crossings in later tasks
+        return listOf(
+            ConnectionSegment(
+                id = "${id}_seg_0",
+                sourceNodeId = sourceNodeId,
+                sourcePortId = sourcePortId,
+                targetNodeId = targetNodeId,
+                targetPortId = targetPortId,
+                scopeNodeId = parentScopeId,
+                parentConnectionId = id
+            )
+        )
+    }
+
+    /**
+     * Validates that segments form a continuous path from source to target.
+     *
+     * Checks:
+     * 1. At least one segment exists
+     * 2. First segment source matches connection source
+     * 3. Last segment target matches connection target
+     * 4. Each segment's target matches next segment's source
+     *
+     * @return ValidationResult with success flag and error messages
+     */
+    fun validateSegmentChain(): ValidationResult {
+        val errors = mutableListOf<String>()
+        val segs = segments
+
+        // Check 1: At least one segment
+        if (segs.isEmpty()) {
+            errors.add("Connection must have at least one segment")
+            return ValidationResult(success = false, errors = errors)
+        }
+
+        // Check 2: First segment source matches connection source
+        val first = segs.first()
+        if (first.sourceNodeId != sourceNodeId) {
+            errors.add("First segment source node '${first.sourceNodeId}' must match connection source '$sourceNodeId'")
+        }
+        if (first.sourcePortId != sourcePortId) {
+            errors.add("First segment source port '${first.sourcePortId}' must match connection source '$sourcePortId'")
+        }
+
+        // Check 3: Last segment target matches connection target
+        val last = segs.last()
+        if (last.targetNodeId != targetNodeId) {
+            errors.add("Last segment target node '${last.targetNodeId}' must match connection target '$targetNodeId'")
+        }
+        if (last.targetPortId != targetPortId) {
+            errors.add("Last segment target port '${last.targetPortId}' must match connection target '$targetPortId'")
+        }
+
+        // Check 4: Adjacent segments connect properly
+        for (i in 0 until segs.size - 1) {
+            val current = segs[i]
+            val next = segs[i + 1]
+            if (current.targetNodeId != next.sourceNodeId) {
+                errors.add("Segment $i target node '${current.targetNodeId}' must match segment ${i + 1} source node '${next.sourceNodeId}'")
+            }
+            if (current.targetPortId != next.sourcePortId) {
+                errors.add("Segment $i target port '${current.targetPortId}' must match segment ${i + 1} source port '${next.sourcePortId}'")
+            }
+        }
+
+        return ValidationResult(
+            success = errors.isEmpty(),
+            errors = errors
+        )
+    }
 
     init {
         require(id.isNotBlank()) { "Connection ID cannot be blank" }

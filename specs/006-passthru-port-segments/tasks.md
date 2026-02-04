@@ -24,9 +24,9 @@
 
 **Purpose**: Project initialization and basic structure for PassThruPort/ConnectionSegment feature
 
-- [ ] T001 Verify existing Port model structure in fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/Port.kt
-- [ ] T002 [P] Create model package directory for new entities at fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/
-- [ ] T003 [P] Create test directory at fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/model/
+- [X] T001 Verify existing Port model structure in fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/Port.kt
+- [X] T002 [P] Create model package directory for new entities at fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/
+- [X] T003 [P] Create test directory at fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/model/
 
 ---
 
@@ -38,18 +38,18 @@
 
 ### Tests for Foundation (TDD - Write FIRST, must FAIL) ⚠️
 
-- [ ] T004 [P] Write unit tests for PassThruPort data class (composition, property delegation) in fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/model/PassThruPortTest.kt
-- [ ] T005 [P] Write unit tests for ConnectionSegment data class in fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/model/ConnectionSegmentTest.kt
-- [ ] T006 [P] Write unit tests for Connection.segments property in fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/model/ConnectionSegmentTest.kt
+- [X] T004 [P] Write unit tests for PassThruPort data class (composition, property delegation) in fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/model/PassThruPortTest.kt
+- [X] T005 [P] Write unit tests for ConnectionSegment data class in fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/model/ConnectionSegmentTest.kt
+- [X] T006 [P] Write unit tests for Connection.segments property in fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/model/ConnectionSegmentTest.kt
 
 ### Implementation for Foundation
 
-- [ ] T007 [P] Create PassThruPort data class with port composition and upstream/downstream references in fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/PassThruPort.kt
-- [ ] T008 [P] Create ConnectionSegment data class with source/target/scope references in fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/ConnectionSegment.kt
-- [ ] T009 Add segments property to Connection with cached computation in fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/Connection.kt
-- [ ] T010 Add invalidateSegments() method to Connection in fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/Connection.kt
-- [ ] T011 Add PortShape enum (CIRCLE, SQUARE) in graphEditor/src/jvmMain/kotlin/rendering/PortRenderer.kt
-- [ ] T012 Verify T004-T006 tests pass after implementation
+- [X] T007 [P] Create PassThruPort data class with port composition and upstream/downstream references in fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/PassThruPort.kt
+- [X] T008 [P] Create ConnectionSegment data class with source/target/scope references in fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/ConnectionSegment.kt
+- [X] T009 Add segments property to Connection with cached computation in fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/Connection.kt
+- [X] T010 Add invalidateSegments() method to Connection in fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/Connection.kt
+- [X] T011 Add PortShape enum (CIRCLE, SQUARE) in graphEditor/src/jvmMain/kotlin/rendering/PortRenderer.kt
+- [X] T012 Verify T004-T006 tests pass after implementation
 
 **Checkpoint**: Foundation ready - user story implementation can now begin
 
