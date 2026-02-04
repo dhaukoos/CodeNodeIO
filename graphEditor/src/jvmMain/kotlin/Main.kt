@@ -319,8 +319,11 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                     }
                 },
                 onUngroup = {
-                    // TODO: Implement ungroup functionality
-                    statusMessage = "Ungroup not yet implemented"
+                    val selectedId = graphState.selectionState.selectedNodeIds.firstOrNull()
+                    if (selectedId != null && graphState.ungroupGraphNode(selectedId)) {
+                        val childCount = graphState.selectionState.selectedNodeIds.size
+                        statusMessage = "Ungrouped into $childCount node${if (childCount != 1) "s" else ""}"
+                    }
                 },
                 onNavigateBack = {
                     if (graphState.navigateOut()) {

@@ -169,16 +169,16 @@
 
 ### Tests for User Story 4 (TDD - Write FIRST, must FAIL) ⚠️
 
-- [ ] T049 [P] [US4] Write unit test for ungroupGraphNode() restoring child nodes in graphEditor/src/jvmTest/kotlin/io/codenode/grapheditor/state/GraphStateTest.kt
-- [ ] T050 [P] [US4] Write unit test for connection restoration after ungroup in graphEditor/src/jvmTest/kotlin/io/codenode/grapheditor/state/GraphStateTest.kt
-- [ ] T051 [P] [US4] Write UI test for Ungroup toolbar button behavior in graphEditor/src/jvmTest/kotlin/io/codenode/grapheditor/ui/ToolbarGroupButtonsTest.kt
+- [X] T049 [P] [US4] Write unit test for ungroupGraphNode() restoring child nodes in graphEditor/src/jvmTest/kotlin/io/codenode/grapheditor/state/GraphStateTest.kt
+- [X] T050 [P] [US4] Write unit test for connection restoration after ungroup in graphEditor/src/jvmTest/kotlin/io/codenode/grapheditor/state/GraphStateTest.kt
+- [X] T051 [P] [US4] Write UI test for Ungroup toolbar button behavior in graphEditor/src/jvmTest/kotlin/io/codenode/grapheditor/ui/ToolbarGroupButtonsTest.kt
 
 ### Implementation for User Story 4
 
-- [ ] T052 [US4] Add ungroupGraphNode(graphNodeId: String) method to GraphState in graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/state/GraphState.kt
-- [ ] T053 [US4] Implement node positioning algorithm for ungrouped nodes (avoid overlap) in graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/state/GraphState.kt
-- [ ] T054 [US4] Implement connection restoration from port mappings in ungroupGraphNode in graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/state/GraphState.kt
-- [ ] T055 [US4] Verify T049-T051 tests pass after implementation
+- [X] T052 [US4] Add ungroupGraphNode(graphNodeId: String) method to GraphState in graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/state/GraphState.kt
+- [X] T053 [US4] Implement node positioning algorithm for ungrouped nodes (avoid overlap) in graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/state/GraphState.kt
+- [X] T054 [US4] Implement connection restoration from port mappings in ungroupGraphNode in graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/state/GraphState.kt
+- [X] T055 [US4] Verify T049-T051 tests pass after implementation
 
 **Checkpoint**: User Stories 3 AND 4 complete - full group/ungroup cycle works via toolbar
 

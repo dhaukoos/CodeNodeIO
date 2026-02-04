@@ -690,6 +690,123 @@ class GraphState(initialGraph: FlowGraph = flowGraph(
         return graphNode
     }
 
+    /**
+     * Ungroups a GraphNode, restoring its child nodes and connections to the parent graph.
+     *
+     * This method:
+     * 1. Validates that the node is a GraphNode
+     * 2. Restores child nodes to the root graph with adjusted positions
+     * 3. Restores internal connections to the root graph
+     * 4. Redirects external connections to the original child ports using port mappings
+     * 5. Removes the GraphNode from the graph
+     * 6. Selects the restored child nodes
+     *
+     * @param graphNodeId The ID of the GraphNode to ungroup
+     * @return true if ungrouping was successful, false if the node doesn't exist or isn't a GraphNode
+     */
+    fun ungroupGraphNode(graphNodeId: String): Boolean {
+        // Step 1: Validate that the node exists and is a GraphNode
+        val node = flowGraph.findNode(graphNodeId)
+        if (node !is GraphNode) {
+            return false
+        }
+
+        val graphNode = node
+        val graphNodePosition = graphNode.position
+
+        // Step 2: Prepare child nodes with adjusted positions and cleared parentNodeId
+        // Child positions are relative to the GraphNode, so we offset them by GraphNode position
+        val restoredChildNodes = graphNode.childNodes.map { childNode ->
+            val adjustedPosition = Node.Position(
+                x = childNode.position.x + graphNodePosition.x,
+                y = childNode.position.y + graphNodePosition.y
+            )
+            when (childNode) {
+                is CodeNode -> childNode.copy(
+                    position = adjustedPosition,
+                    parentNodeId = null
+                )
+                is GraphNode -> childNode.copy(
+                    position = adjustedPosition,
+                    parentNodeId = null
+                )
+                else -> childNode.withParent(null)
+            }
+        }
+
+        // Step 3: Build updated graph - start by removing the GraphNode
+        var updatedGraph = flowGraph.removeNode(graphNodeId)
+
+        // Step 4: Add restored child nodes to the graph
+        restoredChildNodes.forEach { childNode ->
+            updatedGraph = updatedGraph.addNode(childNode)
+        }
+
+        // Step 5: Restore internal connections to root graph
+        graphNode.internalConnections.forEach { internalConn ->
+            updatedGraph = updatedGraph.addConnection(internalConn)
+        }
+
+        // Step 6: Redirect external connections using port mappings
+        // Find all connections that reference the GraphNode and redirect them
+        val connectionsToRedirect = flowGraph.connections.filter { conn ->
+            conn.sourceNodeId == graphNodeId || conn.targetNodeId == graphNodeId
+        }
+
+        connectionsToRedirect.forEach { conn ->
+            // Remove the old connection (it references the GraphNode)
+            updatedGraph = updatedGraph.removeConnection(conn.id)
+
+            // Determine the new connection based on port mappings
+            val redirectedConn = if (conn.targetNodeId == graphNodeId) {
+                // Incoming connection: GraphNode is target, redirect to child's input port
+                val portMapping = graphNode.portMappings[conn.targetPortId]
+                if (portMapping != null) {
+                    conn.copy(
+                        targetNodeId = portMapping.childNodeId,
+                        targetPortId = portMapping.childPortName
+                    )
+                } else {
+                    // No mapping found, skip this connection
+                    null
+                }
+            } else if (conn.sourceNodeId == graphNodeId) {
+                // Outgoing connection: GraphNode is source, redirect from child's output port
+                val portMapping = graphNode.portMappings[conn.sourcePortId]
+                if (portMapping != null) {
+                    conn.copy(
+                        sourceNodeId = portMapping.childNodeId,
+                        sourcePortId = portMapping.childPortName
+                    )
+                } else {
+                    // No mapping found, skip this connection
+                    null
+                }
+            } else {
+                null
+            }
+
+            // Add the redirected connection if we found a mapping
+            if (redirectedConn != null) {
+                updatedGraph = updatedGraph.addConnection(redirectedConn)
+            }
+        }
+
+        // Step 7: Update the flow graph
+        flowGraph = updatedGraph
+
+        // Step 8: Clear selection and select restored child nodes
+        clearSelection()
+        restoredChildNodes.forEach { childNode ->
+            toggleNodeInSelection(childNode.id)
+        }
+
+        // Step 9: Mark as dirty
+        isDirty = true
+
+        return true
+    }
+
     // ============================================================================
     // Viewport Operations
     // ============================================================================
