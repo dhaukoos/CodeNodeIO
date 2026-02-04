@@ -6,6 +6,8 @@ Auto-generated from all feature plans. Last updated: 2026-01-13
 - Kotlin 2.1.21 (existing project configuration) (002-generic-nodetype)
 - Kotlin 2.1.21 (KMP), Compose Desktop 1.7.3 + Compose Desktop (UI), kotlinx-coroutines, kotlinx-serialization (005-graphnode-creation)
 - .flow.kts files (DSL serialization format) (005-graphnode-creation)
+- Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + Compose Desktop 1.7.3, kotlinx-serialization, kotlinx-coroutines (006-passthru-port-segments)
+- .flow.kts DSL files (text-based serialization) (006-passthru-port-segments)
 
 - Kotlin 1.9+, Go 1.21+ (001-ide-plugin-platform)
 
@@ -25,10 +27,10 @@ tests/
 Kotlin 1.9+, Go 1.21+: Follow standard conventions
 
 ## Recent Changes
+- 006-passthru-port-segments: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + Compose Desktop 1.7.3, kotlinx-serialization, kotlinx-coroutines
 - 005-graphnode-creation: Added Kotlin 2.1.21 (KMP), Compose Desktop 1.7.3 + Compose Desktop (UI), kotlinx-coroutines, kotlinx-serialization
 - 002-generic-nodetype: Added Kotlin 2.1.21 (existing project configuration)
 
-- 001-ide-plugin-platform: Added Kotlin 1.9+, Go 1.21+
 
 <!-- MANUAL ADDITIONS START -->
 <!-- MANUAL ADDITIONS END -->
