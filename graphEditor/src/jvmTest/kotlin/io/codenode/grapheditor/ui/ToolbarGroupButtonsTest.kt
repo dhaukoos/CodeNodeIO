@@ -280,12 +280,13 @@ class ToolbarGroupButtonsTest {
             )
         )
 
+        // Note: Connection uses port ID ("gn_in"), not port name ("in_child1_in")
         val extConn = Connection(
             id = "ext_conn",
             sourceNodeId = "external",
             sourcePortId = "external_out",
             targetNodeId = "graphNode1",
-            targetPortId = "in_child1_in"
+            targetPortId = "gn_in"
         )
 
         val graph = flowGraph(name = "TestGraph", version = "1.0.0") {}

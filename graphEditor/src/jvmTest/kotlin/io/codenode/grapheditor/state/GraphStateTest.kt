@@ -233,12 +233,13 @@ class GraphStateTest {
         )
 
         // Connection from external to GraphNode's mapped port
+        // Note: Connection uses port ID ("gn_input"), not port name ("in_child1_in")
         val externalConnection = Connection(
             id = "ext_conn",
             sourceNodeId = "external",
             sourcePortId = "external_out",
             targetNodeId = "graphNode1",
-            targetPortId = "in_child1_in"
+            targetPortId = "gn_input"
         )
 
         val graph = flowGraph(name = "TestGraph", version = "1.0.0") {}
@@ -290,10 +291,11 @@ class GraphStateTest {
         )
 
         // Connection from GraphNode's mapped port to external
+        // Note: Connection uses port ID ("gn_output"), not port name ("out_child1_out")
         val externalConnection = Connection(
             id = "ext_conn",
             sourceNodeId = "graphNode1",
-            sourcePortId = "out_child1_out",
+            sourcePortId = "gn_output",
             targetNodeId = "external",
             targetPortId = "external_in"
         )
@@ -360,17 +362,18 @@ class GraphStateTest {
             )
         )
 
+        // Note: Connections use port IDs, not port names
         val incomingConn = Connection(
             id = "incoming",
             sourceNodeId = "source",
             sourcePortId = "source_out",
             targetNodeId = "graphNode1",
-            targetPortId = "in_child1_in"
+            targetPortId = "gn_in"
         )
         val outgoingConn = Connection(
             id = "outgoing",
             sourceNodeId = "graphNode1",
-            sourcePortId = "out_child2_out",
+            sourcePortId = "gn_out",
             targetNodeId = "sink",
             targetPortId = "sink_in"
         )

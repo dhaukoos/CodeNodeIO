@@ -786,9 +786,13 @@ class GraphState(initialGraph: FlowGraph = flowGraph(
             updatedGraph = updatedGraph.removeConnection(conn.id)
 
             // Determine the new connection based on port mappings
+            // Note: portMappings is keyed by port NAME, but connections use port ID
+            // We need to find the port by ID first, then look up by name
             val redirectedConn = if (conn.targetNodeId == graphNodeId) {
                 // Incoming connection: GraphNode is target, redirect to child's input port
-                val portMapping = graphNode.portMappings[conn.targetPortId]
+                // Find the GraphNode's input port by ID, then get its name for the mapping lookup
+                val graphNodePort = graphNode.inputPorts.find { it.id == conn.targetPortId }
+                val portMapping = graphNodePort?.let { graphNode.portMappings[it.name] }
                 if (portMapping != null) {
                     conn.copy(
                         targetNodeId = portMapping.childNodeId,
@@ -800,7 +804,9 @@ class GraphState(initialGraph: FlowGraph = flowGraph(
                 }
             } else if (conn.sourceNodeId == graphNodeId) {
                 // Outgoing connection: GraphNode is source, redirect from child's output port
-                val portMapping = graphNode.portMappings[conn.sourcePortId]
+                // Find the GraphNode's output port by ID, then get its name for the mapping lookup
+                val graphNodePort = graphNode.outputPorts.find { it.id == conn.sourcePortId }
+                val portMapping = graphNodePort?.let { graphNode.portMappings[it.name] }
                 if (portMapping != null) {
                     conn.copy(
                         sourceNodeId = portMapping.childNodeId,
