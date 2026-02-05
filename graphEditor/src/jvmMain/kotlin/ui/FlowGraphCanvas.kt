@@ -1354,11 +1354,14 @@ private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawBoundaryConnect
         // Find the port mapping for this boundary port
         val mapping = graphNode.portMappings[boundaryPort.name]
         if (mapping != null) {
-            // Find the child node
+            // Find the child node by ID first, then by name (for deserialized graphs)
             val childNode = childNodes.find { it.id == mapping.childNodeId }
+                ?: childNodes.find { it.name == mapping.childNodeId }
             if (childNode != null) {
-                // Find the child port index (childPortName is actually the port ID)
-                val childPortIndex = childNode.inputPorts.indexOfFirst { it.id == mapping.childPortName }
+                // Find the child port index by ID first, then by name (for deserialized graphs)
+                val childPortIndex = childNode.inputPorts.indexOfFirst {
+                    it.id == mapping.childPortName || it.name == mapping.childPortName
+                }
                 if (childPortIndex >= 0) {
                     // Calculate child node port position (in screen coordinates)
                     // Apply drag offset if this node is being dragged
@@ -1398,11 +1401,14 @@ private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawBoundaryConnect
         // Find the port mapping for this boundary port
         val mapping = graphNode.portMappings[boundaryPort.name]
         if (mapping != null) {
-            // Find the child node
+            // Find the child node by ID first, then by name (for deserialized graphs)
             val childNode = childNodes.find { it.id == mapping.childNodeId }
+                ?: childNodes.find { it.name == mapping.childNodeId }
             if (childNode != null) {
-                // Find the child port index (childPortName is actually the port ID)
-                val childPortIndex = childNode.outputPorts.indexOfFirst { it.id == mapping.childPortName }
+                // Find the child port index by ID first, then by name (for deserialized graphs)
+                val childPortIndex = childNode.outputPorts.indexOfFirst {
+                    it.id == mapping.childPortName || it.name == mapping.childPortName
+                }
                 if (childPortIndex >= 0) {
                     // Calculate child node port position (in screen coordinates)
                     // Apply drag offset if this node is being dragged

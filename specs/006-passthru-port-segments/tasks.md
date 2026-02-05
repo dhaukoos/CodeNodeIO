@@ -191,12 +191,12 @@
 
 ### Implementation for Serialization
 
-- [ ] T060 Add PassThruPort serialization to FlowGraphSerializer in graphEditor/src/jvmMain/kotlin/serialization/FlowGraphSerializer.kt
-- [ ] T061 Add ConnectionSegment serialization to FlowGraphSerializer in graphEditor/src/jvmMain/kotlin/serialization/FlowGraphSerializer.kt
-- [ ] T062 Add PassThruPort deserialization to FlowGraphDeserializer in graphEditor/src/jvmMain/kotlin/serialization/FlowGraphDeserializer.kt
-- [ ] T063 Add ConnectionSegment deserialization to FlowGraphDeserializer in graphEditor/src/jvmMain/kotlin/serialization/FlowGraphDeserializer.kt
-- [ ] T064 Implement backward compatibility (upgrade old files on load) in graphEditor/src/jvmMain/kotlin/serialization/FlowGraphDeserializer.kt
-- [ ] T065 Verify T057-T059 tests pass after implementation
+- [X] T060 Add PassThruPort serialization to FlowGraphSerializer in graphEditor/src/jvmMain/kotlin/serialization/FlowGraphSerializer.kt
+- [X] T061 Add ConnectionSegment serialization to FlowGraphSerializer in graphEditor/src/jvmMain/kotlin/serialization/FlowGraphSerializer.kt
+- [X] T062 Add PassThruPort deserialization to FlowGraphDeserializer in graphEditor/src/jvmMain/kotlin/serialization/FlowGraphDeserializer.kt
+- [X] T063 Add ConnectionSegment deserialization to FlowGraphDeserializer in graphEditor/src/jvmMain/kotlin/serialization/FlowGraphDeserializer.kt
+- [X] T064 Implement backward compatibility (upgrade old files on load) in graphEditor/src/jvmMain/kotlin/serialization/FlowGraphDeserializer.kt
+- [X] T065 Verify T057-T059 tests pass after implementation
 
 **Checkpoint**: Serialization complete - PassThruPorts and segments persist correctly
 

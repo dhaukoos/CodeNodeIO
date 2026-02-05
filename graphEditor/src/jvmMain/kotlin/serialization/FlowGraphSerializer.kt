@@ -7,6 +7,7 @@
 package io.codenode.grapheditor.serialization
 
 import io.codenode.fbpdsl.model.*
+import io.codenode.fbpdsl.model.PassThruPort
 import java.io.File
 import java.io.Writer
 
@@ -81,14 +82,16 @@ object FlowGraphSerializer {
         if (graph.rootNodes.isNotEmpty()) {
             builder.appendLine("${indent}// Nodes")
             val nodeVariables = mutableMapOf<String, String>()
+            val allNodes = mutableMapOf<String, Node>()
 
             graph.rootNodes.forEachIndexed { index, node ->
                 val varName = sanitizeVariableName(node.name) + if (index > 0) index else ""
                 nodeVariables[node.id] = varName
+                allNodes[node.id] = node
 
                 when (node) {
                     is CodeNode -> serializeCodeNode(node, varName, builder, indent)
-                    is GraphNode -> serializeGraphNode(node, varName, builder, indent)
+                    is GraphNode -> serializeGraphNode(node, varName, builder, indent, graph.connections)
                     else -> builder.appendLine("${indent}// Unknown node type: ${node::class.simpleName}")
                 }
                 builder.appendLine()
@@ -98,7 +101,7 @@ object FlowGraphSerializer {
             if (graph.connections.isNotEmpty()) {
                 builder.appendLine("${indent}// Connections")
                 graph.connections.forEach { connection ->
-                    serializeConnection(connection, nodeVariables, builder, indent)
+                    serializeConnection(connection, nodeVariables, allNodes, builder, indent)
                 }
             }
         }
@@ -169,12 +172,20 @@ object FlowGraphSerializer {
      * - Recursive child node serialization (T078)
      * - Internal connections (T079)
      * - Port mappings (T080)
+     * - T060: PassThruPort upstream/downstream references
+     *
+     * @param node The GraphNode to serialize
+     * @param varName The variable name to use in DSL
+     * @param builder The StringBuilder to write to
+     * @param indent The current indentation level
+     * @param externalConnections Connections from/to this GraphNode from parent scope
      */
     private fun serializeGraphNode(
         node: GraphNode,
         varName: String,
         builder: StringBuilder,
-        indent: String
+        indent: String,
+        externalConnections: List<Connection> = emptyList()
     ) {
         builder.appendLine("${indent}val $varName = graphNode(\"${escapeString(node.name)}\") {")
 
@@ -201,7 +212,7 @@ object FlowGraphSerializer {
 
                 when (childNode) {
                     is CodeNode -> serializeCodeNode(childNode, childVarName, builder, innerIndent)
-                    is GraphNode -> serializeGraphNode(childNode, childVarName, builder, innerIndent)
+                    is GraphNode -> serializeGraphNode(childNode, childVarName, builder, innerIndent, node.internalConnections)
                     else -> builder.appendLine("${innerIndent}// Unknown child node type: ${childNode::class.simpleName}")
                 }
                 builder.appendLine()
@@ -218,23 +229,32 @@ object FlowGraphSerializer {
         }
 
         // T080: Serialize port mappings
+        // Use child node NAME and port NAME (not IDs) for stable serialization
         if (node.portMappings.isNotEmpty()) {
             builder.appendLine("${innerIndent}// Port mappings")
             node.portMappings.forEach { (portName, mapping) ->
-                builder.appendLine("${innerIndent}portMapping(\"${escapeString(portName)}\", \"${escapeString(mapping.childNodeId)}\", \"${escapeString(mapping.childPortName)}\")")
+                // Look up child node to get its name (more stable than ID)
+                val childNode = node.childNodes.find { it.id == mapping.childNodeId }
+                val childNodeName = childNode?.name ?: mapping.childNodeId
+
+                // Look up child port to get its name (more stable than ID)
+                val childPort = if (mapping.childPortName.isNotEmpty()) {
+                    childNode?.inputPorts?.find { it.id == mapping.childPortName || it.name == mapping.childPortName }
+                        ?: childNode?.outputPorts?.find { it.id == mapping.childPortName || it.name == mapping.childPortName }
+                } else null
+                val childPortName = childPort?.name ?: mapping.childPortName
+
+                builder.appendLine("${innerIndent}portMapping(\"${escapeString(portName)}\", \"${escapeString(childNodeName)}\", \"${escapeString(childPortName)}\")")
             }
         }
 
         // Serialize GraphNode's own input/output ports if present
+        // T060: Enhanced to include PassThruPort upstream/downstream references
         if (node.inputPorts.isNotEmpty()) {
             builder.appendLine()
             builder.appendLine("${innerIndent}// Exposed input ports")
             node.inputPorts.forEach { port ->
-                builder.append("${innerIndent}exposeInput(\"${escapeString(port.name)}\", ${port.dataType.simpleName ?: "Any"}::class")
-                if (port.required) {
-                    builder.append(", required = true")
-                }
-                builder.appendLine(")")
+                serializeExposedPort(port, "exposeInput", builder, innerIndent, node.portMappings, node.id, externalConnections)
             }
         }
 
@@ -242,15 +262,68 @@ object FlowGraphSerializer {
             builder.appendLine()
             builder.appendLine("${innerIndent}// Exposed output ports")
             node.outputPorts.forEach { port ->
-                builder.append("${innerIndent}exposeOutput(\"${escapeString(port.name)}\", ${port.dataType.simpleName ?: "Any"}::class")
-                if (port.required) {
-                    builder.append(", required = true")
-                }
-                builder.appendLine(")")
+                serializeExposedPort(port, "exposeOutput", builder, innerIndent, node.portMappings, node.id, externalConnections)
             }
         }
 
         builder.appendLine("${indent}}")
+    }
+
+    /**
+     * Serializes an exposed port (input or output) on a GraphNode.
+     * T060: Includes PassThruPort upstream/downstream references if present.
+     *
+     * @param port The port to serialize (may be a PassThruPort or regular Port)
+     * @param keyword The DSL keyword to use (exposeInput or exposeOutput)
+     * @param builder The StringBuilder to write to
+     * @param indent The current indentation level
+     * @param portMappings The GraphNode's port mappings for reference
+     * @param graphNodeId The ID of the GraphNode owning this port
+     * @param externalConnections Connections from/to this GraphNode from parent scope
+     */
+    private fun serializeExposedPort(
+        port: Port<*>,
+        keyword: String,
+        builder: StringBuilder,
+        indent: String,
+        portMappings: Map<String, GraphNode.PortMapping>,
+        graphNodeId: String,
+        externalConnections: List<Connection>
+    ) {
+        builder.append("${indent}$keyword(\"${escapeString(port.name)}\", ${port.dataType.simpleName ?: "Any"}::class")
+
+        if (port.required) {
+            builder.append(", required = true")
+        }
+
+        // T060: Add upstream/downstream references from port mapping and external connections
+        val mapping = portMappings[port.name]
+
+        if (keyword == "exposeInput") {
+            // For INPUT: upstream is external (from connections), downstream is internal (from mapping)
+            val incomingConn = externalConnections.find {
+                it.targetNodeId == graphNodeId && it.targetPortId == port.id
+            }
+            if (incomingConn != null) {
+                builder.append(", upstream = \"${escapeString(incomingConn.sourceNodeId)}:${escapeString(incomingConn.sourcePortId)}\"")
+            }
+            if (mapping != null) {
+                builder.append(", downstream = \"${escapeString(mapping.childNodeId)}:${escapeString(mapping.childPortName)}\"")
+            }
+        } else {
+            // For OUTPUT: upstream is internal (from mapping), downstream is external (from connections)
+            if (mapping != null) {
+                builder.append(", upstream = \"${escapeString(mapping.childNodeId)}:${escapeString(mapping.childPortName)}\"")
+            }
+            val outgoingConn = externalConnections.find {
+                it.sourceNodeId == graphNodeId && it.sourcePortId == port.id
+            }
+            if (outgoingConn != null) {
+                builder.append(", downstream = \"${escapeString(outgoingConn.targetNodeId)}:${escapeString(outgoingConn.targetPortId)}\"")
+            }
+        }
+
+        builder.appendLine(")")
     }
 
     /**
@@ -289,19 +362,32 @@ object FlowGraphSerializer {
 
     /**
      * Serializes a Connection to DSL format
+     *
+     * @param connection The connection to serialize
+     * @param nodeVariables Map of node ID to variable name
+     * @param allNodes Map of node ID to Node (for port lookup)
+     * @param builder The StringBuilder to write to
+     * @param indent The current indentation level
      */
     private fun serializeConnection(
         connection: Connection,
         nodeVariables: Map<String, String>,
+        allNodes: Map<String, Node>,
         builder: StringBuilder,
         indent: String
     ) {
         val sourceVar = nodeVariables[connection.sourceNodeId] ?: "unknownNode"
         val targetVar = nodeVariables[connection.targetNodeId] ?: "unknownNode"
 
-        // Find port names (simplified - assumes port IDs contain port names)
-        val sourcePortName = connection.sourcePortId.substringAfterLast("_")
-        val targetPortName = connection.targetPortId.substringAfterLast("_")
+        // Look up actual port names from nodes
+        val sourceNode = allNodes[connection.sourceNodeId]
+        val targetNode = allNodes[connection.targetNodeId]
+
+        val sourcePort = sourceNode?.outputPorts?.find { it.id == connection.sourcePortId }
+        val targetPort = targetNode?.inputPorts?.find { it.id == connection.targetPortId }
+
+        val sourcePortName = sourcePort?.name ?: connection.sourcePortId.substringAfterLast("_")
+        val targetPortName = targetPort?.name ?: connection.targetPortId.substringAfterLast("_")
 
         builder.append("${indent}$sourceVar.output(\"$sourcePortName\") connect ")
         builder.append("$targetVar.input(\"$targetPortName\")")

@@ -778,4 +778,44 @@ class ConnectionSegmentSerializationTest {
             targetPlatforms = emptyList()
         )
     }
+
+    @Test
+    fun `should preserve boundary connection segments after roundtrip`() {
+        // Given: A GraphNode with port mappings to interior nodes
+        val graph = createGraphWithTwoSegmentConnection()
+        val originalGraphNode = graph.rootNodes.filterIsInstance<GraphNode>().first()
+
+        // Verify original has port mappings
+        assertTrue(originalGraphNode.portMappings.isNotEmpty(), "GraphNode should have port mappings")
+
+        // When: Serializing and deserializing
+        val dsl = FlowGraphSerializer.serialize(graph)
+        val result = FlowGraphDeserializer.deserialize(dsl)
+
+        // Then: Port mappings should be preserved with correct references
+        assertTrue(result.isSuccess, "Roundtrip should succeed: ${result.errorMessage}")
+
+        val deserializedGraphNode = result.graph!!.rootNodes.filterIsInstance<GraphNode>().first()
+
+        // Port mappings should be preserved
+        assertEquals(
+            originalGraphNode.portMappings.size,
+            deserializedGraphNode.portMappings.size,
+            "Port mapping count should be preserved"
+        )
+
+        // Child nodes should exist
+        assertTrue(deserializedGraphNode.childNodes.isNotEmpty(), "Child nodes should be preserved")
+
+        // Port mapping should reference valid child nodes (by name, after deserialization)
+        deserializedGraphNode.portMappings.forEach { (portName, mapping) ->
+            val childNode = deserializedGraphNode.childNodes.find { it.name == mapping.childNodeId }
+            assertNotNull(childNode, "Port mapping for '$portName' should reference valid child node by name: ${mapping.childNodeId}")
+
+            // Child port should exist (by name)
+            val childPort = childNode!!.inputPorts.find { it.name == mapping.childPortName }
+                ?: childNode.outputPorts.find { it.name == mapping.childPortName }
+            assertNotNull(childPort, "Port mapping for '$portName' should reference valid child port by name: ${mapping.childPortName}")
+        }
+    }
 }

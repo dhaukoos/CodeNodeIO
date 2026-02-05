@@ -391,8 +391,9 @@ object FlowGraphDeserializer {
         val portMappings = parsePortMappings(nodeBody)
 
         // Parse exposed input ports
+        // T062: Updated regex to handle optional upstream/downstream parameters
         val inputPorts = mutableListOf<Port<Any>>()
-        val exposeInputPattern = Regex("""exposeInput\s*\(\s*"([^"]*)"\s*,\s*(\w+)::class(?:\s*,\s*required\s*=\s*(true|false))?\s*\)""")
+        val exposeInputPattern = Regex("""exposeInput\s*\(\s*"([^"]*)"\s*,\s*(\w+)::class[^)]*\)""")
         exposeInputPattern.findAll(nodeBody).forEach { inputMatch ->
             val portName = inputMatch.groupValues[1]
             val portId = "port_${System.currentTimeMillis()}_${(0..9999).random()}_$portName"
@@ -406,8 +407,9 @@ object FlowGraphDeserializer {
         }
 
         // Parse exposed output ports
+        // T062: Updated regex to handle optional upstream/downstream parameters
         val outputPorts = mutableListOf<Port<Any>>()
-        val exposeOutputPattern = Regex("""exposeOutput\s*\(\s*"([^"]*)"\s*,\s*(\w+)::class(?:\s*,\s*required\s*=\s*(true|false))?\s*\)""")
+        val exposeOutputPattern = Regex("""exposeOutput\s*\(\s*"([^"]*)"\s*,\s*(\w+)::class[^)]*\)""")
         exposeOutputPattern.findAll(nodeBody).forEach { outputMatch ->
             val portName = outputMatch.groupValues[1]
             val portId = "port_${System.currentTimeMillis()}_${(0..9999).random()}_$portName"
