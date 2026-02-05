@@ -185,9 +185,9 @@
 
 ### Tests for Serialization (TDD - Write FIRST, must FAIL) ⚠️
 
-- [ ] T057 [P] Write unit tests for PassThruPort serialization in graphEditor/src/jvmTest/kotlin/serialization/PassThruPortSerializationTest.kt
-- [ ] T058 [P] Write unit tests for ConnectionSegment serialization in graphEditor/src/jvmTest/kotlin/serialization/ConnectionSegmentSerializationTest.kt
-- [ ] T059 [P] Write unit tests for backward compatibility (files without PassThruPorts) in graphEditor/src/jvmTest/kotlin/serialization/BackwardCompatibilityTest.kt
+- [X] T057 [P] Write unit tests for PassThruPort serialization in graphEditor/src/jvmTest/kotlin/serialization/PassThruPortSerializationTest.kt
+- [X] T058 [P] Write unit tests for ConnectionSegment serialization in graphEditor/src/jvmTest/kotlin/serialization/ConnectionSegmentSerializationTest.kt
+- [X] T059 [P] Write unit tests for backward compatibility (files without PassThruPorts) in graphEditor/src/jvmTest/kotlin/serialization/BackwardCompatibilityTest.kt
 
 ### Implementation for Serialization
 

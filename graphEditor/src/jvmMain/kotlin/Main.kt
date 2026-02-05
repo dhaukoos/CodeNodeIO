@@ -628,6 +628,10 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                                         statusMessage = "Navigated into: $nodeName"
                                     }
                                 },
+                                // Track canvas size for auto-centering
+                                onCanvasSizeChanged = { size ->
+                                    graphState.updateCanvasSize(size)
+                                },
                                 displayNodes = graphState.getNodesInCurrentContext(),
                                 displayConnections = graphState.getConnectionsInCurrentContext(),
                                 currentGraphNode = graphState.getCurrentGraphNode()

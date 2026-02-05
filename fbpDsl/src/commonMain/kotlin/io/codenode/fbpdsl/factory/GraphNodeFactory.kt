@@ -73,9 +73,21 @@ object GraphNodeFactory {
             return null // Not enough valid nodes found
         }
 
-        // Update child nodes with new parentNodeId
+        // Calculate bounding box of selected nodes for normalization
+        val minX = selectedNodes.minOf { it.position.x }
+        val minY = selectedNodes.minOf { it.position.y }
+
+        // Shift child nodes so their bounding box starts at a small margin
+        // This keeps all positions non-negative (Position requires x,y >= 0)
+        // The UI layer will calculate the actual center for display centering
+        val margin = 50.0
         val childNodes = selectedNodes.map { node ->
-            node.withParent(graphNodeId)
+            node.withParent(graphNodeId).withPosition(
+                Node.Position(
+                    x = node.position.x - minX + margin,
+                    y = node.position.y - minY + margin
+                )
+            )
         }
 
         // Identify internal connections (both endpoints are selected)

@@ -77,6 +77,13 @@ class GraphState(initialGraph: FlowGraph = flowGraph(
         private set
 
     /**
+     * Canvas size in pixels (updated by the UI when canvas renders)
+     * Used for auto-centering when navigating into GraphNodes
+     */
+    var canvasSize by mutableStateOf(androidx.compose.ui.geometry.Size(800f, 600f))
+        private set
+
+    /**
      * Whether the graph has unsaved changes
      */
     var isDirty by mutableStateOf(false)
@@ -952,6 +959,15 @@ class GraphState(initialGraph: FlowGraph = flowGraph(
         scale = 1f
     }
 
+    /**
+     * Updates the canvas size (called by the UI when canvas dimensions change)
+     *
+     * @param size New canvas size in pixels
+     */
+    fun updateCanvasSize(size: androidx.compose.ui.geometry.Size) {
+        canvasSize = size
+    }
+
     // ============================================================================
     // Drag Operations
     // ============================================================================
@@ -1320,6 +1336,34 @@ class GraphState(initialGraph: FlowGraph = flowGraph(
         }
         navigationContext = navigationContext.pushInto(graphNodeId)
         clearSelection()
+
+        // Auto-center the view on the child nodes
+        // Calculate the center of children's bounding box
+        if (node.childNodes.isNotEmpty()) {
+            val minX = node.childNodes.minOf { it.position.x }
+            val maxX = node.childNodes.maxOf { it.position.x }
+            val minY = node.childNodes.minOf { it.position.y }
+            val maxY = node.childNodes.maxOf { it.position.y }
+
+            // Add typical node dimensions to get true bounding box
+            val nodeWidth = 180.0  // Approximate node width
+            val nodeHeight = 80.0  // Approximate node height
+            val childrenCenterX = (minX + maxX + nodeWidth) / 2
+            val childrenCenterY = (minY + maxY + nodeHeight) / 2
+
+            // Set panOffset so the children's center maps to the canvas center
+            // screenPos = graphPos * scale + panOffset
+            // canvasCenter = childrenCenter * scale + panOffset
+            // panOffset = canvasCenter - childrenCenter * scale
+            panOffset = Offset(
+                (canvasSize.width / 2 - childrenCenterX * scale).toFloat(),
+                (canvasSize.height / 2 - childrenCenterY * scale).toFloat()
+            )
+        } else {
+            // No children - just center at origin
+            panOffset = Offset(canvasSize.width / 2, canvasSize.height / 2)
+        }
+
         return true
     }
 

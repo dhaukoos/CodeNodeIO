@@ -86,6 +86,7 @@ fun FlowGraphCanvas(
     onRectangularSelectionUpdate: (Offset) -> Unit = {},
     onRectangularSelectionFinish: () -> Unit = {},
     onGraphNodeExpandClicked: (graphNodeId: String) -> Unit = {},
+    onCanvasSizeChanged: (androidx.compose.ui.geometry.Size) -> Unit = {},
     displayNodes: List<Node>? = null,
     displayConnections: List<Connection>? = null,
     currentGraphNode: GraphNode? = null,
@@ -442,9 +443,18 @@ fun FlowGraphCanvas(
                 }
             }
     ) {
+        // Track canvas size for auto-centering when navigating into GraphNodes
+        var lastReportedSize by remember { mutableStateOf(androidx.compose.ui.geometry.Size.Zero) }
+
         Canvas(
             modifier = Modifier.fillMaxSize()
         ) {
+            // Report canvas size changes
+            if (size != lastReportedSize) {
+                lastReportedSize = size
+                onCanvasSizeChanged(size)
+            }
+
             // Draw grid background
             drawGrid(panOffset, scale)
 
@@ -1100,7 +1110,6 @@ private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawGraphNodeBounda
     val boundaryColor = Color(0xFF1565C0)  // Blue to match GraphNode style
     val boundaryColorLight = Color(0xFF64B5F6)
     val portRadius = 8f * scale
-    val portSpacing = 30f * scale
     val edgePadding = 20f * scale
     val labelWidth = 60f * scale
 
@@ -1118,11 +1127,10 @@ private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawGraphNodeBounda
         )
 
         // Draw input ports along left edge as SQUARES (PassThruPorts)
-        // Center ports vertically based on number of ports
-        val inputPortsHeight = (graphNode.inputPorts.size - 1) * portSpacing
-        val startY = (canvasSize.height - inputPortsHeight) / 2
+        // Equidistantly spaced along the full boundary height
+        val inputSpacing = canvasSize.height / (graphNode.inputPorts.size + 1)
         graphNode.inputPorts.forEachIndexed { index, port ->
-            val portY = startY + (index * portSpacing)
+            val portY = inputSpacing * (index + 1)
             val portX = edgePadding
 
             // Draw port as SQUARE (PassThruPort style for GraphNode boundary)
@@ -1184,11 +1192,10 @@ private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawGraphNodeBounda
         )
 
         // Draw output ports along right edge as SQUARES (PassThruPorts)
-        // Center ports vertically based on number of ports
-        val outputPortsHeight = (graphNode.outputPorts.size - 1) * portSpacing
-        val outputStartY = (canvasSize.height - outputPortsHeight) / 2
+        // Equidistantly spaced along the full boundary height
+        val outputSpacing = canvasSize.height / (graphNode.outputPorts.size + 1)
         graphNode.outputPorts.forEachIndexed { index, port ->
-            val portY = outputStartY + (index * portSpacing)
+            val portY = outputSpacing * (index + 1)
             val portX = rightEdgeX
 
             // Draw port as SQUARE (PassThruPort style for GraphNode boundary)
@@ -1318,17 +1325,18 @@ private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawBoundaryConnect
     dragOffset: Offset = Offset.Zero,
     boundaryPortColors: Map<String, Color> = emptyMap()
 ) {
-    val portSpacing = 30f * scale
     val edgePadding = 20f * scale
     val nodeWidth = 180f * scale
     val headerHeight = 30f * scale
     val childPortSpacing = 25f * scale
 
-    // Calculate centered vertical positions for input and output boundary ports
-    val inputPortsHeight = (graphNode.inputPorts.size - 1) * portSpacing
-    val inputStartY = (canvasSize.height - inputPortsHeight) / 2
-    val outputPortsHeight = (graphNode.outputPorts.size - 1) * portSpacing
-    val outputStartY = (canvasSize.height - outputPortsHeight) / 2
+    // Calculate equidistantly spaced vertical positions for input and output boundary ports
+    val inputSpacing = if (graphNode.inputPorts.isNotEmpty()) {
+        canvasSize.height / (graphNode.inputPorts.size + 1)
+    } else 0f
+    val outputSpacing = if (graphNode.outputPorts.isNotEmpty()) {
+        canvasSize.height / (graphNode.outputPorts.size + 1)
+    } else 0f
 
     // Default color for connections without IP type (dark gray)
     val defaultConnectionColor = Color(0xFF424242)
@@ -1336,7 +1344,7 @@ private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawBoundaryConnect
 
     // Draw segments from INPUT boundary ports to child node input ports
     graphNode.inputPorts.forEachIndexed { index, boundaryPort ->
-        val boundaryPortY = inputStartY + (index * portSpacing)
+        val boundaryPortY = inputSpacing * (index + 1)
         val boundaryPortX = edgePadding
         val boundaryPortPos = Offset(boundaryPortX, boundaryPortY)
 
@@ -1380,7 +1388,7 @@ private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawBoundaryConnect
 
     // Draw segments from child node output ports to OUTPUT boundary ports
     graphNode.outputPorts.forEachIndexed { index, boundaryPort ->
-        val boundaryPortY = outputStartY + (index * portSpacing)
+        val boundaryPortY = outputSpacing * (index + 1)
         val boundaryPortX = canvasSize.width - edgePadding
         val boundaryPortPos = Offset(boundaryPortX, boundaryPortY)
 
