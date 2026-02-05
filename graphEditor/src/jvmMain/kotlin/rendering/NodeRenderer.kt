@@ -165,7 +165,8 @@ private fun DrawScope.renderCodeNode(
 }
 
 /**
- * Renders ports on a node
+ * Renders ports on a node using the unified renderPort function
+ * Regular ports are rendered as CIRCLE shapes
  */
 private fun DrawScope.renderPorts(
     node: CodeNode,
@@ -174,29 +175,25 @@ private fun DrawScope.renderPorts(
     nodeHeight: Float,
     scale: Float
 ) {
-    val portRadius = 6f * scale
     val portSpacing = if (node.inputPorts.size > 1) {
         (nodeHeight - 20f * scale) / (node.inputPorts.size + 1)
     } else {
         nodeHeight / 2
     }
 
-    // Draw input ports (left side)
+    // Draw input ports (left side) using renderPort with CIRCLE shape
     node.inputPorts.forEachIndexed { index, port ->
         val portY = position.y + portSpacing * (index + 1)
         val portCenter = Offset(position.x, portY)
 
-        drawCircle(
-            color = getPortColor(port),
-            radius = portRadius,
-            center = portCenter
-        )
-
-        drawCircle(
-            color = Color(0xFF424242),
-            radius = portRadius,
-            center = portCenter,
-            style = Stroke(width = 1.5f * scale)
+        // Use getPortShape() to determine the shape (CIRCLE for regular ports)
+        renderPort(
+            position = portCenter,
+            direction = port.direction,
+            shape = port.getPortShape(),
+            isHovered = false,
+            isConnected = true,  // Assume connected for now
+            scale = scale
         )
     }
 
@@ -211,17 +208,14 @@ private fun DrawScope.renderPorts(
         val portY = position.y + outputPortSpacing * (index + 1)
         val portCenter = Offset(position.x + nodeWidth, portY)
 
-        drawCircle(
-            color = getPortColor(port),
-            radius = portRadius,
-            center = portCenter
-        )
-
-        drawCircle(
-            color = Color(0xFF424242),
-            radius = portRadius,
-            center = portCenter,
-            style = Stroke(width = 1.5f * scale)
+        // Use getPortShape() to determine the shape (CIRCLE for regular ports)
+        renderPort(
+            position = portCenter,
+            direction = port.direction,
+            shape = port.getPortShape(),
+            isHovered = false,
+            isConnected = true,  // Assume connected for now
+            scale = scale
         )
     }
 }

@@ -115,18 +115,18 @@
 
 ### Tests for User Story 3 (TDD - Write FIRST, must FAIL) ⚠️
 
-- [ ] T033 [P] [US3] Write unit tests for Port.getPortShape() returning CIRCLE in graphEditor/src/jvmTest/kotlin/io/codenode/grapheditor/rendering/PortRenderingTest.kt
-- [ ] T034 [P] [US3] Write unit tests for PassThruPort.getPortShape() returning SQUARE in graphEditor/src/jvmTest/kotlin/io/codenode/grapheditor/rendering/PortRenderingTest.kt
-- [ ] T035 [P] [US3] Write rendering tests for circle vs square port shapes in graphEditor/src/jvmTest/kotlin/io/codenode/grapheditor/rendering/PortRenderingTest.kt
+- [X] T033 [P] [US3] Write unit tests for Port.getPortShape() returning CIRCLE in graphEditor/src/jvmTest/kotlin/io/codenode/grapheditor/rendering/PortRenderingTest.kt
+- [X] T034 [P] [US3] Write unit tests for PassThruPort.getPortShape() returning SQUARE in graphEditor/src/jvmTest/kotlin/io/codenode/grapheditor/rendering/PortRenderingTest.kt
+- [X] T035 [P] [US3] Write rendering tests for circle vs square port shapes in graphEditor/src/jvmTest/kotlin/io/codenode/grapheditor/rendering/PortRenderingTest.kt
 
 ### Implementation for User Story 3
 
-- [ ] T036 [US3] Add getPortShape() extension function for Port in graphEditor/src/jvmMain/kotlin/rendering/PortRenderer.kt
-- [ ] T037 [US3] Implement renderPort() with shape parameter in graphEditor/src/jvmMain/kotlin/rendering/PortRenderer.kt
-- [ ] T038 [US3] Update NodeRenderer to call renderPort() with correct shape in graphEditor/src/jvmMain/kotlin/rendering/NodeRenderer.kt
-- [ ] T039 [US3] Implement renderBoundaryPorts() for GraphNode boundary in graphEditor/src/jvmMain/kotlin/rendering/PortRenderer.kt
-- [ ] T040 [US3] Integrate boundary port rendering into GraphNodeRenderer in graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/GraphNodeRenderer.kt
-- [ ] T041 [US3] Verify T033-T035 tests pass after implementation
+- [X] T036 [US3] Add getPortShape() extension function for Port in graphEditor/src/jvmMain/kotlin/rendering/PortRenderer.kt
+- [X] T037 [US3] Implement renderPort() with shape parameter in graphEditor/src/jvmMain/kotlin/rendering/PortRenderer.kt
+- [X] T038 [US3] Update NodeRenderer to call renderPort() with correct shape in graphEditor/src/jvmMain/kotlin/rendering/NodeRenderer.kt
+- [X] T039 [US3] Implement renderBoundaryPorts() for GraphNode boundary in graphEditor/src/jvmMain/kotlin/rendering/PortRenderer.kt
+- [X] T040 [US3] Integrate boundary port rendering into GraphNodeRenderer in graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/GraphNodeRenderer.kt
+- [X] T041 [US3] Verify T033-T035 tests pass after implementation
 
 **Checkpoint**: User Story 3 complete - Port shapes visually distinguish PassThruPorts
 
