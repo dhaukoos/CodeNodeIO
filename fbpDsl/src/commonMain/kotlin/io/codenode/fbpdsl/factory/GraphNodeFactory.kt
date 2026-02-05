@@ -79,9 +79,14 @@ object GraphNodeFactory {
         }
 
         // Identify internal connections (both endpoints are selected)
-        val internalConnections = allConnections.filter { conn ->
-            conn.sourceNodeId in selectedNodeIds && conn.targetNodeId in selectedNodeIds
-        }
+        // Set parentScopeId to the GraphNode ID so segments have correct scopeNodeId
+        val internalConnections = allConnections
+            .filter { conn ->
+                conn.sourceNodeId in selectedNodeIds && conn.targetNodeId in selectedNodeIds
+            }
+            .map { conn ->
+                conn.copy(parentScopeId = graphNodeId)
+            }
 
         // Generate port mappings for external connections
         val portMappings = generatePortMappings(selectedNodeIds, allConnections)

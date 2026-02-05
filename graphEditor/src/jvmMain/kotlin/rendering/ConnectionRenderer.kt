@@ -13,6 +13,7 @@ import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import io.codenode.fbpdsl.model.Connection
+import io.codenode.fbpdsl.model.ConnectionSegment
 import io.codenode.fbpdsl.model.Node
 import io.codenode.fbpdsl.model.CodeNode
 import io.codenode.fbpdsl.model.Port
@@ -105,6 +106,93 @@ fun DrawScope.renderConnection(
     // Draw port connection indicators
     drawPortIndicator(sourcePortPosition, connectionColor, scale)
     drawPortIndicator(targetPortPosition, connectionColor, scale)
+}
+
+/**
+ * Renders a connection segment between two nodes using a bezier curve.
+ * Segments are portions of a full connection, visible within a specific scope context.
+ *
+ * @param segment The connection segment to render
+ * @param sourceNode Source node of this segment
+ * @param targetNode Target node of this segment
+ * @param sourcePosition Canvas position of source node
+ * @param targetPosition Canvas position of target node
+ * @param scale Current canvas zoom scale
+ * @param isSelected Whether the parent connection is selected
+ * @param isHovered Whether the segment is being hovered over
+ * @param color Optional color override for the segment
+ */
+fun DrawScope.renderSegment(
+    segment: ConnectionSegment,
+    sourceNode: Node,
+    targetNode: Node,
+    sourcePosition: Offset,
+    targetPosition: Offset,
+    scale: Float = 1f,
+    isSelected: Boolean = false,
+    isHovered: Boolean = false,
+    color: Color? = null
+) {
+    // Find the specific ports
+    val sourcePort = findPort(sourceNode, segment.sourcePortId, Port.Direction.OUTPUT)
+        ?: findPort(sourceNode, segment.sourcePortId, Port.Direction.INPUT)
+    val targetPort = findPort(targetNode, segment.targetPortId, Port.Direction.INPUT)
+        ?: findPort(targetNode, segment.targetPortId, Port.Direction.OUTPUT)
+
+    if (sourcePort == null || targetPort == null) {
+        // Draw invalid segment indicator
+        renderInvalidConnection(sourcePosition, targetPosition, scale)
+        return
+    }
+
+    // Calculate port positions
+    val sourcePortPosition = calculatePortPosition(
+        sourceNode,
+        sourcePort,
+        sourcePosition,
+        scale
+    )
+
+    val targetPortPosition = calculatePortPosition(
+        targetNode,
+        targetPort,
+        targetPosition,
+        scale
+    )
+
+    // Determine segment styling
+    val segmentColor = color ?: getConnectionColor(
+        isValid = true,
+        isSelected = isSelected,
+        isHovered = isHovered
+    )
+
+    val strokeWidth = when {
+        isSelected -> 3f * scale
+        isHovered -> 2.5f * scale
+        else -> 2f * scale
+    }
+
+    // Draw the bezier curve
+    val path = createBezierPath(sourcePortPosition, targetPortPosition)
+
+    drawPath(
+        path = path,
+        color = segmentColor,
+        style = Stroke(width = strokeWidth)
+    )
+
+    // Draw arrowhead at target
+    drawArrowhead(
+        position = targetPortPosition,
+        direction = targetPortPosition - sourcePortPosition,
+        color = segmentColor,
+        scale = scale
+    )
+
+    // Draw port connection indicators
+    drawPortIndicator(sourcePortPosition, segmentColor, scale)
+    drawPortIndicator(targetPortPosition, segmentColor, scale)
 }
 
 /**

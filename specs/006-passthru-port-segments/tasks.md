@@ -163,17 +163,17 @@
 
 ### Tests for User Story 5 (TDD - Write FIRST, must FAIL) ⚠️
 
-- [ ] T049 [P] [US5] Write unit tests for getSegmentsInContext() at root level in graphEditor/src/jvmTest/kotlin/io/codenode/grapheditor/state/SegmentVisibilityTest.kt
-- [ ] T050 [P] [US5] Write unit tests for getSegmentsInContext() inside GraphNode in graphEditor/src/jvmTest/kotlin/io/codenode/grapheditor/state/SegmentVisibilityTest.kt
-- [ ] T051 [P] [US5] Write unit tests for getSegmentsInContext() with nested GraphNodes in graphEditor/src/jvmTest/kotlin/io/codenode/grapheditor/state/SegmentVisibilityTest.kt
+- [X] T049 [P] [US5] Write unit tests for getSegmentsInContext() at root level in graphEditor/src/jvmTest/kotlin/io/codenode/grapheditor/state/SegmentVisibilityTest.kt
+- [X] T050 [P] [US5] Write unit tests for getSegmentsInContext() inside GraphNode in graphEditor/src/jvmTest/kotlin/io/codenode/grapheditor/state/SegmentVisibilityTest.kt
+- [X] T051 [P] [US5] Write unit tests for getSegmentsInContext() with nested GraphNodes in graphEditor/src/jvmTest/kotlin/io/codenode/grapheditor/state/SegmentVisibilityTest.kt
 
 ### Implementation for User Story 5
 
-- [ ] T052 [US5] Add getSegmentsInContext() method to GraphState in graphEditor/src/jvmMain/kotlin/state/GraphState.kt
-- [ ] T053 [US5] Update getConnectionsInCurrentContext() to return filtered segments in graphEditor/src/jvmMain/kotlin/state/GraphState.kt
-- [ ] T054 [US5] Update ConnectionRenderer to render segments instead of full connections in graphEditor/src/jvmMain/kotlin/rendering/ConnectionRenderer.kt
-- [ ] T055 [US5] Update FlowGraphCanvas to pass current scope to rendering in graphEditor/src/jvmMain/kotlin/ui/FlowGraphCanvas.kt
-- [ ] T056 [US5] Verify T049-T051 tests pass after implementation
+- [X] T052 [US5] Add getSegmentsInContext() method to GraphState in graphEditor/src/jvmMain/kotlin/state/GraphState.kt
+- [X] T053 [US5] Update getConnectionsInCurrentContext() to return filtered segments in graphEditor/src/jvmMain/kotlin/state/GraphState.kt
+- [X] T054 [US5] Update ConnectionRenderer to render segments instead of full connections in graphEditor/src/jvmMain/kotlin/rendering/ConnectionRenderer.kt
+- [X] T055 [US5] Update FlowGraphCanvas to pass current scope to rendering in graphEditor/src/jvmMain/kotlin/ui/FlowGraphCanvas.kt
+- [X] T056 [US5] Verify T049-T051 tests pass after implementation
 
 **Checkpoint**: User Story 5 complete - Segment visibility tied to navigation context
 

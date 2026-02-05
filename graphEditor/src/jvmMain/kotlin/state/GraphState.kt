@@ -12,6 +12,7 @@ import io.codenode.fbpdsl.dsl.flowGraph
 import io.codenode.fbpdsl.model.FlowGraph
 import io.codenode.fbpdsl.model.Node
 import io.codenode.fbpdsl.model.Connection
+import io.codenode.fbpdsl.model.ConnectionSegment
 import io.codenode.fbpdsl.model.CodeNode
 import io.codenode.fbpdsl.model.GraphNode
 import io.codenode.fbpdsl.model.NodeTypeDefinition
@@ -1256,6 +1257,46 @@ class GraphState(initialGraph: FlowGraph = flowGraph(
             // Inside a GraphNode - return its internal connections
             val graphNode = flowGraph.findNode(currentGraphNodeId) as? GraphNode
             graphNode?.internalConnections ?: emptyList()
+        }
+    }
+
+    /**
+     * Returns connection segments visible in the current navigation context.
+     * Filters segments based on scopeNodeId matching the current view scope.
+     *
+     * - At root level (navigationContext.isAtRoot): returns segments with scopeNodeId = null
+     * - Inside a GraphNode: returns segments with scopeNodeId = currentGraphNodeId
+     *
+     * @return List of ConnectionSegment visible in the current context
+     */
+    fun getSegmentsInContext(): List<ConnectionSegment> {
+        val currentScopeId = navigationContext.currentGraphNodeId
+
+        // Collect all connections relevant to the current context
+        val connections = if (currentScopeId == null) {
+            // At root level - get all root-level connections
+            flowGraph.connections
+        } else {
+            // Inside a GraphNode - get both:
+            // 1. Connections that target/source the GraphNode (for boundary segments)
+            // 2. Internal connections of the GraphNode
+            val graphNode = flowGraph.findNode(currentScopeId) as? GraphNode
+            if (graphNode != null) {
+                // Get internal connections + any root connections involving this GraphNode
+                val boundaryConnections = flowGraph.connections.filter { conn ->
+                    conn.sourceNodeId == currentScopeId || conn.targetNodeId == currentScopeId
+                }
+                graphNode.internalConnections + boundaryConnections
+            } else {
+                emptyList()
+            }
+        }
+
+        // Collect all segments from these connections and filter by scope
+        return connections.flatMap { connection ->
+            connection.segments.filter { segment ->
+                segment.isVisibleInContext(currentScopeId)
+            }
         }
     }
 
