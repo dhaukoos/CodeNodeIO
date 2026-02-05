@@ -140,16 +140,16 @@
 
 ### Tests for User Story 4 (TDD - Write FIRST, must FAIL) ⚠️
 
-- [ ] T042 [P] [US4] Write integration test for incoming connection segmentation in graphEditor/src/jvmTest/kotlin/io/codenode/grapheditor/state/SegmentCreationTest.kt
-- [ ] T043 [P] [US4] Write integration test for outgoing connection segmentation in graphEditor/src/jvmTest/kotlin/io/codenode/grapheditor/state/SegmentCreationTest.kt
-- [ ] T044 [P] [US4] Write integration test for segment merging on ungroup in graphEditor/src/jvmTest/kotlin/io/codenode/grapheditor/state/SegmentCreationTest.kt
+- [X] T042 [P] [US4] Write integration test for incoming connection segmentation in graphEditor/src/jvmTest/kotlin/io/codenode/grapheditor/state/SegmentCreationTest.kt
+- [X] T043 [P] [US4] Write integration test for outgoing connection segmentation in graphEditor/src/jvmTest/kotlin/io/codenode/grapheditor/state/SegmentCreationTest.kt
+- [X] T044 [P] [US4] Write integration test for segment merging on ungroup in graphEditor/src/jvmTest/kotlin/io/codenode/grapheditor/state/SegmentCreationTest.kt
 
 ### Implementation for User Story 4
 
-- [ ] T045 [US4] Update GraphState.groupSelectedNodes() to call invalidateSegments() in graphEditor/src/jvmMain/kotlin/state/GraphState.kt
-- [ ] T046 [US4] Update GraphState.ungroupGraphNode() to merge segments in graphEditor/src/jvmMain/kotlin/state/GraphState.kt
-- [ ] T047 [US4] Add helper method to detect boundary-crossing connections in graphEditor/src/jvmMain/kotlin/state/GraphState.kt
-- [ ] T048 [US4] Verify T042-T044 tests pass after implementation
+- [X] T045 [US4] Update GraphState.groupSelectedNodes() to call invalidateSegments() in graphEditor/src/jvmMain/kotlin/state/GraphState.kt
+- [X] T046 [US4] Update GraphState.ungroupGraphNode() to merge segments in graphEditor/src/jvmMain/kotlin/state/GraphState.kt
+- [X] T047 [US4] Add helper method to detect boundary-crossing connections in graphEditor/src/jvmMain/kotlin/state/GraphState.kt
+- [X] T048 [US4] Verify T042-T044 tests pass after implementation
 
 **Checkpoint**: User Story 4 complete - Segments auto-create/merge with group/ungroup
 

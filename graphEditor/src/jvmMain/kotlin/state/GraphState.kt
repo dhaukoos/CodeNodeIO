@@ -716,6 +716,10 @@ class GraphState(initialGraph: FlowGraph = flowGraph(
         flowGraph = updatedGraph
         isDirty = true
 
+        // Invalidate segments on connections that now cross the GraphNode boundary
+        // This ensures segments are recomputed with the new boundary context
+        invalidateSegmentsForBoundaryCrossingConnections(graphNode.id)
+
         // Clear selection and select the new GraphNode
         clearSelection()
         toggleNodeInSelection(graphNode.id)
@@ -827,7 +831,58 @@ class GraphState(initialGraph: FlowGraph = flowGraph(
         // Step 9: Mark as dirty
         isDirty = true
 
+        // Step 10: Invalidate segments on restored connections
+        // This ensures segments are recomputed without the boundary context
+        restoredChildNodes.forEach { childNode ->
+            invalidateSegmentsForNodeConnections(childNode.id)
+        }
+
         return true
+    }
+
+    // ============================================================================
+    // Connection Segment Operations
+    // ============================================================================
+
+    /**
+     * Detects connections that cross a GraphNode boundary.
+     * A boundary-crossing connection is one where either the source or target
+     * is the GraphNode itself (exterior connection to/from the boundary).
+     *
+     * @param graphNodeId The ID of the GraphNode to check
+     * @return List of connections that cross this GraphNode's boundary
+     */
+    fun getBoundaryCrossingConnections(graphNodeId: String): List<Connection> {
+        return flowGraph.connections.filter { conn ->
+            conn.sourceNodeId == graphNodeId || conn.targetNodeId == graphNodeId
+        }
+    }
+
+    /**
+     * Invalidates cached segments on all connections that cross a GraphNode boundary.
+     * This should be called after grouping operations to force segment recomputation.
+     *
+     * @param graphNodeId The ID of the GraphNode whose boundary connections should be invalidated
+     */
+    private fun invalidateSegmentsForBoundaryCrossingConnections(graphNodeId: String) {
+        getBoundaryCrossingConnections(graphNodeId).forEach { conn ->
+            conn.invalidateSegments()
+        }
+    }
+
+    /**
+     * Invalidates cached segments on all connections involving a specific node.
+     * This should be called after ungrouping to force segment recomputation
+     * when connections are restored to their original endpoints.
+     *
+     * @param nodeId The ID of the node whose connections should have segments invalidated
+     */
+    private fun invalidateSegmentsForNodeConnections(nodeId: String) {
+        flowGraph.connections.filter { conn ->
+            conn.sourceNodeId == nodeId || conn.targetNodeId == nodeId
+        }.forEach { conn ->
+            conn.invalidateSegments()
+        }
     }
 
     // ============================================================================
