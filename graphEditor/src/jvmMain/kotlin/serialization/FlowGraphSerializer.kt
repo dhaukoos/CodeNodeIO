@@ -199,16 +199,21 @@ object FlowGraphSerializer {
         // Add position
         builder.appendLine("${innerIndent}position(${node.position.x}, ${node.position.y})")
 
+        // Build childVariables map for all child nodes (needed for port mappings)
+        val childVariables = mutableMapOf<String, String>()
+        node.childNodes.forEachIndexed { index, childNode ->
+            val childVarName = "child_${sanitizeVariableName(childNode.name)}" +
+                if (index > 0) "_$index" else ""
+            childVariables[childNode.id] = childVarName
+        }
+
         // T078: Serialize child nodes recursively
         if (node.childNodes.isNotEmpty()) {
             builder.appendLine()
             builder.appendLine("${innerIndent}// Child nodes")
-            val childVariables = mutableMapOf<String, String>()
 
             node.childNodes.forEachIndexed { index, childNode ->
-                val childVarName = "child_${sanitizeVariableName(childNode.name)}" +
-                    if (index > 0) "_$index" else ""
-                childVariables[childNode.id] = childVarName
+                val childVarName = childVariables[childNode.id]!!
 
                 when (childNode) {
                     is CodeNode -> serializeCodeNode(childNode, childVarName, builder, innerIndent)
@@ -229,13 +234,13 @@ object FlowGraphSerializer {
         }
 
         // T080: Serialize port mappings
-        // Use child node NAME and port NAME (not IDs) for stable serialization
+        // Use child node VARIABLE NAME (unique) and port NAME (not IDs) for stable serialization
         if (node.portMappings.isNotEmpty()) {
             builder.appendLine("${innerIndent}// Port mappings")
             node.portMappings.forEach { (portName, mapping) ->
-                // Look up child node to get its name (more stable than ID)
+                // Look up child node to get its unique variable name (handles duplicate names)
                 val childNode = node.childNodes.find { it.id == mapping.childNodeId }
-                val childNodeName = childNode?.name ?: mapping.childNodeId
+                val childVarName = childVariables[mapping.childNodeId] ?: childNode?.name ?: mapping.childNodeId
 
                 // Look up child port to get its name (more stable than ID)
                 val childPort = if (mapping.childPortName.isNotEmpty()) {
@@ -244,7 +249,7 @@ object FlowGraphSerializer {
                 } else null
                 val childPortName = childPort?.name ?: mapping.childPortName
 
-                builder.appendLine("${innerIndent}portMapping(\"${escapeString(portName)}\", \"${escapeString(childNodeName)}\", \"${escapeString(childPortName)}\")")
+                builder.appendLine("${innerIndent}portMapping(\"${escapeString(portName)}\", \"${escapeString(childVarName)}\", \"${escapeString(childPortName)}\")")
             }
         }
 

@@ -290,6 +290,7 @@ object FlowGraphDeserializer {
 
     /**
      * Parses GraphNode declarations from DSL content with recursive child handling (T081)
+     * Only parses root-level GraphNodes, nested ones are handled recursively by parseGraphNodeBody
      */
     private fun parseGraphNodes(
         content: String,
@@ -297,9 +298,21 @@ object FlowGraphDeserializer {
         nodeIdMap: MutableMap<String, String>,
         allNodes: MutableMap<String, Node>
     ) {
+        // Find all graphNode block ranges to exclude nested GraphNodes
+        val graphNodeRanges = findGraphNodeRanges(content)
+
         // Find graphNode declarations - need to handle nested braces
         val graphNodeStarts = Regex("""val\s+(\w+)\s*=\s*graphNode\s*\(\s*"([^"]*)"\s*\)\s*\{""")
         graphNodeStarts.findAll(content).forEach { match ->
+            // Skip GraphNodes that are STRICTLY inside another graphNode block (they're handled recursively)
+            // A graphNode at the start of a range is the root of that range, not inside it
+            val isStrictlyInsideAnotherBlock = graphNodeRanges.any { range ->
+                match.range.first > range.first && match.range.first in range
+            }
+            if (isStrictlyInsideAnotherBlock) {
+                return@forEach
+            }
+
             val varName = match.groupValues[1]
             val nodeName = match.groupValues[2]
             val startIndex = match.range.last + 1
@@ -357,9 +370,23 @@ object FlowGraphDeserializer {
         val childNodes = mutableListOf<Node>()
         val childNodeIdMap = mutableMapOf<String, String>()
 
-        // Parse child CodeNodes
+        // First, find all nested GraphNode ranges (needed to exclude nested content from other parsing)
+        val nestedGraphNodeRanges = mutableListOf<IntRange>()
+        val nestedGraphNodePattern = Regex("""val\s+(child_\w+)\s*=\s*graphNode\s*\(\s*"([^"]*)"\s*\)\s*\{""")
+        nestedGraphNodePattern.findAll(nodeBody).forEach { match ->
+            val startIndex = match.range.last + 1
+            val childBody = extractBalancedBraces(nodeBody, startIndex)
+            nestedGraphNodeRanges.add(match.range.first..(startIndex + childBody.length))
+        }
+
+        // Parse child CodeNodes (excluding those inside nested GraphNode blocks)
         val childCodeNodePattern = Regex("""val\s+(child_\w+)\s*=\s*codeNode\s*\(\s*"([^"]*)"\s*(?:,\s*nodeType\s*=\s*"([^"]*)"\s*)?\)\s*\{([^}]*)\}""", RegexOption.DOT_MATCHES_ALL)
         childCodeNodePattern.findAll(nodeBody).forEach { match ->
+            // Skip if this CodeNode is inside a nested GraphNode block
+            if (nestedGraphNodeRanges.any { match.range.first in it }) {
+                return@forEach
+            }
+
             val childVarName = match.groupValues[1]
             val childNodeName = match.groupValues[2]
             val childNodeBody = match.groupValues[4]
@@ -371,7 +398,6 @@ object FlowGraphDeserializer {
         }
 
         // Parse nested GraphNodes recursively
-        val nestedGraphNodePattern = Regex("""val\s+(child_\w+)\s*=\s*graphNode\s*\(\s*"([^"]*)"\s*\)\s*\{""")
         nestedGraphNodePattern.findAll(nodeBody).forEach { match ->
             val childVarName = match.groupValues[1]
             val childNodeName = match.groupValues[2]
@@ -384,17 +410,21 @@ object FlowGraphDeserializer {
             allNodes[nestedGraphNode.id] = nestedGraphNode
         }
 
-        // Parse internal connections
-        val internalConnections = parseInternalConnections(nodeBody, childNodeIdMap, allNodes)
+        // Parse internal connections (excluding those inside nested GraphNodes)
+        val internalConnections = parseInternalConnections(nodeBody, childNodeIdMap, allNodes, nestedGraphNodeRanges)
 
-        // Parse port mappings
-        val portMappings = parsePortMappings(nodeBody)
+        // Parse port mappings (resolve variable names to node IDs, excluding those inside nested GraphNodes)
+        val portMappings = parsePortMappings(nodeBody, childNodeIdMap, nestedGraphNodeRanges)
 
-        // Parse exposed input ports
+        // Parse exposed input ports (excluding those inside nested GraphNodes)
         // T062: Updated regex to handle optional upstream/downstream parameters
         val inputPorts = mutableListOf<Port<Any>>()
         val exposeInputPattern = Regex("""exposeInput\s*\(\s*"([^"]*)"\s*,\s*(\w+)::class[^)]*\)""")
         exposeInputPattern.findAll(nodeBody).forEach { inputMatch ->
+            // Skip if this match is inside a nested GraphNode block
+            if (nestedGraphNodeRanges.any { inputMatch.range.first in it }) {
+                return@forEach
+            }
             val portName = inputMatch.groupValues[1]
             val portId = "port_${System.currentTimeMillis()}_${(0..9999).random()}_$portName"
             inputPorts.add(Port<Any>(
@@ -406,11 +436,15 @@ object FlowGraphDeserializer {
             ))
         }
 
-        // Parse exposed output ports
+        // Parse exposed output ports (excluding those inside nested GraphNodes)
         // T062: Updated regex to handle optional upstream/downstream parameters
         val outputPorts = mutableListOf<Port<Any>>()
         val exposeOutputPattern = Regex("""exposeOutput\s*\(\s*"([^"]*)"\s*,\s*(\w+)::class[^)]*\)""")
         exposeOutputPattern.findAll(nodeBody).forEach { outputMatch ->
+            // Skip if this match is inside a nested GraphNode block
+            if (nestedGraphNodeRanges.any { outputMatch.range.first in it }) {
+                return@forEach
+            }
             val portName = outputMatch.groupValues[1]
             val portId = "port_${System.currentTimeMillis()}_${(0..9999).random()}_$portName"
             outputPorts.add(Port<Any>(
@@ -437,17 +471,24 @@ object FlowGraphDeserializer {
 
     /**
      * Parses internal connections within a GraphNode body
+     * Excludes connections that appear inside nested GraphNode blocks
      */
     private fun parseInternalConnections(
         nodeBody: String,
         childNodeIdMap: Map<String, String>,
-        allNodes: Map<String, Node>
+        allNodes: Map<String, Node>,
+        nestedGraphNodeRanges: List<IntRange> = emptyList()
     ): List<Connection> {
         val connections = mutableListOf<Connection>()
 
         // Pattern for internalConnection(source, "port", target, "port")
         val internalConnPattern = Regex("""internalConnection\s*\(\s*(\w+)\s*,\s*"([^"]*)"\s*,\s*(\w+)\s*,\s*"([^"]*)"\s*\)(?:\s*withType\s*"([^"]*)")?""")
         internalConnPattern.findAll(nodeBody).forEach { match ->
+            // Skip if this match is inside a nested GraphNode block
+            if (nestedGraphNodeRanges.any { match.range.first in it }) {
+                return@forEach
+            }
+
             val sourceVar = match.groupValues[1]
             val sourcePortName = match.groupValues[2]
             val targetVar = match.groupValues[3]
@@ -482,16 +523,34 @@ object FlowGraphDeserializer {
 
     /**
      * Parses port mappings from GraphNode body
+     * Resolves variable names (like "child_in1out1_1") to actual node IDs using childNodeIdMap
+     * Excludes port mappings that appear inside nested GraphNode blocks
+     *
+     * @param nodeBody The DSL body content to parse
+     * @param childNodeIdMap Map from variable names to node IDs for resolving references
+     * @param nestedGraphNodeRanges Ranges of nested GraphNode blocks to exclude
      */
-    private fun parsePortMappings(nodeBody: String): Map<String, GraphNode.PortMapping> {
+    private fun parsePortMappings(
+        nodeBody: String,
+        childNodeIdMap: Map<String, String>,
+        nestedGraphNodeRanges: List<IntRange> = emptyList()
+    ): Map<String, GraphNode.PortMapping> {
         val mappings = mutableMapOf<String, GraphNode.PortMapping>()
 
-        // Pattern for portMapping("portName", "childNodeId", "childPortName")
+        // Pattern for portMapping("portName", "childVarName", "childPortName")
         val mappingPattern = Regex("""portMapping\s*\(\s*"([^"]*)"\s*,\s*"([^"]*)"\s*,\s*"([^"]*)"\s*\)""")
         mappingPattern.findAll(nodeBody).forEach { match ->
+            // Skip if this match is inside a nested GraphNode block
+            if (nestedGraphNodeRanges.any { match.range.first in it }) {
+                return@forEach
+            }
+
             val portName = match.groupValues[1]
-            val childNodeId = match.groupValues[2]
+            val childVarName = match.groupValues[2]
             val childPortName = match.groupValues[3]
+
+            // Resolve variable name to node ID (fall back to using var name as ID for backward compatibility)
+            val childNodeId = childNodeIdMap[childVarName] ?: childVarName
 
             mappings[portName] = GraphNode.PortMapping(childNodeId, childPortName)
         }

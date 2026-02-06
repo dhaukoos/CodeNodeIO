@@ -807,15 +807,99 @@ class ConnectionSegmentSerializationTest {
         // Child nodes should exist
         assertTrue(deserializedGraphNode.childNodes.isNotEmpty(), "Child nodes should be preserved")
 
-        // Port mapping should reference valid child nodes (by name, after deserialization)
+        // Port mapping should reference valid child nodes (by ID, after deserialization)
         deserializedGraphNode.portMappings.forEach { (portName, mapping) ->
-            val childNode = deserializedGraphNode.childNodes.find { it.name == mapping.childNodeId }
-            assertNotNull(childNode, "Port mapping for '$portName' should reference valid child node by name: ${mapping.childNodeId}")
+            val childNode = deserializedGraphNode.childNodes.find { it.id == mapping.childNodeId }
+            assertNotNull(childNode, "Port mapping for '$portName' should reference valid child node by ID: ${mapping.childNodeId}")
 
             // Child port should exist (by name)
             val childPort = childNode!!.inputPorts.find { it.name == mapping.childPortName }
                 ?: childNode.outputPorts.find { it.name == mapping.childPortName }
             assertNotNull(childPort, "Port mapping for '$portName' should reference valid child port by name: ${mapping.childPortName}")
         }
+    }
+
+    @Test
+    fun `should handle duplicate child node names in GraphNode serialization`() {
+        // Given: A GraphNode with two child nodes that have the SAME name
+        val child1 = CodeNode(
+            id = "child1_id",
+            name = "duplicate_name",
+            codeNodeType = CodeNodeType.CUSTOM,
+            position = Node.Position(100.0, 100.0),
+            inputPorts = listOf(Port<Any>("p1", "input1", Port.Direction.INPUT, Any::class, false, null, emptyList(), "child1_id")),
+            outputPorts = listOf(Port<Any>("p2", "output1", Port.Direction.OUTPUT, Any::class, false, null, emptyList(), "child1_id"))
+        )
+        val child2 = CodeNode(
+            id = "child2_id",
+            name = "duplicate_name",  // Same name as child1!
+            codeNodeType = CodeNodeType.CUSTOM,
+            position = Node.Position(300.0, 100.0),
+            inputPorts = listOf(Port<Any>("p3", "input1", Port.Direction.INPUT, Any::class, false, null, emptyList(), "child2_id")),
+            outputPorts = listOf(Port<Any>("p4", "output1", Port.Direction.OUTPUT, Any::class, false, null, emptyList(), "child2_id"))
+        )
+
+        val graphNode = GraphNode(
+            id = "gn1",
+            name = "TestGraphNode",
+            position = Node.Position(0.0, 0.0),
+            childNodes = listOf(child1, child2),
+            internalConnections = listOf(
+                Connection("conn1", "child1_id", "p2", "child2_id", "p3")
+            ),
+            portMappings = mapOf(
+                "in_port" to GraphNode.PortMapping("child1_id", "input1"),
+                "out_port" to GraphNode.PortMapping("child2_id", "output1")
+            ),
+            inputPorts = listOf(Port<Any>("ip1", "in_port", Port.Direction.INPUT, Any::class, false, null, emptyList(), "gn1")),
+            outputPorts = listOf(Port<Any>("op1", "out_port", Port.Direction.OUTPUT, Any::class, false, null, emptyList(), "gn1"))
+        )
+
+        val graph = FlowGraph(
+            id = "test",
+            name = "Test",
+            version = "1.0.0",
+            rootNodes = listOf(graphNode)
+        )
+
+        // When: Serializing to DSL
+        val dsl = FlowGraphSerializer.serialize(graph, includeImports = false)
+
+        // Then: DSL should use unique variable names for port mappings (not duplicate node names)
+        val portMappingLines = dsl.lines().filter { it.contains("portMapping") }
+        assertEquals(2, portMappingLines.size, "Should have 2 port mappings")
+
+        // The port mappings should NOT use the duplicate node name directly
+        // They should use unique variable names like "child_duplicate_name" and "child_duplicate_name_1"
+        assertFalse(
+            portMappingLines.all { it.contains("\"duplicate_name\"") && !it.contains("child_") },
+            "Port mappings should use unique variable names, not duplicate node names"
+        )
+
+        // Verify roundtrip works correctly
+        val result = FlowGraphDeserializer.deserialize(dsl)
+        assertTrue(result.isSuccess, "Roundtrip should succeed: ${result.errorMessage}")
+
+        val deserializedGraphNode = result.graph!!.rootNodes.filterIsInstance<GraphNode>().first()
+
+        // Both child nodes should be preserved
+        assertEquals(2, deserializedGraphNode.childNodes.size, "Both child nodes should be preserved")
+
+        // Port mappings should reference different child nodes (not both pointing to the first one)
+        val inPortMapping = deserializedGraphNode.portMappings["in_port"]
+        val outPortMapping = deserializedGraphNode.portMappings["out_port"]
+        assertNotNull(inPortMapping, "in_port mapping should exist")
+        assertNotNull(outPortMapping, "out_port mapping should exist")
+        assertNotEquals(
+            inPortMapping!!.childNodeId,
+            outPortMapping!!.childNodeId,
+            "Port mappings should reference different child nodes"
+        )
+
+        // Each mapping should point to a valid child node
+        val inChildNode = deserializedGraphNode.childNodes.find { it.id == inPortMapping.childNodeId }
+        val outChildNode = deserializedGraphNode.childNodes.find { it.id == outPortMapping.childNodeId }
+        assertNotNull(inChildNode, "in_port should map to existing child node")
+        assertNotNull(outChildNode, "out_port should map to existing child node")
     }
 }

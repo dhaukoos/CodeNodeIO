@@ -741,9 +741,20 @@ class GraphNodeSerializationTest {
             position = Node.Position(100.0, 100.0),
             childNodes = listOf(innerChild1, innerChild2),
             internalConnections = listOf(innerConnection),
-            inputPorts = emptyList(),
+            // Expose an input port that maps to innerChild2's input
+            inputPorts = listOf(
+                Port(
+                    id = "inner_graph_in",
+                    name = "group_input",
+                    direction = Port.Direction.INPUT,
+                    dataType = String::class,
+                    owningNodeId = "inner_graph"
+                )
+            ),
             outputPorts = emptyList(),
-            portMappings = emptyMap()
+            portMappings = mapOf(
+                "group_input" to GraphNode.PortMapping("inner_child_2", "input")
+            )
         )
 
         // Outer level: CodeNode and inner GraphNode with connection
@@ -769,7 +780,7 @@ class GraphNodeSerializationTest {
             sourceNodeId = "outer_source",
             sourcePortId = "outer_src_out",
             targetNodeId = "inner_graph",
-            targetPortId = "inner_src_out" // Connects to inner GraphNode
+            targetPortId = "inner_graph_in" // Connects to inner GraphNode's exposed input port
         )
 
         val outerGraphNode = GraphNode(
