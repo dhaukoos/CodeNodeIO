@@ -206,14 +206,14 @@
 
 **Purpose**: Improvements that affect multiple user stories
 
-- [ ] T066 [P] Add PassThruPort hover state styling in graphEditor/src/jvmMain/kotlin/rendering/PortRenderer.kt
-- [ ] T067 [P] Add segment selection highlighting (all segments for selected connection) in graphEditor/src/jvmMain/kotlin/rendering/ConnectionRenderer.kt
-- [ ] T068 Verify edge case: PassThruPort upstream/downstream port deletion in graphEditor/src/jvmTest/kotlin/io/codenode/grapheditor/state/EdgeCaseTest.kt
-- [ ] T069 Verify edge case: self-loop connections stay single-segment in graphEditor/src/jvmTest/kotlin/io/codenode/grapheditor/state/EdgeCaseTest.kt
-- [ ] T070 Run quickstart.md validation scenarios (all 7 scenarios pass)
-- [ ] T071 Performance test: PassThruPort creation < 500ms
-- [ ] T072 Performance test: segment visibility switching < 100ms
-- [ ] T073 Final code review for Apache 2.0 header compliance on all new files
+- [X] T066 [P] Add PassThruPort hover state styling in graphEditor/src/jvmMain/kotlin/rendering/PortRenderer.kt
+- [X] T067 [P] Add segment selection highlighting (all segments for selected connection) in graphEditor/src/jvmMain/kotlin/rendering/ConnectionRenderer.kt
+- [X] T068 Verify edge case: PassThruPort upstream/downstream port deletion in graphEditor/src/jvmTest/kotlin/io/codenode/grapheditor/state/EdgeCaseTest.kt
+- [X] T069 Verify edge case: self-loop connections stay single-segment in graphEditor/src/jvmTest/kotlin/io/codenode/grapheditor/state/EdgeCaseTest.kt
+- [X] T070 Run quickstart.md validation scenarios (all 7 scenarios pass)
+- [X] T071 Performance test: PassThruPort creation < 500ms
+- [X] T072 Performance test: segment visibility switching < 100ms
+- [X] T073 Final code review for Apache 2.0 header compliance on all new files
 
 ---
 
