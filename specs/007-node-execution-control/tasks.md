@@ -112,25 +112,25 @@
 
 ### Tests for User Story 3 ⚠️
 
-- [ ] T032 [P] [US3] Write test for RootControlNode.createFor() factory in `fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/model/RootControlNodeTest.kt`
-- [ ] T033 [P] [US3] Write test for startAll() in `fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/model/RootControlNodeTest.kt` - all nodes transition to RUNNING
-- [ ] T034 [P] [US3] Write test for pauseAll() in `fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/model/RootControlNodeTest.kt` - all nodes transition to PAUSED
-- [ ] T035 [P] [US3] Write test for stopAll() in `fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/model/RootControlNodeTest.kt` - all nodes transition to IDLE
-- [ ] T036 [P] [US3] Write test for getStatus() in `fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/model/RootControlNodeTest.kt` - returns accurate FlowExecutionStatus
-- [ ] T037 [P] [US3] Write test for setNodeState() in `fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/model/RootControlNodeTest.kt` - targets specific node by ID
+- [X] T032 [P] [US3] Write test for RootControlNode.createFor() factory in `fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/model/RootControlNodeTest.kt`
+- [X] T033 [P] [US3] Write test for startAll() in `fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/model/RootControlNodeTest.kt` - all nodes transition to RUNNING
+- [X] T034 [P] [US3] Write test for pauseAll() in `fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/model/RootControlNodeTest.kt` - all nodes transition to PAUSED
+- [X] T035 [P] [US3] Write test for stopAll() in `fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/model/RootControlNodeTest.kt` - all nodes transition to IDLE
+- [X] T036 [P] [US3] Write test for getStatus() in `fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/model/RootControlNodeTest.kt` - returns accurate FlowExecutionStatus
+- [X] T037 [P] [US3] Write test for setNodeState() in `fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/model/RootControlNodeTest.kt` - targets specific node by ID
 
 ### Implementation for User Story 3
 
-- [ ] T038 [US3] Create FlowExecutionStatus data class at `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/FlowExecutionStatus.kt` with totalNodes, idleCount, runningCount, pausedCount, errorCount, overallState
-- [ ] T039 [US3] Create RootControlNode class at `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/RootControlNode.kt` with id, flowGraph, name, createdAt properties
-- [ ] T040 [US3] Implement `createFor()` companion factory method in RootControlNode at `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/RootControlNode.kt`
-- [ ] T041 [US3] Implement `startAll()` method in RootControlNode - sets all root nodes to RUNNING at `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/RootControlNode.kt`
-- [ ] T042 [US3] Implement `pauseAll()` method in RootControlNode - sets all root nodes to PAUSED at `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/RootControlNode.kt`
-- [ ] T043 [US3] Implement `stopAll()` method in RootControlNode - sets all root nodes to IDLE at `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/RootControlNode.kt`
-- [ ] T044 [US3] Implement `getStatus()` method in RootControlNode - traverses graph and counts states at `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/RootControlNode.kt`
-- [ ] T045 [US3] Implement `setNodeState()` method in RootControlNode - finds node by ID and sets state at `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/RootControlNode.kt`
-- [ ] T046 [US3] Implement `setNodeConfig()` method in RootControlNode - finds node by ID and sets config at `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/RootControlNode.kt`
-- [ ] T047 [US3] Run US3 tests and verify all pass: `./gradlew :fbpDsl:jvmTest --tests "io.codenode.fbpdsl.model.RootControlNodeTest"`
+- [X] T038 [US3] Create FlowExecutionStatus data class at `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/FlowExecutionStatus.kt` with totalNodes, idleCount, runningCount, pausedCount, errorCount, overallState
+- [X] T039 [US3] Create RootControlNode class at `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/RootControlNode.kt` with id, flowGraph, name, createdAt properties
+- [X] T040 [US3] Implement `createFor()` companion factory method in RootControlNode at `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/RootControlNode.kt`
+- [X] T041 [US3] Implement `startAll()` method in RootControlNode - sets all root nodes to RUNNING at `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/RootControlNode.kt`
+- [X] T042 [US3] Implement `pauseAll()` method in RootControlNode - sets all root nodes to PAUSED at `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/RootControlNode.kt`
+- [X] T043 [US3] Implement `stopAll()` method in RootControlNode - sets all root nodes to IDLE at `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/RootControlNode.kt`
+- [X] T044 [US3] Implement `getStatus()` method in RootControlNode - traverses graph and counts states at `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/RootControlNode.kt`
+- [X] T045 [US3] Implement `setNodeState()` method in RootControlNode - finds node by ID and sets state at `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/RootControlNode.kt`
+- [X] T046 [US3] Implement `setNodeConfig()` method in RootControlNode - finds node by ID and sets config at `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/RootControlNode.kt`
+- [X] T047 [US3] Run US3 tests and verify all pass: `./gradlew :fbpDsl:jvmTest --tests "io.codenode.fbpdsl.model.RootControlNodeTest"`
 
 **Checkpoint**: User Story 3 complete - RootControlNode provides unified flow control
 
