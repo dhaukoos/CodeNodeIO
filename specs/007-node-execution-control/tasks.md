@@ -44,11 +44,11 @@
 - [X] T008 Add abstract `withExecutionState(ExecutionState, Boolean): Node` method to Node in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/Node.kt`
 - [X] T009 Add abstract `withControlConfig(ControlConfig, Boolean): Node` method to Node in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/Node.kt`
 - [X] T010 Add `executionState` and `controlConfig` properties to GraphNode in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/GraphNode.kt` with default values
-- [ ] T011 Implement `withExecutionState` in GraphNode (no propagation yet, just copy) in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/GraphNode.kt`
-- [ ] T012 Implement `withControlConfig` in GraphNode (no propagation yet, just copy) in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/GraphNode.kt`
-- [ ] T013 Implement `withExecutionState` in CodeNode (simple copy) in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/CodeNode.kt`
-- [ ] T014 Implement `withControlConfig` in CodeNode (simple copy) in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/CodeNode.kt`
-- [ ] T015 Verify all existing tests still pass and T005 tests pass by running `./gradlew :fbpDsl:jvmTest`
+- [X] T011 Implement `withExecutionState` in GraphNode (no propagation yet, just copy) in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/GraphNode.kt`
+- [X] T012 Implement `withControlConfig` in GraphNode (no propagation yet, just copy) in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/GraphNode.kt`
+- [X] T013 Implement `withExecutionState` in CodeNode (simple copy) in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/CodeNode.kt`
+- [X] T014 Implement `withControlConfig` in CodeNode (simple copy) in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/CodeNode.kt`
+- [X] T015 Verify all existing tests still pass and T005 tests pass by running `./gradlew :fbpDsl:jvmTest`
 
 **Checkpoint**: Foundation ready - user story implementation can now begin
 
