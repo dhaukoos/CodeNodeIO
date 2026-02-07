@@ -52,6 +52,7 @@ import io.codenode.grapheditor.ui.IPPalette
 import io.codenode.grapheditor.ui.ConnectionContextMenu
 import io.codenode.grapheditor.ui.NavigationBreadcrumbBar
 import io.codenode.grapheditor.ui.NavigationZoomOutButton
+import io.codenode.grapheditor.compilation.CompilationService
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.key.*
 import androidx.compose.ui.focus.FocusRequester
@@ -273,7 +274,9 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
     var selectedIPType by remember { mutableStateOf<InformationPacketType?>(null) }
     var showSaveDialog by remember { mutableStateOf(false) }
     var showOpenDialog by remember { mutableStateOf(false) }
+    var showCompileDialog by remember { mutableStateOf(false) }
     var statusMessage by remember { mutableStateOf("Ready - Create a new graph or open an existing one") }
+    val compilationService = remember { CompilationService() }
 
     // Derive button states from selection - these update automatically when selection changes
     val selectionState = graphState.selectionState  // Read selection state to ensure reactivity
@@ -337,6 +340,9 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                     if (graphState.navigateOut()) {
                         statusMessage = "Navigated back to parent"
                     }
+                },
+                onCompile = {
+                    showCompileDialog = true
                 }
             )
 
@@ -792,6 +798,24 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                 showOpenDialog = false
             }
         }
+
+        if (showCompileDialog) {
+            LaunchedEffect(Unit) {
+                val outputDir = showDirectoryChooser()
+                if (outputDir != null) {
+                    val result = compilationService.compileToModule(
+                        flowGraph = graphState.flowGraph,
+                        outputDir = outputDir
+                    )
+                    if (result.success) {
+                        statusMessage = "Compiled ${result.fileCount} files to ${result.outputPath}"
+                    } else {
+                        statusMessage = "Compile error: ${result.errorMessage}"
+                    }
+                }
+                showCompileDialog = false
+            }
+        }
     }
 }
 
@@ -813,6 +837,7 @@ fun TopToolbar(
     onGroup: () -> Unit = {},
     onUngroup: () -> Unit = {},
     onNavigateBack: () -> Unit = {},
+    onCompile: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     Surface(
@@ -919,6 +944,19 @@ fun TopToolbar(
             ) {
                 Text("Ungroup")
             }
+
+            Divider(
+                modifier = Modifier.width(1.dp).height(32.dp),
+                color = Color.White.copy(alpha = 0.3f)
+            )
+
+            // Compile
+            TextButton(
+                onClick = onCompile,
+                colors = ButtonDefaults.textButtonColors(contentColor = Color.White)
+            ) {
+                Text("Compile")
+            }
         }
     }
 }
@@ -1010,6 +1048,23 @@ fun showFileOpenDialog(): File? {
     val fileChooser = JFileChooser().apply {
         dialogTitle = "Open Flow Graph"
         fileFilter = FileNameExtensionFilter("Flow Graph Files (*.flow.kts)", "kts")
+    }
+
+    return if (fileChooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
+        fileChooser.selectedFile
+    } else {
+        null
+    }
+}
+
+/**
+ * Show directory chooser for module compilation output
+ */
+fun showDirectoryChooser(): File? {
+    val fileChooser = JFileChooser().apply {
+        dialogTitle = "Select Output Directory for KMP Module"
+        fileSelectionMode = JFileChooser.DIRECTORIES_ONLY
+        isAcceptAllFileFilterUsed = false
     }
 
     return if (fileChooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {

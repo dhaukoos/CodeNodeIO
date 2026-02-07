@@ -166,20 +166,20 @@
 
 ### Tests for User Story 5 ⚠️
 
-- [ ] T054 [P] [US5] Write test for module structure generation in `kotlinCompiler/src/jvmTest/kotlin/io/codenode/kotlincompiler/ModuleGeneratorTest.kt` - verify directory structure created
-- [ ] T055 [P] [US5] Write test for build.gradle.kts generation in `kotlinCompiler/src/jvmTest/kotlin/io/codenode/kotlincompiler/ModuleGeneratorTest.kt` - verify KMP gradle config
-- [ ] T056 [P] [US5] Write test for FlowGraph class generation in `kotlinCompiler/src/jvmTest/kotlin/io/codenode/kotlincompiler/ModuleGeneratorTest.kt` - verify flow instantiation code
-- [ ] T057 [P] [US5] Write test for RootControlNode wrapper generation in `kotlinCompiler/src/jvmTest/kotlin/io/codenode/kotlincompiler/ModuleGeneratorTest.kt`
+- [X] T054 [P] [US5] Write test for module structure generation in `kotlinCompiler/src/commonTest/kotlin/io/codenode/kotlincompiler/generator/ModuleGeneratorTest.kt` - verify directory structure created
+- [X] T055 [P] [US5] Write test for build.gradle.kts generation in `kotlinCompiler/src/commonTest/kotlin/io/codenode/kotlincompiler/generator/ModuleGeneratorTest.kt` - verify KMP gradle config
+- [X] T056 [P] [US5] Write test for FlowGraph class generation in `kotlinCompiler/src/commonTest/kotlin/io/codenode/kotlincompiler/generator/ModuleGeneratorTest.kt` - verify flow instantiation code
+- [X] T057 [P] [US5] Write test for RootControlNode wrapper generation in `kotlinCompiler/src/commonTest/kotlin/io/codenode/kotlincompiler/generator/ModuleGeneratorTest.kt`
 
 ### Implementation for User Story 5
 
-- [ ] T058 [US5] Create ModuleGenerator class at `kotlinCompiler/src/jvmMain/kotlin/io/codenode/kotlincompiler/ModuleGenerator.kt`
-- [ ] T059 [US5] Implement `generateModuleStructure(flowGraph, moduleName, outputPath)` method to create directory structure
-- [ ] T060 [US5] Implement `generateBuildGradle(moduleName)` to create KMP build.gradle.kts content
-- [ ] T061 [US5] Implement `generateFlowGraphClass(flowGraph, packageName)` to create flow instantiation code
-- [ ] T062 [US5] Implement `generateControllerClass(flowGraph, packageName)` to create RootControlNode wrapper
-- [ ] T063 [US5] Integrate module generation with graphEditor compilation workflow at `graphEditor/src/jvmMain/kotlin/`
-- [ ] T064 [US5] Run US5 tests and verify all pass: `./gradlew :kotlinCompiler:jvmTest --tests "io.codenode.kotlincompiler.ModuleGeneratorTest"`
+- [X] T058 [US5] Create ModuleGenerator class at `kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/ModuleGenerator.kt`
+- [X] T059 [US5] Implement `generateModuleStructure(flowGraph, moduleName, outputPath)` method to create directory structure
+- [X] T060 [US5] Implement `generateBuildGradle(moduleName)` to create KMP build.gradle.kts content
+- [X] T061 [US5] Implement `generateFlowGraphClass(flowGraph, packageName)` to create flow instantiation code
+- [X] T062 [US5] Implement `generateControllerClass(flowGraph, packageName)` to create RootControlNode wrapper
+- [X] T063 [US5] Integrate module generation with graphEditor compilation workflow at `graphEditor/src/jvmMain/kotlin/compilation/CompilationService.kt`
+- [X] T064 [US5] Run US5 tests and verify all pass: `./gradlew :kotlinCompiler:jvmTest --tests "io.codenode.kotlincompiler.ModuleGeneratorTest"`
 
 **Checkpoint**: User Story 5 complete - KMP module generation works
 

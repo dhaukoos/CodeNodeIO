@@ -17,6 +17,7 @@ import io.codenode.fbpdsl.model.CodeNode
 import io.codenode.fbpdsl.model.CodeNodeType
 import io.codenode.fbpdsl.model.Node
 import io.codenode.fbpdsl.model.Port
+import io.codenode.fbpdsl.model.ExecutionState
 import io.codenode.grapheditor.state.GraphState
 
 /**
@@ -265,7 +266,7 @@ fun createNodeFromType(nodeType: NodeTypeDefinition, position: Offset): CodeNode
         outputPorts = outputPorts,
         configuration = emptyMap(),
         parentNodeId = null,
-        executionState = CodeNode.ExecutionState.IDLE,
+        executionState = ExecutionState.IDLE,
         coroutineHandle = null,
         processingLogic = null // No processing logic yet - will be added later
     )

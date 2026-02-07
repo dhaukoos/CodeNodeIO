@@ -40,6 +40,8 @@ kotlin {
                 implementation(libs.coroutines.swing)
                 // Compose Desktop runtime for current platform
                 implementation(compose.desktop.currentOs)
+                // KotlinCompiler for module generation
+                implementation(project(":kotlinCompiler"))
             }
         }
 
