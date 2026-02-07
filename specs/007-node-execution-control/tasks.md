@@ -25,10 +25,10 @@
 
 **Purpose**: Extract ExecutionState and ControlConfig to separate files; prepare for Node base class modifications
 
-- [ ] T001 Create ExecutionState enum file at `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/ExecutionState.kt` with IDLE, RUNNING, PAUSED, ERROR values (extracted from CodeNode)
-- [ ] T002 Create ControlConfig data class file at `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/ControlConfig.kt` with pauseBufferSize, speedAttenuation, autoResumeOnError, and new independentControl flag
-- [ ] T003 Update CodeNode imports in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/CodeNode.kt` to use extracted ExecutionState and ControlConfig (remove internal definitions)
-- [ ] T004 Verify all existing tests pass after extraction by running `./gradlew :fbpDsl:jvmTest`
+- [X] T001 Create ExecutionState enum file at `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/ExecutionState.kt` with IDLE, RUNNING, PAUSED, ERROR values (extracted from CodeNode)
+- [X] T002 Create ControlConfig data class file at `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/ControlConfig.kt` with pauseBufferSize, speedAttenuation, autoResumeOnError, and new independentControl flag
+- [X] T003 Update CodeNode imports in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/CodeNode.kt` to use extracted ExecutionState and ControlConfig (remove internal definitions)
+- [X] T004 Verify all existing tests pass after extraction by running `./gradlew :fbpDsl:jvmTest`
 
 ---
 

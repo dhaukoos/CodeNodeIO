@@ -165,43 +165,6 @@ data class CodeNode(
         get() = codeNodeType.typeName
 
     /**
-     * State of the CodeNode's execution lifecycle
-     */
-    @Serializable
-    enum class ExecutionState {
-        /** Node is not currently processing */
-        IDLE,
-
-        /** Node is actively processing InformationPackets */
-        RUNNING,
-
-        /** Node execution is paused, buffering incoming IPs */
-        PAUSED,
-
-        /** Node encountered an error and stopped execution */
-        ERROR
-    }
-
-    /**
-     * Configuration for execution control operations
-     *
-     * @property pauseBufferSize Maximum number of IPs to buffer when paused
-     * @property speedAttenuation Delay in milliseconds between processing cycles (for debugging/simulation)
-     * @property autoResumeOnError Whether to automatically resume after error state
-     */
-    @Serializable
-    data class ControlConfig(
-        val pauseBufferSize: Int = 100,
-        val speedAttenuation: Long = 0L,
-        val autoResumeOnError: Boolean = false
-    ) {
-        init {
-            require(pauseBufferSize > 0) { "Pause buffer size must be positive, got $pauseBufferSize" }
-            require(speedAttenuation >= 0L) { "Speed attenuation cannot be negative, got $speedAttenuation" }
-        }
-    }
-
-    /**
      * Validates that this CodeNode is well-formed
      *
      * @return Validation result with success flag and error messages
