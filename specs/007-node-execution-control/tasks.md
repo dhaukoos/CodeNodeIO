@@ -64,17 +64,17 @@
 
 > **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
 
-- [ ] T016 [P] [US1] Write test for basic state propagation in `fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/model/StatePropagationTest.kt` - parent IDLE→RUNNING propagates to all children
-- [ ] T017 [P] [US1] Write test for nested propagation in `fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/model/StatePropagationTest.kt` - state propagates through nested GraphNodes to all descendants
-- [ ] T018 [P] [US1] Write test for ERROR propagation in `fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/model/StatePropagationTest.kt` - parent ERROR transitions all children to ERROR
-- [ ] T019 [P] [US1] Write test for propagate=false mode in `fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/model/StatePropagationTest.kt` - only target node changes
+- [X] T016 [P] [US1] Write test for basic state propagation in `fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/model/StatePropagationTest.kt` - parent IDLE→RUNNING propagates to all children
+- [X] T017 [P] [US1] Write test for nested propagation in `fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/model/StatePropagationTest.kt` - state propagates through nested GraphNodes to all descendants
+- [X] T018 [P] [US1] Write test for ERROR propagation in `fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/model/StatePropagationTest.kt` - parent ERROR transitions all children to ERROR
+- [X] T019 [P] [US1] Write test for propagate=false mode in `fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/model/StatePropagationTest.kt` - only target node changes
 
 ### Implementation for User Story 1
 
-- [ ] T020 [US1] Implement `propagateStateToChildren(ExecutionState)` helper in GraphNode at `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/GraphNode.kt`
-- [ ] T021 [US1] Update `withExecutionState` in GraphNode to call `propagateStateToChildren` when propagate=true at `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/GraphNode.kt`
-- [ ] T022 [US1] Ensure recursive propagation works for nested GraphNodes (GraphNode children call their own withExecutionState)
-- [ ] T023 [US1] Run US1 tests and verify all pass: `./gradlew :fbpDsl:jvmTest --tests "io.codenode.fbpdsl.model.StatePropagationTest"`
+- [X] T020 [US1] Implement `propagateStateToChildren(ExecutionState)` helper in GraphNode at `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/GraphNode.kt`
+- [X] T021 [US1] Update `withExecutionState` in GraphNode to call `propagateStateToChildren` when propagate=true at `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/GraphNode.kt`
+- [X] T022 [US1] Ensure recursive propagation works for nested GraphNodes (GraphNode children call their own withExecutionState)
+- [X] T023 [US1] Run US1 tests and verify all pass: `./gradlew :fbpDsl:jvmTest --tests "io.codenode.fbpdsl.model.StatePropagationTest"`
 
 **Checkpoint**: User Story 1 (MVP) complete - hierarchical state propagation works
 

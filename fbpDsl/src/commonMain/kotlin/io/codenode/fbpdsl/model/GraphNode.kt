@@ -210,9 +210,37 @@ data class GraphNode(
      * @return New GraphNode instance with updated execution state
      */
     override fun withExecutionState(newState: ExecutionState, propagate: Boolean): GraphNode {
-        // For now, just update this node's state without propagation
-        // Propagation will be implemented in T020-T022
-        return copy(executionState = newState)
+        return if (propagate) {
+            // Propagate state to all children (respecting independentControl)
+            val updatedChildren = propagateStateToChildren(newState)
+            copy(executionState = newState, childNodes = updatedChildren)
+        } else {
+            // Only update this node's state
+            copy(executionState = newState)
+        }
+    }
+
+    /**
+     * Propagates execution state to all child nodes.
+     *
+     * For each child:
+     * - If child has independentControl=true, it is unchanged
+     * - If child is a CodeNode, creates copy with new state
+     * - If child is a GraphNode, recursively calls withExecutionState(state, propagate=true)
+     *
+     * @param newState The execution state to propagate
+     * @return List of updated child nodes
+     */
+    fun propagateStateToChildren(newState: ExecutionState): List<Node> {
+        return childNodes.map { child ->
+            if (child.controlConfig.independentControl) {
+                // Independent nodes are not affected by parent state changes
+                child
+            } else {
+                // Propagate state to this child (and its descendants if it's a GraphNode)
+                child.withExecutionState(newState, propagate = true)
+            }
+        }
     }
 
     /**
