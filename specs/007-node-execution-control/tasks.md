@@ -88,17 +88,17 @@
 
 ### Tests for User Story 2 ⚠️
 
-- [ ] T024 [P] [US2] Write test for independentControl flag in `fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/model/StatePropagationTest.kt` - node with independentControl=true is skipped during propagation
-- [ ] T025 [P] [US2] Write test for direct control of independent node in `fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/model/StatePropagationTest.kt` - independent node can be controlled directly
-- [ ] T026 [P] [US2] Write test for independent node propagating to its own children in `fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/model/StatePropagationTest.kt`
-- [ ] T027 [P] [US2] Write test for nested independent boundaries in `fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/model/StatePropagationTest.kt` - nothing below independent boundary affected by parent changes
+- [X] T024 [P] [US2] Write test for independentControl flag in `fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/model/StatePropagationTest.kt` - node with independentControl=true is skipped during propagation
+- [X] T025 [P] [US2] Write test for direct control of independent node in `fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/model/StatePropagationTest.kt` - independent node can be controlled directly
+- [X] T026 [P] [US2] Write test for independent node propagating to its own children in `fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/model/StatePropagationTest.kt`
+- [X] T027 [P] [US2] Write test for nested independent boundaries in `fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/model/StatePropagationTest.kt` - nothing below independent boundary affected by parent changes
 
 ### Implementation for User Story 2
 
-- [ ] T028 [US2] Update `propagateStateToChildren` to check `child.controlConfig.independentControl` and skip if true at `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/GraphNode.kt`
-- [ ] T029 [US2] Implement `propagateConfigToChildren(ControlConfig)` helper in GraphNode (respecting independentControl) at `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/GraphNode.kt`
-- [ ] T030 [US2] Update `withControlConfig` in GraphNode to call `propagateConfigToChildren` when propagate=true at `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/GraphNode.kt`
-- [ ] T031 [US2] Run US2 tests and verify all pass: `./gradlew :fbpDsl:jvmTest --tests "io.codenode.fbpdsl.model.StatePropagationTest"`
+- [X] T028 [US2] Update `propagateStateToChildren` to check `child.controlConfig.independentControl` and skip if true at `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/GraphNode.kt`
+- [X] T029 [US2] Implement `propagateConfigToChildren(ControlConfig)` helper in GraphNode (respecting independentControl) at `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/GraphNode.kt`
+- [X] T030 [US2] Update `withControlConfig` in GraphNode to call `propagateConfigToChildren` when propagate=true at `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/GraphNode.kt`
+- [X] T031 [US2] Run US2 tests and verify all pass: `./gradlew :fbpDsl:jvmTest --tests "io.codenode.fbpdsl.model.StatePropagationTest"`
 
 **Checkpoint**: User Story 2 complete - independent control isolation works
 

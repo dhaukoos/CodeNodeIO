@@ -255,9 +255,39 @@ data class GraphNode(
      * @return New GraphNode instance with updated control configuration
      */
     override fun withControlConfig(newConfig: ControlConfig, propagate: Boolean): GraphNode {
-        // For now, just update this node's config without propagation
-        // Propagation will be implemented in T029-T030
-        return copy(controlConfig = newConfig)
+        return if (propagate) {
+            // Propagate config to all children (respecting independentControl)
+            val updatedChildren = propagateConfigToChildren(newConfig)
+            copy(controlConfig = newConfig, childNodes = updatedChildren)
+        } else {
+            // Only update this node's config
+            copy(controlConfig = newConfig)
+        }
+    }
+
+    /**
+     * Propagates control configuration to all child nodes.
+     *
+     * For each child:
+     * - If child has independentControl=true, it is unchanged (retains its entire config)
+     * - Otherwise, child receives the new config BUT keeps its own independentControl flag
+     *
+     * Note: The independentControl flag is never propagated - it's a local setting.
+     *
+     * @param newConfig The control configuration to propagate
+     * @return List of updated child nodes
+     */
+    fun propagateConfigToChildren(newConfig: ControlConfig): List<Node> {
+        return childNodes.map { child ->
+            if (child.controlConfig.independentControl) {
+                // Independent nodes retain their entire config
+                child
+            } else {
+                // Propagate config but preserve child's own independentControl flag
+                val childConfig = newConfig.copy(independentControl = child.controlConfig.independentControl)
+                child.withControlConfig(childConfig, propagate = true)
+            }
+        }
     }
 
     /**

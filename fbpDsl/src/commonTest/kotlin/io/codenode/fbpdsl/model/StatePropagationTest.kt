@@ -369,4 +369,329 @@ class StatePropagationTest {
         assertEquals(ExecutionState.RUNNING, runningParent.executionState)
         assertEquals(ExecutionState.RUNNING, runningParent.childNodes.first().executionState)
     }
+
+    // ==========================================================================
+    // User Story 2: Selective Subgraph Control Override (independentControl)
+    // ==========================================================================
+
+    // ========== T024: independentControl Flag Tests ==========
+
+    @Test
+    fun `T024 - node with independentControl=true is skipped during propagation`() {
+        // Given: A GraphNode with one independent child and one normal child
+        val independentChild = createCodeNode(
+            "independent",
+            controlConfig = ControlConfig(independentControl = true)
+        )
+        val normalChild = createCodeNode("normal")
+        val parent = createGraphNode("parent", listOf(independentChild, normalChild))
+
+        // When: Parent state is changed to RUNNING
+        val runningParent = parent.withExecutionState(ExecutionState.RUNNING, propagate = true)
+
+        // Then: Only the normal child should be updated
+        assertEquals(ExecutionState.RUNNING, runningParent.executionState)
+
+        val updatedIndependent = runningParent.childNodes.find { it.id == "independent" }
+        val updatedNormal = runningParent.childNodes.find { it.id == "normal" }
+
+        assertEquals(ExecutionState.IDLE, updatedIndependent?.executionState,
+            "Independent node should remain IDLE")
+        assertEquals(ExecutionState.RUNNING, updatedNormal?.executionState,
+            "Normal node should be RUNNING")
+    }
+
+    @Test
+    fun `T024 - independent GraphNode is skipped during parent propagation`() {
+        // Given: Parent with an independent GraphNode child
+        val grandchild = createCodeNode("grandchild")
+        val independentGroup = createGraphNode(
+            "independent-group",
+            listOf(grandchild),
+            controlConfig = ControlConfig(independentControl = true)
+        )
+        val parent = createGraphNode("parent", listOf(independentGroup))
+
+        // When: Parent state is changed to RUNNING
+        val runningParent = parent.withExecutionState(ExecutionState.RUNNING, propagate = true)
+
+        // Then: Independent group and its children should remain IDLE
+        assertEquals(ExecutionState.RUNNING, runningParent.executionState)
+
+        val updatedGroup = runningParent.childNodes.first() as GraphNode
+        assertEquals(ExecutionState.IDLE, updatedGroup.executionState,
+            "Independent group should remain IDLE")
+        assertEquals(ExecutionState.IDLE, updatedGroup.childNodes.first().executionState,
+            "Grandchild of independent group should remain IDLE")
+    }
+
+    @Test
+    fun `T024 - multiple independent nodes are all skipped`() {
+        // Given: Parent with multiple independent children
+        val independent1 = createCodeNode("ind-1", controlConfig = ControlConfig(independentControl = true))
+        val independent2 = createCodeNode("ind-2", controlConfig = ControlConfig(independentControl = true))
+        val normal = createCodeNode("normal")
+        val parent = createGraphNode("parent", listOf(independent1, independent2, normal))
+
+        // When: Parent state is changed
+        val runningParent = parent.withExecutionState(ExecutionState.RUNNING, propagate = true)
+
+        // Then: All independent nodes should be skipped
+        val ind1 = runningParent.childNodes.find { it.id == "ind-1" }
+        val ind2 = runningParent.childNodes.find { it.id == "ind-2" }
+        val norm = runningParent.childNodes.find { it.id == "normal" }
+
+        assertEquals(ExecutionState.IDLE, ind1?.executionState)
+        assertEquals(ExecutionState.IDLE, ind2?.executionState)
+        assertEquals(ExecutionState.RUNNING, norm?.executionState)
+    }
+
+    // ========== T025: Direct Control of Independent Node Tests ==========
+
+    @Test
+    fun `T025 - independent node can be controlled directly`() {
+        // Given: An independent CodeNode
+        val independentNode = createCodeNode(
+            "independent",
+            controlConfig = ControlConfig(independentControl = true)
+        )
+
+        // When: Directly changing its state
+        val runningNode = independentNode.withExecutionState(ExecutionState.RUNNING)
+
+        // Then: State should change
+        assertEquals(ExecutionState.RUNNING, runningNode.executionState)
+    }
+
+    @Test
+    fun `T025 - independent GraphNode can be controlled directly`() {
+        // Given: An independent GraphNode with children
+        val child1 = createCodeNode("child-1")
+        val child2 = createCodeNode("child-2")
+        val independentGroup = createGraphNode(
+            "independent-group",
+            listOf(child1, child2),
+            controlConfig = ControlConfig(independentControl = true)
+        )
+
+        // When: Directly controlling the independent group
+        val runningGroup = independentGroup.withExecutionState(ExecutionState.RUNNING, propagate = true)
+
+        // Then: The group and its children should all be RUNNING
+        assertEquals(ExecutionState.RUNNING, runningGroup.executionState)
+        assertTrue(runningGroup.childNodes.all { it.executionState == ExecutionState.RUNNING },
+            "Children of directly controlled independent group should be RUNNING")
+    }
+
+    @Test
+    fun `T025 - independent node retains state when parent changes multiple times`() {
+        // Given: Parent with an independent child in RUNNING state
+        val independentChild = createCodeNode(
+            "independent",
+            executionState = ExecutionState.RUNNING,
+            controlConfig = ControlConfig(independentControl = true)
+        )
+        val parent = createGraphNode("parent", listOf(independentChild))
+
+        // When: Parent goes through multiple state changes
+        val pausedParent = parent.withExecutionState(ExecutionState.PAUSED, propagate = true)
+        val stoppedParent = pausedParent.withExecutionState(ExecutionState.IDLE, propagate = true)
+        val errorParent = stoppedParent.withExecutionState(ExecutionState.ERROR, propagate = true)
+
+        // Then: Independent child should retain RUNNING state through all changes
+        val finalIndependent = errorParent.childNodes.first()
+        assertEquals(ExecutionState.RUNNING, finalIndependent.executionState,
+            "Independent node should retain its state through all parent changes")
+    }
+
+    // ========== T026: Independent Node Propagating to Its Own Children ==========
+
+    @Test
+    fun `T026 - independent node propagates to its own children when controlled directly`() {
+        // Given: Independent GraphNode with children
+        val grandchild1 = createCodeNode("gc-1")
+        val grandchild2 = createCodeNode("gc-2")
+        val independentGroup = createGraphNode(
+            "independent",
+            listOf(grandchild1, grandchild2),
+            controlConfig = ControlConfig(independentControl = true)
+        )
+
+        // When: Independent group is controlled directly
+        val runningGroup = independentGroup.withExecutionState(ExecutionState.RUNNING, propagate = true)
+
+        // Then: Its children should receive the state
+        assertEquals(ExecutionState.RUNNING, runningGroup.executionState)
+        assertTrue(runningGroup.childNodes.all { it.executionState == ExecutionState.RUNNING },
+            "Children of independent group should be updated when group is controlled directly")
+    }
+
+    @Test
+    fun `T026 - independent group's nested hierarchy propagates correctly`() {
+        // Given: Independent group with nested structure
+        val leaf = createCodeNode("leaf")
+        val nestedGroup = createGraphNode("nested", listOf(leaf))
+        val independentGroup = createGraphNode(
+            "independent",
+            listOf(nestedGroup),
+            controlConfig = ControlConfig(independentControl = true)
+        )
+
+        // When: Independent group is controlled directly
+        val pausedGroup = independentGroup.withExecutionState(ExecutionState.PAUSED, propagate = true)
+
+        // Then: All descendants should be paused
+        assertEquals(ExecutionState.PAUSED, pausedGroup.executionState)
+        val updatedNested = pausedGroup.childNodes.first() as GraphNode
+        assertEquals(ExecutionState.PAUSED, updatedNested.executionState)
+        assertEquals(ExecutionState.PAUSED, updatedNested.childNodes.first().executionState)
+    }
+
+    @Test
+    fun `T026 - independent node respects independentControl within its own children`() {
+        // Given: Independent group with an independent grandchild
+        val independentGrandchild = createCodeNode(
+            "ind-grandchild",
+            controlConfig = ControlConfig(independentControl = true)
+        )
+        val normalGrandchild = createCodeNode("normal-grandchild")
+        val independentGroup = createGraphNode(
+            "independent",
+            listOf(independentGrandchild, normalGrandchild),
+            controlConfig = ControlConfig(independentControl = true)
+        )
+
+        // When: Independent group is controlled directly
+        val runningGroup = independentGroup.withExecutionState(ExecutionState.RUNNING, propagate = true)
+
+        // Then: The independent grandchild should still be skipped
+        val indGc = runningGroup.childNodes.find { it.id == "ind-grandchild" }
+        val normGc = runningGroup.childNodes.find { it.id == "normal-grandchild" }
+
+        assertEquals(ExecutionState.IDLE, indGc?.executionState,
+            "Independent grandchild should remain IDLE even when parent group is controlled directly")
+        assertEquals(ExecutionState.RUNNING, normGc?.executionState,
+            "Normal grandchild should be RUNNING")
+    }
+
+    // ========== T027: Nested Independent Boundaries Tests ==========
+
+    @Test
+    fun `T027 - nothing below independent boundary affected by parent changes`() {
+        // Given: Hierarchy with independent boundary in the middle
+        //   root -> independent-group -> grandchild
+        val grandchild = createCodeNode("grandchild")
+        val independentGroup = createGraphNode(
+            "independent",
+            listOf(grandchild),
+            controlConfig = ControlConfig(independentControl = true)
+        )
+        val root = createGraphNode("root", listOf(independentGroup))
+
+        // When: Root is set to RUNNING
+        val runningRoot = root.withExecutionState(ExecutionState.RUNNING, propagate = true)
+
+        // Then: Everything below the independent boundary should be unchanged
+        assertEquals(ExecutionState.RUNNING, runningRoot.executionState)
+
+        val updatedIndGroup = runningRoot.childNodes.first() as GraphNode
+        assertEquals(ExecutionState.IDLE, updatedIndGroup.executionState,
+            "Independent group should remain IDLE")
+        assertEquals(ExecutionState.IDLE, updatedIndGroup.childNodes.first().executionState,
+            "Grandchild below independent boundary should remain IDLE")
+    }
+
+    @Test
+    fun `T027 - deeply nested independent boundary blocks propagation`() {
+        // Given: Deep hierarchy with independent boundary at level 2
+        //   root -> level1 -> independent-level2 -> level3 -> leaf
+        val leaf = createCodeNode("leaf")
+        val level3 = createGraphNode("level3", listOf(leaf))
+        val independentLevel2 = createGraphNode(
+            "level2",
+            listOf(level3),
+            controlConfig = ControlConfig(independentControl = true)
+        )
+        val level1 = createGraphNode("level1", listOf(independentLevel2))
+        val root = createGraphNode("root", listOf(level1))
+
+        // When: Root is set to RUNNING
+        val runningRoot = root.withExecutionState(ExecutionState.RUNNING, propagate = true)
+
+        // Then: Level1 should be RUNNING, but level2 and below should be IDLE
+        val updatedL1 = runningRoot.childNodes.first() as GraphNode
+        assertEquals(ExecutionState.RUNNING, updatedL1.executionState, "Level1 should be RUNNING")
+
+        val updatedL2 = updatedL1.childNodes.first() as GraphNode
+        assertEquals(ExecutionState.IDLE, updatedL2.executionState,
+            "Independent Level2 should remain IDLE")
+
+        val updatedL3 = updatedL2.childNodes.first() as GraphNode
+        assertEquals(ExecutionState.IDLE, updatedL3.executionState,
+            "Level3 below boundary should remain IDLE")
+
+        assertEquals(ExecutionState.IDLE, updatedL3.childNodes.first().executionState,
+            "Leaf below boundary should remain IDLE")
+    }
+
+    @Test
+    fun `T027 - sibling nodes are affected even when one sibling is independent`() {
+        // Given: Parent with independent and non-independent siblings
+        val independentSibling = createCodeNode(
+            "independent",
+            controlConfig = ControlConfig(independentControl = true)
+        )
+        val normalSibling1 = createCodeNode("normal-1")
+        val normalSibling2 = createCodeNode("normal-2")
+        val parent = createGraphNode("parent",
+            listOf(independentSibling, normalSibling1, normalSibling2))
+
+        // When: Parent is set to RUNNING
+        val runningParent = parent.withExecutionState(ExecutionState.RUNNING, propagate = true)
+
+        // Then: Normal siblings should be affected, independent should not
+        val ind = runningParent.childNodes.find { it.id == "independent" }
+        val norm1 = runningParent.childNodes.find { it.id == "normal-1" }
+        val norm2 = runningParent.childNodes.find { it.id == "normal-2" }
+
+        assertEquals(ExecutionState.IDLE, ind?.executionState)
+        assertEquals(ExecutionState.RUNNING, norm1?.executionState)
+        assertEquals(ExecutionState.RUNNING, norm2?.executionState)
+    }
+
+    @Test
+    fun `T027 - multiple independent boundaries at different levels`() {
+        // Given: Hierarchy with independent nodes at multiple levels
+        val deepIndependent = createCodeNode(
+            "deep-ind",
+            controlConfig = ControlConfig(independentControl = true)
+        )
+        val normalLeaf = createCodeNode("normal-leaf")
+        val level2 = createGraphNode("level2", listOf(deepIndependent, normalLeaf))
+        val independentLevel1 = createGraphNode(
+            "ind-level1",
+            listOf(level2),
+            controlConfig = ControlConfig(independentControl = true)
+        )
+        val normalLevel1 = createCodeNode("normal-level1")
+        val root = createGraphNode("root", listOf(independentLevel1, normalLevel1))
+
+        // When: Root is set to RUNNING
+        val runningRoot = root.withExecutionState(ExecutionState.RUNNING, propagate = true)
+
+        // Then: Only normalLevel1 at root level should be RUNNING
+        val indL1 = runningRoot.childNodes.find { it.id == "ind-level1" } as GraphNode
+        val normL1 = runningRoot.childNodes.find { it.id == "normal-level1" }
+
+        assertEquals(ExecutionState.IDLE, indL1.executionState,
+            "Independent level1 should remain IDLE")
+        assertEquals(ExecutionState.RUNNING, normL1?.executionState,
+            "Normal level1 should be RUNNING")
+
+        // And: Everything under the independent boundary should be IDLE
+        val l2 = indL1.childNodes.first() as GraphNode
+        assertEquals(ExecutionState.IDLE, l2.executionState)
+        assertTrue(l2.childNodes.all { it.executionState == ExecutionState.IDLE },
+            "All nodes under independent boundary should remain IDLE")
+    }
 }
