@@ -218,6 +218,21 @@ sealed class Node {
      */
     abstract fun withControlConfig(newConfig: ControlConfig, propagate: Boolean = true): Node
 
+    /**
+     * Gets the effective control configuration for this node.
+     *
+     * For nodes that have received propagated config from a parent, this returns
+     * the merged configuration. For nodes with independentControl=true, this
+     * returns their own config unchanged.
+     *
+     * Note: Since propagation already applies parent settings to children during
+     * withControlConfig calls, the effective config is simply the node's own
+     * controlConfig property.
+     *
+     * @return The effective ControlConfig for this node
+     */
+    abstract fun getEffectiveControlConfig(): ControlConfig
+
 }
 
 /**

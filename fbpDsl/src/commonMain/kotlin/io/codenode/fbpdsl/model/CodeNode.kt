@@ -264,6 +264,18 @@ data class CodeNode(
     }
 
     /**
+     * Gets the effective control configuration for this CodeNode.
+     *
+     * For CodeNode, this simply returns the node's own controlConfig,
+     * as any parent propagation has already been applied.
+     *
+     * @return The effective ControlConfig for this node
+     */
+    override fun getEffectiveControlConfig(): ControlConfig {
+        return controlConfig
+    }
+
+    /**
      * Checks if this CodeNode is currently executing
      *
      * @return true if state is RUNNING

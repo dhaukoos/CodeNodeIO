@@ -266,6 +266,20 @@ data class GraphNode(
     }
 
     /**
+     * Gets the effective control configuration for this GraphNode.
+     *
+     * For GraphNode, this returns the node's own controlConfig.
+     * GraphNode is authoritative for its subtree - its config defines
+     * the effective settings for all descendants (unless they have
+     * independentControl enabled).
+     *
+     * @return The effective ControlConfig for this node
+     */
+    override fun getEffectiveControlConfig(): ControlConfig {
+        return controlConfig
+    }
+
+    /**
      * Propagates control configuration to all child nodes.
      *
      * For each child:

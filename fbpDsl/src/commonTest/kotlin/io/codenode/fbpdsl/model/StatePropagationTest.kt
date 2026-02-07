@@ -694,4 +694,213 @@ class StatePropagationTest {
         assertTrue(l2.childNodes.all { it.executionState == ExecutionState.IDLE },
             "All nodes under independent boundary should remain IDLE")
     }
+
+    // ==========================================================================
+    // User Story 4: Speed Attenuation Propagation (ControlConfig Propagation)
+    // ==========================================================================
+
+    // ========== T048: speedAttenuation Propagation Tests ==========
+
+    @Test
+    fun `T048 - parent speedAttenuation propagates to all children`() {
+        // Given: GraphNode with children, all with default config
+        val child1 = createCodeNode("child-1")
+        val child2 = createCodeNode("child-2")
+        val parent = createGraphNode("parent", listOf(child1, child2))
+
+        // When: Parent's speedAttenuation is changed
+        val slowConfig = ControlConfig(speedAttenuation = 500L)
+        val slowParent = parent.withControlConfig(slowConfig, propagate = true)
+
+        // Then: All children should have speedAttenuation = 500
+        assertEquals(500L, slowParent.controlConfig.speedAttenuation)
+        assertTrue(slowParent.childNodes.all { it.controlConfig.speedAttenuation == 500L },
+            "All children should have speedAttenuation = 500")
+    }
+
+    @Test
+    fun `T048 - pauseBufferSize propagates to all children`() {
+        // Given: GraphNode with children
+        val child1 = createCodeNode("child-1")
+        val child2 = createCodeNode("child-2")
+        val parent = createGraphNode("parent", listOf(child1, child2))
+
+        // When: Parent's pauseBufferSize is changed
+        val newConfig = ControlConfig(pauseBufferSize = 200)
+        val updatedParent = parent.withControlConfig(newConfig, propagate = true)
+
+        // Then: All children should have pauseBufferSize = 200
+        assertEquals(200, updatedParent.controlConfig.pauseBufferSize)
+        assertTrue(updatedParent.childNodes.all { it.controlConfig.pauseBufferSize == 200 },
+            "All children should have pauseBufferSize = 200")
+    }
+
+    @Test
+    fun `T048 - autoResumeOnError propagates to all children`() {
+        // Given: GraphNode with children
+        val child = createCodeNode("child")
+        val parent = createGraphNode("parent", listOf(child))
+
+        // When: Parent's autoResumeOnError is set to true
+        val newConfig = ControlConfig(autoResumeOnError = true)
+        val updatedParent = parent.withControlConfig(newConfig, propagate = true)
+
+        // Then: Child should have autoResumeOnError = true
+        assertEquals(true, updatedParent.controlConfig.autoResumeOnError)
+        assertEquals(true, updatedParent.childNodes.first().controlConfig.autoResumeOnError)
+    }
+
+    @Test
+    fun `T048 - config propagates through nested hierarchy`() {
+        // Given: Nested hierarchy
+        val grandchild = createCodeNode("grandchild")
+        val innerGroup = createGraphNode("inner", listOf(grandchild))
+        val parent = createGraphNode("parent", listOf(innerGroup))
+
+        // When: Parent's config is changed
+        val slowConfig = ControlConfig(speedAttenuation = 1000L)
+        val slowParent = parent.withControlConfig(slowConfig, propagate = true)
+
+        // Then: All descendants should have the config
+        assertEquals(1000L, slowParent.controlConfig.speedAttenuation)
+
+        val updatedInner = slowParent.childNodes.first() as GraphNode
+        assertEquals(1000L, updatedInner.controlConfig.speedAttenuation)
+        assertEquals(1000L, updatedInner.childNodes.first().controlConfig.speedAttenuation)
+    }
+
+    // ========== T049: Child Override Tests ==========
+
+    @Test
+    fun `T049 - propagate=false only changes target node config`() {
+        // Given: GraphNode with children
+        val child = createCodeNode("child", controlConfig = ControlConfig(speedAttenuation = 100L))
+        val parent = createGraphNode("parent", listOf(child))
+
+        // When: Parent's config is changed without propagation
+        val slowConfig = ControlConfig(speedAttenuation = 500L)
+        val slowParent = parent.withControlConfig(slowConfig, propagate = false)
+
+        // Then: Only parent should have new config, child retains original
+        assertEquals(500L, slowParent.controlConfig.speedAttenuation)
+        assertEquals(100L, slowParent.childNodes.first().controlConfig.speedAttenuation,
+            "Child should retain original speedAttenuation when propagate=false")
+    }
+
+    @Test
+    fun `T049 - independentControl flag is never propagated`() {
+        // Given: Parent with independentControl=true, child with independentControl=false
+        val child = createCodeNode("child", controlConfig = ControlConfig(independentControl = false))
+        val parent = createGraphNode("parent", listOf(child),
+            controlConfig = ControlConfig(independentControl = true))
+
+        // When: Parent propagates config with independentControl=true
+        val newConfig = ControlConfig(speedAttenuation = 500L, independentControl = true)
+        val updatedParent = parent.withControlConfig(newConfig, propagate = true)
+
+        // Then: Child should have speedAttenuation but NOT independentControl
+        val updatedChild = updatedParent.childNodes.first()
+        assertEquals(500L, updatedChild.controlConfig.speedAttenuation)
+        assertEquals(false, updatedChild.controlConfig.independentControl,
+            "independentControl should NOT be propagated - it's a local setting")
+    }
+
+    @Test
+    fun `T049 - child preserves its own independentControl when receiving propagated config`() {
+        // Given: Child with independentControl=true
+        val independentChild = createCodeNode("child",
+            controlConfig = ControlConfig(independentControl = true, speedAttenuation = 50L))
+        val parent = createGraphNode("parent", listOf(independentChild))
+
+        // When: Parent propagates config
+        val newConfig = ControlConfig(speedAttenuation = 500L)
+        val updatedParent = parent.withControlConfig(newConfig, propagate = true)
+
+        // Then: Independent child should be unchanged (entire config retained)
+        val updatedChild = updatedParent.childNodes.first()
+        assertEquals(50L, updatedChild.controlConfig.speedAttenuation,
+            "Independent child should retain its own speedAttenuation")
+        assertEquals(true, updatedChild.controlConfig.independentControl,
+            "Independent child should retain independentControl=true")
+    }
+
+    // ========== T050: independentControl Respecting Config Tests ==========
+
+    @Test
+    fun `T050 - independent nodes retain their entire ControlConfig`() {
+        // Given: Parent with independent child that has custom config
+        val customConfig = ControlConfig(
+            pauseBufferSize = 50,
+            speedAttenuation = 100L,
+            autoResumeOnError = true,
+            independentControl = true
+        )
+        val independentChild = createCodeNode("independent", controlConfig = customConfig)
+        val normalChild = createCodeNode("normal")
+        val parent = createGraphNode("parent", listOf(independentChild, normalChild))
+
+        // When: Parent propagates new config
+        val newConfig = ControlConfig(
+            pauseBufferSize = 200,
+            speedAttenuation = 500L,
+            autoResumeOnError = false
+        )
+        val updatedParent = parent.withControlConfig(newConfig, propagate = true)
+
+        // Then: Independent child retains original config, normal child gets new config
+        val indChild = updatedParent.childNodes.find { it.id == "independent" }!!
+        val normChild = updatedParent.childNodes.find { it.id == "normal" }!!
+
+        // Independent child unchanged
+        assertEquals(50, indChild.controlConfig.pauseBufferSize)
+        assertEquals(100L, indChild.controlConfig.speedAttenuation)
+        assertEquals(true, indChild.controlConfig.autoResumeOnError)
+        assertEquals(true, indChild.controlConfig.independentControl)
+
+        // Normal child updated
+        assertEquals(200, normChild.controlConfig.pauseBufferSize)
+        assertEquals(500L, normChild.controlConfig.speedAttenuation)
+        assertEquals(false, normChild.controlConfig.autoResumeOnError)
+    }
+
+    @Test
+    fun `T050 - independent GraphNode blocks config propagation to its descendants`() {
+        // Given: Nested hierarchy with independent boundary
+        val grandchild = createCodeNode("grandchild")
+        val independentGroup = createGraphNode("independent", listOf(grandchild),
+            controlConfig = ControlConfig(independentControl = true, speedAttenuation = 100L))
+        val parent = createGraphNode("parent", listOf(independentGroup))
+
+        // When: Parent propagates new config
+        val newConfig = ControlConfig(speedAttenuation = 500L)
+        val updatedParent = parent.withControlConfig(newConfig, propagate = true)
+
+        // Then: Independent group and its grandchild should be unchanged
+        val indGroup = updatedParent.childNodes.first() as GraphNode
+        assertEquals(100L, indGroup.controlConfig.speedAttenuation,
+            "Independent group should retain its config")
+        assertEquals(0L, indGroup.childNodes.first().controlConfig.speedAttenuation,
+            "Grandchild should have original default config")
+    }
+
+    @Test
+    fun `T050 - config propagation is immutable`() {
+        // Given: Original hierarchy
+        val child = createCodeNode("child")
+        val parent = createGraphNode("parent", listOf(child))
+        val originalChildConfig = parent.childNodes.first().controlConfig
+
+        // When: Parent config is changed with propagation
+        val newConfig = ControlConfig(speedAttenuation = 500L)
+        val updatedParent = parent.withControlConfig(newConfig, propagate = true)
+
+        // Then: Original nodes should be unchanged
+        assertEquals(0L, parent.controlConfig.speedAttenuation, "Original parent unchanged")
+        assertEquals(originalChildConfig.speedAttenuation, parent.childNodes.first().controlConfig.speedAttenuation,
+            "Original child unchanged")
+
+        // And: Updated nodes have new config
+        assertEquals(500L, updatedParent.controlConfig.speedAttenuation)
+        assertEquals(500L, updatedParent.childNodes.first().controlConfig.speedAttenuation)
+    }
 }

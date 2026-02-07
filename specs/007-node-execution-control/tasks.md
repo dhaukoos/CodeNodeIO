@@ -144,15 +144,15 @@
 
 ### Tests for User Story 4 ⚠️
 
-- [ ] T048 [P] [US4] Write test for speedAttenuation propagation in `fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/model/StatePropagationTest.kt` - parent speedAttenuation=500 propagates to children
-- [ ] T049 [P] [US4] Write test for child override in `fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/model/StatePropagationTest.kt` - child's own speedAttenuation takes precedence in its subtree
-- [ ] T050 [P] [US4] Write test for independentControl respecting config in `fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/model/StatePropagationTest.kt` - independent nodes retain their own ControlConfig
+- [X] T048 [P] [US4] Write test for speedAttenuation propagation in `fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/model/StatePropagationTest.kt` - parent speedAttenuation=500 propagates to children
+- [X] T049 [P] [US4] Write test for child override in `fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/model/StatePropagationTest.kt` - child's own speedAttenuation takes precedence in its subtree
+- [X] T050 [P] [US4] Write test for independentControl respecting config in `fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/model/StatePropagationTest.kt` - independent nodes retain their own ControlConfig
 
 ### Implementation for User Story 4
 
-- [ ] T051 [US4] Ensure `propagateConfigToChildren` correctly propagates speedAttenuation, pauseBufferSize, autoResumeOnError (but not independentControl) at `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/GraphNode.kt`
-- [ ] T052 [US4] Add `getEffectiveControlConfig()` method to Node (abstract) and implement in CodeNode and GraphNode at respective files
-- [ ] T053 [US4] Run US4 tests and verify all pass: `./gradlew :fbpDsl:jvmTest --tests "io.codenode.fbpdsl.model.StatePropagationTest"`
+- [X] T051 [US4] Ensure `propagateConfigToChildren` correctly propagates speedAttenuation, pauseBufferSize, autoResumeOnError (but not independentControl) at `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/GraphNode.kt`
+- [X] T052 [US4] Add `getEffectiveControlConfig()` method to Node (abstract) and implement in CodeNode and GraphNode at respective files
+- [X] T053 [US4] Run US4 tests and verify all pass: `./gradlew :fbpDsl:jvmTest --tests "io.codenode.fbpdsl.model.StatePropagationTest"`
 
 **Checkpoint**: User Story 4 complete - controlConfig propagation works correctly
 
