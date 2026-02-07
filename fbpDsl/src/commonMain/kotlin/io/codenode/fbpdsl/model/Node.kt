@@ -25,6 +25,8 @@ import kotlinx.serialization.Serializable
  * @property outputPorts List of OUTPUT ports for emitting data
  * @property configuration Key-value property map for node-specific settings
  * @property parentNodeId Optional reference to parent GraphNode (null for root-level nodes)
+ * @property executionState Current execution lifecycle state (IDLE, RUNNING, PAUSED, ERROR)
+ * @property controlConfig Execution control configuration (pause buffer, speed attenuation, etc.)
  */
 @Serializable
 sealed class Node {
@@ -37,6 +39,19 @@ sealed class Node {
     abstract val outputPorts: List<Port<*>>
     abstract val configuration: Map<String, String>
     abstract val parentNodeId: String?
+
+    /**
+     * Current execution lifecycle state of this node.
+     * For GraphNodes, this represents the aggregate state of the container.
+     * For CodeNodes, this represents the actual execution state.
+     */
+    abstract val executionState: ExecutionState
+
+    /**
+     * Execution control configuration for this node.
+     * Includes pause buffer size, speed attenuation, and independent control flag.
+     */
+    abstract val controlConfig: ControlConfig
 
     /**
      * Position on the visual canvas
@@ -177,6 +192,31 @@ sealed class Node {
      * @return New node instance with updated parent
      */
     abstract fun withParent(newParentId: String?): Node
+
+    /**
+     * Creates a copy of this node with a new execution state.
+     *
+     * For GraphNodes with propagate=true (default), the state change propagates
+     * to all descendant nodes that don't have independentControl enabled.
+     *
+     * @param newState The new execution state
+     * @param propagate If true and this is a GraphNode, propagate state to children
+     * @return New node instance with updated execution state
+     */
+    abstract fun withExecutionState(newState: ExecutionState, propagate: Boolean = true): Node
+
+    /**
+     * Creates a copy of this node with a new control configuration.
+     *
+     * For GraphNodes with propagate=true (default), the config change propagates
+     * to all descendant nodes that don't have independentControl enabled.
+     * Note: The independentControl flag itself is never propagated.
+     *
+     * @param newConfig The new control configuration
+     * @param propagate If true and this is a GraphNode, propagate config to children
+     * @return New node instance with updated control configuration
+     */
+    abstract fun withControlConfig(newConfig: ControlConfig, propagate: Boolean = true): Node
 
 }
 

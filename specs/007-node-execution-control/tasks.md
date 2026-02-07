@@ -38,12 +38,12 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T005 Write test for Node abstract properties in `fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/model/NodeExecutionStateTest.kt` - verify CodeNode and GraphNode both have executionState and controlConfig
-- [ ] T006 Add abstract `executionState: ExecutionState` property to Node sealed class in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/Node.kt`
-- [ ] T007 Add abstract `controlConfig: ControlConfig` property to Node sealed class in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/Node.kt`
-- [ ] T008 Add abstract `withExecutionState(ExecutionState, Boolean): Node` method to Node in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/Node.kt`
-- [ ] T009 Add abstract `withControlConfig(ControlConfig, Boolean): Node` method to Node in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/Node.kt`
-- [ ] T010 Add `executionState` and `controlConfig` properties to GraphNode in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/GraphNode.kt` with default values
+- [X] T005 Write test for Node abstract properties in `fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/model/NodeExecutionStateTest.kt` - verify CodeNode and GraphNode both have executionState and controlConfig
+- [X] T006 Add abstract `executionState: ExecutionState` property to Node sealed class in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/Node.kt`
+- [X] T007 Add abstract `controlConfig: ControlConfig` property to Node sealed class in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/Node.kt`
+- [X] T008 Add abstract `withExecutionState(ExecutionState, Boolean): Node` method to Node in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/Node.kt`
+- [X] T009 Add abstract `withControlConfig(ControlConfig, Boolean): Node` method to Node in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/Node.kt`
+- [X] T010 Add `executionState` and `controlConfig` properties to GraphNode in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/GraphNode.kt` with default values
 - [ ] T011 Implement `withExecutionState` in GraphNode (no propagation yet, just copy) in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/GraphNode.kt`
 - [ ] T012 Implement `withControlConfig` in GraphNode (no propagation yet, just copy) in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/GraphNode.kt`
 - [ ] T013 Implement `withExecutionState` in CodeNode (simple copy) in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/CodeNode.kt`

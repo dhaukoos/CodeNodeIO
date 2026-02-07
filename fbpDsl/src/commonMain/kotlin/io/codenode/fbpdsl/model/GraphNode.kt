@@ -69,7 +69,9 @@ data class GraphNode(
     override val parentNodeId: String? = null,
     @Transient val childNodes: List<Node> = emptyList(),
     @Transient val internalConnections: List<Connection> = emptyList(),
-    val portMappings: Map<String, PortMapping> = emptyMap()
+    val portMappings: Map<String, PortMapping> = emptyMap(),
+    override val executionState: ExecutionState = ExecutionState.IDLE,
+    override val controlConfig: ControlConfig = ControlConfig()
 ) : Node() {
 
     /**
@@ -195,6 +197,39 @@ data class GraphNode(
      */
     override fun withParent(newParentId: String?): GraphNode {
         return copy(parentNodeId = newParentId)
+    }
+
+    /**
+     * Creates a copy of this GraphNode with a new execution state.
+     *
+     * When propagate=true (default), the state change propagates to all
+     * descendant nodes that don't have independentControl enabled.
+     *
+     * @param newState The new execution state
+     * @param propagate If true, propagate state to children (default: true)
+     * @return New GraphNode instance with updated execution state
+     */
+    override fun withExecutionState(newState: ExecutionState, propagate: Boolean): GraphNode {
+        // For now, just update this node's state without propagation
+        // Propagation will be implemented in T020-T022
+        return copy(executionState = newState)
+    }
+
+    /**
+     * Creates a copy of this GraphNode with a new control configuration.
+     *
+     * When propagate=true (default), the config change propagates to all
+     * descendant nodes that don't have independentControl enabled.
+     * Note: The independentControl flag itself is never propagated.
+     *
+     * @param newConfig The new control configuration
+     * @param propagate If true, propagate config to children (default: true)
+     * @return New GraphNode instance with updated control configuration
+     */
+    override fun withControlConfig(newConfig: ControlConfig, propagate: Boolean): GraphNode {
+        // For now, just update this node's config without propagation
+        // Propagation will be implemented in T029-T030
+        return copy(controlConfig = newConfig)
     }
 
     /**

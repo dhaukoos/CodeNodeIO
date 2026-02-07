@@ -151,10 +151,10 @@ data class CodeNode(
     @Transient override val outputPorts: List<Port<*>> = emptyList(),
     override val configuration: Map<String, String> = emptyMap(),
     override val parentNodeId: String? = null,
-    val executionState: ExecutionState = ExecutionState.IDLE,
+    override val executionState: ExecutionState = ExecutionState.IDLE,
     val coroutineHandle: String? = null,
     @Transient val processingLogic: ProcessingLogic? = null,
-    val controlConfig: ControlConfig = ControlConfig()
+    override val controlConfig: ControlConfig = ControlConfig()
 ) : Node() {
 
     /**
@@ -226,12 +226,16 @@ data class CodeNode(
     }
 
     /**
-     * Creates a copy of this CodeNode with a new execution state
+     * Creates a copy of this CodeNode with a new execution state.
+     *
+     * For CodeNode, the propagate parameter is ignored since CodeNodes
+     * are terminal nodes with no children.
      *
      * @param newState The new execution state
+     * @param propagate Ignored for CodeNode (no children to propagate to)
      * @return New CodeNode instance with updated state
      */
-    fun withExecutionState(newState: ExecutionState): CodeNode {
+    override fun withExecutionState(newState: ExecutionState, propagate: Boolean): CodeNode {
         return copy(executionState = newState)
     }
 
@@ -246,12 +250,16 @@ data class CodeNode(
     }
 
     /**
-     * Creates a copy of this CodeNode with updated control configuration
+     * Creates a copy of this CodeNode with updated control configuration.
+     *
+     * For CodeNode, the propagate parameter is ignored since CodeNodes
+     * are terminal nodes with no children.
      *
      * @param newConfig The new control configuration
+     * @param propagate Ignored for CodeNode (no children to propagate to)
      * @return New CodeNode instance with updated config
      */
-    fun withControlConfig(newConfig: ControlConfig): CodeNode {
+    override fun withControlConfig(newConfig: ControlConfig, propagate: Boolean): CodeNode {
         return copy(controlConfig = newConfig)
     }
 
