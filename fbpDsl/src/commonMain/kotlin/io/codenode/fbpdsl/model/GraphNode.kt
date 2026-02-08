@@ -123,21 +123,27 @@ data class GraphNode(
         }
 
         // Validate no circular parent-child relationships
-        val visited = mutableSetOf<String>()
-        var currentParentId = parentNodeId
-        while (currentParentId != null) {
-            if (currentParentId == id) {
-                errors.add("Circular parent-child relationship detected for GraphNode '$name'")
-                break
+        // Check 1: This node's parentNodeId should not be this node itself
+        if (parentNodeId == id) {
+            errors.add("Circular parent-child relationship detected: GraphNode '$name' has itself as parent")
+        }
+
+        // Check 2: This node should not appear anywhere in its own descendant tree
+        // This catches cases where editing/construction creates a containment loop
+        val descendantIds = getAllDescendantIds()
+        if (descendantIds.contains(id)) {
+            errors.add("Circular containment detected: GraphNode '$name' appears in its own descendant tree")
+        }
+
+        // Check 3: No child should have a parentNodeId pointing to a sibling or descendant
+        // (children should only point to this node as parent)
+        childNodes.forEach { child ->
+            if (child.parentNodeId != null && child.parentNodeId != id) {
+                // If it points to a descendant, that's a circular reference
+                if (descendantIds.contains(child.parentNodeId)) {
+                    errors.add("Circular reference: Child '${child.name}' has parentNodeId pointing to descendant '${child.parentNodeId}'")
+                }
             }
-            if (visited.contains(currentParentId)) {
-                // Already visited, break to avoid infinite loop
-                break
-            }
-            visited.add(currentParentId)
-            // In a real implementation, we'd look up the parent and check its parentNodeId
-            // For now, we can only validate against direct self-reference
-            break
         }
 
         // Validate port mappings reference actual child ports
@@ -427,6 +433,15 @@ data class GraphNode(
      */
     fun getAllGraphNodes(): List<GraphNode> {
         return getAllDescendants().filterIsInstance<GraphNode>()
+    }
+
+    /**
+     * Gets all descendant node IDs (for circular reference detection)
+     *
+     * @return Set of all descendant node IDs
+     */
+    fun getAllDescendantIds(): Set<String> {
+        return getAllDescendants().map { it.id }.toSet()
     }
 
     /**

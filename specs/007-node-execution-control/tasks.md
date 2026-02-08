@@ -201,13 +201,13 @@
 
 **Purpose**: Improvements that affect multiple user stories
 
-- [ ] T070 [P] Write performance test for state propagation (<100ms for 100 nodes) in `fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/model/StatePropagationTest.kt`
-- [ ] T071 [P] Write performance test for RootControlNode getStatus (<10ms) in `fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/model/RootControlNodeTest.kt`
-- [ ] T072 Add validation for circular parent references in GraphNode at `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/GraphNode.kt`
-- [ ] T073 Run quickstart.md validation scenarios manually to verify all 5 scenarios work
-- [ ] T074 [P] Verify Apache 2.0 license headers on all new files
-- [ ] T075 Run full test suite: `./gradlew test`
-- [ ] T076 Update serialization tests to verify backward compatibility with existing .flow.kts files
+- [X] T070 [P] Write performance test for state propagation (<100ms for 100 nodes) in `fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/model/StatePropagationTest.kt`
+- [X] T071 [P] Write performance test for RootControlNode getStatus (<10ms) in `fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/model/RootControlNodeTest.kt`
+- [X] T072 Add validation for circular parent references in GraphNode at `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/GraphNode.kt`
+- [X] T073 Run quickstart.md validation scenarios manually to verify all 5 scenarios work
+- [X] T074 [P] Verify Apache 2.0 license headers on all new files
+- [X] T075 Run full test suite: `./gradlew test`
+- [X] T076 Update serialization tests to verify backward compatibility with existing .flow.kts files
 
 ---
 

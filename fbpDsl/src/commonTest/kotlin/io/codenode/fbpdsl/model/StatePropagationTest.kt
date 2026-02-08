@@ -903,4 +903,75 @@ class StatePropagationTest {
         assertEquals(500L, updatedParent.controlConfig.speedAttenuation)
         assertEquals(500L, updatedParent.childNodes.first().controlConfig.speedAttenuation)
     }
+
+    // ========== T070: Performance Tests ==========
+
+    @Test
+    fun `T070 - state propagation should complete in under 100ms for 100 nodes`() {
+        // Given: A large hierarchy with 100 nodes
+        // Structure: 1 root GraphNode -> 10 child GraphNodes -> 9 CodeNodes each = 100 total nodes
+        val largeHierarchy = createLargeHierarchy(10, 9)
+
+        // When: Measuring time to propagate state change
+        val startTime = System.currentTimeMillis()
+        val updatedHierarchy = largeHierarchy.withExecutionState(ExecutionState.RUNNING, propagate = true)
+        val endTime = System.currentTimeMillis()
+        val duration = endTime - startTime
+
+        // Then: Should complete in under 100ms
+        assertTrue(duration < 100,
+            "State propagation for 100 nodes should complete in under 100ms, took ${duration}ms")
+
+        // Verify propagation actually worked
+        assertEquals(ExecutionState.RUNNING, updatedHierarchy.executionState)
+        val totalNodes = countTotalNodes(updatedHierarchy)
+        assertTrue(totalNodes >= 100, "Should have at least 100 nodes, had $totalNodes")
+    }
+
+    @Test
+    fun `T070 - config propagation should complete in under 100ms for 100 nodes`() {
+        // Given: A large hierarchy with 100 nodes
+        val largeHierarchy = createLargeHierarchy(10, 9)
+
+        // When: Measuring time to propagate config change
+        val newConfig = ControlConfig(speedAttenuation = 500L)
+        val startTime = System.currentTimeMillis()
+        val updatedHierarchy = largeHierarchy.withControlConfig(newConfig, propagate = true)
+        val endTime = System.currentTimeMillis()
+        val duration = endTime - startTime
+
+        // Then: Should complete in under 100ms
+        assertTrue(duration < 100,
+            "Config propagation for 100 nodes should complete in under 100ms, took ${duration}ms")
+
+        // Verify propagation actually worked
+        assertEquals(500L, updatedHierarchy.controlConfig.speedAttenuation)
+    }
+
+    /**
+     * Creates a large hierarchy for performance testing.
+     *
+     * @param numChildGraphNodes Number of child GraphNodes under root
+     * @param nodesPerChild Number of CodeNodes in each child GraphNode
+     * @return A GraphNode with the specified structure
+     */
+    private fun createLargeHierarchy(numChildGraphNodes: Int, nodesPerChild: Int): GraphNode {
+        val childGraphNodes = (1..numChildGraphNodes).map { groupIndex ->
+            val codeNodes = (1..nodesPerChild).map { nodeIndex ->
+                createCodeNode("code_${groupIndex}_${nodeIndex}")
+            }
+            createGraphNode("group_$groupIndex", codeNodes)
+        }
+        return createGraphNode("root", childGraphNodes)
+    }
+
+    /**
+     * Counts total nodes in a hierarchy (including the node itself).
+     */
+    private fun countTotalNodes(node: Node): Int {
+        return when (node) {
+            is GraphNode -> 1 + node.childNodes.sumOf { countTotalNodes(it) }
+            else -> 1
+        }
+    }
 }

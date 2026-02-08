@@ -553,4 +553,92 @@ class RootControlNodeTest {
         val updated = updatedGraph.findNode("independent")
         assertEquals(ExecutionState.RUNNING, updated?.executionState)
     }
+
+    // ========== T071: Performance Tests ==========
+
+    @Test
+    fun `T071 - getStatus should complete in under 10ms for 100 nodes`() {
+        // Given: A large FlowGraph with 100+ nodes
+        val largeGraph = createLargeFlowGraph(10, 10) // 10 groups x 10 nodes = 100 nodes
+        val controller = RootControlNode.createFor(largeGraph)
+
+        // When: Measuring time to get status
+        val startTime = System.currentTimeMillis()
+        val status = controller.getStatus()
+        val endTime = System.currentTimeMillis()
+        val duration = endTime - startTime
+
+        // Then: Should complete in under 10ms
+        assertTrue(duration < 10,
+            "getStatus for 100+ nodes should complete in under 10ms, took ${duration}ms")
+
+        // Verify status is accurate
+        assertTrue(status.totalNodes >= 100,
+            "Should have at least 100 nodes, had ${status.totalNodes}")
+        assertEquals(status.totalNodes, status.idleCount,
+            "All nodes should be IDLE initially")
+    }
+
+    @Test
+    fun `T071 - getStatus should complete in under 10ms after state changes`() {
+        // Given: A large FlowGraph with mixed states
+        val largeGraph = createLargeFlowGraph(10, 10)
+        var controller = RootControlNode.createFor(largeGraph)
+
+        // Set some nodes to different states
+        val runningGraph = controller.startAll()
+        controller = RootControlNode.createFor(runningGraph)
+
+        // When: Measuring time to get status
+        val startTime = System.currentTimeMillis()
+        val status = controller.getStatus()
+        val endTime = System.currentTimeMillis()
+        val duration = endTime - startTime
+
+        // Then: Should complete in under 10ms
+        assertTrue(duration < 10,
+            "getStatus for 100+ nodes should complete in under 10ms, took ${duration}ms")
+
+        // Verify status reflects RUNNING state
+        assertEquals(ExecutionState.RUNNING, status.overallState)
+    }
+
+    @Test
+    fun `T071 - startAll should complete in under 50ms for 100 nodes`() {
+        // Given: A large FlowGraph with 100+ nodes
+        val largeGraph = createLargeFlowGraph(10, 10)
+        val controller = RootControlNode.createFor(largeGraph)
+
+        // When: Measuring time to start all
+        val startTime = System.currentTimeMillis()
+        val updatedGraph = controller.startAll()
+        val endTime = System.currentTimeMillis()
+        val duration = endTime - startTime
+
+        // Then: Should complete in under 50ms
+        assertTrue(duration < 50,
+            "startAll for 100+ nodes should complete in under 50ms, took ${duration}ms")
+
+        // Verify all nodes are RUNNING
+        val newController = RootControlNode.createFor(updatedGraph)
+        val status = newController.getStatus()
+        assertEquals(status.totalNodes, status.runningCount)
+    }
+
+    /**
+     * Creates a large FlowGraph for performance testing.
+     *
+     * @param numGroups Number of root-level GraphNodes
+     * @param nodesPerGroup Number of CodeNodes per GraphNode
+     * @return A FlowGraph with the specified structure
+     */
+    private fun createLargeFlowGraph(numGroups: Int, nodesPerGroup: Int): FlowGraph {
+        val rootNodes = (1..numGroups).map { groupIndex ->
+            val codeNodes = (1..nodesPerGroup).map { nodeIndex ->
+                createCodeNode("code_${groupIndex}_${nodeIndex}")
+            }
+            createGraphNode("group_$groupIndex", codeNodes)
+        }
+        return createFlowGraph(rootNodes)
+    }
 }
