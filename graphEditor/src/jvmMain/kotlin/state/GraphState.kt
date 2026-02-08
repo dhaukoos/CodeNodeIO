@@ -14,6 +14,8 @@ import io.codenode.fbpdsl.model.Node
 import io.codenode.fbpdsl.model.Connection
 import io.codenode.fbpdsl.model.ConnectionSegment
 import io.codenode.fbpdsl.model.CodeNode
+import io.codenode.fbpdsl.model.ControlConfig
+import io.codenode.fbpdsl.model.ExecutionState
 import io.codenode.fbpdsl.model.GraphNode
 import io.codenode.fbpdsl.model.NodeTypeDefinition
 import io.codenode.grapheditor.ui.ConnectionContextMenuState
@@ -897,6 +899,132 @@ class GraphState(initialGraph: FlowGraph = flowGraph(
         }.forEach { conn ->
             conn.invalidateSegments()
         }
+    }
+
+    // ============================================================================
+    // Execution Control Operations
+    // ============================================================================
+
+    /**
+     * Finds a node by ID anywhere in the graph hierarchy.
+     *
+     * Searches root nodes and all nested children recursively.
+     *
+     * @param nodeId The ID of the node to find
+     * @return The node if found, null otherwise
+     */
+    fun findNodeById(nodeId: String): Node? {
+        return flowGraph.findNode(nodeId)
+    }
+
+    /**
+     * Sets the execution state of a specific node.
+     *
+     * If the target is a GraphNode, state propagates to all descendants
+     * (respecting independentControl flags).
+     *
+     * @param nodeId The ID of the node to update
+     * @param newState The new execution state
+     * @return true if the node was found and updated, false otherwise
+     */
+    fun setNodeExecutionState(nodeId: String, newState: ExecutionState): Boolean {
+        val node = findNodeById(nodeId) ?: return false
+
+        // Update the node's execution state with propagation
+        val updatedNode = node.withExecutionState(newState, propagate = true)
+
+        // Replace the node in the graph hierarchy
+        flowGraph = updateNodeInGraph(flowGraph, nodeId, updatedNode)
+        isDirty = true
+        return true
+    }
+
+    /**
+     * Sets the control configuration of a specific node.
+     *
+     * If the target is a GraphNode, config propagates to all descendants
+     * (respecting independentControl flags, but never propagating the
+     * independentControl flag itself).
+     *
+     * @param nodeId The ID of the node to update
+     * @param newConfig The new control configuration
+     * @return true if the node was found and updated, false otherwise
+     */
+    fun setNodeControlConfig(nodeId: String, newConfig: ControlConfig): Boolean {
+        val node = findNodeById(nodeId) ?: return false
+
+        // Update the node's control config with propagation
+        val updatedNode = node.withControlConfig(newConfig, propagate = true)
+
+        // Replace the node in the graph hierarchy
+        flowGraph = updateNodeInGraph(flowGraph, nodeId, updatedNode)
+        isDirty = true
+        return true
+    }
+
+    /**
+     * Updates a node in the graph hierarchy.
+     *
+     * Handles both root-level nodes and nested children within GraphNodes.
+     *
+     * @param graph The current flow graph
+     * @param nodeId The ID of the node to update
+     * @param updatedNode The updated node to replace with
+     * @return Updated FlowGraph with the node replaced
+     */
+    private fun updateNodeInGraph(graph: FlowGraph, nodeId: String, updatedNode: Node): FlowGraph {
+        // Check if it's a root node
+        val isRootNode = graph.rootNodes.any { it.id == nodeId }
+
+        return if (isRootNode) {
+            // Replace root node directly
+            val updatedRootNodes = graph.rootNodes.map { rootNode ->
+                if (rootNode.id == nodeId) updatedNode else rootNode
+            }
+            graph.withNodes(updatedRootNodes)
+        } else {
+            // It's a nested node - need to find and update its parent GraphNode
+            val updatedRootNodes = graph.rootNodes.map { rootNode ->
+                updateNodeRecursive(rootNode, nodeId, updatedNode)
+            }
+            graph.withNodes(updatedRootNodes)
+        }
+    }
+
+    /**
+     * Recursively finds and updates a node within a GraphNode hierarchy.
+     *
+     * @param node The current node to check
+     * @param targetId The ID of the node to replace
+     * @param replacement The replacement node
+     * @return The updated node (same if no changes, or updated copy if target was found)
+     */
+    private fun updateNodeRecursive(node: Node, targetId: String, replacement: Node): Node {
+        if (node.id == targetId) {
+            return replacement
+        }
+
+        if (node is GraphNode) {
+            // Check if target is a direct child
+            val hasChild = node.childNodes.any { it.id == targetId }
+
+            if (hasChild) {
+                // Replace the child directly
+                val updatedChildren = node.childNodes.map { child ->
+                    if (child.id == targetId) replacement else child
+                }
+                return node.copy(childNodes = updatedChildren)
+            } else {
+                // Recurse into children
+                val updatedChildren = node.childNodes.map { child ->
+                    updateNodeRecursive(child, targetId, replacement)
+                }
+                return node.copy(childNodes = updatedChildren)
+            }
+        }
+
+        // Not found in this branch
+        return node
     }
 
     // ============================================================================

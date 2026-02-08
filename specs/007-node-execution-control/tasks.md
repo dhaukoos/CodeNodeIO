@@ -189,11 +189,11 @@
 
 **Purpose**: Integrate execution control features into graphEditor UI state
 
-- [ ] T065 [P] Write test for GraphState execution control operations in `graphEditor/src/jvmTest/kotlin/io/codenode/grapheditor/state/ExecutionControlTest.kt`
-- [ ] T066 Add `setNodeExecutionState(nodeId, state)` method to GraphState at `graphEditor/src/jvmMain/kotlin/state/GraphState.kt`
-- [ ] T067 Add `setNodeControlConfig(nodeId, config)` method to GraphState at `graphEditor/src/jvmMain/kotlin/state/GraphState.kt`
-- [ ] T068 Add helper methods `findNodeById(nodeId)` to traverse FlowGraph and locate nodes at `graphEditor/src/jvmMain/kotlin/state/GraphState.kt`
-- [ ] T069 Run graphEditor tests: `./gradlew :graphEditor:jvmTest --tests "io.codenode.grapheditor.state.ExecutionControlTest"`
+- [X] T065 [P] Write test for GraphState execution control operations in `graphEditor/src/jvmTest/kotlin/io/codenode/grapheditor/state/ExecutionControlTest.kt`
+- [X] T066 Add `setNodeExecutionState(nodeId, state)` method to GraphState at `graphEditor/src/jvmMain/kotlin/state/GraphState.kt`
+- [X] T067 Add `setNodeControlConfig(nodeId, config)` method to GraphState at `graphEditor/src/jvmMain/kotlin/state/GraphState.kt`
+- [X] T068 Add helper methods `findNodeById(nodeId)` to traverse FlowGraph and locate nodes at `graphEditor/src/jvmMain/kotlin/state/GraphState.kt`
+- [X] T069 Run graphEditor tests: `./gradlew :graphEditor:jvmTest --tests "io.codenode.grapheditor.state.ExecutionControlTest"`
 
 ---
 
