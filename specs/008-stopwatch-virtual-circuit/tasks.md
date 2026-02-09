@@ -26,10 +26,10 @@
 
 **Purpose**: Project initialization and demo asset directories
 
-- [ ] T001 Create demos/stopwatch/ directory for FlowGraph storage
-- [ ] T002 [P] Verify existing graphEditor compiles with `./gradlew :graphEditor:build`
-- [ ] T003 [P] Verify existing kotlinCompiler compiles with `./gradlew :kotlinCompiler:build`
-- [ ] T004 [P] Verify KMPMobileApp compiles with `./gradlew :KMPMobileApp:build`
+- [x] T001 Create demos/stopwatch/ directory for FlowGraph storage
+- [x] T002 [P] Verify existing graphEditor compiles with `./gradlew :graphEditor:build`
+- [x] T003 [P] Verify existing kotlinCompiler compiles with `./gradlew :kotlinCompiler:build`
+- [x] T004 [P] Verify KMPMobileApp compiles with `./gradlew :KMPMobileApp:build`
 
 ---
 
@@ -39,10 +39,10 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T005 Verify ModuleGenerator can generate StopWatchController wrapper in kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/ModuleGenerator.kt
-- [ ] T006 [P] Verify RootControlNode.startAll(), stopAll(), pauseAll() work correctly in fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/RootControlNode.kt
-- [ ] T007 [P] Verify Port type compatibility checking supports Int type in fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/Port.kt
-- [ ] T008 [P] Verify FlowGraph serialization/deserialization for .flow.kts files in fbpDsl
+- [x] T005 Verify ModuleGenerator can generate StopWatchController wrapper in kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/ModuleGenerator.kt
+- [x] T006 [P] Verify RootControlNode.startAll(), stopAll(), pauseAll() work correctly in fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/RootControlNode.kt
+- [x] T007 [P] Verify Port type compatibility checking supports Int type in fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/Port.kt
+- [x] T008 [P] Verify FlowGraph serialization/deserialization for .flow.kts files in fbpDsl
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel
 
