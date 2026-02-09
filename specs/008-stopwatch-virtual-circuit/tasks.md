@@ -58,20 +58,20 @@
 
 > **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
 
-- [ ] T009 [P] [US1] TDD test: FlowGraph with name "StopWatch" can be created in fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/model/StopWatchFlowGraphTest.kt
-- [ ] T010 [P] [US1] TDD test: CodeNode with 0 inputs and 2 Int outputs validates successfully in fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/model/StopWatchFlowGraphTest.kt
-- [ ] T011 [P] [US1] TDD test: CodeNode with 2 Int inputs and 0 outputs validates successfully in fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/model/StopWatchFlowGraphTest.kt
-- [ ] T012 [P] [US1] TDD test: Connections between Int ports validate successfully in fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/model/StopWatchFlowGraphTest.kt
-- [ ] T013 [P] [US1] TDD test: FlowGraph serializes to .flow.kts and deserializes correctly in fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/serialization/StopWatchSerializationTest.kt
+- [x] T009 [P] [US1] TDD test: FlowGraph with name "StopWatch" can be created in fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/model/StopWatchFlowGraphTest.kt
+- [x] T010 [P] [US1] TDD test: CodeNode with 0 inputs and 2 Int outputs validates successfully in fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/model/StopWatchFlowGraphTest.kt
+- [x] T011 [P] [US1] TDD test: CodeNode with 2 Int inputs and 0 outputs validates successfully in fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/model/StopWatchFlowGraphTest.kt
+- [x] T012 [P] [US1] TDD test: Connections between Int ports validate successfully in fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/model/StopWatchFlowGraphTest.kt
+- [x] T013 [P] [US1] TDD test: FlowGraph serializes to .flow.kts and deserializes correctly in fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/serialization/StopWatchSerializationTest.kt
 
 ### Implementation for User Story 1
 
-- [ ] T014 [US1] Create StopWatch.flow.kts FlowGraph definition file in demos/stopwatch/StopWatch.flow.kts per data-model.md
-- [ ] T015 [US1] Define TimerEmitter CodeNode with outputPorts [elapsedSeconds: Int, elapsedMinutes: Int] in demos/stopwatch/StopWatch.flow.kts
-- [ ] T016 [US1] Define DisplayReceiver CodeNode with inputPorts [seconds: Int, minutes: Int] in demos/stopwatch/StopWatch.flow.kts
-- [ ] T017 [US1] Add connections: TimerEmitter.elapsedSeconds → DisplayReceiver.seconds, TimerEmitter.elapsedMinutes → DisplayReceiver.minutes in demos/stopwatch/StopWatch.flow.kts
-- [ ] T018 [US1] Set controlConfig.speedAttenuation = 1000L on TimerEmitter in demos/stopwatch/StopWatch.flow.kts
-- [ ] T019 [US1] Verify FlowGraph loads in graphEditor by running `./gradlew :graphEditor:run` and opening the file
+- [x] T014 [US1] Create StopWatch.flow.kts FlowGraph definition file in demos/stopwatch/StopWatch.flow.kts per data-model.md
+- [x] T015 [US1] Define TimerEmitter CodeNode with outputPorts [elapsedSeconds: Int, elapsedMinutes: Int] in demos/stopwatch/StopWatch.flow.kts
+- [x] T016 [US1] Define DisplayReceiver CodeNode with inputPorts [seconds: Int, minutes: Int] in demos/stopwatch/StopWatch.flow.kts
+- [x] T017 [US1] Add connections: TimerEmitter.elapsedSeconds → DisplayReceiver.seconds, TimerEmitter.elapsedMinutes → DisplayReceiver.minutes in demos/stopwatch/StopWatch.flow.kts
+- [x] T018 [US1] Set controlConfig.speedAttenuation = 1000L on TimerEmitter in demos/stopwatch/StopWatch.flow.kts
+- [x] T019 [US1] Verify FlowGraph loads in graphEditor by running `./gradlew :graphEditor:run` and opening the file
 
 **Checkpoint**: At this point, User Story 1 should be fully functional and testable independently
 

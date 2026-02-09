@@ -1,0 +1,41 @@
+/*
+ * Flow Graph: StopWatch
+ * Version: 1.0.0
+ * Description: Virtual circuit demo for stopwatch functionality
+ *
+ * This FlowGraph demonstrates the "virtual circuit" concept by implementing
+ * a stopwatch using FBP (Flow-Based Programming) architecture:
+ *
+ * - TimerEmitter: Generator node that emits elapsed seconds/minutes at tick intervals
+ * - DisplayReceiver: Sink node that receives time values for UI rendering
+ *
+ * The speedAttenuation config controls the tick interval (1000ms = 1 second)
+ *
+ * Note: This file is parsed by the graphEditor's FlowGraphDeserializer.
+ * It uses Kotlin DSL syntax for human readability but is not compiled as Kotlin code.
+ */
+
+val graph = flowGraph("StopWatch", version = "1.0.0", description = "Virtual circuit demo for stopwatch functionality") {
+    // Target Platforms
+    targetPlatform(FlowGraph.TargetPlatform.KMP_ANDROID)
+    targetPlatform(FlowGraph.TargetPlatform.KMP_IOS)
+    targetPlatform(FlowGraph.TargetPlatform.KMP_DESKTOP)
+
+    // Nodes
+    val timerEmitter = codeNode("TimerEmitter", nodeType = "GENERATOR") {
+        position(100.0, 100.0)
+        output("elapsedSeconds", Int::class)
+        output("elapsedMinutes", Int::class)
+        config("speedAttenuation", "1000")
+    }
+
+    val displayReceiver = codeNode("DisplayReceiver", nodeType = "SINK") {
+        position(400.0, 100.0)
+        input("seconds", Int::class)
+        input("minutes", Int::class)
+    }
+
+    // Connections
+    timerEmitter.output("elapsedSeconds") connect displayReceiver.input("seconds")
+    timerEmitter.output("elapsedMinutes") connect displayReceiver.input("minutes")
+}
