@@ -118,18 +118,18 @@
 
 > **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
 
-- [ ] T033 [P] [US3] TDD test: Start button calls controller.start() and transitions to RUNNING in KMPMobileApp/src/commonTest/kotlin/io/codenode/mobileapp/StopWatchIntegrationTest.kt
-- [ ] T034 [P] [US3] TDD test: Stop button calls controller.stop() and transitions to IDLE in KMPMobileApp/src/commonTest/kotlin/io/codenode/mobileapp/StopWatchIntegrationTest.kt
-- [ ] T035 [P] [US3] TDD test: Reset button calls controller.reset() and resets elapsedSeconds/elapsedMinutes to 0 in KMPMobileApp/src/commonTest/kotlin/io/codenode/mobileapp/StopWatchIntegrationTest.kt
-- [ ] T036 [P] [US3] TDD test: isRunning derived from executionState == RUNNING in KMPMobileApp/src/commonTest/kotlin/io/codenode/mobileapp/StopWatchIntegrationTest.kt
+- [x] T033 [P] [US3] TDD test: Start button calls controller.start() and transitions to RUNNING in KMPMobileApp/src/androidUnitTest/kotlin/io/codenode/mobileapp/StopWatchIntegrationTest.kt
+- [x] T034 [P] [US3] TDD test: Stop button calls controller.stop() and transitions to IDLE in KMPMobileApp/src/androidUnitTest/kotlin/io/codenode/mobileapp/StopWatchIntegrationTest.kt
+- [x] T035 [P] [US3] TDD test: Reset button calls controller.reset() and resets elapsedSeconds/elapsedMinutes to 0 in KMPMobileApp/src/androidUnitTest/kotlin/io/codenode/mobileapp/StopWatchIntegrationTest.kt
+- [x] T036 [P] [US3] TDD test: isRunning derived from executionState == RUNNING in KMPMobileApp/src/androidUnitTest/kotlin/io/codenode/mobileapp/StopWatchIntegrationTest.kt
 
 ### Implementation for User Story 3
 
-- [ ] T037 [US3] Add implementation(project(":StopWatch")) to KMPMobileApp/build.gradle.kts commonMain dependencies
-- [ ] T038 [US3] Extract StopWatchFace composable to separate file KMPMobileApp/src/commonMain/kotlin/io/codenode/mobileapp/StopWatchFace.kt
-- [ ] T039 [US3] Move secondsToRad() helper function to StopWatchFace.kt in KMPMobileApp/src/commonMain/kotlin/io/codenode/mobileapp/StopWatchFace.kt
-- [ ] T040 [US3] Refactor StopWatch.kt to import StopWatchController from generated module in KMPMobileApp/src/commonMain/kotlin/io/codenode/mobileapp/StopWatch.kt
-- [ ] T041 [US3] Replace isRunning mutableStateOf with executionState from controller in KMPMobileApp/src/commonMain/kotlin/io/codenode/mobileapp/StopWatch.kt
+- [x] T037 [US3] Add implementation(project(":StopWatch")) to KMPMobileApp/build.gradle.kts androidMain dependencies
+- [x] T038 [US3] Extract StopWatchFace composable to separate file KMPMobileApp/src/commonMain/kotlin/io/codenode/mobileapp/StopWatchFace.kt
+- [x] T039 [US3] Move secondsToRad() helper function to StopWatchFace.kt in KMPMobileApp/src/commonMain/kotlin/io/codenode/mobileapp/StopWatchFace.kt
+- [x] T040 [US3] Create ControlledStopWatch.kt in KMPMobileApp/src/androidMain/ that imports StopWatchController from generated module
+- [x] T041 [US3] ControlledStopWatch derives isRunning from executionState == RUNNING (see KMPMobileApp/src/androidMain/kotlin/io/codenode/mobileapp/ControlledStopWatch.kt)
 - [ ] T042 [US3] Replace elapsedSeconds/elapsedMinutes mutableStateOf with StateFlow.collectAsState() from controller in KMPMobileApp/src/commonMain/kotlin/io/codenode/mobileapp/StopWatch.kt
 - [ ] T043 [US3] Replace LaunchedEffect timer logic with controller.start()/stop() calls in KMPMobileApp/src/commonMain/kotlin/io/codenode/mobileapp/StopWatch.kt
 - [ ] T044 [US3] Implement reset button to call controller.reset() in KMPMobileApp/src/commonMain/kotlin/io/codenode/mobileapp/StopWatch.kt

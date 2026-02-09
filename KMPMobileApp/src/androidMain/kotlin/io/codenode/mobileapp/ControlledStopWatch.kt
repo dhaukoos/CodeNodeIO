@@ -1,7 +1,7 @@
 /*
- * StopWatch - Stopwatch composable with controls
- * Uses local state for cross-platform (iOS) compatibility.
- * For Android with StopWatchController, see ControlledStopWatch.kt in androidMain.
+ * ControlledStopWatch - Android-specific StopWatch using generated StopWatchController
+ * T040: Imports StopWatchController from generated module
+ * T041: Uses executionState from controller instead of local isRunning state
  * License: Apache 2.0
  */
 
@@ -23,43 +23,49 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import kotlinx.coroutines.delay
+import io.codenode.fbpdsl.model.ExecutionState
+import io.codenode.fbpdsl.model.FlowGraph
+import io.codenode.generated.stopwatch.StopWatchController
 
 /**
- * Data class to hold elapsed time components for the stopwatch.
- */
-data class StopWatchTime(
-    val minutes: Int = 0,
-    val seconds: Int = 0
-)
-
-/**
- * StopWatch composable with controls for start/stop and reset.
+ * Android-specific StopWatch composable that uses the generated StopWatchController.
+ *
+ * This composable demonstrates the integration between:
+ * - UI composable (StopWatchFace)
+ * - Generated controller (StopWatchController)
+ * - FBP model (FlowGraph, ExecutionState)
+ *
+ * The controller manages:
+ * - Execution state (IDLE, RUNNING, PAUSED)
+ * - Elapsed time tracking (seconds, minutes)
+ * - State transitions (start, stop, pause, reset)
+ *
+ * @param flowGraph The FlowGraph definition for the stopwatch
+ * @param modifier Modifier for the composable
+ * @param minSize Minimum size for the clock face
  */
 @Composable
-fun StopWatch(
+fun ControlledStopWatch(
+    flowGraph: FlowGraph,
     modifier: Modifier = Modifier,
     minSize: Dp = 200.dp
 ) {
-    var isRunning by remember { mutableStateOf(false) }
-    var elapsedSeconds by remember { mutableStateOf(0) }
-    var elapsedMinutes by remember { mutableStateOf(0) }
+    // Create controller instance - remember it to survive recomposition
+    val controller = remember(flowGraph) { StopWatchController(flowGraph) }
 
-    LaunchedEffect(isRunning) {
-        while (isRunning) {
-            delay(1000)
-            elapsedSeconds += 1
-            if (elapsedSeconds >= 60) {
-                elapsedSeconds = 0
-                elapsedMinutes += 1
-            }
-        }
-    }
+    // Collect state from controller's StateFlow properties
+    val executionState by controller.executionState.collectAsState()
+    val elapsedSeconds by controller.elapsedSeconds.collectAsState()
+    val elapsedMinutes by controller.elapsedMinutes.collectAsState()
+
+    // T041: Derive isRunning from executionState
+    val isRunning = executionState == ExecutionState.RUNNING
 
     Column(
         modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        // Reuse the extracted StopWatchFace from commonMain
         StopWatchFace(
             minSize = minSize,
             seconds = elapsedSeconds,
@@ -79,12 +85,18 @@ fun StopWatch(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Control buttons
+        // Control buttons - delegate to controller
         Row(
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Button(
-                onClick = { isRunning = !isRunning },
+                onClick = {
+                    if (isRunning) {
+                        controller.stop()
+                    } else {
+                        controller.start()
+                    }
+                },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = if (isRunning) Color.Red else Color.Green
                 )
@@ -94,9 +106,7 @@ fun StopWatch(
 
             Button(
                 onClick = {
-                    isRunning = false
-                    elapsedSeconds = 0
-                    elapsedMinutes = 0
+                    controller.reset()
                 },
                 enabled = !isRunning && (elapsedSeconds > 0 || elapsedMinutes > 0)
             ) {

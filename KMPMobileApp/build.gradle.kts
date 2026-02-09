@@ -62,14 +62,17 @@ kotlin {
 
         androidMain.dependencies {
             implementation("androidx.activity:activity-compose:${LocalVersions.activityCompose}")
-            // fbpDsl is JVM-only, so we include it only for Android
+            // fbpDsl and StopWatch are JVM-only, so we include them only for Android
             implementation(project(":fbpDsl"))
+            implementation(project(":StopWatch"))
             // Compose tooling for previews
             implementation("org.jetbrains.compose.ui:ui-tooling-preview:${LocalVersions.compose}")
         }
 
         androidUnitTest.dependencies {
-            implementation(libs.junit5.all)
+            implementation("junit:junit:4.13.2")
+            implementation(project(":fbpDsl"))
+            implementation(project(":StopWatch"))
         }
 
         iosMain.dependencies {
