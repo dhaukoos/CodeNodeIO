@@ -6,6 +6,8 @@
 
 package io.codenode.fbpdsl.model
 
+import kotlinx.datetime.Clock
+
 /**
  * Utility for generating Connection IDs
  */
@@ -17,7 +19,7 @@ object ConnectionIdGenerator {
      * @return Unique identifier string
      */
     fun generateId(prefix: String = "conn"): String {
-        val timestamp = System.currentTimeMillis()
+        val timestamp = Clock.System.now().toEpochMilliseconds()
         val random = (0..999999).random()
         return "${prefix}_${timestamp}_$random"
     }

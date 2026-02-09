@@ -210,7 +210,7 @@ abstract class SplitterUseCase<T : Any>(
  *         // Average all sensor readings
  *         val avgTemp = inputs.values.map { it.temperature }.average()
  *         val avgHumidity = inputs.values.map { it.humidity }.average()
- *         return SensorReading(avgTemp, avgHumidity, System.currentTimeMillis())
+ *         return SensorReading(avgTemp, avgHumidity, Clock.System.now().toEpochMilliseconds())
  *     }
  * }
  * ```
@@ -255,7 +255,7 @@ abstract class MergerUseCase<T : Any>(
  *
  * class TimestampGeneratorUseCase : GeneratorUseCase<TimestampData>() {
  *     override suspend fun generate(): TimestampData {
- *         val now = System.currentTimeMillis()
+ *         val now = Clock.System.now().toEpochMilliseconds()
  *         return TimestampData(now, now.toString())
  *     }
  * }

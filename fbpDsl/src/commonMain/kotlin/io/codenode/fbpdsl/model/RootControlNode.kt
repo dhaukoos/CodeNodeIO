@@ -6,6 +6,8 @@
 
 package io.codenode.fbpdsl.model
 
+import kotlinx.datetime.Clock
+
 /**
  * Master controller for an entire FlowGraph.
  *
@@ -56,10 +58,10 @@ data class RootControlNode(
          */
         fun createFor(flowGraph: FlowGraph, name: String = "Controller"): RootControlNode {
             return RootControlNode(
-                id = "controller_${System.currentTimeMillis()}_${(0..999999).random()}",
+                id = "controller_${Clock.System.now().toEpochMilliseconds()}_${(0..999999).random()}",
                 flowGraph = flowGraph,
                 name = name,
-                createdAt = System.currentTimeMillis()
+                createdAt = Clock.System.now().toEpochMilliseconds()
             )
         }
     }

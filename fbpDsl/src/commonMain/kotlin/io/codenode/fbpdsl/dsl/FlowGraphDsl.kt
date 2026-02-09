@@ -8,6 +8,7 @@ package io.codenode.fbpdsl.dsl
 
 import io.codenode.fbpdsl.model.*
 import kotlin.reflect.KClass
+import kotlinx.datetime.Clock
 
 /**
  * DSL marker to prevent nested DSL scope confusion
@@ -145,7 +146,7 @@ class FlowGraphBuilder(
      * @return Configured FlowGraph
      */
     fun build(): FlowGraph {
-        val graphId = "graph_${System.currentTimeMillis()}_${(0..999999).random()}"
+        val graphId = "graph_${Clock.System.now().toEpochMilliseconds()}_${(0..999999).random()}"
         return FlowGraph(
             id = graphId,
             name = name,
@@ -171,7 +172,7 @@ class NodeBuilder(
 ) {
     private val inputPorts = mutableListOf<Port<*>>()
     private val outputPorts = mutableListOf<Port<*>>()
-    private val nodeId = "node_${System.currentTimeMillis()}_${(0..999999).random()}"
+    private val nodeId = "node_${Clock.System.now().toEpochMilliseconds()}_${(0..999999).random()}"
     private val configuration = mutableMapOf<String, String>()
 
     /**
@@ -289,7 +290,7 @@ class GraphNodeBuilder(
     private val inputPorts = mutableListOf<Port<*>>()
     private val outputPorts = mutableListOf<Port<*>>()
     private val portMappings = mutableMapOf<String, String>()
-    private val nodeId = "graphNode_${System.currentTimeMillis()}_${(0..999999).random()}"
+    private val nodeId = "graphNode_${Clock.System.now().toEpochMilliseconds()}_${(0..999999).random()}"
 
     /**
      * Adds a child CodeNode to this GraphNode

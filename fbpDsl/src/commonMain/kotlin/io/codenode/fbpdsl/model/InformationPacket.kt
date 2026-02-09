@@ -6,6 +6,7 @@
 
 package io.codenode.fbpdsl.model
 
+import kotlinx.datetime.Clock
 import kotlin.reflect.KClass
 
 /**
@@ -103,7 +104,7 @@ data class InformationPacket<T : Any>(
      * @param timestamp Processing timestamp
      * @return New IP with trace entry added
      */
-    fun addTrace(nodeId: String, timestamp: Long = System.currentTimeMillis()): InformationPacket<T> {
+    fun addTrace(nodeId: String, timestamp: Long = Clock.System.now().toEpochMilliseconds()): InformationPacket<T> {
         val traceEntry = "node:$nodeId,time:$timestamp"
         val traces = metadata["traces"]?.let { "$it;$traceEntry" } ?: traceEntry
         return withMetadata(mapOf("traces" to traces))

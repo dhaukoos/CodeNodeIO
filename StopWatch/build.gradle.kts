@@ -20,13 +20,29 @@ kotlin {
         }
     }
 
+    // iOS targets for multiplatform support
+    listOf(
+        iosX64(),
+        iosArm64(),
+        iosSimulatorArm64()
+    ).forEach { iosTarget ->
+        iosTarget.binaries.framework {
+            baseName = "StopWatch"
+            isStatic = true
+        }
+    }
+
+    // Use default hierarchy template for shared iOS source sets
+    applyDefaultHierarchyTemplate()
+
     sourceSets {
         val commonMain by getting {
             dependencies {
                 implementation(project(":fbpDsl"))
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0")
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
-                implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.0")
+                // KMP-compatible lifecycle support (works on all platforms)
+                implementation("org.jetbrains.androidx.lifecycle:lifecycle-runtime-compose:2.8.0")
             }
         }
 

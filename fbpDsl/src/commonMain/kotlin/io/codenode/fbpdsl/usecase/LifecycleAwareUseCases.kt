@@ -90,7 +90,7 @@ interface Lifecycle {
  * ```
  */
 abstract class LifecycleAwareUseCase : ProcessingLogic, Lifecycle {
-    @Volatile
+    @kotlin.concurrent.Volatile
     private var isInitialized = false
 
     /**

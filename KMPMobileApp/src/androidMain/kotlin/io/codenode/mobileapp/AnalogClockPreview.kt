@@ -1,8 +1,10 @@
 package io.codenode.mobileapp
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import io.codenode.generated.stopwatch.StopWatchController
 
 @Preview
 @Composable
@@ -17,7 +19,10 @@ private fun AnalogClockPreview() {
 @Preview
 @Composable
 private fun StopWatchPreview() {
+    val flowGraph = remember { createStopWatchFlowGraph() }
+    val controller = remember(flowGraph) { StopWatchController(flowGraph) }
     StopWatch(
+        controller = controller,
         minSize = 200.dp
     )
 }

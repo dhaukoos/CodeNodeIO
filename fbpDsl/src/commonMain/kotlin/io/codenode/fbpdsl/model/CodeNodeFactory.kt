@@ -379,7 +379,7 @@ object CodeNodeFactory {
      *
      * val node = CodeNodeFactory.createGenerator<TimestampData>(
      *     name = "TimestampGenerator",
-     *     generate = { TimestampData(System.currentTimeMillis()) }
+     *     generate = { TimestampData(Clock.System.now().toEpochMilliseconds()) }
      * )
      * ```
      */

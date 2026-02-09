@@ -54,25 +54,25 @@ kotlin {
             implementation(libs.coroutines.core)
             // Multiplatform datetime support
             implementation("org.jetbrains.kotlinx:kotlinx-datetime:${LocalVersions.datetime}")
+            // FBP DSL and generated StopWatch module (KMP - works on all platforms)
+            implementation(project(":fbpDsl"))
+            implementation(project(":StopWatch"))
         }
 
         commonTest.dependencies {
             implementation(kotlin("test"))
+            implementation(project(":fbpDsl"))
+            implementation(project(":StopWatch"))
         }
 
         androidMain.dependencies {
             implementation("androidx.activity:activity-compose:${LocalVersions.activityCompose}")
-            // fbpDsl and StopWatch are JVM-only, so we include them only for Android
-            implementation(project(":fbpDsl"))
-            implementation(project(":StopWatch"))
             // Compose tooling for previews
             implementation("org.jetbrains.compose.ui:ui-tooling-preview:${LocalVersions.compose}")
         }
 
         androidUnitTest.dependencies {
             implementation("junit:junit:4.13.2")
-            implementation(project(":fbpDsl"))
-            implementation(project(":StopWatch"))
         }
 
         iosMain.dependencies {

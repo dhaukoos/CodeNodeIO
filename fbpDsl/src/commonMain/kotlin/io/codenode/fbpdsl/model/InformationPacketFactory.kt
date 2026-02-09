@@ -6,6 +6,7 @@
 
 package io.codenode.fbpdsl.model
 
+import kotlinx.datetime.Clock
 import kotlin.reflect.KClass
 
 /**
@@ -71,7 +72,7 @@ object InformationPacketFactory {
      * @return Unique identifier string
      */
     fun generateId(): String {
-        val timestamp = System.currentTimeMillis()
+        val timestamp = Clock.System.now().toEpochMilliseconds()
         val random = (0..999999).random()
         return "ip_${timestamp}_$random"
     }

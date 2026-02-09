@@ -8,6 +8,7 @@ package io.codenode.fbpdsl.usecase.examples
 
 import io.codenode.fbpdsl.model.*
 import io.codenode.fbpdsl.usecase.*
+import kotlinx.datetime.Clock
 import kotlin.reflect.KClass
 
 // ============================================================================
@@ -264,11 +265,11 @@ class LoggingDecorator(
     override suspend fun invoke(inputs: Map<String, InformationPacket<*>>): Map<String, InformationPacket<*>> {
         logger.log("DEBUG", "Starting operation: $operationName")
 
-        val startTime = System.currentTimeMillis()
+        val startTime = Clock.System.now().toEpochMilliseconds()
 
         return try {
             val result = delegate(inputs)
-            val duration = System.currentTimeMillis() - startTime
+            val duration = Clock.System.now().toEpochMilliseconds() - startTime
 
             logger.log("INFO", "Completed operation: $operationName in ${duration}ms")
             result

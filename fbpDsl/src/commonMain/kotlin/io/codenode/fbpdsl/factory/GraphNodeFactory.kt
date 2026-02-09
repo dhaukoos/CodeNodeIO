@@ -11,6 +11,7 @@ import io.codenode.fbpdsl.model.GraphNode
 import io.codenode.fbpdsl.model.Node
 import io.codenode.fbpdsl.model.PassThruPort
 import io.codenode.fbpdsl.model.Port
+import kotlinx.datetime.Clock
 
 /**
  * Factory for creating GraphNodes from a selection of nodes.
@@ -65,7 +66,7 @@ object GraphNodeFactory {
         }
 
         // Generate unique ID for the GraphNode
-        val graphNodeId = "graphNode_${System.currentTimeMillis()}_${(0..999).random()}"
+        val graphNodeId = "graphNode_${Clock.System.now().toEpochMilliseconds()}_${(0..999).random()}"
 
         // Collect selected nodes
         val selectedNodes = allNodes.filter { it.id in selectedNodeIds }
@@ -183,7 +184,7 @@ object GraphNodeFactory {
             if (sourceSelected xor targetSelected) {
                 if (sourceSelected) {
                     // Source is inside, target is outside -> need OUTPUT port
-                    val portId = "port_out_${conn.sourcePortId}_${System.nanoTime()}"
+                    val portId = "port_out_${conn.sourcePortId}_${Clock.System.now().toEpochMilliseconds()}_${(0..999999).random()}"
                     mappings.add(
                         GeneratedPortMapping(
                             graphNodePortId = portId,
@@ -198,7 +199,7 @@ object GraphNodeFactory {
                     )
                 } else {
                     // Target is inside, source is outside -> need INPUT port
-                    val portId = "port_in_${conn.targetPortId}_${System.nanoTime()}"
+                    val portId = "port_in_${conn.targetPortId}_${Clock.System.now().toEpochMilliseconds()}_${(0..999999).random()}"
                     mappings.add(
                         GeneratedPortMapping(
                             graphNodePortId = portId,

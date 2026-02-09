@@ -6,6 +6,7 @@
 
 package io.codenode.fbpdsl.model
 
+import kotlinx.datetime.Clock
 import kotlinx.serialization.Serializable
 
 /**
@@ -246,7 +247,7 @@ object NodeIdGenerator {
      * @return Unique identifier string
      */
     fun generateId(prefix: String = "node"): String {
-        val timestamp = System.currentTimeMillis()
+        val timestamp = Clock.System.now().toEpochMilliseconds()
         val random = (0..999999).random()
         return "${prefix}_${timestamp}_$random"
     }

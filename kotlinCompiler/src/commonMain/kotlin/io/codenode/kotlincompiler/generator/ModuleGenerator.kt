@@ -246,6 +246,13 @@ class ModuleGenerator {
                 appendLine("    }")
             }
 
+            // Use default hierarchy template for iOS source sets
+            if (flowGraph.targetsPlatform(FlowGraph.TargetPlatform.KMP_IOS)) {
+                appendLine()
+                appendLine("    // Use default hierarchy template for shared iOS source sets")
+                appendLine("    applyDefaultHierarchyTemplate()")
+            }
+
             // Source sets
             appendLine()
             appendLine("    sourceSets {")
@@ -254,7 +261,8 @@ class ModuleGenerator {
             appendLine("                implementation(project(\":fbpDsl\"))")
             appendLine("                implementation(\"org.jetbrains.kotlinx:kotlinx-coroutines-core:$COROUTINES_VERSION\")")
             appendLine("                implementation(\"org.jetbrains.kotlinx:kotlinx-serialization-json:$SERIALIZATION_VERSION\")")
-            appendLine("                implementation(\"androidx.lifecycle:lifecycle-runtime-compose:$LIFECYCLE_VERSION\")")
+            appendLine("                // KMP-compatible lifecycle support (works on all platforms)")
+            appendLine("                implementation(\"org.jetbrains.androidx.lifecycle:lifecycle-runtime-compose:$LIFECYCLE_VERSION\")")
             appendLine("            }")
             appendLine("        }")
             appendLine()
@@ -270,19 +278,6 @@ class ModuleGenerator {
                 appendLine("            dependencies {")
                 appendLine("                implementation(\"org.jetbrains.kotlinx:kotlinx-coroutines-android:$COROUTINES_VERSION\")")
                 appendLine("            }")
-                appendLine("        }")
-            }
-
-            if (flowGraph.targetsPlatform(FlowGraph.TargetPlatform.KMP_IOS)) {
-                appendLine()
-                appendLine("        val iosX64Main by getting")
-                appendLine("        val iosArm64Main by getting")
-                appendLine("        val iosSimulatorArm64Main by getting")
-                appendLine("        val iosMain by creating {")
-                appendLine("            dependsOn(commonMain)")
-                appendLine("            iosX64Main.dependsOn(this)")
-                appendLine("            iosArm64Main.dependsOn(this)")
-                appendLine("            iosSimulatorArm64Main.dependsOn(this)")
                 appendLine("        }")
             }
 
@@ -699,13 +694,13 @@ class ModuleGenerator {
             appendLine("    }")
             appendLine()
 
-            // BindToLifecycle method
+            // BindToLifecycle method (KMP-compatible)
             appendLine("    /**")
-            appendLine("     * Binds the flow execution to an Android/KMP Lifecycle.")
+            appendLine("     * Binds the flow execution to a Lifecycle (works on all KMP platforms).")
             appendLine("     *")
-            appendLine("     * When the lifecycle enters STARTED state, resumes if previously running.")
-            appendLine("     * When the lifecycle enters STOPPED state, pauses and tracks state.")
-            appendLine("     * When the lifecycle is DESTROYED, stops the flow completely.")
+            appendLine("     * When the lifecycle enters ON_START, resumes if previously running.")
+            appendLine("     * When the lifecycle enters ON_STOP, pauses and tracks state.")
+            appendLine("     * When the lifecycle is ON_DESTROY, stops the flow completely.")
             appendLine("     *")
             appendLine("     * @param lifecycle The lifecycle to bind to")
             appendLine("     */")

@@ -13,12 +13,29 @@ kotlin {
     jvm {
     }
 
+    // iOS targets for multiplatform support
+    listOf(
+        iosX64(),
+        iosArm64(),
+        iosSimulatorArm64()
+    ).forEach { iosTarget ->
+        iosTarget.binaries.framework {
+            baseName = "fbpDsl"
+            isStatic = true
+        }
+    }
+
+    // Use default hierarchy template for shared iOS source sets
+    applyDefaultHierarchyTemplate()
+
     sourceSets {
         val commonMain by getting {
             dependencies {
                 implementation(libs.coroutines.core)
                 implementation(libs.serialization.json)
                 implementation(kotlin("stdlib"))
+                // Multiplatform datetime for replacing System.currentTimeMillis()
+                implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.1")
             }
         }
 

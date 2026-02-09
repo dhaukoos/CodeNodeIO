@@ -8,6 +8,7 @@ package io.codenode.fbpdsl.factory
 
 import io.codenode.fbpdsl.model.PassThruPort
 import io.codenode.fbpdsl.model.Port
+import kotlinx.datetime.Clock
 import kotlin.reflect.KClass
 
 /**
@@ -169,9 +170,10 @@ object PassThruPortFactory {
             Port.Direction.INPUT -> "passthru_in"
             Port.Direction.OUTPUT -> "passthru_out"
         }
-        val timestamp = System.nanoTime()
+        val timestamp = Clock.System.now().toEpochMilliseconds()
+        val random = (0..999999).random()
         val portRef = if (direction == Port.Direction.INPUT) downstreamPortId else upstreamPortId
-        return "${prefix}_${portRef}_$timestamp"
+        return "${prefix}_${portRef}_${timestamp}_$random"
     }
 
     /**
