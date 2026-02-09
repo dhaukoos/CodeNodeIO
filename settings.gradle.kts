@@ -50,3 +50,6 @@ include(":idePlugin")
 // Mobile app module
 include(":KMPMobileApp")
 
+// Generated modules (from FlowGraph compilation)
+include(":StopWatch")
+

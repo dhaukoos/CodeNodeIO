@@ -99,10 +99,10 @@
 - [x] T026 [US2] Add lifecycle-runtime-compose:2.9.6 dependency to generated StopWatch/build.gradle.kts
 - [x] T027 [US2] Verify generated StopWatchFlowGraph.kt instantiates TimerEmitter and DisplayReceiver nodes in StopWatch/src/commonMain/kotlin/io/codenode/generated/stopwatch/StopWatchFlowGraph.kt
 - [x] T028 [US2] Verify generated StopWatchController.kt wraps RootControlNode with start(), stop(), pause(), reset(), getStatus() in StopWatch/src/commonMain/kotlin/io/codenode/generated/stopwatch/StopWatchController.kt
-- [ ] T029 [US2] Add StateFlow properties for elapsedSeconds, elapsedMinutes, executionState to StopWatchController in StopWatch/src/commonMain/kotlin/io/codenode/generated/stopwatch/StopWatchController.kt
-- [ ] T030 [US2] Implement bindToLifecycle(lifecycle: Lifecycle) with wasRunningBeforePause tracking in StopWatch/src/commonMain/kotlin/io/codenode/generated/stopwatch/StopWatchController.kt
-- [ ] T031 [US2] Add include(":StopWatch") to settings.gradle.kts at repository root
-- [ ] T032 [US2] Verify generated module compiles with `./gradlew :StopWatch:build`
+- [x] T029 [US2] Add StateFlow properties for elapsedSeconds, elapsedMinutes, executionState to StopWatchController in StopWatch/src/commonMain/kotlin/io/codenode/generated/stopwatch/StopWatchController.kt
+- [x] T030 [US2] Implement bindToLifecycle(lifecycle: Lifecycle) with wasRunningBeforePause tracking in StopWatch/src/commonMain/kotlin/io/codenode/generated/stopwatch/StopWatchController.kt
+- [x] T031 [US2] Add include(":StopWatch") to settings.gradle.kts at repository root
+- [x] T032 [US2] Verify generated module compiles with `./gradlew :StopWatch:build`
 
 **Checkpoint**: At this point, User Stories 1 AND 2 should both work independently
 

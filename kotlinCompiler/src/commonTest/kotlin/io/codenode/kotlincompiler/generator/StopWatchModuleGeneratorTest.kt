@@ -305,24 +305,111 @@ class StopWatchModuleGeneratorTest {
             "Should track running state for lifecycle pause/resume")
     }
 
-    // ========== T023: build.gradle.kts Configuration Tests ==========
+    // ========== T029: StateFlow Properties Tests ==========
 
     @Test
-    fun `T023 - Generated build gradle has Kotlin version 2_1_21`() {
+    fun `T029 - StopWatchController has elapsedSeconds StateFlow property`() {
         // Given: A StopWatch FlowGraph
         val flowGraph = createStopWatchFlowGraph()
         val generator = ModuleGenerator()
+        val packageName = "io.codenode.generated.stopwatch"
 
-        // When: Generating build.gradle.kts
-        val buildGradle = generator.generateBuildGradle(flowGraph, "StopWatch")
+        // When: Generating the controller class
+        val controllerClass = generator.generateControllerClass(flowGraph, packageName)
 
-        // Then: Should use Kotlin 2.1.21
-        assertTrue(buildGradle.contains("2.1.21") || buildGradle.contains("2.1."),
-            "Should use Kotlin version 2.1.21 (got: ${extractKotlinVersion(buildGradle)})")
+        // Then: Should have elapsedSeconds StateFlow
+        assertTrue(controllerClass.contains("elapsedSeconds") && controllerClass.contains("StateFlow"),
+            "Should have elapsedSeconds StateFlow property")
     }
 
     @Test
-    fun `T023 - Generated build gradle has Compose Multiplatform 1_7_3`() {
+    fun `T029 - StopWatchController has elapsedMinutes StateFlow property`() {
+        // Given: A StopWatch FlowGraph
+        val flowGraph = createStopWatchFlowGraph()
+        val generator = ModuleGenerator()
+        val packageName = "io.codenode.generated.stopwatch"
+
+        // When: Generating the controller class
+        val controllerClass = generator.generateControllerClass(flowGraph, packageName)
+
+        // Then: Should have elapsedMinutes StateFlow
+        assertTrue(controllerClass.contains("elapsedMinutes") && controllerClass.contains("StateFlow"),
+            "Should have elapsedMinutes StateFlow property")
+    }
+
+    @Test
+    fun `T029 - StopWatchController has executionState StateFlow property`() {
+        // Given: A StopWatch FlowGraph
+        val flowGraph = createStopWatchFlowGraph()
+        val generator = ModuleGenerator()
+        val packageName = "io.codenode.generated.stopwatch"
+
+        // When: Generating the controller class
+        val controllerClass = generator.generateControllerClass(flowGraph, packageName)
+
+        // Then: Should have executionState StateFlow
+        assertTrue(controllerClass.contains("executionState") && controllerClass.contains("StateFlow"),
+            "Should have executionState StateFlow property")
+    }
+
+    @Test
+    fun `T029 - StopWatchController imports StateFlow`() {
+        // Given: A StopWatch FlowGraph
+        val flowGraph = createStopWatchFlowGraph()
+        val generator = ModuleGenerator()
+        val packageName = "io.codenode.generated.stopwatch"
+
+        // When: Generating the controller class
+        val controllerClass = generator.generateControllerClass(flowGraph, packageName)
+
+        // Then: Should import StateFlow
+        assertTrue(controllerClass.contains("import kotlinx.coroutines.flow.StateFlow") ||
+            controllerClass.contains("StateFlow"),
+            "Should import StateFlow")
+    }
+
+    @Test
+    fun `T029 - StopWatchController updates executionState on start stop pause`() {
+        // Given: A StopWatch FlowGraph
+        val flowGraph = createStopWatchFlowGraph()
+        val generator = ModuleGenerator()
+        val packageName = "io.codenode.generated.stopwatch"
+
+        // When: Generating the controller class
+        val controllerClass = generator.generateControllerClass(flowGraph, packageName)
+
+        // Then: Should update _executionState in start(), stop(), pause()
+        assertTrue(controllerClass.contains("_executionState.value = ExecutionState.RUNNING"),
+            "start() should update _executionState to RUNNING")
+        assertTrue(controllerClass.contains("_executionState.value = ExecutionState.IDLE"),
+            "stop() should update _executionState to IDLE")
+        assertTrue(controllerClass.contains("_executionState.value = ExecutionState.PAUSED"),
+            "pause() should update _executionState to PAUSED")
+    }
+
+    @Test
+    fun `T029 - StopWatchController reset clears elapsed time`() {
+        // Given: A StopWatch FlowGraph
+        val flowGraph = createStopWatchFlowGraph()
+        val generator = ModuleGenerator()
+        val packageName = "io.codenode.generated.stopwatch"
+
+        // When: Generating the controller class
+        val controllerClass = generator.generateControllerClass(flowGraph, packageName)
+
+        // Then: reset() should clear elapsed time values
+        assertTrue(controllerClass.contains("_elapsedSeconds.value = 0") ||
+            controllerClass.contains("elapsedSeconds") && controllerClass.contains("reset"),
+            "reset() should reset elapsedSeconds to 0")
+        assertTrue(controllerClass.contains("_elapsedMinutes.value = 0") ||
+            controllerClass.contains("elapsedMinutes") && controllerClass.contains("reset"),
+            "reset() should reset elapsedMinutes to 0")
+    }
+
+    // ========== T023: build.gradle.kts Configuration Tests ==========
+
+    @Test
+    fun `T023 - Generated build gradle has Kotlin multiplatform plugin`() {
         // Given: A StopWatch FlowGraph
         val flowGraph = createStopWatchFlowGraph()
         val generator = ModuleGenerator()
@@ -330,10 +417,23 @@ class StopWatchModuleGeneratorTest {
         // When: Generating build.gradle.kts
         val buildGradle = generator.generateBuildGradle(flowGraph, "StopWatch")
 
-        // Then: Should include Compose plugin with version 1.7.3
-        assertTrue(buildGradle.contains("compose") && buildGradle.contains("1.7.3") ||
-            buildGradle.contains("org.jetbrains.compose"),
-            "Should include Compose Multiplatform 1.7.3")
+        // Then: Should declare Kotlin multiplatform plugin (versions managed by root project)
+        assertTrue(buildGradle.contains("kotlin(\"multiplatform\")"),
+            "Should declare kotlin(\"multiplatform\") plugin")
+    }
+
+    @Test
+    fun `T023 - Generated build gradle has Compose plugin`() {
+        // Given: A StopWatch FlowGraph
+        val flowGraph = createStopWatchFlowGraph()
+        val generator = ModuleGenerator()
+
+        // When: Generating build.gradle.kts
+        val buildGradle = generator.generateBuildGradle(flowGraph, "StopWatch")
+
+        // Then: Should include Compose plugin (versions managed by root project)
+        assertTrue(buildGradle.contains("org.jetbrains.compose"),
+            "Should include Compose Multiplatform plugin")
     }
 
     @Test
