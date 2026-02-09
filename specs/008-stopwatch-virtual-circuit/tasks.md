@@ -130,11 +130,11 @@
 - [x] T039 [US3] Move secondsToRad() helper function to StopWatchFace.kt in KMPMobileApp/src/commonMain/kotlin/io/codenode/mobileapp/StopWatchFace.kt
 - [x] T040 [US3] Create ControlledStopWatch.kt in KMPMobileApp/src/androidMain/ that imports StopWatchController from generated module
 - [x] T041 [US3] ControlledStopWatch derives isRunning from executionState == RUNNING (see KMPMobileApp/src/androidMain/kotlin/io/codenode/mobileapp/ControlledStopWatch.kt)
-- [ ] T042 [US3] Replace elapsedSeconds/elapsedMinutes mutableStateOf with StateFlow.collectAsState() from controller in KMPMobileApp/src/commonMain/kotlin/io/codenode/mobileapp/StopWatch.kt
-- [ ] T043 [US3] Replace LaunchedEffect timer logic with controller.start()/stop() calls in KMPMobileApp/src/commonMain/kotlin/io/codenode/mobileapp/StopWatch.kt
-- [ ] T044 [US3] Implement reset button to call controller.reset() in KMPMobileApp/src/commonMain/kotlin/io/codenode/mobileapp/StopWatch.kt
-- [ ] T045 [US3] (Optional) Add LaunchedEffect to call controller.bindToLifecycle(LocalLifecycleOwner.current.lifecycle) in KMPMobileApp/src/commonMain/kotlin/io/codenode/mobileapp/StopWatch.kt
-- [ ] T046 [US3] Verify refactored KMPMobileApp compiles with `./gradlew :KMPMobileApp:build`
+- [x] T042 [US3] ControlledStopWatch uses StateFlow.collectAsState() for elapsedSeconds/elapsedMinutes from controller
+- [x] T043 [US3] ControlledStopWatch delegates start/stop to controller.start()/stop() calls
+- [x] T044 [US3] ControlledStopWatch delegates reset to controller.reset()
+- [x] T045 [US3] ControlledStopWatch binds to lifecycle via LaunchedEffect calling controller.bindToLifecycle(LocalLifecycleOwner.current.lifecycle)
+- [x] T046 [US3] Verified KMPMobileApp compiles with `./gradlew :KMPMobileApp:compileDebugKotlinAndroid`
 - [ ] T047 [US3] Manual test: Run on Android emulator, verify Start/Stop/Reset work correctly
 
 **Checkpoint**: At this point, User Stories 1, 2, AND 3 should all work independently

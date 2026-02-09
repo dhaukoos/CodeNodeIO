@@ -2,6 +2,10 @@
  * ControlledStopWatch - Android-specific StopWatch using generated StopWatchController
  * T040: Imports StopWatchController from generated module
  * T041: Uses executionState from controller instead of local isRunning state
+ * T042: Uses StateFlow.collectAsState() for elapsedSeconds/elapsedMinutes
+ * T043: Delegates start/stop to controller
+ * T044: Delegates reset to controller
+ * T045: Binds to Android lifecycle via bindToLifecycle()
  * License: Apache 2.0
  */
 
@@ -19,6 +23,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -52,6 +57,12 @@ fun ControlledStopWatch(
 ) {
     // Create controller instance - remember it to survive recomposition
     val controller = remember(flowGraph) { StopWatchController(flowGraph) }
+
+    // T045: Bind controller to Android lifecycle (pauses on ON_PAUSE, resumes on ON_RESUME)
+    val lifecycleOwner = LocalLifecycleOwner.current
+    LaunchedEffect(controller, lifecycleOwner) {
+        controller.bindToLifecycle(lifecycleOwner.lifecycle)
+    }
 
     // Collect state from controller's StateFlow properties
     val executionState by controller.executionState.collectAsState()
