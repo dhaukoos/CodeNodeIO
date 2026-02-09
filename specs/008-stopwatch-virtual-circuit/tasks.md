@@ -87,18 +87,18 @@
 
 > **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
 
-- [ ] T020 [P] [US2] TDD test: ModuleGenerator produces StopWatchFlowGraph.kt file in kotlinCompiler/src/commonTest/kotlin/io/codenode/kotlincompiler/generator/StopWatchModuleGeneratorTest.kt
-- [ ] T021 [P] [US2] TDD test: ModuleGenerator produces StopWatchController.kt with start(), stop(), pause(), getStatus() methods in kotlinCompiler/src/commonTest/kotlin/io/codenode/kotlincompiler/generator/StopWatchModuleGeneratorTest.kt
-- [ ] T022 [P] [US2] TDD test: StopWatchController.bindToLifecycle() pauses on ON_PAUSE and resumes on ON_RESUME in StopWatch/src/commonTest/kotlin/io/codenode/generated/stopwatch/LifecycleBindingTest.kt
-- [ ] T023 [P] [US2] TDD test: Generated build.gradle.kts has correct KMP configuration (Kotlin 2.1.21, Compose 1.7.3) in kotlinCompiler/src/commonTest/kotlin/io/codenode/kotlincompiler/generator/StopWatchModuleGeneratorTest.kt
-- [ ] T024 [P] [US2] TDD test: Generated module compiles with `./gradlew :StopWatch:build` in kotlinCompiler/src/commonTest/kotlin/io/codenode/kotlincompiler/generator/StopWatchModuleGeneratorTest.kt
+- [x] T020 [P] [US2] TDD test: ModuleGenerator produces StopWatchFlowGraph.kt file in kotlinCompiler/src/commonTest/kotlin/io/codenode/kotlincompiler/generator/StopWatchModuleGeneratorTest.kt
+- [x] T021 [P] [US2] TDD test: ModuleGenerator produces StopWatchController.kt with start(), stop(), pause(), getStatus() methods in kotlinCompiler/src/commonTest/kotlin/io/codenode/kotlincompiler/generator/StopWatchModuleGeneratorTest.kt
+- [x] T022 [P] [US2] TDD test: StopWatchController.bindToLifecycle() pauses on ON_PAUSE and resumes on ON_RESUME in StopWatch/src/commonTest/kotlin/io/codenode/generated/stopwatch/LifecycleBindingTest.kt
+- [x] T023 [P] [US2] TDD test: Generated build.gradle.kts has correct KMP configuration (Kotlin 2.1.21, Compose 1.7.3) in kotlinCompiler/src/commonTest/kotlin/io/codenode/kotlincompiler/generator/StopWatchModuleGeneratorTest.kt
+- [x] T024 [P] [US2] TDD test: Generated module compiles with `./gradlew :StopWatch:build` in kotlinCompiler/src/commonTest/kotlin/io/codenode/kotlincompiler/generator/StopWatchModuleGeneratorTest.kt
 
 ### Implementation for User Story 2
 
-- [ ] T025 [US2] Generate StopWatch/ module directory from demos/stopwatch/StopWatch.flow.kts using graphEditor Compile button
-- [ ] T026 [US2] Add lifecycle-runtime-compose:2.9.6 dependency to generated StopWatch/build.gradle.kts
-- [ ] T027 [US2] Verify generated StopWatchFlowGraph.kt instantiates TimerEmitter and DisplayReceiver nodes in StopWatch/src/commonMain/kotlin/io/codenode/generated/stopwatch/StopWatchFlowGraph.kt
-- [ ] T028 [US2] Verify generated StopWatchController.kt wraps RootControlNode with start(), stop(), pause(), reset(), getStatus() in StopWatch/src/commonMain/kotlin/io/codenode/generated/stopwatch/StopWatchController.kt
+- [x] T025 [US2] Generate StopWatch/ module directory from demos/stopwatch/StopWatch.flow.kts using graphEditor Compile button
+- [x] T026 [US2] Add lifecycle-runtime-compose:2.9.6 dependency to generated StopWatch/build.gradle.kts
+- [x] T027 [US2] Verify generated StopWatchFlowGraph.kt instantiates TimerEmitter and DisplayReceiver nodes in StopWatch/src/commonMain/kotlin/io/codenode/generated/stopwatch/StopWatchFlowGraph.kt
+- [x] T028 [US2] Verify generated StopWatchController.kt wraps RootControlNode with start(), stop(), pause(), reset(), getStatus() in StopWatch/src/commonMain/kotlin/io/codenode/generated/stopwatch/StopWatchController.kt
 - [ ] T029 [US2] Add StateFlow properties for elapsedSeconds, elapsedMinutes, executionState to StopWatchController in StopWatch/src/commonMain/kotlin/io/codenode/generated/stopwatch/StopWatchController.kt
 - [ ] T030 [US2] Implement bindToLifecycle(lifecycle: Lifecycle) with wasRunningBeforePause tracking in StopWatch/src/commonMain/kotlin/io/codenode/generated/stopwatch/StopWatchController.kt
 - [ ] T031 [US2] Add include(":StopWatch") to settings.gradle.kts at repository root

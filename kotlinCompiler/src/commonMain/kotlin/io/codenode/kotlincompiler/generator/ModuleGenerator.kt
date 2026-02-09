@@ -38,9 +38,11 @@ class ModuleGenerator {
 
     companion object {
         const val DEFAULT_PACKAGE = "io.codenode.generated"
-        const val KOTLIN_VERSION = "2.1.0"
+        const val KOTLIN_VERSION = "2.1.21"
+        const val COMPOSE_VERSION = "1.7.3"
         const val COROUTINES_VERSION = "1.8.0"
         const val SERIALIZATION_VERSION = "1.6.0"
+        const val LIFECYCLE_VERSION = "2.8.0"
     }
 
     /**
@@ -177,6 +179,7 @@ class ModuleGenerator {
             appendLine("plugins {")
             appendLine("    kotlin(\"multiplatform\") version \"$KOTLIN_VERSION\"")
             appendLine("    kotlin(\"plugin.serialization\") version \"$KOTLIN_VERSION\"")
+            appendLine("    id(\"org.jetbrains.compose\") version \"$COMPOSE_VERSION\"")
             if (flowGraph.targetsPlatform(FlowGraph.TargetPlatform.KMP_ANDROID)) {
                 appendLine("    id(\"com.android.library\") version \"8.2.0\"")
             }
@@ -249,6 +252,7 @@ class ModuleGenerator {
             appendLine("            dependencies {")
             appendLine("                implementation(\"org.jetbrains.kotlinx:kotlinx-coroutines-core:$COROUTINES_VERSION\")")
             appendLine("                implementation(\"org.jetbrains.kotlinx:kotlinx-serialization-json:$SERIALIZATION_VERSION\")")
+            appendLine("                implementation(\"androidx.lifecycle:lifecycle-runtime-compose:$LIFECYCLE_VERSION\")")
             appendLine("            }")
             appendLine("        }")
             appendLine()
@@ -515,6 +519,9 @@ class ModuleGenerator {
             appendLine("import io.codenode.fbpdsl.model.FlowExecutionStatus")
             appendLine("import io.codenode.fbpdsl.model.ExecutionState")
             appendLine("import io.codenode.fbpdsl.model.ControlConfig")
+            appendLine("import androidx.lifecycle.Lifecycle")
+            appendLine("import androidx.lifecycle.LifecycleEventObserver")
+            appendLine("import androidx.lifecycle.LifecycleOwner")
             appendLine()
 
             // Class documentation
@@ -544,6 +551,14 @@ class ModuleGenerator {
 
             // Flow instance
             appendLine("    private val flow = $flowClassName()")
+            appendLine()
+
+            // Lifecycle tracking
+            appendLine("    /**")
+            appendLine("     * Tracks whether the flow was running before a lifecycle-triggered pause.")
+            appendLine("     * Used to restore running state when lifecycle resumes.")
+            appendLine("     */")
+            appendLine("    private var wasRunningBeforePause: Boolean = false")
             appendLine()
 
             // Start method
@@ -594,6 +609,21 @@ class ModuleGenerator {
             appendLine("    }")
             appendLine()
 
+            // Reset method
+            appendLine("    /**")
+            appendLine("     * Resets the flow to initial state.")
+            appendLine("     *")
+            appendLine("     * Stops all nodes and clears any accumulated state.")
+            appendLine("     * Equivalent to stop() but semantically represents a fresh start.")
+            appendLine("     *")
+            appendLine("     * @return Updated FlowGraph with all nodes reset to IDLE")
+            appendLine("     */")
+            appendLine("    fun reset(): FlowGraph {")
+            appendLine("        wasRunningBeforePause = false")
+            appendLine("        return stop()")
+            appendLine("    }")
+            appendLine()
+
             // GetStatus method
             appendLine("    /**")
             appendLine("     * Gets the current execution status of all nodes.")
@@ -632,6 +662,43 @@ class ModuleGenerator {
             appendLine("        flowGraph = controller.setNodeConfig(nodeId, config)")
             appendLine("        controller = RootControlNode.createFor(flowGraph, \"${flowGraph.name}Controller\")")
             appendLine("        return flowGraph")
+            appendLine("    }")
+            appendLine()
+
+            // BindToLifecycle method
+            appendLine("    /**")
+            appendLine("     * Binds the flow execution to an Android/KMP Lifecycle.")
+            appendLine("     *")
+            appendLine("     * When the lifecycle enters STARTED state, resumes if previously running.")
+            appendLine("     * When the lifecycle enters STOPPED state, pauses and tracks state.")
+            appendLine("     * When the lifecycle is DESTROYED, stops the flow completely.")
+            appendLine("     *")
+            appendLine("     * @param lifecycle The lifecycle to bind to")
+            appendLine("     */")
+            appendLine("    fun bindToLifecycle(lifecycle: Lifecycle) {")
+            appendLine("        lifecycle.addObserver(object : LifecycleEventObserver {")
+            appendLine("            override fun onStateChanged(source: LifecycleOwner, event: Lifecycle.Event) {")
+            appendLine("                when (event) {")
+            appendLine("                    Lifecycle.Event.ON_START -> {")
+            appendLine("                        if (wasRunningBeforePause) {")
+            appendLine("                            start()")
+            appendLine("                            wasRunningBeforePause = false")
+            appendLine("                        }")
+            appendLine("                    }")
+            appendLine("                    Lifecycle.Event.ON_STOP -> {")
+            appendLine("                        val status = getStatus()")
+            appendLine("                        wasRunningBeforePause = status.overallState == ExecutionState.RUNNING")
+            appendLine("                        if (wasRunningBeforePause) {")
+            appendLine("                            pause()")
+            appendLine("                        }")
+            appendLine("                    }")
+            appendLine("                    Lifecycle.Event.ON_DESTROY -> {")
+            appendLine("                        stop()")
+            appendLine("                    }")
+            appendLine("                    else -> { /* no-op */ }")
+            appendLine("                }")
+            appendLine("            }")
+            appendLine("        })")
             appendLine("    }")
             appendLine()
 
