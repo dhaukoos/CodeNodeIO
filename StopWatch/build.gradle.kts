@@ -37,6 +37,9 @@ kotlin {
 
     sourceSets {
         val commonMain by getting {
+            // Include UseCase implementations from demos/stopwatch
+            kotlin.srcDir("../demos/stopwatch")
+
             dependencies {
                 implementation(project(":fbpDsl"))
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0")
@@ -49,6 +52,7 @@ kotlin {
         val commonTest by getting {
             dependencies {
                 implementation(kotlin("test"))
+                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.0")
             }
         }
     }

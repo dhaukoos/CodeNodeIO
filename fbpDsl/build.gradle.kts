@@ -11,6 +11,9 @@ plugins {
 
 kotlin {
     jvm {
+        compilations.all {
+            kotlinOptions.jvmTarget = "17"
+        }
     }
 
     // iOS targets for multiplatform support

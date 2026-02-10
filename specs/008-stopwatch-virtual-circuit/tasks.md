@@ -151,20 +151,20 @@
 
 > **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
 
-- [ ] T048 [P] [US4] TDD test: TimerEmitter emits incrementing elapsedSeconds every speedAttenuation ms in StopWatch/src/commonTest/kotlin/io/codenode/generated/stopwatch/TimerEmitterComponentTest.kt
-- [ ] T049 [P] [US4] TDD test: TimerEmitter rolls elapsedSeconds to 0 and increments elapsedMinutes at 60 in StopWatch/src/commonTest/kotlin/io/codenode/generated/stopwatch/TimerEmitterComponentTest.kt
-- [ ] T050 [P] [US4] TDD test: TimerEmitter stops emitting when executionState != RUNNING in StopWatch/src/commonTest/kotlin/io/codenode/generated/stopwatch/TimerEmitterComponentTest.kt
-- [ ] T051 [P] [US4] TDD test: DisplayReceiver updates state when receiving seconds/minutes inputs in StopWatch/src/commonTest/kotlin/io/codenode/generated/stopwatch/DisplayReceiverComponentTest.kt
+- [x] T048 [P] [US4] TDD test: TimerEmitter emits incrementing elapsedSeconds every speedAttenuation ms in StopWatch/src/commonTest/kotlin/io/codenode/generated/stopwatch/TimerEmitterComponentTest.kt
+- [x] T049 [P] [US4] TDD test: TimerEmitter rolls elapsedSeconds to 0 and increments elapsedMinutes at 60 in StopWatch/src/commonTest/kotlin/io/codenode/generated/stopwatch/TimerEmitterComponentTest.kt
+- [x] T050 [P] [US4] TDD test: TimerEmitter stops emitting when executionState != RUNNING in StopWatch/src/commonTest/kotlin/io/codenode/generated/stopwatch/TimerEmitterComponentTest.kt
+- [x] T051 [P] [US4] TDD test: DisplayReceiver updates state when receiving seconds/minutes inputs in StopWatch/src/commonTest/kotlin/io/codenode/generated/stopwatch/DisplayReceiverComponentTest.kt
 
 ### Implementation for User Story 4
 
-- [ ] T052 [US4] Implement TimerEmitter.process() with coroutine tick loop in StopWatch/src/commonMain/kotlin/io/codenode/generated/stopwatch/TimerEmitterComponent.kt
-- [ ] T053 [US4] Add seconds/minutes state variables with rollover logic (seconds >= 60) in StopWatch/src/commonMain/kotlin/io/codenode/generated/stopwatch/TimerEmitterComponent.kt
-- [ ] T054 [US4] Add delay(controlConfig.speedAttenuation) for tick interval in StopWatch/src/commonMain/kotlin/io/codenode/generated/stopwatch/TimerEmitterComponent.kt
-- [ ] T055 [US4] Add executionState check in while loop condition in StopWatch/src/commonMain/kotlin/io/codenode/generated/stopwatch/TimerEmitterComponent.kt
-- [ ] T056 [US4] Implement DisplayReceiver.process() to update StateFlow values in StopWatch/src/commonMain/kotlin/io/codenode/generated/stopwatch/DisplayReceiverComponent.kt
-- [ ] T057 [US4] Wire TimerEmitter outputs to DisplayReceiver inputs via Channel in StopWatch/src/commonMain/kotlin/io/codenode/generated/stopwatch/StopWatchFlowGraph.kt
-- [ ] T058 [US4] Verify all StopWatch module tests pass with `./gradlew :StopWatch:test`
+- [x] T052 [US4] Implement TimerEmitter.process() with coroutine tick loop in StopWatch/src/commonMain/kotlin/io/codenode/generated/stopwatch/TimerEmitterComponent.kt
+- [x] T053 [US4] Add seconds/minutes state variables with rollover logic (seconds >= 60) in StopWatch/src/commonMain/kotlin/io/codenode/generated/stopwatch/TimerEmitterComponent.kt
+- [x] T054 [US4] Add delay(controlConfig.speedAttenuation) for tick interval in StopWatch/src/commonMain/kotlin/io/codenode/generated/stopwatch/TimerEmitterComponent.kt
+- [x] T055 [US4] Add executionState check in while loop condition in StopWatch/src/commonMain/kotlin/io/codenode/generated/stopwatch/TimerEmitterComponent.kt
+- [x] T056 [US4] Implement DisplayReceiver.process() to update StateFlow values in StopWatch/src/commonMain/kotlin/io/codenode/generated/stopwatch/DisplayReceiverComponent.kt
+- [x] T057 [US4] Wire TimerEmitter outputs to DisplayReceiver inputs via Channel in StopWatch/src/commonMain/kotlin/io/codenode/generated/stopwatch/StopWatchFlowGraph.kt
+- [x] T058 [US4] Verify all StopWatch module tests pass with `./gradlew :StopWatch:test`
 
 **Checkpoint**: All user stories should now be independently functional
 
