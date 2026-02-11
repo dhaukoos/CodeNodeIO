@@ -28,9 +28,9 @@ Based on plan.md structure:
 
 **Purpose**: Extend existing enums and prepare property infrastructure
 
-- [ ] T001 Add `FILE_PATH` value to PropertyType enum in graphEditor/src/jvmMain/kotlin/ui/PropertiesPanel.kt
-- [ ] T002 Add `FILE_BROWSER` value to EditorType enum in graphEditor/src/jvmMain/kotlin/ui/PropertiesPanel.kt
-- [ ] T003 Add editorType mapping for `FILE_PATH -> FILE_BROWSER` in PropertyDefinition.editorType in graphEditor/src/jvmMain/kotlin/ui/PropertiesPanel.kt
+- [X] T001 Add `FILE_PATH` value to PropertyType enum in graphEditor/src/jvmMain/kotlin/ui/PropertiesPanel.kt
+- [X] T002 Add `FILE_BROWSER` value to EditorType enum in graphEditor/src/jvmMain/kotlin/ui/PropertiesPanel.kt
+- [X] T003 Add editorType mapping for `FILE_PATH -> FILE_BROWSER` in PropertyDefinition.editorType in graphEditor/src/jvmMain/kotlin/ui/PropertiesPanel.kt
 
 ---
 
@@ -40,11 +40,11 @@ Based on plan.md structure:
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T004 Create PropertyValidationError data class in graphEditor/src/jvmMain/kotlin/compilation/CompilationValidator.kt
-- [ ] T005 [P] Create NodeValidationError data class with message property in graphEditor/src/jvmMain/kotlin/compilation/CompilationValidator.kt
-- [ ] T006 [P] Create CompilationValidationResult data class with success, nodeErrors, isValid, errorSummary in graphEditor/src/jvmMain/kotlin/compilation/CompilationValidator.kt
-- [ ] T007 Create RequiredPropertySpec data class with key, displayName, validator in graphEditor/src/jvmMain/kotlin/compilation/CompilationValidator.kt
-- [ ] T008 Define PROCESSING_LOGIC_SPEC constant for processingLogicFile validation in graphEditor/src/jvmMain/kotlin/compilation/CompilationValidator.kt
+- [X] T004 Create PropertyValidationError data class in graphEditor/src/jvmMain/kotlin/compilation/CompilationValidator.kt
+- [X] T005 [P] Create NodeValidationError data class with message property in graphEditor/src/jvmMain/kotlin/compilation/CompilationValidator.kt
+- [X] T006 [P] Create CompilationValidationResult data class with success, nodeErrors, isValid, errorSummary in graphEditor/src/jvmMain/kotlin/compilation/CompilationValidator.kt
+- [X] T007 Create RequiredPropertySpec data class with key, displayName, validator in graphEditor/src/jvmMain/kotlin/compilation/CompilationValidator.kt
+- [X] T008 Define PROCESSING_LOGIC_SPEC constant for processingLogicFile validation in graphEditor/src/jvmMain/kotlin/compilation/CompilationValidator.kt
 
 **Checkpoint**: Foundation ready - user story implementation can now begin
 

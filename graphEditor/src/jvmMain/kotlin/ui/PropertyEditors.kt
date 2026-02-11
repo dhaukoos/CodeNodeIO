@@ -436,6 +436,62 @@ fun ReadOnlyDisplay(
 }
 
 /**
+ * File browser editor for FILE_PATH properties.
+ * Displays a text field with a browse button for selecting files.
+ *
+ * Note: Full implementation with JFileChooser will be added in User Story 1.
+ * This is a stub that provides basic text field functionality.
+ *
+ * @param value Current file path value
+ * @param onValueChange Callback when value changes
+ * @param isError Whether there's a validation error
+ * @param modifier Modifier for the editor
+ */
+@Composable
+fun FileBrowserEditor(
+    value: String,
+    onValueChange: (String) -> Unit,
+    isError: Boolean = false,
+    modifier: Modifier = Modifier
+) {
+    // Stub implementation - text field only
+    // Full implementation with browse button will be added in T013
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        OutlinedTextField(
+            value = value,
+            onValueChange = onValueChange,
+            modifier = Modifier.weight(1f),
+            textStyle = TextStyle(fontSize = 12.sp),
+            singleLine = true,
+            isError = isError,
+            placeholder = {
+                Text(
+                    text = "Select a file...",
+                    fontSize = 12.sp,
+                    color = MaterialTheme.colors.onSurface.copy(alpha = 0.5f)
+                )
+            },
+            colors = TextFieldDefaults.outlinedTextFieldColors(
+                backgroundColor = MaterialTheme.colors.surface,
+                focusedBorderColor = MaterialTheme.colors.primary,
+                unfocusedBorderColor = MaterialTheme.colors.onSurface.copy(alpha = 0.3f),
+                errorBorderColor = MaterialTheme.colors.error
+            )
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        Button(
+            onClick = { /* Browse button - to be implemented in T014 */ },
+            modifier = Modifier.height(36.dp)
+        ) {
+            Text("Browse", fontSize = 12.sp)
+        }
+    }
+}
+
+/**
  * Property editor that automatically selects the appropriate editor
  * based on the property definition.
  *
@@ -488,6 +544,12 @@ fun AutoPropertyEditor(
             value = value,
             options = definition.options,
             onValueChange = onValueChange,
+            modifier = modifier
+        )
+        EditorType.FILE_BROWSER -> FileBrowserEditor(
+            value = value,
+            onValueChange = onValueChange,
+            isError = isError,
             modifier = modifier
         )
     }

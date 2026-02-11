@@ -287,6 +287,7 @@ data class PropertyDefinition(
             PropertyType.NUMBER -> EditorType.NUMBER_FIELD
             PropertyType.BOOLEAN -> EditorType.CHECKBOX
             PropertyType.DROPDOWN -> EditorType.DROPDOWN
+            PropertyType.FILE_PATH -> EditorType.FILE_BROWSER
         }
 }
 
@@ -297,7 +298,8 @@ enum class PropertyType {
     STRING,
     NUMBER,
     BOOLEAN,
-    DROPDOWN
+    DROPDOWN,
+    FILE_PATH  // For file selection properties (e.g., processingLogicFile)
 }
 
 /**
@@ -307,7 +309,8 @@ enum class EditorType {
     TEXT_FIELD,
     NUMBER_FIELD,
     CHECKBOX,
-    DROPDOWN
+    DROPDOWN,
+    FILE_BROWSER  // Text field with browse button for file selection
 }
 
 /**
@@ -639,6 +642,11 @@ private fun PropertyEditorRow(
                 value = value,
                 options = definition.options,
                 onValueChange = onValueChange
+            )
+            EditorType.FILE_BROWSER -> FileBrowserEditor(
+                value = value,
+                onValueChange = onValueChange,
+                isError = error != null
             )
         }
 
