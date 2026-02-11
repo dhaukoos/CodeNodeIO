@@ -12,7 +12,7 @@
  * The speedAttenuation config controls the tick interval (1000ms = 1 second)
  *
  * Note: This file is parsed by the graphEditor's FlowGraphDeserializer.
- * It uses Kotlin DSL syntax for human readability but is not compiled as Kotlin code.
+ * It uses Kotlin DSL syntax for human readability.
  */
 
 val graph = flowGraph("StopWatch", version = "1.0.0", description = "Virtual circuit demo for stopwatch functionality") {

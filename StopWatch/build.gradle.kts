@@ -38,7 +38,9 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             // Include UseCase implementations from demos/stopwatch
+            // Exclude .flow.kts DSL files (they're for graphEditor parsing, not compilation)
             kotlin.srcDir("../demos/stopwatch")
+            kotlin.exclude("**/*.flow.kts")
 
             dependencies {
                 implementation(project(":fbpDsl"))

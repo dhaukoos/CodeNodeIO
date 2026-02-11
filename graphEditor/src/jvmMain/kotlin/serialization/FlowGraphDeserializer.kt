@@ -622,9 +622,9 @@ object FlowGraphDeserializer {
         }
 
         // Check file extension
-        // Accept .flow (preferred - no IDE Kotlin script confusion), .flow.kts, or .kts
-        if (!file.name.endsWith(".flow") && !file.name.endsWith(".flow.kts") && !file.name.endsWith(".kts")) {
-            errors.add("File does not have .flow, .flow.kts, or .kts extension: ${file.name}")
+        // Accept .flow, .flow.kt, .flow.kts, or .kts
+        if (!file.name.endsWith(".flow") && !file.name.endsWith(".flow.kt") && !file.name.endsWith(".flow.kts") && !file.name.endsWith(".kts")) {
+            errors.add("File does not have .flow, .flow.kt, .flow.kts, or .kts extension: ${file.name}")
         }
 
         // Check file is not empty

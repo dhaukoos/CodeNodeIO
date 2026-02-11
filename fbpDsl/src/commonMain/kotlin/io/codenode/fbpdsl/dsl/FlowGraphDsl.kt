@@ -228,6 +228,18 @@ class NodeBuilder(
         configuration[key] = value
     }
 
+    private var nodePosition: Node.Position = Node.Position(0.0, 0.0)
+
+    /**
+     * Sets the position of this node on the canvas
+     *
+     * @param x X coordinate
+     * @param y Y coordinate
+     */
+    fun position(x: Double, y: Double) {
+        nodePosition = Node.Position(x, y)
+    }
+
     /**
      * Gets a port reference by name for connections
      *
@@ -258,12 +270,21 @@ class NodeBuilder(
      * @return Configured CodeNode
      */
     fun buildCodeNode(): CodeNode {
+        // Parse node type from string if provided
+        val codeNodeType = nodeType?.let {
+            try {
+                CodeNodeType.valueOf(it.uppercase())
+            } catch (e: IllegalArgumentException) {
+                CodeNodeType.CUSTOM
+            }
+        } ?: CodeNodeType.TRANSFORMER
+
         return CodeNode(
             id = nodeId,
             name = name,
-            codeNodeType = CodeNodeType.TRANSFORMER, // Default type, could be parameterized
+            codeNodeType = codeNodeType,
             description = null,
-            position = Node.Position(0.0, 0.0), // Default position, can be set later
+            position = nodePosition,
             inputPorts = inputPorts,
             outputPorts = outputPorts,
             configuration = configuration,
