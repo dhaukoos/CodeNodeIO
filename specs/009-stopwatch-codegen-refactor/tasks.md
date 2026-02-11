@@ -60,22 +60,22 @@ Based on plan.md structure:
 
 > **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
 
-- [ ] T009 [P] [US1] Create FileBrowserEditorTest.kt with test for rendering text field and browse button in graphEditor/src/jvmTest/kotlin/ui/FileBrowserEditorTest.kt
-- [ ] T010 [P] [US1] Add test for FileBrowserEditor displaying existing path value in graphEditor/src/jvmTest/kotlin/ui/FileBrowserEditorTest.kt
-- [ ] T011 [P] [US1] Add test for FileBrowserEditor error state display in graphEditor/src/jvmTest/kotlin/ui/FileBrowserEditorTest.kt
-- [ ] T012 [P] [US1] Add test for FileBrowserEditor onValueChange callback in graphEditor/src/jvmTest/kotlin/ui/FileBrowserEditorTest.kt
+- [X] T009 [P] [US1] Create FileBrowserEditorTest.kt with test for rendering text field and browse button in graphEditor/src/jvmTest/kotlin/ui/FileBrowserEditorTest.kt
+- [X] T010 [P] [US1] Add test for FileBrowserEditor displaying existing path value in graphEditor/src/jvmTest/kotlin/ui/FileBrowserEditorTest.kt
+- [X] T011 [P] [US1] Add test for FileBrowserEditor error state display in graphEditor/src/jvmTest/kotlin/ui/FileBrowserEditorTest.kt
+- [X] T012 [P] [US1] Add test for FileBrowserEditor onValueChange callback in graphEditor/src/jvmTest/kotlin/ui/FileBrowserEditorTest.kt
 
 ### Implementation for User Story 1
 
-- [ ] T013 [US1] Create FileBrowserEditor composable with text field, browse button, and error display in graphEditor/src/jvmMain/kotlin/ui/PropertyEditors.kt
-- [ ] T014 [US1] Implement showProcessingLogicFileDialog() function using JFileChooser in graphEditor/src/jvmMain/kotlin/ui/PropertyEditors.kt
-- [ ] T015 [US1] Add file filter for Kotlin files (*.kt) to JFileChooser in graphEditor/src/jvmMain/kotlin/ui/PropertyEditors.kt
-- [ ] T016 [US1] Implement relative path conversion from projectRoot in FileBrowserEditor in graphEditor/src/jvmMain/kotlin/ui/PropertyEditors.kt
-- [ ] T017 [US1] Add FILE_BROWSER case to PropertyEditorRow when clause in graphEditor/src/jvmMain/kotlin/ui/PropertiesPanel.kt
-- [ ] T018 [US1] Create PROCESSING_LOGIC_PROPERTY PropertyDefinition constant for CodeNodes in graphEditor/src/jvmMain/kotlin/ui/PropertiesPanel.kt
-- [ ] T019 [US1] Add processingLogicFile to codeNodePropertyDefinitions list in PropertiesPanel in graphEditor/src/jvmMain/kotlin/ui/PropertiesPanel.kt
-- [ ] T020 [US1] Verify processingLogicFile serialization in FlowGraphSerializer config() call (existing support) in graphEditor/src/jvmMain/kotlin/serialization/FlowGraphSerializer.kt
-- [ ] T021 [US1] Test save and reload of flow graph with processingLogicFile configuration
+- [X] T013 [US1] Create FileBrowserEditor composable with text field, browse button, and error display in graphEditor/src/jvmMain/kotlin/ui/PropertyEditors.kt
+- [X] T014 [US1] Implement showProcessingLogicFileDialog() function using JFileChooser in graphEditor/src/jvmMain/kotlin/ui/PropertyEditors.kt
+- [X] T015 [US1] Add file filter for Kotlin files (*.kt) to JFileChooser in graphEditor/src/jvmMain/kotlin/ui/PropertyEditors.kt
+- [X] T016 [US1] Implement relative path conversion from projectRoot in FileBrowserEditor in graphEditor/src/jvmMain/kotlin/ui/PropertyEditors.kt
+- [X] T017 [US1] Add FILE_BROWSER case to PropertyEditorRow when clause in graphEditor/src/jvmMain/kotlin/ui/PropertiesPanel.kt
+- [X] T018 [US1] Create PROCESSING_LOGIC_PROPERTY PropertyDefinition constant for CodeNodes in graphEditor/src/jvmMain/kotlin/ui/PropertiesPanel.kt
+- [X] T019 [US1] Add processingLogicFile to codeNodePropertyDefinitions list in PropertiesPanel in graphEditor/src/jvmMain/kotlin/ui/PropertiesPanel.kt
+- [X] T020 [US1] Verify processingLogicFile serialization in FlowGraphSerializer config() call (existing support) in graphEditor/src/jvmMain/kotlin/serialization/FlowGraphSerializer.kt
+- [X] T021 [US1] Test save and reload of flow graph with processingLogicFile configuration
 
 **Checkpoint**: User Story 1 complete - ProcessingLogic files can be selected and saved
 

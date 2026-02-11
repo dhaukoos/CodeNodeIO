@@ -24,6 +24,9 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import java.io.File
+import javax.swing.JFileChooser
+import javax.swing.filechooser.FileNameExtensionFilter
 
 /**
  * Parses a hex color string to a Compose Color
@@ -439,12 +442,14 @@ fun ReadOnlyDisplay(
  * File browser editor for FILE_PATH properties.
  * Displays a text field with a browse button for selecting files.
  *
- * Note: Full implementation with JFileChooser will be added in User Story 1.
- * This is a stub that provides basic text field functionality.
+ * Provides both manual text entry and file browser dialog functionality.
+ * Selected files are converted to relative paths from projectRoot for portability.
  *
- * @param value Current file path value
- * @param onValueChange Callback when value changes
+ * @param value Current file path value (relative path)
+ * @param onValueChange Callback when value changes (receives relative path)
  * @param isError Whether there's a validation error
+ * @param errorMessage Optional error message to display below the field
+ * @param projectRoot Project root directory for relative path conversion (defaults to current directory)
  * @param modifier Modifier for the editor
  */
 @Composable
@@ -452,42 +457,109 @@ fun FileBrowserEditor(
     value: String,
     onValueChange: (String) -> Unit,
     isError: Boolean = false,
+    errorMessage: String? = null,
+    projectRoot: File = File(System.getProperty("user.dir")),
     modifier: Modifier = Modifier
 ) {
-    // Stub implementation - text field only
-    // Full implementation with browse button will be added in T013
-    Row(
-        modifier = modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        OutlinedTextField(
-            value = value,
-            onValueChange = onValueChange,
-            modifier = Modifier.weight(1f),
-            textStyle = TextStyle(fontSize = 12.sp),
-            singleLine = true,
-            isError = isError,
-            placeholder = {
-                Text(
-                    text = "Select a file...",
-                    fontSize = 12.sp,
-                    color = MaterialTheme.colors.onSurface.copy(alpha = 0.5f)
-                )
-            },
-            colors = TextFieldDefaults.outlinedTextFieldColors(
-                backgroundColor = MaterialTheme.colors.surface,
-                focusedBorderColor = MaterialTheme.colors.primary,
-                unfocusedBorderColor = MaterialTheme.colors.onSurface.copy(alpha = 0.3f),
-                errorBorderColor = MaterialTheme.colors.error
-            )
-        )
-        Spacer(modifier = Modifier.width(8.dp))
-        Button(
-            onClick = { /* Browse button - to be implemented in T014 */ },
-            modifier = Modifier.height(36.dp)
+    Column(modifier = modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Text("Browse", fontSize = 12.sp)
+            OutlinedTextField(
+                value = value,
+                onValueChange = { newValue ->
+                    // Normalize path separators to forward slashes for portability
+                    onValueChange(newValue.replace('\\', '/'))
+                },
+                modifier = Modifier.weight(1f).defaultMinSize(minHeight = 52.dp),
+                textStyle = TextStyle(fontSize = 12.sp),
+                singleLine = true,
+                isError = isError,
+                placeholder = {
+                    Text(
+                        text = "Select a file...",
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colors.onSurface.copy(alpha = 0.5f)
+                    )
+                },
+                colors = TextFieldDefaults.outlinedTextFieldColors(
+                    backgroundColor = MaterialTheme.colors.surface,
+                    focusedBorderColor = MaterialTheme.colors.primary,
+                    unfocusedBorderColor = MaterialTheme.colors.onSurface.copy(alpha = 0.3f),
+                    errorBorderColor = MaterialTheme.colors.error
+                )
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Button(
+                onClick = {
+                    val selectedFile = showProcessingLogicFileDialog(projectRoot)
+                    if (selectedFile != null) {
+                        val relativePath = convertToRelativePath(selectedFile, projectRoot)
+                        onValueChange(relativePath)
+                    }
+                },
+                modifier = Modifier.height(36.dp)
+            ) {
+                Text("Browse", fontSize = 12.sp)
+            }
         }
+
+        // Error message display
+        if (isError && errorMessage != null) {
+            Text(
+                text = errorMessage,
+                color = MaterialTheme.colors.error,
+                fontSize = 10.sp,
+                modifier = Modifier.padding(top = 2.dp)
+            )
+        }
+    }
+}
+
+/**
+ * Shows a file dialog for selecting ProcessingLogic implementation files.
+ *
+ * Opens a JFileChooser dialog filtered to show only Kotlin files (*.kt).
+ * The dialog starts in the provided project root directory.
+ *
+ * @param projectRoot The project root directory to start browsing from
+ * @return The selected file, or null if the user cancelled
+ */
+fun showProcessingLogicFileDialog(projectRoot: File): File? {
+    val fileChooser = JFileChooser().apply {
+        dialogTitle = "Select ProcessingLogic Implementation"
+        currentDirectory = projectRoot
+        fileFilter = FileNameExtensionFilter("Kotlin Files (*.kt)", "kt")
+        isAcceptAllFileFilterUsed = false
+    }
+
+    return if (fileChooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
+        fileChooser.selectedFile
+    } else {
+        null
+    }
+}
+
+/**
+ * Converts an absolute file path to a relative path from the project root.
+ *
+ * Uses forward slashes for cross-platform compatibility.
+ * If the file is not under the project root, returns the absolute path.
+ *
+ * @param file The file to convert
+ * @param projectRoot The project root directory
+ * @return Relative path with forward slashes, or absolute path if not under project root
+ */
+fun convertToRelativePath(file: File, projectRoot: File): String {
+    val absolutePath = file.absolutePath.replace('\\', '/')
+    val rootPath = projectRoot.absolutePath.replace('\\', '/')
+
+    return if (absolutePath.startsWith(rootPath)) {
+        absolutePath.removePrefix(rootPath).removePrefix("/")
+    } else {
+        // File is outside project root, return absolute path
+        absolutePath
     }
 }
 

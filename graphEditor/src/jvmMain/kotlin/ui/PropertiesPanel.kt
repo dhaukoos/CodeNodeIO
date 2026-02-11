@@ -314,6 +314,31 @@ enum class EditorType {
 }
 
 /**
+ * Standard property definition for ProcessingLogic/UseCase class reference.
+ * Used by CodeNodes to specify the Kotlin file containing their ProcessingLogic implementation.
+ * The key "_useCaseClass" is used for backward compatibility with existing flow graphs.
+ */
+val USE_CASE_CLASS_PROPERTY = PropertyDefinition(
+    name = "_useCaseClass",
+    type = PropertyType.FILE_PATH,
+    required = false,
+    description = "Kotlin file with ProcessingLogic/UseCase implementation"
+)
+
+/**
+ * Alias for backward compatibility - processingLogicFile maps to _useCaseClass
+ */
+val PROCESSING_LOGIC_PROPERTY = USE_CASE_CLASS_PROPERTY
+
+/**
+ * Standard property definitions for CodeNodes.
+ * These properties are commonly used across all CodeNode types.
+ */
+val codeNodePropertyDefinitions = listOf(
+    USE_CASE_CLASS_PROPERTY
+)
+
+/**
  * PropertiesPanel Composable - displays and edits node properties
  *
  * @param state The current state of the properties panel
@@ -552,7 +577,32 @@ private fun PropertiesContent(
         Divider(modifier = Modifier.padding(vertical = 4.dp))
         Spacer(modifier = Modifier.height(4.dp))
 
-        // Configuration properties section header
+        // Processing Logic section - show _useCaseClass with FileBrowserEditor
+        val useCaseClass = state.properties["_useCaseClass"]
+        if (useCaseClass != null || state.isGenericNode) {
+            Text(
+                text = "Processing Logic",
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colors.primary,
+                modifier = Modifier.padding(vertical = 4.dp)
+            )
+
+            PropertyEditorRow(
+                definition = PropertyDefinition(
+                    name = "UseCase Class",
+                    type = PropertyType.FILE_PATH,
+                    required = false,
+                    description = "Kotlin file with ProcessingLogic implementation"
+                ),
+                value = useCaseClass ?: "",
+                error = state.getErrorForProperty("_useCaseClass"),
+                onValueChange = { onPropertyChange("_useCaseClass", it) }
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+        }
+
+        // Configuration properties section header (exclude internal properties like _genericType, _useCaseClass)
         val configProperties = state.properties.filterKeys { !it.startsWith("_") }
         if (configProperties.isNotEmpty() || state.propertyDefinitions.isNotEmpty()) {
             Text(
@@ -567,6 +617,9 @@ private fun PropertiesContent(
         // If we have property definitions, use them for ordering and types
         if (state.propertyDefinitions.isNotEmpty()) {
             state.propertyDefinitions.forEach { def ->
+                // Skip _useCaseClass since it's shown in Processing Logic section
+                if (def.name == "_useCaseClass") return@forEach
+
                 PropertyEditorRow(
                     definition = def,
                     value = state.properties[def.name] ?: "",
