@@ -38,8 +38,6 @@ import io.codenode.grapheditor.ui.ViewMode
 import io.codenode.grapheditor.ui.CompactPropertiesPanel
 import io.codenode.grapheditor.ui.PropertiesPanelState
 import io.codenode.grapheditor.state.rememberPropertyChangeTracker
-import io.codenode.grapheditor.serialization.FlowGraphSerializer
-import io.codenode.grapheditor.serialization.FlowGraphDeserializer
 import io.codenode.grapheditor.serialization.FlowKtParser
 import io.codenode.grapheditor.save.ModuleSaveService
 import io.codenode.fbpdsl.model.NodeTypeDefinition
@@ -274,7 +272,6 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
     val ipTypeRegistry = remember { IPTypeRegistry.withDefaults() }
     val ipTypes = remember { ipTypeRegistry.getAllTypes() }
     var selectedIPType by remember { mutableStateOf<InformationPacketType?>(null) }
-    var showSaveDialog by remember { mutableStateOf(false) }
     var showOpenDialog by remember { mutableStateOf(false) }
     var showCompileDialog by remember { mutableStateOf(false) }
     var showModuleSaveDialog by remember { mutableStateOf(false) }
@@ -312,7 +309,7 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                     statusMessage = "New graph created"
                 },
                 onOpen = { showOpenDialog = true },
-                onSave = { showSaveDialog = true },
+                onSave = { showModuleSaveDialog = true },
                 onUndo = {
                     if (undoRedoManager.undo(graphState)) {
                         statusMessage = "Undo: ${undoRedoManager.getRedoDescription() ?: "action"}"
@@ -767,45 +764,19 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
         }
 
         // File dialogs
-        if (showSaveDialog) {
-            LaunchedEffect(Unit) {
-                val file = showFileSaveDialog()
-                if (file != null) {
-                    try {
-                        val content = FlowGraphSerializer.serialize(graphState.flowGraph)
-                        file.writeText(content)
-                        statusMessage = "Saved to ${file.name}"
-                    } catch (e: Exception) {
-                        statusMessage = "Error saving: ${e.message}"
-                    }
-                }
-                showSaveDialog = false
-            }
-        }
-
         if (showOpenDialog) {
             LaunchedEffect(Unit) {
                 val file = showFileOpenDialog()
                 if (file != null) {
                     try {
-                        // T026: Use FlowKtParser for .flow.kt files, FlowGraphDeserializer for .flow.kts
-                        if (file.name.endsWith(".flow.kt")) {
-                            val parser = FlowKtParser()
-                            val parseResult = parser.parseFlowKt(file.readText())
-                            if (parseResult.isSuccess && parseResult.graph != null) {
-                                graphState.setGraph(parseResult.graph, markDirty = false)
-                                statusMessage = "Opened ${file.name}"
-                            } else {
-                                statusMessage = "Error opening: ${parseResult.errorMessage}"
-                            }
+                        // T062: Only support .flow.kt files (removed .flow.kts support)
+                        val parser = FlowKtParser()
+                        val parseResult = parser.parseFlowKt(file.readText())
+                        if (parseResult.isSuccess && parseResult.graph != null) {
+                            graphState.setGraph(parseResult.graph, markDirty = false)
+                            statusMessage = "Opened ${file.name}"
                         } else {
-                            val deserializeResult = FlowGraphDeserializer.deserializeFromFile(file)
-                            if (deserializeResult.isSuccess && deserializeResult.graph != null) {
-                                graphState.setGraph(deserializeResult.graph, markDirty = false)
-                                statusMessage = "Opened ${file.name}"
-                            } else {
-                                statusMessage = "Error opening: ${deserializeResult.errorMessage}"
-                            }
+                            statusMessage = "Error opening: ${parseResult.errorMessage}"
                         }
                     } catch (e: Exception) {
                         statusMessage = "Error opening: ${e.message}"
@@ -1056,34 +1027,13 @@ fun StatusBar(
 }
 
 /**
- * Show file save dialog
- */
-fun showFileSaveDialog(): File? {
-    val fileChooser = JFileChooser().apply {
-        dialogTitle = "Save Flow Graph"
-        fileFilter = FileNameExtensionFilter("Flow Graph Files (*.flow.kts)", "kts")
-        selectedFile = File("graph.flow.kts")
-    }
-
-    return if (fileChooser.showSaveDialog(null) == JFileChooser.APPROVE_OPTION) {
-        var file = fileChooser.selectedFile
-        if (!file.name.endsWith(".flow.kts")) {
-            file = File(file.parentFile, "${file.name}.flow.kts")
-        }
-        file
-    } else {
-        null
-    }
-}
-
-/**
- * Show file open dialog
+ * Show file open dialog for .flow.kt files
  */
 fun showFileOpenDialog(): File? {
     val fileChooser = JFileChooser().apply {
         dialogTitle = "Open Flow Graph"
-        // T026: Accept both .flow.kts (script) and .flow.kt (compiled) files
-        fileFilter = FileNameExtensionFilter("Flow Graph Files (*.flow.kts, *.flow.kt)", "kts", "kt")
+        // T062: Only accept .flow.kt (compiled) files
+        fileFilter = FileNameExtensionFilter("Flow Graph Files (*.flow.kt)", "kt")
     }
 
     return if (fileChooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {

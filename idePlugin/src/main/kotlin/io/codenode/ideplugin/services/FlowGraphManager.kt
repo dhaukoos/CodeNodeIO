@@ -15,9 +15,9 @@ import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.openapi.vfs.newvfs.BulkFileListener
 import com.intellij.openapi.vfs.newvfs.events.VFileEvent
 import io.codenode.fbpdsl.model.FlowGraph
-import io.codenode.grapheditor.serialization.FlowGraphDeserializer
 import io.codenode.grapheditor.serialization.FlowGraphSerializer
-import io.codenode.grapheditor.serialization.DeserializationResult
+import io.codenode.grapheditor.serialization.FlowKtParser
+import io.codenode.grapheditor.serialization.ParseResult
 import java.io.File
 import java.util.concurrent.ConcurrentHashMap
 
@@ -95,13 +95,13 @@ class FlowGraphManager(private val project: Project) : Disposable {
 
         // Load from file
         val content = String(file.contentsToByteArray(), Charsets.UTF_8)
-        val result = FlowGraphDeserializer.deserialize(content)
+        val result = FlowKtParser().parseFlowKt(content)
 
         val graph = result.graph
         if (!result.isSuccess || graph == null) {
             val errorMessage = result.errorMessage ?: "Unknown parsing error"
             logger.error("Failed to parse flow graph: $errorMessage")
-            throw FlowGraphParseException(errorMessage, file.path, result.exception)
+            throw FlowGraphParseException(errorMessage, file.path, null)
         }
 
         // Cache the result
@@ -134,7 +134,7 @@ class FlowGraphManager(private val project: Project) : Disposable {
             // Try loading from java.io.File
             val javaFile = File(filePath)
             if (javaFile.exists()) {
-                val result = FlowGraphDeserializer.deserializeFromFile(javaFile)
+                val result = FlowKtParser().parseFlowKt(javaFile.readText())
                 result.graph
             } else {
                 null
@@ -322,16 +322,16 @@ class FlowGraphManager(private val project: Project) : Disposable {
      * Tries to load a flow graph, returning a result object.
      *
      * @param file The file to load from
-     * @return DeserializationResult with the graph or error
+     * @return ParseResult with the graph or error
      */
-    fun tryLoadFlowGraph(file: VirtualFile): DeserializationResult {
+    fun tryLoadFlowGraph(file: VirtualFile): ParseResult {
         return try {
             val graph = loadFlowGraph(file)
-            DeserializationResult.success(graph)
+            ParseResult(isSuccess = true, graph = graph)
         } catch (e: FlowGraphParseException) {
-            DeserializationResult.error(e.message ?: "Parse error", e)
+            ParseResult(isSuccess = false, errorMessage = e.message ?: "Parse error")
         } catch (e: Exception) {
-            DeserializationResult.error("Failed to load: ${e.message}", e)
+            ParseResult(isSuccess = false, errorMessage = "Failed to load: ${e.message}")
         }
     }
 
