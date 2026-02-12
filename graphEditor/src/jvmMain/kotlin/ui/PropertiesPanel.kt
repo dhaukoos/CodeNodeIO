@@ -22,6 +22,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.codenode.fbpdsl.model.CodeNode
+import io.codenode.fbpdsl.model.CodeNodeType
 import io.codenode.fbpdsl.model.Connection
 import io.codenode.fbpdsl.model.FlowGraph
 import io.codenode.fbpdsl.model.NodeTypeDefinition
@@ -51,7 +52,7 @@ data class PropertiesPanelState(
     val onPortNameChanged: ((String, String) -> Unit)? = null  // (portId, newName)
 ) {
     /** Whether this is a generic node type */
-    val isGenericNode: Boolean get() = selectedNode?.configuration?.containsKey("_genericType") == true
+    val isGenericNode: Boolean get() = selectedNode?.codeNodeType == CodeNodeType.GENERIC
     /** Whether no node is selected */
     val isEmptyState: Boolean get() = selectedNode == null
 
@@ -546,10 +547,56 @@ private fun PropertiesContent(
             }
         }
 
+        // Required Properties section for GENERIC nodes
+        if (state.isGenericNode) {
+            Divider(modifier = Modifier.padding(vertical = 4.dp))
+
+            Text(
+                text = "Required Properties",
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colors.primary,
+                modifier = Modifier.padding(vertical = 4.dp)
+            )
+
+            // _useCaseClass - required for code generation
+            val useCaseClassValue = state.properties["_useCaseClass"] ?: ""
+            val useCaseClassError = if (useCaseClassValue.isBlank()) "Use Case Class is required" else null
+            PropertyEditorRow(
+                definition = PropertyDefinition(
+                    name = "Use Case Class",
+                    type = PropertyType.STRING,
+                    required = true,
+                    description = "Fully qualified class implementing ProcessingLogic"
+                ),
+                value = useCaseClassValue,
+                error = useCaseClassError,
+                onValueChange = { onPropertyChange("_useCaseClass", it) }
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // _genericType - display as read-only info
+            val genericTypeValue = state.properties["_genericType"] ?: ""
+            if (genericTypeValue.isNotBlank()) {
+                PropertyEditorRow(
+                    definition = PropertyDefinition(
+                        name = "Generic Type",
+                        type = PropertyType.STRING,
+                        required = false,
+                        description = "Port configuration type (e.g., in0out2, in2out0)"
+                    ),
+                    value = genericTypeValue,
+                    error = null,
+                    onValueChange = { onPropertyChange("_genericType", it) }
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+            }
+        }
+
         Divider(modifier = Modifier.padding(vertical = 4.dp))
         Spacer(modifier = Modifier.height(4.dp))
 
-        // Configuration properties section header
+        // Configuration properties section header (exclude internal properties)
         val configProperties = state.properties.filterKeys { !it.startsWith("_") }
         if (configProperties.isNotEmpty() || state.propertyDefinitions.isNotEmpty()) {
             Text(
@@ -615,6 +662,16 @@ private fun PropertyEditorRow(
                     fontSize = 12.sp
                 )
             }
+        }
+
+        // Description (if provided)
+        if (!definition.description.isNullOrBlank()) {
+            Text(
+                text = definition.description,
+                fontSize = 10.sp,
+                color = MaterialTheme.colors.onSurface.copy(alpha = 0.6f),
+                modifier = Modifier.padding(top = 2.dp)
+            )
         }
 
         Spacer(modifier = Modifier.height(4.dp))

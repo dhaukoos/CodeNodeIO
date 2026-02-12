@@ -81,10 +81,10 @@
 
 ### Implementation for User Story 2
 
-- [ ] T016 [US2] Modify configProperties filter in PropertiesContent to show `_useCaseClass` for GENERIC nodes in `graphEditor/src/jvmMain/kotlin/ui/PropertiesPanel.kt` (around line 553)
-- [ ] T017 [US2] Add PropertyEditorRow for `_useCaseClass` with required=true and description "Fully qualified class implementing ProcessingLogic" in `graphEditor/src/jvmMain/kotlin/ui/PropertiesPanel.kt`
-- [ ] T018 [US2] Add validation error display for empty `_useCaseClass` ("Use Case Class is required") in `graphEditor/src/jvmMain/kotlin/ui/PropertiesPanel.kt`
-- [ ] T019 [US2] Verify property changes persist to node configuration by testing in graphEditor manually
+- [x] T016 [US2] Modify configProperties filter in PropertiesContent to show `_useCaseClass` for GENERIC nodes in `graphEditor/src/jvmMain/kotlin/ui/PropertiesPanel.kt` (around line 553)
+- [x] T017 [US2] Add PropertyEditorRow for `_useCaseClass` with required=true and description "Fully qualified class implementing ProcessingLogic" in `graphEditor/src/jvmMain/kotlin/ui/PropertiesPanel.kt`
+- [x] T018 [US2] Add validation error display for empty `_useCaseClass` ("Use Case Class is required") in `graphEditor/src/jvmMain/kotlin/ui/PropertiesPanel.kt`
+- [x] T019 [US2] Verify property changes persist to node configuration by testing in graphEditor manually
 
 **Checkpoint**: Properties panel shows required fields - GENERIC nodes display _useCaseClass with required indicator
 
