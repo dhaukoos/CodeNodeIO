@@ -12,6 +12,8 @@ Auto-generated from all feature plans. Last updated: 2026-01-13
 - .flow.kts files (text-based DSL serialization) (007-node-execution-control)
 - Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + kotlinx-coroutines 1.8.0, kotlinx-serialization 1.6.0, Compose Multiplatform 1.7.3, KotlinPoe (008-stopwatch-virtual-circuit)
 - .flow.kts files (DSL serialization for FlowGraph persistence) (008-stopwatch-virtual-circuit)
+- Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + Compose Desktop 1.7.3, kotlinx-coroutines 1.8.0, kotlinx-serialization 1.6.0 (011-stopwatch-refactor)
+- N/A (in-memory FlowGraph models) (011-stopwatch-refactor)
 
 - Kotlin 1.9+, Go 1.21+ (001-ide-plugin-platform)
 
@@ -31,9 +33,9 @@ tests/
 Kotlin 1.9+, Go 1.21+: Follow standard conventions
 
 ## Recent Changes
+- 011-stopwatch-refactor: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + Compose Desktop 1.7.3, kotlinx-coroutines 1.8.0, kotlinx-serialization 1.6.0
 - 008-stopwatch-virtual-circuit: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + kotlinx-coroutines 1.8.0, kotlinx-serialization 1.6.0, Compose Multiplatform 1.7.3, KotlinPoe
 - 007-node-execution-control: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + kotlinx-serialization, kotlinx-coroutines, Compose Desktop 1.7.3 (graphEditor)
-- 006-passthru-port-segments: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + Compose Desktop 1.7.3, kotlinx-serialization, kotlinx-coroutines
 
 
 <!-- MANUAL ADDITIONS START -->
