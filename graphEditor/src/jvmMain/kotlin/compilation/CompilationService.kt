@@ -35,6 +35,7 @@ import java.io.File
 class CompilationService {
 
     private val moduleGenerator = ModuleGenerator()
+    private val propertyValidator = RequiredPropertyValidator()
 
     /**
      * Compiles a FlowGraph to a KMP module.
@@ -52,12 +53,21 @@ class CompilationService {
         packageName: String = ModuleGenerator.DEFAULT_PACKAGE
     ): CompilationResult {
         return try {
-            // Validate flow graph
+            // Validate flow graph structure
             val validation = flowGraph.validate()
             if (!validation.success) {
                 return CompilationResult(
                     success = false,
                     errorMessage = "Flow graph validation failed: ${validation.errors.joinToString(", ")}"
+                )
+            }
+
+            // Validate required properties on nodes
+            val propertyValidation = propertyValidator.validate(flowGraph)
+            if (!propertyValidation.success) {
+                return CompilationResult(
+                    success = false,
+                    errorMessage = "Required properties missing:\n${propertyValidation.toErrorMessage()}"
                 )
             }
 

@@ -24,8 +24,8 @@
 
 **Purpose**: Verify existing infrastructure and create test directory structure
 
-- [ ] T001 Verify graphEditor and KMPMobileApp modules compile successfully with `./gradlew :graphEditor:compileKotlinJvm :KMPMobileApp:compileCommonMainKotlinMetadata`
-- [ ] T002 Create test directory structure at `graphEditor/src/jvmTest/kotlin/compilation/` if not exists
+- [x] T001 Verify graphEditor and KMPMobileApp modules compile successfully with `./gradlew :graphEditor:compileKotlinJvm :KMPMobileApp:compileCommonMainKotlinMetadata`
+- [x] T002 Create test directory structure at `graphEditor/src/jvmTest/kotlin/compilation/` if not exists
 
 **Checkpoint**: Build passes, ready to begin implementation
 
@@ -37,8 +37,8 @@
 
 **⚠️ CRITICAL**: User Story 1 requires these data structures to be in place
 
-- [ ] T003 Create PropertyValidationError data class in `graphEditor/src/jvmMain/kotlin/compilation/RequiredPropertyValidator.kt`
-- [ ] T004 Create PropertyValidationResult data class with toErrorMessage() method in `graphEditor/src/jvmMain/kotlin/compilation/RequiredPropertyValidator.kt`
+- [x] T003 Create PropertyValidationError data class in `graphEditor/src/jvmMain/kotlin/compilation/RequiredPropertyValidator.kt`
+- [x] T004 Create PropertyValidationResult data class with toErrorMessage() method in `graphEditor/src/jvmMain/kotlin/compilation/RequiredPropertyValidator.kt`
 
 **Checkpoint**: Foundation ready - data structures exist for validation logic
 
@@ -54,20 +54,20 @@
 
 > **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
 
-- [ ] T005 [P] [US1] Write test `validate returns success when all required properties present` in `graphEditor/src/jvmTest/kotlin/compilation/RequiredPropertyValidatorTest.kt`
-- [ ] T006 [P] [US1] Write test `validate returns error for GENERIC node missing _useCaseClass` in `graphEditor/src/jvmTest/kotlin/compilation/RequiredPropertyValidatorTest.kt`
-- [ ] T007 [P] [US1] Write test `validate returns error for GENERIC node missing _genericType` in `graphEditor/src/jvmTest/kotlin/compilation/RequiredPropertyValidatorTest.kt`
-- [ ] T008 [P] [US1] Write test `validate returns multiple errors for multiple nodes with missing properties` in `graphEditor/src/jvmTest/kotlin/compilation/RequiredPropertyValidatorTest.kt`
-- [ ] T009 [P] [US1] Write test `validate ignores non-GENERIC node types` in `graphEditor/src/jvmTest/kotlin/compilation/RequiredPropertyValidatorTest.kt`
-- [ ] T010 [P] [US1] Write test `validate returns success for empty graph` in `graphEditor/src/jvmTest/kotlin/compilation/RequiredPropertyValidatorTest.kt`
+- [x] T005 [P] [US1] Write test `validate returns success when all required properties present` in `graphEditor/src/jvmTest/kotlin/compilation/RequiredPropertyValidatorTest.kt`
+- [x] T006 [P] [US1] Write test `validate returns error for GENERIC node missing _useCaseClass` in `graphEditor/src/jvmTest/kotlin/compilation/RequiredPropertyValidatorTest.kt`
+- [x] T007 [P] [US1] Write test `validate returns error for GENERIC node missing _genericType` in `graphEditor/src/jvmTest/kotlin/compilation/RequiredPropertyValidatorTest.kt`
+- [x] T008 [P] [US1] Write test `validate returns multiple errors for multiple nodes with missing properties` in `graphEditor/src/jvmTest/kotlin/compilation/RequiredPropertyValidatorTest.kt`
+- [x] T009 [P] [US1] Write test `validate ignores non-GENERIC node types` in `graphEditor/src/jvmTest/kotlin/compilation/RequiredPropertyValidatorTest.kt`
+- [x] T010 [P] [US1] Write test `validate returns success for empty graph` in `graphEditor/src/jvmTest/kotlin/compilation/RequiredPropertyValidatorTest.kt`
 
 ### Implementation for User Story 1
 
-- [ ] T011 [US1] Implement RequiredPropertyValidator class with validate() and getRequiredProperties() methods in `graphEditor/src/jvmMain/kotlin/compilation/RequiredPropertyValidator.kt`
-- [ ] T012 [US1] Add requiredSpecs map with GENERIC node requirements (_useCaseClass, _genericType) in `graphEditor/src/jvmMain/kotlin/compilation/RequiredPropertyValidator.kt`
-- [ ] T013 [US1] Integrate RequiredPropertyValidator into CompilationService.compileToModule() after FlowGraph.validate() in `graphEditor/src/jvmMain/kotlin/compilation/CompilationService.kt`
-- [ ] T014 [US1] Update CompilationService to return error with PropertyValidationResult.toErrorMessage() when validation fails in `graphEditor/src/jvmMain/kotlin/compilation/CompilationService.kt`
-- [ ] T015 [US1] Run all tests to verify implementation with `./gradlew :graphEditor:jvmTest --tests "*.RequiredPropertyValidatorTest"`
+- [x] T011 [US1] Implement RequiredPropertyValidator class with validate() and getRequiredProperties() methods in `graphEditor/src/jvmMain/kotlin/compilation/RequiredPropertyValidator.kt`
+- [x] T012 [US1] Add requiredSpecs map with GENERIC node requirements (_useCaseClass, _genericType) in `graphEditor/src/jvmMain/kotlin/compilation/RequiredPropertyValidator.kt`
+- [x] T013 [US1] Integrate RequiredPropertyValidator into CompilationService.compileToModule() after FlowGraph.validate() in `graphEditor/src/jvmMain/kotlin/compilation/CompilationService.kt`
+- [x] T014 [US1] Update CompilationService to return error with PropertyValidationResult.toErrorMessage() when validation fails in `graphEditor/src/jvmMain/kotlin/compilation/CompilationService.kt`
+- [x] T015 [US1] Run all tests to verify implementation with `./gradlew :graphEditor:jvmTest --tests "*.RequiredPropertyValidatorTest"`
 
 **Checkpoint**: Compile validation works - clicking Compile on a graph with missing required properties shows error message
 
