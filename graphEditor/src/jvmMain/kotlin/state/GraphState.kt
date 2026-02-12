@@ -1265,6 +1265,74 @@ class GraphState(initialGraph: FlowGraph = flowGraph(
     }
 
     // ============================================================================
+    // FlowGraph Properties
+    // ============================================================================
+
+    /**
+     * Updates the FlowGraph name.
+     *
+     * @param newName The new name for the FlowGraph
+     */
+    fun updateGraphName(newName: String) {
+        if (newName.isNotBlank() && newName != flowGraph.name) {
+            flowGraph = flowGraph.copy(name = newName)
+            isDirty = true
+        }
+    }
+
+    /**
+     * Updates the FlowGraph description.
+     *
+     * @param newDescription The new description (can be null)
+     */
+    fun updateGraphDescription(newDescription: String?) {
+        if (newDescription != flowGraph.description) {
+            flowGraph = flowGraph.copy(description = newDescription)
+            isDirty = true
+        }
+    }
+
+    /**
+     * Updates the FlowGraph version.
+     *
+     * @param newVersion The new semantic version
+     */
+    fun updateGraphVersion(newVersion: String) {
+        if (newVersion.isNotBlank() && newVersion != flowGraph.version) {
+            flowGraph = flowGraph.copy(version = newVersion)
+            isDirty = true
+        }
+    }
+
+    /**
+     * Updates the FlowGraph target platforms.
+     *
+     * @param platforms The new list of target platforms
+     */
+    fun updateTargetPlatforms(platforms: List<FlowGraph.TargetPlatform>) {
+        if (platforms != flowGraph.targetPlatforms) {
+            flowGraph = flowGraph.copy(targetPlatforms = platforms)
+            isDirty = true
+        }
+    }
+
+    /**
+     * Toggles a target platform on or off.
+     *
+     * @param platform The platform to toggle
+     * @param enabled Whether to enable or disable the platform
+     */
+    fun toggleTargetPlatform(platform: FlowGraph.TargetPlatform, enabled: Boolean) {
+        val currentPlatforms = flowGraph.targetPlatforms.toMutableList()
+        if (enabled && !currentPlatforms.contains(platform)) {
+            currentPlatforms.add(platform)
+        } else if (!enabled && currentPlatforms.contains(platform)) {
+            currentPlatforms.remove(platform)
+        }
+        updateTargetPlatforms(currentPlatforms)
+    }
+
+    // ============================================================================
     // Error Handling
     // ============================================================================
 

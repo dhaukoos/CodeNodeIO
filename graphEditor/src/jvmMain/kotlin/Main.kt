@@ -55,6 +55,7 @@ import io.codenode.grapheditor.ui.NavigationZoomOutButton
 import io.codenode.grapheditor.compilation.CompilationService
 import io.codenode.grapheditor.compilation.CompilationValidationResult
 import io.codenode.grapheditor.ui.CompilationValidationDialog
+import io.codenode.grapheditor.ui.FlowGraphPropertiesDialog
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.key.*
 import androidx.compose.ui.focus.FocusRequester
@@ -277,6 +278,7 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
     var showSaveDialog by remember { mutableStateOf(false) }
     var showOpenDialog by remember { mutableStateOf(false) }
     var showCompileDialog by remember { mutableStateOf(false) }
+    var showGraphPropertiesDialog by remember { mutableStateOf(false) }
     var validationErrorResult by remember { mutableStateOf<CompilationValidationResult?>(null) }
     var statusMessage by remember { mutableStateOf("Ready - Create a new graph or open an existing one") }
     val compilationService = remember { CompilationService() }
@@ -298,10 +300,12 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
             // Top toolbar
             TopToolbar(
                 undoRedoManager = undoRedoManager,
+                flowGraphName = graphState.flowGraph.name,
                 canGroup = canGroup,
                 canUngroup = canUngroup,
                 isInsideGraphNode = isInsideGraphNode,
                 currentGraphNodeName = currentGraphNodeName,
+                onShowGraphProperties = { showGraphPropertiesDialog = true },
                 onNew = {
                     val newGraph = flowGraph(
                         name = "New Graph",
@@ -769,7 +773,7 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
         // File dialogs
         if (showSaveDialog) {
             LaunchedEffect(Unit) {
-                val file = showFileSaveDialog()
+                val file = showFileSaveDialog(graphState.flowGraph.name)
                 if (file != null) {
                     try {
                         val content = FlowGraphSerializer.serialize(graphState.flowGraph)
@@ -844,6 +848,30 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                 }
             )
         }
+
+        // FlowGraph properties dialog
+        if (showGraphPropertiesDialog) {
+            FlowGraphPropertiesDialog(
+                flowGraph = graphState.flowGraph,
+                onNameChange = { newName ->
+                    graphState.updateGraphName(newName)
+                    statusMessage = "Graph renamed to: $newName"
+                },
+                onDescriptionChange = { newDescription ->
+                    graphState.updateGraphDescription(newDescription)
+                },
+                onVersionChange = { newVersion ->
+                    graphState.updateGraphVersion(newVersion)
+                    statusMessage = "Version updated to: $newVersion"
+                },
+                onPlatformToggle = { platform, enabled ->
+                    graphState.toggleTargetPlatform(platform, enabled)
+                    val action = if (enabled) "enabled" else "disabled"
+                    statusMessage = "Target platform $action: ${platform.name}"
+                },
+                onDismiss = { showGraphPropertiesDialog = false }
+            )
+        }
     }
 }
 
@@ -853,10 +881,12 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
 @Composable
 fun TopToolbar(
     undoRedoManager: io.codenode.grapheditor.state.UndoRedoManager,
+    flowGraphName: String = "New Graph",
     canGroup: Boolean = false,
     canUngroup: Boolean = false,
     isInsideGraphNode: Boolean = false,
     currentGraphNodeName: String? = null,
+    onShowGraphProperties: () -> Unit = {},
     onNew: () -> Unit,
     onOpen: () -> Unit,
     onSave: () -> Unit,
@@ -904,6 +934,32 @@ fun TopToolbar(
                 fontWeight = FontWeight.Bold,
                 color = Color.White
             )
+
+            // Flow graph name and settings (only at root level)
+            if (!isInsideGraphNode) {
+                Text(
+                    text = " - ",
+                    fontSize = 18.sp,
+                    color = Color.White.copy(alpha = 0.7f)
+                )
+                Text(
+                    text = flowGraphName,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = Color.White
+                )
+                // Gear icon for properties
+                IconButton(
+                    onClick = onShowGraphProperties,
+                    modifier = Modifier.size(32.dp)
+                ) {
+                    Text(
+                        text = "\u2699",  // Gear/cog unicode
+                        fontSize = 18.sp,
+                        color = Color.White
+                    )
+                }
+            }
 
             Spacer(modifier = Modifier.weight(1f))
 
@@ -1050,12 +1106,19 @@ fun StatusBar(
 
 /**
  * Show file save dialog
+ *
+ * @param suggestedName The suggested filename (without extension)
  */
-fun showFileSaveDialog(): File? {
+fun showFileSaveDialog(suggestedName: String = "graph"): File? {
+    // Sanitize the name for use as a filename
+    val sanitizedName = suggestedName
+        .replace(Regex("[^a-zA-Z0-9_-]"), "_")
+        .ifBlank { "graph" }
+
     val fileChooser = JFileChooser().apply {
         dialogTitle = "Save Flow Graph"
         fileFilter = FileNameExtensionFilter("Flow Graph Files (*.flow.kts)", "kts")
-        selectedFile = File("graph.flow.kts")
+        selectedFile = File("$sanitizedName.flow.kts")
     }
 
     return if (fileChooser.showSaveDialog(null) == JFileChooser.APPROVE_OPTION) {
