@@ -20,12 +20,14 @@ import java.io.File
  * @property moduleDir The created module directory (if successful)
  * @property errorMessage Error message (if failed)
  * @property filesCreated List of files created during save
+ * @property warnings List of warnings (e.g., orphaned ProcessingLogic files)
  */
 data class ModuleSaveResult(
     val success: Boolean,
     val moduleDir: File? = null,
     val errorMessage: String? = null,
-    val filesCreated: List<String> = emptyList()
+    val filesCreated: List<String> = emptyList(),
+    val warnings: List<String> = emptyList()
 )
 
 /**
@@ -110,10 +112,14 @@ class ModuleSaveService {
             // T036/T037: Generate ProcessingLogic stub files for each CodeNode
             generateProcessingLogicStubs(flowGraph, moduleDir, effectivePackageName, filesCreated)
 
+            // T047: Detect orphaned ProcessingLogic files and generate warnings
+            val warnings = detectOrphanedComponents(flowGraph, moduleDir, effectivePackageName)
+
             ModuleSaveResult(
                 success = true,
                 moduleDir = moduleDir,
-                filesCreated = filesCreated
+                filesCreated = filesCreated,
+                warnings = warnings
             )
         } catch (e: Exception) {
             ModuleSaveResult(
@@ -226,6 +232,57 @@ class ModuleSaveService {
                 filesCreated.add("src/commonMain/kotlin/$packagePath/$stubFileName")
             }
         }
+    }
+
+    /**
+     * T047: Detects orphaned ProcessingLogic files (components for nodes that no longer exist).
+     *
+     * Scans the source directory for *Component.kt files and compares against
+     * the current FlowGraph's CodeNodes. Files that don't correspond to any
+     * current node are considered orphaned.
+     *
+     * @param flowGraph The current flow graph
+     * @param moduleDir The module root directory
+     * @param packageName The package name
+     * @return List of warning messages for orphaned files
+     */
+    private fun detectOrphanedComponents(
+        flowGraph: FlowGraph,
+        moduleDir: File,
+        packageName: String
+    ): List<String> {
+        val warnings = mutableListOf<String>()
+        val packagePath = packageName.replace(".", "/")
+        val sourceDir = File(moduleDir, "src/commonMain/kotlin/$packagePath")
+
+        if (!sourceDir.exists()) return warnings
+
+        // Get expected component file names from current FlowGraph
+        val codeNodes = flowGraph.getAllCodeNodes()
+        val expectedFiles = codeNodes.map { stubGenerator.getStubFileName(it) }.toSet()
+
+        // Also include known non-component files to ignore
+        val moduleName = moduleDir.name
+        val ignoredFiles = setOf(
+            "$moduleName.flow.kt",
+            "${moduleName}Factory.kt"
+        )
+
+        // Find all *Component.kt files in source directory
+        val existingComponentFiles = sourceDir.listFiles()
+            ?.filter { it.isFile && it.name.endsWith("Component.kt") }
+            ?.map { it.name }
+            ?: emptyList()
+
+        // Detect orphaned files
+        for (fileName in existingComponentFiles) {
+            if (fileName !in expectedFiles && fileName !in ignoredFiles) {
+                val componentName = fileName.removeSuffix(".kt")
+                warnings.add("Orphaned ProcessingLogic file: $componentName (node may have been removed from flow)")
+            }
+        }
+
+        return warnings
     }
 
     /**

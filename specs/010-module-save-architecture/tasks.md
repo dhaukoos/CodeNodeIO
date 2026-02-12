@@ -132,18 +132,18 @@
 
 > **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
 
-- [ ] T045 [P] [US5] Add test for preserving existing ProcessingLogic files on re-save in graphEditor/src/jvmTest/kotlin/save/ModuleSaveServiceTest.kt
-- [ ] T046 [P] [US5] Add test for generating stubs only for NEW nodes in graphEditor/src/jvmTest/kotlin/save/ModuleSaveServiceTest.kt
-- [ ] T047 [P] [US5] Add test for warning when node removed (orphaned ProcessingLogic) in graphEditor/src/jvmTest/kotlin/save/ModuleSaveServiceTest.kt
-- [ ] T048 [P] [US5] Add test for updating .flow.kt while preserving structure in graphEditor/src/jvmTest/kotlin/save/ModuleSaveServiceTest.kt
+- [X] T045 [P] [US5] Add test for preserving existing ProcessingLogic files on re-save in graphEditor/src/jvmTest/kotlin/save/ModuleSaveServiceTest.kt
+- [X] T046 [P] [US5] Add test for generating stubs only for NEW nodes in graphEditor/src/jvmTest/kotlin/save/ModuleSaveServiceTest.kt
+- [X] T047 [P] [US5] Add test for warning when node removed (orphaned ProcessingLogic) in graphEditor/src/jvmTest/kotlin/save/ModuleSaveServiceTest.kt
+- [X] T048 [P] [US5] Add test for updating .flow.kt while preserving structure in graphEditor/src/jvmTest/kotlin/save/ModuleSaveServiceTest.kt
 
 ### Implementation for User Story 5
 
-- [ ] T049 [US5] Implement detection of existing module at save location in graphEditor/src/jvmMain/kotlin/save/ModuleSaveService.kt
-- [ ] T050 [US5] Implement diff logic: identify new, existing, and removed nodes in graphEditor/src/jvmMain/kotlin/save/ModuleSaveService.kt
-- [ ] T051 [US5] Skip stub generation for nodes with existing ProcessingLogic files in graphEditor/src/jvmMain/kotlin/save/ModuleSaveService.kt
-- [ ] T052 [US5] Generate warning for orphaned ProcessingLogic files in graphEditor/src/jvmMain/kotlin/save/ModuleSaveService.kt
-- [ ] T053 [US5] Update .flow.kt without regenerating entire file in graphEditor/src/jvmMain/kotlin/save/ModuleSaveService.kt
+- [X] T049 [US5] Implement detection of existing module at save location in graphEditor/src/jvmMain/kotlin/save/ModuleSaveService.kt
+- [X] T050 [US5] Implement diff logic: identify new, existing, and removed nodes in graphEditor/src/jvmMain/kotlin/save/ModuleSaveService.kt
+- [X] T051 [US5] Skip stub generation for nodes with existing ProcessingLogic files in graphEditor/src/jvmMain/kotlin/save/ModuleSaveService.kt
+- [X] T052 [US5] Generate warning for orphaned ProcessingLogic files in graphEditor/src/jvmMain/kotlin/save/ModuleSaveService.kt
+- [X] T053 [US5] Update .flow.kt without regenerating entire file in graphEditor/src/jvmMain/kotlin/save/ModuleSaveService.kt
 
 **Checkpoint**: User Story 5 complete - Incremental save preserves user work
 
