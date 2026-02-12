@@ -45,6 +45,8 @@ class ModuleGenerator {
         const val LIFECYCLE_VERSION = "2.8.0"
     }
 
+    private val factoryGenerator = FlowGraphFactoryGenerator()
+
     /**
      * Generates a complete KMP module from a FlowGraph.
      *
@@ -483,6 +485,51 @@ class ModuleGenerator {
                 appendLine()
             }
         }
+    }
+
+    /**
+     * T044: Generates {GraphName}Factory.kt with createXXXFlowGraph() function.
+     *
+     * The factory function instantiates all ProcessingLogic components
+     * and creates a fully configured FlowGraph ready for execution.
+     *
+     * @param flowGraph The flow graph to generate a factory for
+     * @param packageName The package name for the generated class
+     * @return Generated Kotlin factory class content
+     */
+    fun generateFactoryClass(flowGraph: FlowGraph, packageName: String): String {
+        return factoryGenerator.generateFactory(flowGraph, packageName)
+    }
+
+    /**
+     * Gets the factory file name for a FlowGraph.
+     *
+     * @param flowGraph The flow graph
+     * @return File name in format {GraphName}Factory.kt
+     */
+    fun getFactoryFileName(flowGraph: FlowGraph): String {
+        return factoryGenerator.getFactoryFileName(flowGraph)
+    }
+
+    /**
+     * Gets the list of required ProcessingLogic components for a FlowGraph.
+     *
+     * @param flowGraph The flow graph to analyze
+     * @return List of component class names that must be implemented
+     */
+    fun getRequiredComponents(flowGraph: FlowGraph): List<String> {
+        return factoryGenerator.getRequiredComponents(flowGraph)
+    }
+
+    /**
+     * Validates that all required ProcessingLogic components exist.
+     *
+     * @param flowGraph The flow graph to validate
+     * @param existingFiles Set of file names that exist in the source directory
+     * @return ComponentValidationResult indicating validity and missing components
+     */
+    fun validateComponents(flowGraph: FlowGraph, existingFiles: Set<String>): ComponentValidationResult {
+        return factoryGenerator.validateComponents(flowGraph, existingFiles)
     }
 
     /**

@@ -107,16 +107,16 @@
 
 > **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
 
-- [ ] T038 [P] [US4] Add test for factory function instantiating ProcessingLogic from module in kotlinCompiler/src/commonTest/kotlin/io/codenode/kotlincompiler/generator/FlowGraphFactoryGeneratorTest.kt
-- [ ] T039 [P] [US4] Add test for factory function using class references from .flow.kt in kotlinCompiler/src/commonTest/kotlin/io/codenode/kotlincompiler/generator/FlowGraphFactoryGeneratorTest.kt
-- [ ] T040 [P] [US4] Add test for compile validation: all ProcessingLogic classes exist in kotlinCompiler/src/commonTest/kotlin/io/codenode/kotlincompiler/generator/FlowGraphFactoryGeneratorTest.kt
+- [X] T038 [P] [US4] Add test for factory function instantiating ProcessingLogic from module in kotlinCompiler/src/commonTest/kotlin/io/codenode/kotlincompiler/generator/FlowGraphFactoryGeneratorTest.kt
+- [X] T039 [P] [US4] Add test for factory function using class references from .flow.kt in kotlinCompiler/src/commonTest/kotlin/io/codenode/kotlincompiler/generator/FlowGraphFactoryGeneratorTest.kt
+- [X] T040 [P] [US4] Add test for compile validation: all ProcessingLogic classes exist in kotlinCompiler/src/commonTest/kotlin/io/codenode/kotlincompiler/generator/FlowGraphFactoryGeneratorTest.kt
 
 ### Implementation for User Story 4
 
-- [ ] T041 [US4] Update FlowGraphFactoryGenerator to read processingLogic references from .flow.kt in kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/FlowGraphFactoryGenerator.kt
-- [ ] T042 [US4] Generate ProcessingLogic instantiation using class names from same package in kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/FlowGraphFactoryGenerator.kt
-- [ ] T043 [US4] Update compile validation to check ProcessingLogic classes exist in module in graphEditor/src/jvmMain/kotlin/compilation/CompilationValidator.kt
-- [ ] T044 [US4] Generate {GraphName}Factory.kt with createXXXFlowGraph() function in kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/ModuleGenerator.kt
+- [X] T041 [US4] Update FlowGraphFactoryGenerator to read processingLogic references from .flow.kt in kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/FlowGraphFactoryGenerator.kt
+- [X] T042 [US4] Generate ProcessingLogic instantiation using class names from same package in kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/FlowGraphFactoryGenerator.kt
+- [X] T043 [US4] Update compile validation to check ProcessingLogic classes exist in module in graphEditor/src/jvmMain/kotlin/compilation/CompilationValidator.kt
+- [X] T044 [US4] Generate {GraphName}Factory.kt with createXXXFlowGraph() function in kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/ModuleGenerator.kt
 
 **Checkpoint**: User Story 4 complete - Compile generates working factory function
 
