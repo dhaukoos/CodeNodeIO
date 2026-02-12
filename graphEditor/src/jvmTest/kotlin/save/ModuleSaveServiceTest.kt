@@ -346,4 +346,121 @@ class ModuleSaveServiceTest {
         assertTrue(expectedPackageDir.exists(),
             "Default package directory should be created based on module name")
     }
+
+    // ========== T036/T037: ProcessingLogic Stub Generation ==========
+
+    @Test
+    fun `T036 - saveModule generates ProcessingLogic stub for CodeNode`() {
+        // Given
+        val flowGraph = createTestFlowGraph("TestModule")
+        val saveService = ModuleSaveService()
+
+        // When
+        val result = saveService.saveModule(flowGraph, tempDir)
+
+        // Then
+        assertTrue(result.success)
+        val packageDir = File(result.moduleDir, "src/commonMain/kotlin/io/codenode/generated/testmodule")
+        val stubFile = File(packageDir, "ProcessorComponent.kt")
+        assertTrue(stubFile.exists(), "ProcessingLogic stub should be created for CodeNode")
+    }
+
+    @Test
+    fun `T036 - stub file contains ProcessingLogic implementation`() {
+        // Given
+        val flowGraph = createTestFlowGraph("TestModule")
+        val saveService = ModuleSaveService()
+
+        // When
+        val result = saveService.saveModule(flowGraph, tempDir)
+
+        // Then
+        assertTrue(result.success)
+        val packageDir = File(result.moduleDir, "src/commonMain/kotlin/io/codenode/generated/testmodule")
+        val stubFile = File(packageDir, "ProcessorComponent.kt")
+        val content = stubFile.readText()
+        assertTrue(content.contains(": ProcessingLogic"), "Stub should implement ProcessingLogic")
+        assertTrue(content.contains("override suspend operator fun invoke"), "Stub should have invoke method")
+    }
+
+    @Test
+    fun `T037 - saveModule generates stub for each CodeNode`() {
+        // Given
+        val node1 = CodeNode(
+            id = "node1",
+            name = "FirstNode",
+            codeNodeType = CodeNodeType.GENERATOR,
+            position = Node.Position(100.0, 100.0),
+            inputPorts = emptyList(),
+            outputPorts = listOf(
+                Port(
+                    id = "node1_out",
+                    name = "output",
+                    direction = Port.Direction.OUTPUT,
+                    dataType = String::class,
+                    owningNodeId = "node1"
+                )
+            )
+        )
+        val node2 = CodeNode(
+            id = "node2",
+            name = "SecondNode",
+            codeNodeType = CodeNodeType.SINK,
+            position = Node.Position(300.0, 100.0),
+            inputPorts = listOf(
+                Port(
+                    id = "node2_in",
+                    name = "input",
+                    direction = Port.Direction.INPUT,
+                    dataType = String::class,
+                    owningNodeId = "node2"
+                )
+            ),
+            outputPorts = emptyList()
+        )
+        val flowGraph = FlowGraph(
+            id = "flow_multi",
+            name = "MultiNodeTest",
+            version = "1.0.0",
+            rootNodes = listOf(node1, node2)
+        )
+        val saveService = ModuleSaveService()
+
+        // When
+        val result = saveService.saveModule(flowGraph, tempDir)
+
+        // Then
+        assertTrue(result.success)
+        val packageDir = File(result.moduleDir, "src/commonMain/kotlin/io/codenode/generated/multinodetest")
+        val stub1 = File(packageDir, "FirstNodeComponent.kt")
+        val stub2 = File(packageDir, "SecondNodeComponent.kt")
+        assertTrue(stub1.exists(), "Stub for FirstNode should be created")
+        assertTrue(stub2.exists(), "Stub for SecondNode should be created")
+    }
+
+    @Test
+    fun `T037 - saveModule does not overwrite existing stub files`() {
+        // Given
+        val flowGraph = createTestFlowGraph("TestModule")
+        val saveService = ModuleSaveService()
+
+        // First save
+        val result1 = saveService.saveModule(flowGraph, tempDir)
+        assertTrue(result1.success)
+
+        // Modify the stub file
+        val packageDir = File(result1.moduleDir, "src/commonMain/kotlin/io/codenode/generated/testmodule")
+        val stubFile = File(packageDir, "ProcessorComponent.kt")
+        val userImplementation = "// USER IMPLEMENTATION - DO NOT OVERWRITE\n" + stubFile.readText()
+        stubFile.writeText(userImplementation)
+
+        // Second save
+        val result2 = saveService.saveModule(flowGraph, tempDir)
+
+        // Then
+        assertTrue(result2.success)
+        val content = stubFile.readText()
+        assertTrue(content.startsWith("// USER IMPLEMENTATION"),
+            "Existing stub file should not be overwritten")
+    }
 }

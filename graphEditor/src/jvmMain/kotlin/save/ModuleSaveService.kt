@@ -6,9 +6,11 @@
 
 package io.codenode.grapheditor.save
 
+import io.codenode.fbpdsl.model.CodeNode
 import io.codenode.fbpdsl.model.FlowGraph
 import io.codenode.kotlincompiler.generator.FlowKtGenerator
 import io.codenode.kotlincompiler.generator.ModuleGenerator
+import io.codenode.kotlincompiler.generator.ProcessingLogicStubGenerator
 import java.io.File
 
 /**
@@ -49,6 +51,7 @@ class ModuleSaveService {
 
     private val moduleGenerator = ModuleGenerator()
     private val flowKtGenerator = FlowKtGenerator()
+    private val stubGenerator = ProcessingLogicStubGenerator()
 
     /**
      * Saves a FlowGraph as a KMP module.
@@ -103,6 +106,9 @@ class ModuleSaveService {
             val flowKtFile = File(moduleDir, "src/commonMain/kotlin/$packagePath/$flowKtFileName")
             flowKtFile.writeText(flowKtContent)
             filesCreated.add("src/commonMain/kotlin/$packagePath/$flowKtFileName")
+
+            // T036/T037: Generate ProcessingLogic stub files for each CodeNode
+            generateProcessingLogicStubs(flowGraph, moduleDir, effectivePackageName, filesCreated)
 
             ModuleSaveResult(
                 success = true,
@@ -183,6 +189,42 @@ class ModuleSaveService {
 
         if (flowGraph.targetsPlatform(FlowGraph.TargetPlatform.KMP_WASM)) {
             File(moduleDir, "src/wasmJsMain/kotlin/$packagePath").mkdirs()
+        }
+    }
+
+    /**
+     * T036/T037: Generates ProcessingLogic stub files for each CodeNode in the FlowGraph.
+     *
+     * Creates one stub file per CodeNode, only if the file doesn't already exist
+     * (to preserve user implementations).
+     *
+     * @param flowGraph The flow graph containing CodeNodes
+     * @param moduleDir The module root directory
+     * @param packageName The package name for generated files
+     * @param filesCreated List to track created files
+     */
+    private fun generateProcessingLogicStubs(
+        flowGraph: FlowGraph,
+        moduleDir: File,
+        packageName: String,
+        filesCreated: MutableList<String>
+    ) {
+        val packagePath = packageName.replace(".", "/")
+        val sourceDir = File(moduleDir, "src/commonMain/kotlin/$packagePath")
+
+        // Get all CodeNodes from the flow graph (including nested ones)
+        val codeNodes = flowGraph.getAllCodeNodes()
+
+        for (codeNode in codeNodes) {
+            val stubFileName = stubGenerator.getStubFileName(codeNode)
+            val stubFile = File(sourceDir, stubFileName)
+
+            // Only create stub if file doesn't exist (preserve user implementations)
+            if (!stubFile.exists()) {
+                val stubContent = stubGenerator.generateStub(codeNode, packageName)
+                stubFile.writeText(stubContent)
+                filesCreated.add("src/commonMain/kotlin/$packagePath/$stubFileName")
+            }
         }
     }
 

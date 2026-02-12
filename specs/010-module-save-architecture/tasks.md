@@ -78,20 +78,20 @@
 
 > **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
 
-- [ ] T027 [P] [US3] Create ProcessingLogicStubGeneratorTest.kt with test for generating stub class name from node name in kotlinCompiler/src/commonTest/kotlin/io/codenode/kotlincompiler/generator/ProcessingLogicStubGeneratorTest.kt
-- [ ] T028 [P] [US3] Add test for stub implementing ProcessingLogic interface in kotlinCompiler/src/commonTest/kotlin/io/codenode/kotlincompiler/generator/ProcessingLogicStubGeneratorTest.kt
-- [ ] T029 [P] [US3] Add test for stub invoke() method with correct input parameter types in kotlinCompiler/src/commonTest/kotlin/io/codenode/kotlincompiler/generator/ProcessingLogicStubGeneratorTest.kt
-- [ ] T030 [P] [US3] Add test for stub KDoc describing node type (GENERATOR/TRANSFORMER/SINK) in kotlinCompiler/src/commonTest/kotlin/io/codenode/kotlincompiler/generator/ProcessingLogicStubGeneratorTest.kt
-- [ ] T031 [P] [US3] Add test for stub listing input/output ports in KDoc in kotlinCompiler/src/commonTest/kotlin/io/codenode/kotlincompiler/generator/ProcessingLogicStubGeneratorTest.kt
+- [X] T027 [P] [US3] Create ProcessingLogicStubGeneratorTest.kt with test for generating stub class name from node name in kotlinCompiler/src/commonTest/kotlin/io/codenode/kotlincompiler/generator/ProcessingLogicStubGeneratorTest.kt
+- [X] T028 [P] [US3] Add test for stub implementing ProcessingLogic interface in kotlinCompiler/src/commonTest/kotlin/io/codenode/kotlincompiler/generator/ProcessingLogicStubGeneratorTest.kt
+- [X] T029 [P] [US3] Add test for stub invoke() method with correct input parameter types in kotlinCompiler/src/commonTest/kotlin/io/codenode/kotlincompiler/generator/ProcessingLogicStubGeneratorTest.kt
+- [X] T030 [P] [US3] Add test for stub KDoc describing node type (GENERATOR/TRANSFORMER/SINK) in kotlinCompiler/src/commonTest/kotlin/io/codenode/kotlincompiler/generator/ProcessingLogicStubGeneratorTest.kt
+- [X] T031 [P] [US3] Add test for stub listing input/output ports in KDoc in kotlinCompiler/src/commonTest/kotlin/io/codenode/kotlincompiler/generator/ProcessingLogicStubGeneratorTest.kt
 
 ### Implementation for User Story 3
 
-- [ ] T032 [US3] Create ProcessingLogicStubGenerator class with generateStub(codeNode, packageName) method in kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/ProcessingLogicStubGenerator.kt
-- [ ] T033 [US3] Implement class declaration with ProcessingLogic interface in kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/ProcessingLogicStubGenerator.kt
-- [ ] T034 [US3] Implement invoke() method stub with NotImplementedError in kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/ProcessingLogicStubGenerator.kt
-- [ ] T035 [US3] Implement KDoc generation with node type and port descriptions in kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/ProcessingLogicStubGenerator.kt
-- [ ] T036 [US3] Integrate ProcessingLogicStubGenerator into ModuleSaveService in graphEditor/src/jvmMain/kotlin/save/ModuleSaveService.kt
-- [ ] T037 [US3] Generate one stub file per CodeNode during save in graphEditor/src/jvmMain/kotlin/save/ModuleSaveService.kt
+- [X] T032 [US3] Create ProcessingLogicStubGenerator class with generateStub(codeNode, packageName) method in kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/ProcessingLogicStubGenerator.kt
+- [X] T033 [US3] Implement class declaration with ProcessingLogic interface in kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/ProcessingLogicStubGenerator.kt
+- [X] T034 [US3] Implement invoke() method stub with NotImplementedError in kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/ProcessingLogicStubGenerator.kt
+- [X] T035 [US3] Implement KDoc generation with node type and port descriptions in kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/ProcessingLogicStubGenerator.kt
+- [X] T036 [US3] Integrate ProcessingLogicStubGenerator into ModuleSaveService in graphEditor/src/jvmMain/kotlin/save/ModuleSaveService.kt
+- [X] T037 [US3] Generate one stub file per CodeNode during save in graphEditor/src/jvmMain/kotlin/save/ModuleSaveService.kt
 
 **Checkpoint**: User Story 3 complete - ProcessingLogic stubs generated on save
 
