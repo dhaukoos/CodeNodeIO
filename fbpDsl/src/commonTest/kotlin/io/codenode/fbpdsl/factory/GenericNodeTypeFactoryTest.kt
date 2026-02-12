@@ -269,12 +269,12 @@ class GenericNodeTypeFactoryTest {
         assertTrue(firstCall === secondCall, "Should return cached list")
     }
 
-    // ========== T012: getCommonGenericNodeTypes Returns 5 Common Types ==========
+    // ========== T012: getCommonGenericNodeTypes Returns 7 Common Types ==========
 
     @Test
-    fun `getCommonGenericNodeTypes returns 5 node types`() {
+    fun `getCommonGenericNodeTypes returns 7 node types`() {
         val commonTypes = getCommonGenericNodeTypes()
-        assertEquals(5, commonTypes.size)
+        assertEquals(7, commonTypes.size)
     }
 
     @Test
@@ -305,6 +305,18 @@ class GenericNodeTypeFactoryTest {
     fun `getCommonGenericNodeTypes contains in2out1 merger`() {
         val commonTypes = getCommonGenericNodeTypes()
         assertTrue(commonTypes.any { it.name == "in2out1" }, "Should contain in2out1 (Merger)")
+    }
+
+    @Test
+    fun `getCommonGenericNodeTypes contains in0out2 dual output generator`() {
+        val commonTypes = getCommonGenericNodeTypes()
+        assertTrue(commonTypes.any { it.name == "in0out2" }, "Should contain in0out2 (Generator/Source dual output)")
+    }
+
+    @Test
+    fun `getCommonGenericNodeTypes contains in2out0 dual input sink`() {
+        val commonTypes = getCommonGenericNodeTypes()
+        assertTrue(commonTypes.any { it.name == "in2out0" }, "Should contain in2out0 (Sink dual input)")
     }
 
     @Test

@@ -6,8 +6,11 @@
  * This FlowGraph demonstrates the "virtual circuit" concept by implementing
  * a stopwatch using FBP (Flow-Based Programming) architecture:
  *
- * - TimerEmitter: Generator node that emits elapsed seconds/minutes at tick intervals
- * - DisplayReceiver: Sink node that receives time values for UI rendering
+ * - TimerEmitter: Generic in0out2 node that emits elapsed seconds/minutes at tick intervals
+ * - DisplayReceiver: Generic in2out0 node that receives time values for UI rendering
+ *
+ * Both nodes use Generic node types with custom port names and _useCaseClass configuration
+ * to link to their ProcessingLogic implementations.
  *
  * The speedAttenuation config controls the tick interval (1000ms = 1 second)
  *
@@ -16,6 +19,7 @@
  */
 
 package io.codenode.stopwatch
+
 
 import io.codenode.fbpdsl.dsl.*
 import io.codenode.fbpdsl.model.*
@@ -27,18 +31,20 @@ val stopWatchFlowGraph = flowGraph("StopWatch", version = "1.0.0", description =
     targetPlatform(FlowGraph.TargetPlatform.KMP_DESKTOP)
 
     // Nodes
-    val timerEmitter = codeNode("TimerEmitter", nodeType = "GENERATOR") {
+    val timerEmitter = codeNode("TimerEmitter", nodeType = "GENERIC") {
         position(100.0, 100.0)
         output("elapsedSeconds", Int::class)
         output("elapsedMinutes", Int::class)
+        config("_genericType", "in0out2")
         config("speedAttenuation", "1000")
         config("_useCaseClass", "io.codenode.stopwatch.usecases.TimerEmitterComponent")
     }
 
-    val displayReceiver = codeNode("DisplayReceiver", nodeType = "SINK") {
+    val displayReceiver = codeNode("DisplayReceiver", nodeType = "GENERIC") {
         position(400.0, 100.0)
         input("seconds", Int::class)
         input("minutes", Int::class)
+        config("_genericType", "in2out0")
         config("_useCaseClass", "io.codenode.stopwatch.usecases.DisplayReceiverComponent")
     }
 

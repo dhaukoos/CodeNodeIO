@@ -26,12 +26,12 @@ class GenericNodePaletteTest {
     fun `createSampleNodeTypes includes common generic node types`() {
         val nodeTypes = createSampleNodeTypes()
 
-        // Should contain the 5 common generic types
+        // Should contain the 7 common generic types
         val genericTypes = nodeTypes.filter {
             it.category == NodeTypeDefinition.NodeCategory.GENERIC
         }
 
-        assertEquals(5, genericTypes.size, "Should include 5 common generic node types")
+        assertEquals(7, genericTypes.size, "Should include 7 common generic node types")
     }
 
     @Test
@@ -90,6 +90,28 @@ class GenericNodePaletteTest {
     }
 
     @Test
+    fun `palette contains in0out2 dual output generator type`() {
+        val nodeTypes = createSampleNodeTypes()
+
+        val generatorType = nodeTypes.find { it.name == "in0out2" }
+        assertNotNull(generatorType, "Should contain in0out2 (Generator/Source dual output)")
+        assertEquals(NodeTypeDefinition.NodeCategory.GENERIC, generatorType.category)
+        assertEquals(0, generatorType.getInputPortTemplates().size)
+        assertEquals(2, generatorType.getOutputPortTemplates().size)
+    }
+
+    @Test
+    fun `palette contains in2out0 dual input sink type`() {
+        val nodeTypes = createSampleNodeTypes()
+
+        val sinkType = nodeTypes.find { it.name == "in2out0" }
+        assertNotNull(sinkType, "Should contain in2out0 (Sink dual input)")
+        assertEquals(NodeTypeDefinition.NodeCategory.GENERIC, sinkType.category)
+        assertEquals(2, sinkType.getInputPortTemplates().size)
+        assertEquals(0, sinkType.getOutputPortTemplates().size)
+    }
+
+    @Test
     fun `generic nodes can be grouped by GENERIC category`() {
         val nodeTypes = createSampleNodeTypes()
 
@@ -100,9 +122,9 @@ class GenericNodePaletteTest {
             "Should have GENERIC category in palette"
         )
         assertEquals(
-            5,
+            7,
             byCategory[NodeTypeDefinition.NodeCategory.GENERIC]?.size,
-            "GENERIC category should have 5 nodes"
+            "GENERIC category should have 7 nodes"
         )
     }
 
@@ -214,13 +236,13 @@ class GenericNodePaletteTest {
         }
         assertEquals(5, specializedCount, "Should have 5 specialized node types")
 
-        // Should have generic nodes (5 common types)
+        // Should have generic nodes (7 common types)
         val genericCount = nodeTypes.count {
             it.category == NodeTypeDefinition.NodeCategory.GENERIC
         }
-        assertEquals(5, genericCount, "Should have 5 generic node types")
+        assertEquals(7, genericCount, "Should have 7 generic node types")
 
-        // Total should be 10
-        assertEquals(10, nodeTypes.size, "Should have 10 total node types in palette")
+        // Total should be 12
+        assertEquals(12, nodeTypes.size, "Should have 12 total node types in palette")
     }
 }

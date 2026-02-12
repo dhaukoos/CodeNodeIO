@@ -83,7 +83,10 @@ enum class CodeNodeType {
     DATABASE,
 
     /** Custom/user-defined node type */
-    CUSTOM;
+    CUSTOM,
+
+    /** Generic node with configurable inputs/outputs (0-5 each) */
+    GENERIC;
 
     /**
      * Returns a human-readable type name

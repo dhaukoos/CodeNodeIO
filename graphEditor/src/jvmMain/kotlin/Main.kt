@@ -426,10 +426,20 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                             val nodeCount = graphState.flowGraph.rootNodes.size
                             val xOffset = 300.0 + (nodeCount % 3) * 150.0  // 3 nodes per row
                             val yOffset = 200.0 + (nodeCount / 3) * 100.0  // New row every 3 nodes
+                            // Map node category to CodeNodeType
+                            val mappedCodeNodeType = when (nodeType.category) {
+                                NodeTypeDefinition.NodeCategory.UI_COMPONENT -> CodeNodeType.GENERATOR
+                                NodeTypeDefinition.NodeCategory.SERVICE -> CodeNodeType.TRANSFORMER
+                                NodeTypeDefinition.NodeCategory.TRANSFORMER -> CodeNodeType.TRANSFORMER
+                                NodeTypeDefinition.NodeCategory.VALIDATOR -> CodeNodeType.VALIDATOR
+                                NodeTypeDefinition.NodeCategory.API_ENDPOINT -> CodeNodeType.API_ENDPOINT
+                                NodeTypeDefinition.NodeCategory.DATABASE -> CodeNodeType.DATABASE
+                                NodeTypeDefinition.NodeCategory.GENERIC -> CodeNodeType.GENERIC
+                            }
                             val newNode = CodeNode(
                                 id = nodeId,
                                 name = nodeType.name,
-                                codeNodeType = CodeNodeType.CUSTOM,
+                                codeNodeType = mappedCodeNodeType,
                                 description = nodeType.description,
                                 position = io.codenode.fbpdsl.model.Node.Position(xOffset, yOffset),
                                 inputPorts = nodeType.getInputPortTemplates().map { template ->
@@ -686,7 +696,12 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                         flowGraph = graphState.flowGraph,
                         propertyDefinitions = selectedNode?.let { node ->
                             // Derive property definitions from node type or use defaults
-                            nodeTypes.find { it.name == node.name }?.let { nodeType ->
+                            // First try to match by node name, then by _genericType for generic nodes
+                            val matchingNodeType = nodeTypes.find { it.name == node.name }
+                                ?: node.configuration["_genericType"]?.let { genericType ->
+                                    nodeTypes.find { it.name == genericType }
+                                }
+                            matchingNodeType?.let { nodeType ->
                                 PropertiesPanelState.derivePropertyDefinitions(nodeType)
                             } ?: emptyList()
                         } ?: emptyList(),
