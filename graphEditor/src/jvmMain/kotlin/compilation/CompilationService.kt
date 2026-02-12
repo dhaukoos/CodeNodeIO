@@ -12,6 +12,17 @@ import io.codenode.kotlincompiler.generator.GeneratedModule
 import java.io.File
 
 /**
+ * Result of pre-compilation validation.
+ *
+ * @property passed Whether validation passed (can proceed to compile)
+ * @property validationResult The detailed validation result (if validation ran)
+ */
+data class PreCompilationCheckResult(
+    val passed: Boolean,
+    val validationResult: CompilationValidationResult? = null
+)
+
+/**
  * Service for compiling FlowGraphs to KMP modules.
  *
  * Provides an integration point between the graphEditor UI and the
@@ -35,6 +46,27 @@ import java.io.File
 class CompilationService {
 
     private val moduleGenerator = ModuleGenerator()
+
+    /**
+     * Validates a FlowGraph before compilation.
+     *
+     * Checks that all CodeNodes have required properties configured with valid values.
+     * This should be called before compileToModule to provide user-friendly error messages.
+     *
+     * @param flowGraph The flow graph to validate
+     * @param projectRoot Project root directory for resolving relative file paths
+     * @return PreCompilationCheckResult indicating whether validation passed
+     */
+    fun validateForCompilation(
+        flowGraph: FlowGraph,
+        projectRoot: File
+    ): PreCompilationCheckResult {
+        val validationResult = CompilationValidator.validate(flowGraph, projectRoot)
+        return PreCompilationCheckResult(
+            passed = validationResult.isValid,
+            validationResult = validationResult
+        )
+    }
 
     /**
      * Compiles a FlowGraph to a KMP module.

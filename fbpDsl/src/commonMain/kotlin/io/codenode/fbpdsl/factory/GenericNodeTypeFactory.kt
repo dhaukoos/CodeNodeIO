@@ -38,8 +38,10 @@ object GenericNodeTypeFactory {
     /** Common generic node types for simplified palette */
     private val commonGenericNodeTypesCache: List<NodeTypeDefinition> by lazy {
         listOf(
-            createGenericNodeType(0, 1), // Generator/Source
-            createGenericNodeType(1, 0), // Sink
+            createGenericNodeType(0, 1), // Generator/Source (single output)
+            createGenericNodeType(0, 2), // Dual Generator/Source (two outputs)
+            createGenericNodeType(1, 0), // Sink (single input)
+            createGenericNodeType(2, 0), // Dual Sink/Receiver (two inputs)
             createGenericNodeType(1, 1), // Simple Transformer
             createGenericNodeType(1, 2), // Splitter
             createGenericNodeType(2, 1)  // Merger
@@ -188,14 +190,16 @@ fun getAllGenericNodeTypes(): List<NodeTypeDefinition> {
 /**
  * Returns commonly-used generic node types for a simplified palette.
  *
- * Contains 5 common patterns:
- * - in0out1: Generator/Source
- * - in1out0: Sink
+ * Contains 7 common patterns:
+ * - in0out1: Generator/Source (single output)
+ * - in0out2: Dual Generator/Source (two outputs)
+ * - in1out0: Sink (single input)
+ * - in2out0: Dual Sink/Receiver (two inputs)
  * - in1out1: Simple Transformer
  * - in1out2: Splitter
  * - in2out1: Merger
  *
- * @return List of 5 common NodeTypeDefinitions
+ * @return List of 7 common NodeTypeDefinitions
  */
 fun getCommonGenericNodeTypes(): List<NodeTypeDefinition> {
     return CommonTypesHolder.types
@@ -217,8 +221,10 @@ private object AllTypesHolder {
 private object CommonTypesHolder {
     val types: List<NodeTypeDefinition> by lazy {
         listOf(
-            createGenericNodeType(0, 1), // Generator/Source
-            createGenericNodeType(1, 0), // Sink
+            createGenericNodeType(0, 1), // Generator/Source (single output)
+            createGenericNodeType(0, 2), // Dual Generator/Source (two outputs)
+            createGenericNodeType(1, 0), // Sink (single input)
+            createGenericNodeType(2, 0), // Dual Sink/Receiver (two inputs)
             createGenericNodeType(1, 1), // Simple Transformer
             createGenericNodeType(1, 2), // Splitter
             createGenericNodeType(2, 1)  // Merger

@@ -119,22 +119,123 @@ data class RequiredPropertySpec(
 )
 
 /**
- * Pre-defined specification for the processingLogicFile required property.
+ * Pre-defined specification for the _useCaseClass required property.
+ * This is the configuration key used in the Properties Panel for ProcessingLogic files.
  *
  * Validates that:
  * - The property is not blank
  * - The value ends with .kt (Kotlin file extension)
  * - The referenced file exists relative to the project root
  */
-val PROCESSING_LOGIC_SPEC = RequiredPropertySpec(
-    key = "processingLogicFile",
-    displayName = "Processing Logic",
+val USE_CASE_CLASS_SPEC = RequiredPropertySpec(
+    key = "_useCaseClass",
+    displayName = "UseCase Class",
     validator = { path, projectRoot ->
         when {
             path.isBlank() -> "Path is required"
             !path.endsWith(".kt") -> "Must be a Kotlin file (.kt)"
-            !File(projectRoot, path).exists() -> "File not found: $path"
-            else -> null  // Valid
+            else -> {
+                // Handle both absolute and relative paths
+                val file = if (File(path).isAbsolute) {
+                    File(path)
+                } else {
+                    File(projectRoot, path)
+                }
+                if (!file.exists()) "File not found: ${file.absolutePath}" else null
+            }
         }
     }
 )
+
+/**
+ * Alias for backward compatibility - processingLogicFile maps to _useCaseClass
+ */
+val PROCESSING_LOGIC_SPEC = USE_CASE_CLASS_SPEC
+
+/**
+ * Validates FlowGraph before compilation to ensure all required properties are configured.
+ *
+ * Checks each CodeNode for required properties like _useCaseClass and validates
+ * that configured values are valid (file exists, correct extension, etc.).
+ */
+object CompilationValidator {
+
+    /**
+     * List of required property specifications to validate for each CodeNode.
+     */
+    private val requiredProperties = listOf(USE_CASE_CLASS_SPEC)
+
+    /**
+     * Validates a FlowGraph for compilation readiness.
+     *
+     * Iterates over all CodeNodes in the graph and validates that each has all
+     * required properties configured with valid values.
+     *
+     * @param flowGraph The flow graph to validate
+     * @param projectRoot Project root directory for resolving relative file paths
+     * @return CompilationValidationResult indicating success or listing all validation errors
+     */
+    fun validate(flowGraph: io.codenode.fbpdsl.model.FlowGraph, projectRoot: File): CompilationValidationResult {
+        val nodeErrors = mutableListOf<NodeValidationError>()
+
+        // T028: Iterate over all CodeNodes to check required properties
+        flowGraph.rootNodes
+            .filterIsInstance<io.codenode.fbpdsl.model.CodeNode>()
+            .forEach { node ->
+                val error = validateNode(node, projectRoot)
+                if (error != null) {
+                    nodeErrors.add(error)
+                }
+            }
+
+        // T030: Aggregate NodeValidationError list into CompilationValidationResult
+        return if (nodeErrors.isEmpty()) {
+            CompilationValidationResult.success()
+        } else {
+            CompilationValidationResult.failure(nodeErrors)
+        }
+    }
+
+    /**
+     * Validates a single CodeNode for required properties.
+     *
+     * @param node The CodeNode to validate
+     * @param projectRoot Project root for resolving file paths
+     * @return NodeValidationError if validation failed, null if valid
+     */
+    private fun validateNode(
+        node: io.codenode.fbpdsl.model.CodeNode,
+        projectRoot: File
+    ): NodeValidationError? {
+        val missingProperties = mutableListOf<String>()
+        val invalidProperties = mutableListOf<PropertyValidationError>()
+
+        // T029: Validate each required property
+        requiredProperties.forEach { spec ->
+            val value = node.configuration[spec.key]
+
+            if (value == null || value.isBlank()) {
+                // Property is missing or blank
+                missingProperties.add(spec.displayName)
+            } else if (spec.validator != null) {
+                // Property exists, run custom validator
+                val errorMessage = spec.validator.invoke(value, projectRoot)
+                if (errorMessage != null) {
+                    invalidProperties.add(PropertyValidationError(spec.displayName, errorMessage))
+                }
+            }
+        }
+
+        // Return error only if there are issues
+        return if (missingProperties.isNotEmpty() || invalidProperties.isNotEmpty()) {
+            NodeValidationError(
+                nodeId = node.id,
+                nodeName = node.name,
+                missingProperties = missingProperties,
+                invalidProperties = invalidProperties
+            )
+        } else {
+            null
+        }
+    }
+}

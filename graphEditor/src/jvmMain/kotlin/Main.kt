@@ -53,6 +53,8 @@ import io.codenode.grapheditor.ui.ConnectionContextMenu
 import io.codenode.grapheditor.ui.NavigationBreadcrumbBar
 import io.codenode.grapheditor.ui.NavigationZoomOutButton
 import io.codenode.grapheditor.compilation.CompilationService
+import io.codenode.grapheditor.compilation.CompilationValidationResult
+import io.codenode.grapheditor.ui.CompilationValidationDialog
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.key.*
 import androidx.compose.ui.focus.FocusRequester
@@ -275,8 +277,10 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
     var showSaveDialog by remember { mutableStateOf(false) }
     var showOpenDialog by remember { mutableStateOf(false) }
     var showCompileDialog by remember { mutableStateOf(false) }
+    var validationErrorResult by remember { mutableStateOf<CompilationValidationResult?>(null) }
     var statusMessage by remember { mutableStateOf("Ready - Create a new graph or open an existing one") }
     val compilationService = remember { CompilationService() }
+    val projectRoot = remember { File(System.getProperty("user.dir")) }
 
     // Derive button states from selection - these update automatically when selection changes
     val selectionState = graphState.selectionState  // Read selection state to ensure reactivity
@@ -801,20 +805,44 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
 
         if (showCompileDialog) {
             LaunchedEffect(Unit) {
-                val outputDir = showDirectoryChooser()
-                if (outputDir != null) {
-                    val result = compilationService.compileToModule(
-                        flowGraph = graphState.flowGraph,
-                        outputDir = outputDir
-                    )
-                    if (result.success) {
-                        statusMessage = "Compiled ${result.fileCount} files to ${result.outputPath}"
-                    } else {
-                        statusMessage = "Compile error: ${result.errorMessage}"
+                // First validate the flow graph
+                val preCheckResult = compilationService.validateForCompilation(
+                    flowGraph = graphState.flowGraph,
+                    projectRoot = projectRoot
+                )
+
+                if (!preCheckResult.passed) {
+                    // Show validation error dialog
+                    validationErrorResult = preCheckResult.validationResult
+                    showCompileDialog = false
+                } else {
+                    // Validation passed, proceed to compile
+                    val outputDir = showDirectoryChooser()
+                    if (outputDir != null) {
+                        val result = compilationService.compileToModule(
+                            flowGraph = graphState.flowGraph,
+                            outputDir = outputDir
+                        )
+                        if (result.success) {
+                            statusMessage = "Compiled ${result.fileCount} files to ${result.outputPath}"
+                        } else {
+                            statusMessage = "Compile error: ${result.errorMessage}"
+                        }
                     }
+                    showCompileDialog = false
                 }
-                showCompileDialog = false
             }
+        }
+
+        // Validation error dialog
+        validationErrorResult?.let { result ->
+            CompilationValidationDialog(
+                validationResult = result,
+                onDismiss = {
+                    validationErrorResult = null
+                    statusMessage = "Fix validation errors before compiling"
+                }
+            )
         }
     }
 }

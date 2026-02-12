@@ -91,22 +91,22 @@ Based on plan.md structure:
 
 > **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
 
-- [ ] T022 [P] [US2] Create CompilationValidatorTest.kt with test for valid graph passing validation in graphEditor/src/jvmTest/kotlin/compilation/CompilationValidatorTest.kt
-- [ ] T023 [P] [US2] Add test for graph with missing processingLogicFile failing validation in graphEditor/src/jvmTest/kotlin/compilation/CompilationValidatorTest.kt
-- [ ] T024 [P] [US2] Add test for multiple nodes with missing properties all reported in graphEditor/src/jvmTest/kotlin/compilation/CompilationValidatorTest.kt
-- [ ] T025 [P] [US2] Add test for file existence validation (file not found error) in graphEditor/src/jvmTest/kotlin/compilation/CompilationValidatorTest.kt
-- [ ] T026 [P] [US2] Add test for .kt file extension validation in graphEditor/src/jvmTest/kotlin/compilation/CompilationValidatorTest.kt
+- [X] T022 [P] [US2] Create CompilationValidatorTest.kt with test for valid graph passing validation in graphEditor/src/jvmTest/kotlin/compilation/CompilationValidatorTest.kt
+- [X] T023 [P] [US2] Add test for graph with missing _useCaseClass failing validation in graphEditor/src/jvmTest/kotlin/compilation/CompilationValidatorTest.kt
+- [X] T024 [P] [US2] Add test for multiple nodes with missing properties all reported in graphEditor/src/jvmTest/kotlin/compilation/CompilationValidatorTest.kt
+- [X] T025 [P] [US2] Add test for file existence validation (file not found error) in graphEditor/src/jvmTest/kotlin/compilation/CompilationValidatorTest.kt
+- [X] T026 [P] [US2] Add test for .kt file extension validation in graphEditor/src/jvmTest/kotlin/compilation/CompilationValidatorTest.kt
 
 ### Implementation for User Story 2
 
-- [ ] T027 [US2] Create CompilationValidator class with validate(flowGraph, projectRoot) method in graphEditor/src/jvmMain/kotlin/compilation/CompilationValidator.kt
-- [ ] T028 [US2] Implement iteration over all CodeNodes to check required properties in CompilationValidator in graphEditor/src/jvmMain/kotlin/compilation/CompilationValidator.kt
-- [ ] T029 [US2] Implement processingLogicFile validation: not blank, ends with .kt, file exists in graphEditor/src/jvmMain/kotlin/compilation/CompilationValidator.kt
-- [ ] T030 [US2] Aggregate NodeValidationError list into CompilationValidationResult in graphEditor/src/jvmMain/kotlin/compilation/CompilationValidator.kt
-- [ ] T031 [US2] Create CompilationValidationDialog composable for displaying errors in graphEditor/src/jvmMain/kotlin/ui/CompilationValidationDialog.kt
-- [ ] T032 [US2] Integrate CompilationValidator call before compile in CompilationService in graphEditor/src/jvmMain/kotlin/compilation/CompilationService.kt
-- [ ] T033 [US2] Add validation error dialog state and display in Main.kt compile handler in graphEditor/src/jvmMain/kotlin/Main.kt
-- [ ] T034 [US2] Test full compile flow with validation dialog appearing on missing properties
+- [X] T027 [US2] Create CompilationValidator class with validate(flowGraph, projectRoot) method in graphEditor/src/jvmMain/kotlin/compilation/CompilationValidator.kt
+- [X] T028 [US2] Implement iteration over all CodeNodes to check required properties in CompilationValidator in graphEditor/src/jvmMain/kotlin/compilation/CompilationValidator.kt
+- [X] T029 [US2] Implement _useCaseClass validation: not blank, ends with .kt, file exists in graphEditor/src/jvmMain/kotlin/compilation/CompilationValidator.kt
+- [X] T030 [US2] Aggregate NodeValidationError list into CompilationValidationResult in graphEditor/src/jvmMain/kotlin/compilation/CompilationValidator.kt
+- [X] T031 [US2] Create CompilationValidationDialog composable for displaying errors in graphEditor/src/jvmMain/kotlin/ui/CompilationValidationDialog.kt
+- [X] T032 [US2] Integrate CompilationValidator call before compile in CompilationService in graphEditor/src/jvmMain/kotlin/compilation/CompilationService.kt
+- [X] T033 [US2] Add validation error dialog state and display in Main.kt compile handler in graphEditor/src/jvmMain/kotlin/Main.kt
+- [X] T034 [US2] Test full compile flow with validation dialog appearing on missing properties
 
 **Checkpoint**: User Story 2 complete - Compile validates required properties and shows errors
 
