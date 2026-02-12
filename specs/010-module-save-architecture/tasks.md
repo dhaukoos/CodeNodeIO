@@ -24,11 +24,11 @@
 
 ### Implementation for User Story 1
 
-- [ ] T006 [US1] Create ModuleSaveService class with saveModule(flowGraph, outputDir) method in graphEditor/src/jvmMain/kotlin/save/ModuleSaveService.kt
-- [ ] T007 [US1] Implement module directory creation with proper structure in graphEditor/src/jvmMain/kotlin/save/ModuleSaveService.kt
-- [ ] T008 [US1] Implement build.gradle.kts generation (reuse/adapt from ModuleGenerator) in graphEditor/src/jvmMain/kotlin/save/ModuleSaveService.kt
-- [ ] T009 [US1] Implement settings.gradle.kts generation in graphEditor/src/jvmMain/kotlin/save/ModuleSaveService.kt
-- [ ] T010 [US1] Integrate ModuleSaveService into graphEditor Save action in graphEditor/src/jvmMain/kotlin/Main.kt
+- [X] T006 [US1] Create ModuleSaveService class with saveModule(flowGraph, outputDir) method in graphEditor/src/jvmMain/kotlin/save/ModuleSaveService.kt
+- [X] T007 [US1] Implement module directory creation with proper structure in graphEditor/src/jvmMain/kotlin/save/ModuleSaveService.kt
+- [X] T008 [US1] Implement build.gradle.kts generation (reuse/adapt from ModuleGenerator) in graphEditor/src/jvmMain/kotlin/save/ModuleSaveService.kt
+- [X] T009 [US1] Implement settings.gradle.kts generation in graphEditor/src/jvmMain/kotlin/save/ModuleSaveService.kt
+- [X] T010 [US1] Integrate ModuleSaveService into graphEditor Save action in graphEditor/src/jvmMain/kotlin/Main.kt
 
 **Checkpoint**: User Story 1 complete - Save creates module directory structure
 

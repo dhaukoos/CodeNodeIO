@@ -40,6 +40,7 @@ import io.codenode.grapheditor.ui.PropertiesPanelState
 import io.codenode.grapheditor.state.rememberPropertyChangeTracker
 import io.codenode.grapheditor.serialization.FlowGraphSerializer
 import io.codenode.grapheditor.serialization.FlowGraphDeserializer
+import io.codenode.grapheditor.save.ModuleSaveService
 import io.codenode.fbpdsl.model.NodeTypeDefinition
 import io.codenode.fbpdsl.model.PortTemplate
 import io.codenode.fbpdsl.model.Port
@@ -275,8 +276,10 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
     var showSaveDialog by remember { mutableStateOf(false) }
     var showOpenDialog by remember { mutableStateOf(false) }
     var showCompileDialog by remember { mutableStateOf(false) }
+    var showModuleSaveDialog by remember { mutableStateOf(false) }
     var statusMessage by remember { mutableStateOf("Ready - Create a new graph or open an existing one") }
     val compilationService = remember { CompilationService() }
+    val moduleSaveService = remember { ModuleSaveService() }
 
     // Derive button states from selection - these update automatically when selection changes
     val selectionState = graphState.selectionState  // Read selection state to ensure reactivity
@@ -816,6 +819,25 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                 showCompileDialog = false
             }
         }
+
+        // T010: Module Save dialog handler
+        if (showModuleSaveDialog) {
+            LaunchedEffect(Unit) {
+                val outputDir = showDirectoryChooser("Save Module To")
+                if (outputDir != null) {
+                    val result = moduleSaveService.saveModule(
+                        flowGraph = graphState.flowGraph,
+                        outputDir = outputDir
+                    )
+                    if (result.success) {
+                        statusMessage = "Module saved to ${result.moduleDir?.name}"
+                    } else {
+                        statusMessage = "Save error: ${result.errorMessage}"
+                    }
+                }
+                showModuleSaveDialog = false
+            }
+        }
     }
 }
 
@@ -1059,10 +1081,12 @@ fun showFileOpenDialog(): File? {
 
 /**
  * Show directory chooser for module compilation output
+ *
+ * @param title Dialog title (default: "Select Output Directory for KMP Module")
  */
-fun showDirectoryChooser(): File? {
+fun showDirectoryChooser(title: String = "Select Output Directory for KMP Module"): File? {
     val fileChooser = JFileChooser().apply {
-        dialogTitle = "Select Output Directory for KMP Module"
+        dialogTitle = title
         fileSelectionMode = JFileChooser.DIRECTORIES_ONLY
         isAcceptAllFileFilterUsed = false
     }
