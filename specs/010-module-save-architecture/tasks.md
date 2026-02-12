@@ -16,11 +16,11 @@
 
 > **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
 
-- [ ] T001 [P] [US1] Create ModuleSaveServiceTest.kt with test for creating module directory on save in graphEditor/src/jvmTest/kotlin/save/ModuleSaveServiceTest.kt
-- [ ] T002 [P] [US1] Add test for generating build.gradle.kts with KMP configuration in graphEditor/src/jvmTest/kotlin/save/ModuleSaveServiceTest.kt
-- [ ] T003 [P] [US1] Add test for creating src/commonMain/kotlin/{package} directory structure in graphEditor/src/jvmTest/kotlin/save/ModuleSaveServiceTest.kt
-- [ ] T004 [P] [US1] Add test for generating settings.gradle.kts in graphEditor/src/jvmTest/kotlin/save/ModuleSaveServiceTest.kt
-- [ ] T005 [P] [US1] Add test for deriving module name from FlowGraph name in graphEditor/src/jvmTest/kotlin/save/ModuleSaveServiceTest.kt
+- [X] T001 [P] [US1] Create ModuleSaveServiceTest.kt with test for creating module directory on save in graphEditor/src/jvmTest/kotlin/save/ModuleSaveServiceTest.kt
+- [X] T002 [P] [US1] Add test for generating build.gradle.kts with KMP configuration in graphEditor/src/jvmTest/kotlin/save/ModuleSaveServiceTest.kt
+- [X] T003 [P] [US1] Add test for creating src/commonMain/kotlin/{package} directory structure in graphEditor/src/jvmTest/kotlin/save/ModuleSaveServiceTest.kt
+- [X] T004 [P] [US1] Add test for generating settings.gradle.kts in graphEditor/src/jvmTest/kotlin/save/ModuleSaveServiceTest.kt
+- [X] T005 [P] [US1] Add test for deriving module name from FlowGraph name in graphEditor/src/jvmTest/kotlin/save/ModuleSaveServiceTest.kt
 
 ### Implementation for User Story 1
 
