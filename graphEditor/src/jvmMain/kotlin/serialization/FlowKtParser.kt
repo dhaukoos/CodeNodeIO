@@ -38,7 +38,7 @@ class FlowKtParser {
     )
 
     private val codeNodePattern = Regex(
-        """val\s+(\w+)\s*=\s*codeNode\s*\(\s*"([^"]+)"\s*,\s*nodeType\s*=\s*(\w+)\s*\)"""
+        """val\s+(\w+)\s*=\s*codeNode\s*\(\s*"([^"]+)"\s*,\s*nodeType\s*=\s*"?(\w+)"?\s*\)"""
     )
 
     private val positionPattern = Regex(

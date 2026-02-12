@@ -370,4 +370,43 @@ class FlowKtParserTest {
         assertEquals(123.0, parsedNode.position.x, 1.0, "X position should survive round-trip")
         assertEquals(456.0, parsedNode.position.y, 1.0, "Y position should survive round-trip")
     }
+
+    // ========== Quoted nodeType format tests ==========
+
+    @Test
+    fun `parseFlowKt handles quoted nodeType values`() {
+        // Given - nodeType with quotes (as used in compiled .flow.kt files)
+        val flowKtContent = """
+            package io.codenode.stopwatch
+
+            import io.codenode.fbpdsl.dsl.*
+            import io.codenode.fbpdsl.model.*
+
+            val stopWatchFlowGraph = flowGraph("StopWatch", version = "1.0.0", description = "Test") {
+                val timerEmitter = codeNode("TimerEmitter", nodeType = "GENERATOR") {
+                    position(100.0, 100.0)
+                    output("elapsedSeconds", Int::class)
+                }
+
+                val displayReceiver = codeNode("DisplayReceiver", nodeType = "SINK") {
+                    position(400.0, 100.0)
+                    input("seconds", Int::class)
+                }
+
+                timerEmitter.output("elapsedSeconds") connect displayReceiver.input("seconds")
+            }
+        """.trimIndent()
+        val parser = FlowKtParser()
+
+        // When
+        val result = parser.parseFlowKt(flowKtContent)
+
+        // Then
+        assertTrue(result.isSuccess, "Should parse .flow.kt with quoted nodeType: ${result.errorMessage}")
+        assertEquals("StopWatch", result.graph?.name)
+        val nodeNames = result.graph?.getAllCodeNodes()?.map { it.name } ?: emptyList()
+        assertTrue(nodeNames.contains("TimerEmitter"), "Should have TimerEmitter node")
+        assertTrue(nodeNames.contains("DisplayReceiver"), "Should have DisplayReceiver node")
+        assertEquals(1, result.graph?.connections?.size, "Should have 1 connection")
+    }
 }
