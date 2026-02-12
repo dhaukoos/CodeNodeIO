@@ -7,7 +7,7 @@
 package io.codenode.mobileapp
 
 import io.codenode.fbpdsl.model.*
-import io.codenode.generated.stopwatch.StopWatchController
+import io.codenode.stopwatch.generated.StopWatchController
 import org.junit.Assert.*
 import org.junit.Test
 

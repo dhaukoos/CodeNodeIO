@@ -38,12 +38,14 @@ class FlowGraphFactoryGenerator {
      * Generates a factory file content for a FlowGraph.
      *
      * @param flowGraph The flow graph to generate a factory for
-     * @param packageName The package name for the generated file
+     * @param packageName The package name for the generated file (generated package)
+     * @param usecasesPackage Optional package name for ProcessingLogic usecases
      * @return Generated Kotlin source code
      */
-    fun generateFactory(flowGraph: FlowGraph, packageName: String): String {
+    fun generateFactory(flowGraph: FlowGraph, packageName: String, usecasesPackage: String? = null): String {
         val factoryFunctionName = "create${flowGraph.name.pascalCase()}FlowGraph"
         val allCodeNodes = flowGraph.getAllCodeNodes()
+        val effectiveUsecasesPackage = usecasesPackage ?: packageName
 
         return buildString {
             // Package declaration
@@ -58,8 +60,13 @@ class FlowGraphFactoryGenerator {
             appendLine("import io.codenode.fbpdsl.model.Port")
             appendLine("import io.codenode.fbpdsl.model.CodeNodeType")
 
+            // Import usecases package if separate from generated package
+            if (usecasesPackage != null && usecasesPackage != packageName) {
+                appendLine("import $usecasesPackage.*")
+            }
+
             // Add imports for external ProcessingLogic classes
-            val externalImports = getExternalImports(allCodeNodes, packageName)
+            val externalImports = getExternalImports(allCodeNodes, effectiveUsecasesPackage)
             externalImports.forEach { import ->
                 appendLine("import $import")
             }

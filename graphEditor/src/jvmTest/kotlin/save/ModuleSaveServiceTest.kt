@@ -197,7 +197,7 @@ class ModuleSaveServiceTest {
     fun `T003 - saveModule creates package directory structure`() {
         // Given
         val flowGraph = createTestFlowGraph("TestModule")
-        val packageName = "io.codenode.generated.testmodule"
+        val packageName = "io.codenode.testmodule"  // Base package
         val saveService = ModuleSaveService()
 
         // When
@@ -205,9 +205,13 @@ class ModuleSaveServiceTest {
 
         // Then
         assertTrue(result.success)
-        val packageDir = File(result.moduleDir, "src/commonMain/kotlin/io/codenode/generated/testmodule")
-        assertTrue(packageDir.exists(), "Package directory should exist")
-        assertTrue(packageDir.isDirectory, "Package path should be a directory")
+        // Usecases package for user components
+        val usecasesDir = File(result.moduleDir, "src/commonMain/kotlin/io/codenode/testmodule/usecases")
+        assertTrue(usecasesDir.exists(), "Usecases package directory should exist")
+        assertTrue(usecasesDir.isDirectory, "Usecases path should be a directory")
+        // Generated package for generated code
+        val generatedDir = File(result.moduleDir, "src/commonMain/kotlin/io/codenode/testmodule/generated")
+        assertTrue(generatedDir.exists(), "Generated package directory should exist")
     }
 
     @Test
@@ -341,10 +345,11 @@ class ModuleSaveServiceTest {
 
         // Then
         assertTrue(result.success)
-        // Default package should be io.codenode.generated.{lowercase module name}
-        val expectedPackageDir = File(result.moduleDir, "src/commonMain/kotlin/io/codenode/generated/stopwatch")
+        // Default base package is io.codenode.{lowercase module name}
+        // Usecases package is io.codenode.{modulename}.usecases
+        val expectedPackageDir = File(result.moduleDir, "src/commonMain/kotlin/io/codenode/stopwatch/usecases")
         assertTrue(expectedPackageDir.exists(),
-            "Default package directory should be created based on module name")
+            "Default usecases package directory should be created based on module name")
     }
 
     // ========== T036/T037: ProcessingLogic Stub Generation ==========
@@ -360,7 +365,7 @@ class ModuleSaveServiceTest {
 
         // Then
         assertTrue(result.success)
-        val packageDir = File(result.moduleDir, "src/commonMain/kotlin/io/codenode/generated/testmodule")
+        val packageDir = File(result.moduleDir, "src/commonMain/kotlin/io/codenode/testmodule/usecases")
         val stubFile = File(packageDir, "ProcessorComponent.kt")
         assertTrue(stubFile.exists(), "ProcessingLogic stub should be created for CodeNode")
     }
@@ -376,7 +381,7 @@ class ModuleSaveServiceTest {
 
         // Then
         assertTrue(result.success)
-        val packageDir = File(result.moduleDir, "src/commonMain/kotlin/io/codenode/generated/testmodule")
+        val packageDir = File(result.moduleDir, "src/commonMain/kotlin/io/codenode/testmodule/usecases")
         val stubFile = File(packageDir, "ProcessorComponent.kt")
         val content = stubFile.readText()
         assertTrue(content.contains(": ProcessingLogic"), "Stub should implement ProcessingLogic")
@@ -431,7 +436,7 @@ class ModuleSaveServiceTest {
 
         // Then
         assertTrue(result.success)
-        val packageDir = File(result.moduleDir, "src/commonMain/kotlin/io/codenode/generated/multinodetest")
+        val packageDir = File(result.moduleDir, "src/commonMain/kotlin/io/codenode/multinodetest/usecases")
         val stub1 = File(packageDir, "FirstNodeComponent.kt")
         val stub2 = File(packageDir, "SecondNodeComponent.kt")
         assertTrue(stub1.exists(), "Stub for FirstNode should be created")
@@ -449,7 +454,7 @@ class ModuleSaveServiceTest {
         assertTrue(result1.success)
 
         // Modify the stub file
-        val packageDir = File(result1.moduleDir, "src/commonMain/kotlin/io/codenode/generated/testmodule")
+        val packageDir = File(result1.moduleDir, "src/commonMain/kotlin/io/codenode/testmodule/usecases")
         val stubFile = File(packageDir, "ProcessorComponent.kt")
         val userImplementation = "// USER IMPLEMENTATION - DO NOT OVERWRITE\n" + stubFile.readText()
         stubFile.writeText(userImplementation)
@@ -477,7 +482,7 @@ class ModuleSaveServiceTest {
         assertTrue(result1.success)
 
         // User implements the ProcessingLogic
-        val packageDir = File(result1.moduleDir, "src/commonMain/kotlin/io/codenode/generated/incrementaltest")
+        val packageDir = File(result1.moduleDir, "src/commonMain/kotlin/io/codenode/incrementaltest/usecases")
         val stubFile = File(packageDir, "ProcessorComponent.kt")
         val userImplementation = """
             package io.codenode.generated.incrementaltest
@@ -527,7 +532,7 @@ class ModuleSaveServiceTest {
         assertTrue(result1.success)
 
         // User implements both files
-        val packageDir = File(result1.moduleDir, "src/commonMain/kotlin/io/codenode/generated/multinode")
+        val packageDir = File(result1.moduleDir, "src/commonMain/kotlin/io/codenode/multinode/usecases")
         val file1 = File(packageDir, "GeneratorComponent.kt")
         val file2 = File(packageDir, "ProcessorComponent.kt")
 
@@ -561,7 +566,7 @@ class ModuleSaveServiceTest {
         assertTrue(result1.success)
 
         // User implements the first node
-        val packageDir = File(result1.moduleDir, "src/commonMain/kotlin/io/codenode/generated/expandingflow")
+        val packageDir = File(result1.moduleDir, "src/commonMain/kotlin/io/codenode/expandingflow/usecases")
         val existingStub = File(packageDir, "ExistingNodeComponent.kt")
         val userImpl = "// USER IMPLEMENTED\n" + existingStub.readText()
         existingStub.writeText(userImpl)
@@ -630,7 +635,7 @@ class ModuleSaveServiceTest {
         assertTrue(result1.success)
 
         // User implements both
-        val packageDir = File(result1.moduleDir, "src/commonMain/kotlin/io/codenode/generated/shrinkingflow")
+        val packageDir = File(result1.moduleDir, "src/commonMain/kotlin/io/codenode/shrinkingflow/usecases")
         val keptFile = File(packageDir, "KeptNodeComponent.kt")
         val removedFile = File(packageDir, "RemovedNodeComponent.kt")
         keptFile.writeText("// User impl kept\n" + keptFile.readText())
@@ -662,7 +667,7 @@ class ModuleSaveServiceTest {
         assertTrue(result1.success)
 
         // Implement the file that will become orphaned
-        val packageDir = File(result1.moduleDir, "src/commonMain/kotlin/io/codenode/generated/safedelete")
+        val packageDir = File(result1.moduleDir, "src/commonMain/kotlin/io/codenode/safedelete/usecases")
         val orphanedFile = File(packageDir, "ToRemoveComponent.kt")
         orphanedFile.writeText("// IMPORTANT USER CODE - DO NOT DELETE\n" + orphanedFile.readText())
 
@@ -692,7 +697,7 @@ class ModuleSaveServiceTest {
         val result1 = saveService.saveModule(flowGraph1, tempDir)
         assertTrue(result1.success)
 
-        val packageDir = File(result1.moduleDir, "src/commonMain/kotlin/io/codenode/generated/updateflow")
+        val packageDir = File(result1.moduleDir, "src/commonMain/kotlin/io/codenode/updateflow/generated")
         val flowKtFile = File(packageDir, "UpdateFlow.flow.kt")
         val originalContent = flowKtFile.readText()
         assertTrue(originalContent.contains("Original"),
@@ -734,7 +739,7 @@ class ModuleSaveServiceTest {
 
         // Then
         assertTrue(result2.success)
-        val packageDir = File(result2.moduleDir, "src/commonMain/kotlin/io/codenode/generated/positiontest")
+        val packageDir = File(result2.moduleDir, "src/commonMain/kotlin/io/codenode/positiontest/generated")
         val flowKtFile = File(packageDir, "PositionTest.flow.kt")
         val content = flowKtFile.readText()
         assertTrue(content.contains("500.0") && content.contains("600.0"),
@@ -774,7 +779,7 @@ class ModuleSaveServiceTest {
 
         // Then
         assertTrue(result2.success)
-        val packageDir = File(result2.moduleDir, "src/commonMain/kotlin/io/codenode/generated/connecttest")
+        val packageDir = File(result2.moduleDir, "src/commonMain/kotlin/io/codenode/connecttest/generated")
         val flowKtFile = File(packageDir, "ConnectTest.flow.kt")
         val content = flowKtFile.readText()
         assertTrue(content.contains("connect"),

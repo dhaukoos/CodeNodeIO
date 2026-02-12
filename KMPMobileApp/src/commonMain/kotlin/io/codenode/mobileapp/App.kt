@@ -18,7 +18,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import io.codenode.fbpdsl.model.*
-import io.codenode.generated.stopwatch.StopWatchController
+import io.codenode.stopwatch.generated.StopWatchController
 
 /**
  * Creates the StopWatch FlowGraph definition.

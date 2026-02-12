@@ -48,7 +48,9 @@ data class ModuleSaveResult(
 class ModuleSaveService {
 
     companion object {
-        const val DEFAULT_PACKAGE_PREFIX = "io.codenode.generated"
+        const val DEFAULT_PACKAGE_PREFIX = "io.codenode"
+        const val GENERATED_SUBPACKAGE = "generated"
+        const val USECASES_SUBPACKAGE = "usecases"
     }
 
     private val moduleGenerator = ModuleGenerator()
@@ -74,9 +76,13 @@ class ModuleSaveService {
             // T005: Derive module name from FlowGraph name
             val effectiveModuleName = moduleName ?: deriveModuleName(flowGraph.name)
 
-            // T005: Derive package name from module name if not provided
-            val effectivePackageName = packageName
-                ?: "$DEFAULT_PACKAGE_PREFIX.${effectiveModuleName.lowercase()}"
+            // Package structure:
+            // - basePackage: io.codenode.{modulename} (e.g., io.codenode.stopwatch)
+            // - generatedPackage: io.codenode.{modulename}.generated (for generated code)
+            // - usecasesPackage: io.codenode.{modulename}.usecases (for user-implemented components)
+            val basePackage = packageName ?: "$DEFAULT_PACKAGE_PREFIX.${effectiveModuleName.lowercase()}"
+            val generatedPackage = "$basePackage.$GENERATED_SUBPACKAGE"
+            val usecasesPackage = "$basePackage.$USECASES_SUBPACKAGE"
 
             // T001/T007: Create module directory
             val moduleDir = File(outputDir, effectiveModuleName)
@@ -86,8 +92,9 @@ class ModuleSaveService {
 
             val filesCreated = mutableListOf<String>()
 
-            // T003/T007: Create source directory structure
-            createDirectoryStructure(moduleDir, effectivePackageName, flowGraph)
+            // T003/T007: Create source directory structure (both generated and usecases)
+            createDirectoryStructure(moduleDir, generatedPackage, flowGraph)
+            createDirectoryStructure(moduleDir, usecasesPackage, flowGraph)
 
             // T008: Generate and write build.gradle.kts
             val buildGradleContent = moduleGenerator.generateBuildGradle(flowGraph, effectiveModuleName)
@@ -101,19 +108,19 @@ class ModuleSaveService {
             settingsGradleFile.writeText(settingsGradleContent)
             filesCreated.add("settings.gradle.kts")
 
-            // T025: Generate and write .flow.kt file
-            val packagePath = effectivePackageName.replace(".", "/")
-            val flowKtContent = flowKtGenerator.generateFlowKt(flowGraph, effectivePackageName)
+            // T025: Generate and write .flow.kt file (in generated package)
+            val generatedPath = generatedPackage.replace(".", "/")
+            val flowKtContent = flowKtGenerator.generateFlowKt(flowGraph, generatedPackage, usecasesPackage)
             val flowKtFileName = "${effectiveModuleName}.flow.kt"
-            val flowKtFile = File(moduleDir, "src/commonMain/kotlin/$packagePath/$flowKtFileName")
+            val flowKtFile = File(moduleDir, "src/commonMain/kotlin/$generatedPath/$flowKtFileName")
             flowKtFile.writeText(flowKtContent)
-            filesCreated.add("src/commonMain/kotlin/$packagePath/$flowKtFileName")
+            filesCreated.add("src/commonMain/kotlin/$generatedPath/$flowKtFileName")
 
-            // T036/T037: Generate ProcessingLogic stub files for each CodeNode
-            generateProcessingLogicStubs(flowGraph, moduleDir, effectivePackageName, filesCreated)
+            // T036/T037: Generate ProcessingLogic stub files (in usecases package)
+            generateProcessingLogicStubs(flowGraph, moduleDir, usecasesPackage, filesCreated)
 
-            // T047: Detect orphaned ProcessingLogic files and generate warnings
-            val warnings = detectOrphanedComponents(flowGraph, moduleDir, effectivePackageName)
+            // T047: Detect orphaned ProcessingLogic files (in usecases package)
+            val warnings = detectOrphanedComponents(flowGraph, moduleDir, usecasesPackage)
 
             ModuleSaveResult(
                 success = true,

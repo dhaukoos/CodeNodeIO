@@ -24,7 +24,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.codenode.fbpdsl.model.ExecutionState
-import io.codenode.generated.stopwatch.StopWatchController
+import io.codenode.stopwatch.generated.StopWatchController
 
 /**
  * Data class to hold elapsed time components for the stopwatch.

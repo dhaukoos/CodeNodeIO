@@ -113,7 +113,7 @@ class CompilationValidatorTest {
         // Given
         val flowGraph = createTestFlowGraph("StopWatch")
         val moduleDir = File(tempDir, "StopWatch")
-        val packageName = "io.codenode.generated.stopwatch"
+        val packageName = "io.codenode.stopwatch.usecases"
 
         setupModuleStructure(
             moduleDir,
@@ -136,7 +136,7 @@ class CompilationValidatorTest {
         // Given
         val flowGraph = createTestFlowGraph("StopWatch")
         val moduleDir = File(tempDir, "StopWatch")
-        val packageName = "io.codenode.generated.stopwatch"
+        val packageName = "io.codenode.stopwatch.usecases"
 
         setupModuleStructure(
             moduleDir,
@@ -161,7 +161,7 @@ class CompilationValidatorTest {
         // Given
         val flowGraph = createTestFlowGraph("StopWatch")
         val moduleDir = File(tempDir, "NonExistent")
-        val packageName = "io.codenode.generated.stopwatch"
+        val packageName = "io.codenode.stopwatch.usecases"
         // Don't create the module directory
 
         val validator = CompilationValidator()
@@ -180,7 +180,7 @@ class CompilationValidatorTest {
         // Given
         val flowGraph = createTestFlowGraph("StopWatch")
         val moduleDir = File(tempDir, "StopWatch")
-        val packageName = "io.codenode.generated.stopwatch"
+        val packageName = "io.codenode.stopwatch.usecases"
 
         // Create directory without build.gradle.kts
         val packagePath = packageName.replace(".", "/")
@@ -204,7 +204,7 @@ class CompilationValidatorTest {
         // Given
         val flowGraph = createTestFlowGraph("StopWatch")
         val moduleDir = File(tempDir, "StopWatch")
-        val packageName = "io.codenode.generated.stopwatch"
+        val packageName = "io.codenode.stopwatch.usecases"
 
         setupModuleStructure(
             moduleDir,
@@ -226,7 +226,7 @@ class CompilationValidatorTest {
         // Given
         val flowGraph = createTestFlowGraph("StopWatch")
         val moduleDir = File(tempDir, "StopWatch")
-        val packageName = "io.codenode.generated.stopwatch"
+        val packageName = "io.codenode.stopwatch.usecases"
 
         setupModuleStructure(
             moduleDir,
@@ -250,7 +250,7 @@ class CompilationValidatorTest {
         // Given
         val flowGraph = createTestFlowGraph("StopWatch")
         val moduleDir = File(tempDir, "StopWatch")
-        val packageName = "io.codenode.generated.stopwatch"
+        val packageName = "io.codenode.stopwatch.usecases"
 
         setupModuleStructure(
             moduleDir,
@@ -277,7 +277,7 @@ class CompilationValidatorTest {
             nodes = listOf(createTestCodeNode("timer", "TimerEmitter", processingLogicClass = "TimerEmitterComponent"))
         )
         val moduleDir = File(tempDir, "StopWatch")
-        val packageName = "io.codenode.generated.stopwatch"
+        val packageName = "io.codenode.stopwatch.usecases"
 
         // Include an extra component file that's no longer needed
         setupModuleStructure(
@@ -309,7 +309,7 @@ class CompilationValidatorTest {
             nodes = listOf(createTestCodeNode("timer", "TimerEmitter", processingLogicClass = "TimerEmitterComponent"))
         )
         val moduleDir = File(tempDir, "StopWatch")
-        val packageName = "io.codenode.generated.stopwatch"
+        val packageName = "io.codenode.stopwatch.usecases"
 
         setupModuleStructure(
             moduleDir,
