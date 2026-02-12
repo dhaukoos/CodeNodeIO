@@ -44,13 +44,13 @@
 
 > **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
 
-- [ ] T011 [P] [US2] Create FlowKtGeneratorTest.kt with test for generating valid Kotlin syntax in kotlinCompiler/src/commonTest/kotlin/io/codenode/kotlincompiler/generator/FlowKtGeneratorTest.kt
-- [ ] T012 [P] [US2] Add test for generating package declaration in .flow.kt in kotlinCompiler/src/commonTest/kotlin/io/codenode/kotlincompiler/generator/FlowKtGeneratorTest.kt
-- [ ] T013 [P] [US2] Add test for generating codeNode DSL blocks with all properties in kotlinCompiler/src/commonTest/kotlin/io/codenode/kotlincompiler/generator/FlowKtGeneratorTest.kt
-- [ ] T014 [P] [US2] Add test for generating connection DSL statements in kotlinCompiler/src/commonTest/kotlin/io/codenode/kotlincompiler/generator/FlowKtGeneratorTest.kt
-- [ ] T015 [P] [US2] Add test for generating processingLogic<T>() references in kotlinCompiler/src/commonTest/kotlin/io/codenode/kotlincompiler/generator/FlowKtGeneratorTest.kt
-- [ ] T016 [P] [US2] Create FlowKtParserTest.kt with test for parsing .flow.kt back to FlowGraph in graphEditor/src/jvmTest/kotlin/serialization/FlowKtParserTest.kt
-- [ ] T017 [P] [US2] Add test for round-trip: FlowGraph → .flow.kt → FlowGraph equality in graphEditor/src/jvmTest/kotlin/serialization/FlowKtParserTest.kt
+- [X] T011 [P] [US2] Create FlowKtGeneratorTest.kt with test for generating valid Kotlin syntax in kotlinCompiler/src/commonTest/kotlin/io/codenode/kotlincompiler/generator/FlowKtGeneratorTest.kt
+- [X] T012 [P] [US2] Add test for generating package declaration in .flow.kt in kotlinCompiler/src/commonTest/kotlin/io/codenode/kotlincompiler/generator/FlowKtGeneratorTest.kt
+- [X] T013 [P] [US2] Add test for generating codeNode DSL blocks with all properties in kotlinCompiler/src/commonTest/kotlin/io/codenode/kotlincompiler/generator/FlowKtGeneratorTest.kt
+- [X] T014 [P] [US2] Add test for generating connection DSL statements in kotlinCompiler/src/commonTest/kotlin/io/codenode/kotlincompiler/generator/FlowKtGeneratorTest.kt
+- [X] T015 [P] [US2] Add test for generating processingLogic<T>() references in kotlinCompiler/src/commonTest/kotlin/io/codenode/kotlincompiler/generator/FlowKtGeneratorTest.kt
+- [X] T016 [P] [US2] Create FlowKtParserTest.kt with test for parsing .flow.kt back to FlowGraph in graphEditor/src/jvmTest/kotlin/serialization/FlowKtParserTest.kt
+- [X] T017 [P] [US2] Add test for round-trip: FlowGraph → .flow.kt → FlowGraph equality in graphEditor/src/jvmTest/kotlin/serialization/FlowKtParserTest.kt
 
 ### Implementation for User Story 2
 
