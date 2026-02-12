@@ -122,26 +122,26 @@ Based on plan.md structure:
 
 > **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
 
-- [ ] T035 [P] [US3] Create FlowGraphFactoryGeneratorTest.kt with test for generating factory function signature in kotlinCompiler/src/commonTest/kotlin/io/codenode/kotlincompiler/generator/FlowGraphFactoryGeneratorTest.kt
-- [ ] T036 [P] [US3] Add test for generated function creating CodeNodes with correct properties in kotlinCompiler/src/commonTest/kotlin/io/codenode/kotlincompiler/generator/FlowGraphFactoryGeneratorTest.kt
-- [ ] T037 [P] [US3] Add test for generated function including ProcessingLogic instantiation in kotlinCompiler/src/commonTest/kotlin/io/codenode/kotlincompiler/generator/FlowGraphFactoryGeneratorTest.kt
-- [ ] T038 [P] [US3] Add test for generated function creating all Port definitions in kotlinCompiler/src/commonTest/kotlin/io/codenode/kotlincompiler/generator/FlowGraphFactoryGeneratorTest.kt
-- [ ] T039 [P] [US3] Add test for generated function creating all Connection definitions in kotlinCompiler/src/commonTest/kotlin/io/codenode/kotlincompiler/generator/FlowGraphFactoryGeneratorTest.kt
+- [X] T035 [P] [US3] Create FlowGraphFactoryGeneratorTest.kt with test for generating factory function signature in kotlinCompiler/src/commonTest/kotlin/io/codenode/kotlincompiler/generator/FlowGraphFactoryGeneratorTest.kt
+- [X] T036 [P] [US3] Add test for generated function creating CodeNodes with correct properties in kotlinCompiler/src/commonTest/kotlin/io/codenode/kotlincompiler/generator/FlowGraphFactoryGeneratorTest.kt
+- [X] T037 [P] [US3] Add test for generated function including ProcessingLogic instantiation in kotlinCompiler/src/commonTest/kotlin/io/codenode/kotlincompiler/generator/FlowGraphFactoryGeneratorTest.kt
+- [X] T038 [P] [US3] Add test for generated function creating all Port definitions in kotlinCompiler/src/commonTest/kotlin/io/codenode/kotlincompiler/generator/FlowGraphFactoryGeneratorTest.kt
+- [X] T039 [P] [US3] Add test for generated function creating all Connection definitions in kotlinCompiler/src/commonTest/kotlin/io/codenode/kotlincompiler/generator/FlowGraphFactoryGeneratorTest.kt
 
 ### Implementation for User Story 3
 
-- [ ] T040 [US3] Create FlowGraphFactoryGenerator class in kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/FlowGraphFactoryGenerator.kt
-- [ ] T041 [US3] Implement generateFactoryFunction(flowGraph, packageName) returning FunSpec in kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/FlowGraphFactoryGenerator.kt
-- [ ] T042 [US3] Generate function name as create{GraphName}FlowGraph using KotlinPoet in kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/FlowGraphFactoryGenerator.kt
-- [ ] T043 [US3] Generate CodeNode creation code with all properties (id, name, codeNodeType, position) in kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/FlowGraphFactoryGenerator.kt
-- [ ] T044 [US3] Generate Port list creation for inputPorts and outputPorts in kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/FlowGraphFactoryGenerator.kt
-- [ ] T045 [US3] Generate ProcessingLogic instantiation from processingLogicFile class name in kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/FlowGraphFactoryGenerator.kt
-- [ ] T046 [US3] Implement resolveProcessingLogicClassName(filePath) helper function in kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/FlowGraphFactoryGenerator.kt
-- [ ] T047 [US3] Generate Connection list creation with all connection properties in kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/FlowGraphFactoryGenerator.kt
-- [ ] T048 [US3] Generate FlowGraph return statement with rootNodes, connections, targetPlatforms in kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/FlowGraphFactoryGenerator.kt
-- [ ] T049 [US3] Generate import statements for ProcessingLogic classes in kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/FlowGraphFactoryGenerator.kt
-- [ ] T050 [US3] Integrate FlowGraphFactoryGenerator into ModuleGenerator.generateFlowGraphClass() in kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/ModuleGenerator.kt
-- [ ] T051 [US3] Add factory function to generated FileSpec in ModuleGenerator in kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/ModuleGenerator.kt
+- [X] T040 [US3] Create FlowGraphFactoryGenerator class in kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/FlowGraphFactoryGenerator.kt
+- [X] T041 [US3] Implement generateFactoryFunction(flowGraph, packageName) returning FunSpec in kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/FlowGraphFactoryGenerator.kt
+- [X] T042 [US3] Generate function name as create{GraphName}FlowGraph using KotlinPoet in kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/FlowGraphFactoryGenerator.kt
+- [X] T043 [US3] Generate CodeNode creation code with all properties (id, name, codeNodeType, position) in kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/FlowGraphFactoryGenerator.kt
+- [X] T044 [US3] Generate Port list creation for inputPorts and outputPorts in kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/FlowGraphFactoryGenerator.kt
+- [X] T045 [US3] Generate ProcessingLogic instantiation from processingLogicFile class name in kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/FlowGraphFactoryGenerator.kt
+- [X] T046 [US3] Implement resolveProcessingLogicClassName(filePath) helper function in kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/FlowGraphFactoryGenerator.kt
+- [X] T047 [US3] Generate Connection list creation with all connection properties in kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/FlowGraphFactoryGenerator.kt
+- [X] T048 [US3] Generate FlowGraph return statement with rootNodes, connections, targetPlatforms in kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/FlowGraphFactoryGenerator.kt
+- [X] T049 [US3] Generate import statements for ProcessingLogic classes in kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/FlowGraphFactoryGenerator.kt
+- [X] T050 [US3] Integrate FlowGraphFactoryGenerator into ModuleGenerator.generateFlowGraphClass() in kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/ModuleGenerator.kt
+- [X] T051 [US3] Add factory function to generated FileSpec in ModuleGenerator in kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/ModuleGenerator.kt
 
 **Checkpoint**: User Story 3 complete - Code generator produces factory function
 

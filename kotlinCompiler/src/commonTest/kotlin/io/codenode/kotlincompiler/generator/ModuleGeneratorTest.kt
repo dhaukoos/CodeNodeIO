@@ -450,4 +450,102 @@ class ModuleGeneratorTest {
         assertNotNull(flowGraphClass, "Should generate class for nested graph")
         assertTrue(flowGraphClass.isNotEmpty(), "Generated class should not be empty")
     }
+
+    // ========== T050-T051: FlowGraphFactoryGenerator Integration Tests ==========
+
+    @Test
+    fun `should include factory function in generated FlowGraph class`() {
+        // Given
+        val flowGraph = createTestFlowGraph("StopWatch")
+        val generator = ModuleGenerator()
+
+        // When
+        val generatedClass = generator.generateFlowGraphClass(flowGraph, "io.codenode.generated")
+
+        // Then
+        assertTrue(
+            generatedClass.contains("createStopWatchFlowGraph"),
+            "Should include factory function"
+        )
+        assertTrue(
+            generatedClass.contains("fun createStopWatchFlowGraph()"),
+            "Factory function should have correct signature"
+        )
+    }
+
+    @Test
+    fun `should include FlowGraph model imports in generated class`() {
+        // Given
+        val flowGraph = createTestFlowGraph("ImportTest")
+        val generator = ModuleGenerator()
+
+        // When
+        val generatedClass = generator.generateFlowGraphClass(flowGraph, "io.codenode.generated")
+
+        // Then
+        assertTrue(
+            generatedClass.contains("import io.codenode.fbpdsl.model.FlowGraph"),
+            "Should import FlowGraph"
+        )
+        assertTrue(
+            generatedClass.contains("import io.codenode.fbpdsl.model.CodeNode"),
+            "Should import CodeNode"
+        )
+        assertTrue(
+            generatedClass.contains("import io.codenode.fbpdsl.model.Port"),
+            "Should import Port"
+        )
+        assertTrue(
+            generatedClass.contains("import io.codenode.fbpdsl.model.Connection"),
+            "Should import Connection"
+        )
+    }
+
+    @Test
+    fun `should include ProcessingLogic imports in generated class`() {
+        // Given
+        val node = CodeNode(
+            id = "test-node",
+            name = "TestProcessor",
+            codeNodeType = CodeNodeType.TRANSFORMER,
+            position = Node.Position(0.0, 0.0),
+            inputPorts = emptyList(),
+            outputPorts = emptyList(),
+            configuration = mapOf(
+                "_useCaseClass" to "demo/components/TestProcessorComponent.kt"
+            )
+        )
+        val flowGraph = createTestFlowGraph("ComponentImport", listOf(node))
+        val generator = ModuleGenerator()
+
+        // When
+        val generatedClass = generator.generateFlowGraphClass(flowGraph, "io.codenode.generated")
+
+        // Then
+        assertTrue(
+            generatedClass.contains("import demo.components.TestProcessorComponent"),
+            "Should include ProcessingLogic import derived from file path"
+        )
+    }
+
+    @Test
+    fun `should generate factory function with correct FlowGraph return`() {
+        // Given
+        val node = createTestCodeNode("node1", "Processor")
+        val flowGraph = createTestFlowGraph("FactoryReturn", listOf(node))
+        val generator = ModuleGenerator()
+
+        // When
+        val generatedClass = generator.generateFlowGraphClass(flowGraph, "io.codenode.generated")
+
+        // Then
+        assertTrue(
+            generatedClass.contains("return FlowGraph("),
+            "Factory function should return FlowGraph"
+        )
+        assertTrue(
+            generatedClass.contains("FlowGraph Factory Function"),
+            "Should have section marker for factory function"
+        )
+    }
 }

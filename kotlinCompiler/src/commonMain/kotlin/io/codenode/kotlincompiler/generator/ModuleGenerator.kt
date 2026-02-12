@@ -46,6 +46,11 @@ class ModuleGenerator {
     }
 
     /**
+     * Factory generator instance for creating FlowGraph factory functions.
+     */
+    private val factoryGenerator = FlowGraphFactoryGenerator()
+
+    /**
      * Generates a complete KMP module from a FlowGraph.
      *
      * @param flowGraph The flow graph to generate a module from
@@ -342,7 +347,8 @@ class ModuleGenerator {
      * Generates FlowGraph instantiation class.
      *
      * Creates a class that instantiates all nodes from the FlowGraph
-     * and wires up connections between them.
+     * and wires up connections between them. Also includes a factory
+     * function for creating FlowGraph instances with ProcessingLogic.
      *
      * @param flowGraph The flow graph to generate code for
      * @param packageName The package name for the generated class
@@ -351,6 +357,9 @@ class ModuleGenerator {
     fun generateFlowGraphClass(flowGraph: FlowGraph, packageName: String): String {
         val className = "${flowGraph.name.pascalCase()}Flow"
         val allCodeNodes = flowGraph.getAllCodeNodes()
+
+        // Collect ProcessingLogic imports
+        val processingLogicImports = factoryGenerator.generateProcessingLogicImports(flowGraph, packageName)
 
         return buildString {
             // Header
@@ -363,11 +372,24 @@ class ModuleGenerator {
             appendLine("package $packageName")
             appendLine()
 
-            // Imports
+            // Core imports
             appendLine("import kotlinx.coroutines.CoroutineScope")
             appendLine("import kotlinx.coroutines.flow.MutableSharedFlow")
             appendLine("import kotlinx.coroutines.flow.SharedFlow")
             appendLine("import kotlinx.coroutines.launch")
+
+            // FlowGraph factory imports
+            appendLine("import io.codenode.fbpdsl.model.FlowGraph")
+            appendLine("import io.codenode.fbpdsl.model.CodeNode")
+            appendLine("import io.codenode.fbpdsl.model.CodeNodeType")
+            appendLine("import io.codenode.fbpdsl.model.Node")
+            appendLine("import io.codenode.fbpdsl.model.Port")
+            appendLine("import io.codenode.fbpdsl.model.Connection")
+
+            // ProcessingLogic class imports
+            processingLogicImports.forEach { importPath ->
+                appendLine("import $importPath")
+            }
             appendLine()
 
             // Class documentation
@@ -482,6 +504,12 @@ class ModuleGenerator {
                 appendLine("}")
                 appendLine()
             }
+
+            // Generate factory function for creating FlowGraph instances
+            appendLine("// ========== FlowGraph Factory Function ==========")
+            appendLine()
+            append(factoryGenerator.generateFactoryFunctionRaw(flowGraph))
+            appendLine()
         }
     }
 
