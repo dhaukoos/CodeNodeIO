@@ -387,13 +387,13 @@ class ModuleGenerator {
             appendLine("class $className {")
             appendLine()
 
-            // Node component properties
+            // Node component properties (internal for controller access)
             if (allCodeNodes.isNotEmpty()) {
-                appendLine("    // Node components")
+                appendLine("    // Node components (internal for controller access)")
                 allCodeNodes.forEach { node ->
                     val propName = node.name.camelCase()
                     val typeName = node.name.pascalCase()
-                    appendLine("    private val $propName = ${typeName}Component()")
+                    appendLine("    internal val $propName = ${typeName}Component()")
                 }
                 appendLine()
             }
@@ -463,8 +463,12 @@ class ModuleGenerator {
             appendLine("}")
             appendLine()
 
-            // Generate stub component classes for each node
-            allCodeNodes.forEach { node ->
+            // Generate stub component classes for nodes that don't have a _useCaseClass configured
+            // (nodes with _useCaseClass use external ProcessingLogic implementations)
+            val nodesNeedingStubs = allCodeNodes.filter { node ->
+                !node.configuration.containsKey("_useCaseClass")
+            }
+            nodesNeedingStubs.forEach { node ->
                 val typeName = node.name.pascalCase()
                 appendLine("/**")
                 appendLine(" * Component for node: ${node.name}")
@@ -566,9 +570,14 @@ class ModuleGenerator {
             appendLine("import androidx.lifecycle.Lifecycle")
             appendLine("import androidx.lifecycle.LifecycleEventObserver")
             appendLine("import androidx.lifecycle.LifecycleOwner")
+            appendLine("import kotlinx.coroutines.CoroutineScope")
+            appendLine("import kotlinx.coroutines.Dispatchers")
+            appendLine("import kotlinx.coroutines.SupervisorJob")
+            appendLine("import kotlinx.coroutines.cancel")
             appendLine("import kotlinx.coroutines.flow.MutableStateFlow")
             appendLine("import kotlinx.coroutines.flow.StateFlow")
             appendLine("import kotlinx.coroutines.flow.asStateFlow")
+            appendLine("import kotlinx.coroutines.launch")
             appendLine()
 
             // Class documentation
@@ -600,6 +609,13 @@ class ModuleGenerator {
             appendLine("    private val flow = $flowClassName()")
             appendLine()
 
+            // Flow scope
+            appendLine("    /**")
+            appendLine("     * CoroutineScope for running the flow. Created on start, cancelled on stop.")
+            appendLine("     */")
+            appendLine("    private var flowScope: CoroutineScope? = null")
+            appendLine()
+
             // Lifecycle tracking
             appendLine("    /**")
             appendLine("     * Tracks whether the flow was running before a lifecycle-triggered pause.")
@@ -608,21 +624,20 @@ class ModuleGenerator {
             appendLine("    private var wasRunningBeforePause: Boolean = false")
             appendLine()
 
-            // StateFlow properties for observable state
-            appendLine("    // Observable state properties")
-            appendLine("    private val _elapsedSeconds = MutableStateFlow(0)")
+            // StateFlow properties for observable state - now observe the flow's components
             appendLine("    /**")
             appendLine("     * Current elapsed seconds as observable StateFlow.")
             appendLine("     * Updates when the timer ticks.")
+            appendLine("     * Directly observes the TimerEmitterComponent's state.")
             appendLine("     */")
-            appendLine("    val elapsedSeconds: StateFlow<Int> = _elapsedSeconds.asStateFlow()")
+            appendLine("    val elapsedSeconds: StateFlow<Int> = flow.timerEmitter.elapsedSecondsFlow")
             appendLine()
-            appendLine("    private val _elapsedMinutes = MutableStateFlow(0)")
             appendLine("    /**")
             appendLine("     * Current elapsed minutes as observable StateFlow.")
             appendLine("     * Updates when seconds roll over to a new minute.")
+            appendLine("     * Directly observes the TimerEmitterComponent's state.")
             appendLine("     */")
-            appendLine("    val elapsedMinutes: StateFlow<Int> = _elapsedMinutes.asStateFlow()")
+            appendLine("    val elapsedMinutes: StateFlow<Int> = flow.timerEmitter.elapsedMinutesFlow")
             appendLine()
             appendLine("    private val _executionState = MutableStateFlow(ExecutionState.IDLE)")
             appendLine("    /**")
@@ -636,15 +651,28 @@ class ModuleGenerator {
             appendLine("    /**")
             appendLine("     * Starts all nodes in the flow.")
             appendLine("     *")
-            appendLine("     * Transitions all nodes to RUNNING state.")
+            appendLine("     * Transitions all nodes to RUNNING state and starts the actual flow execution.")
             appendLine("     * State propagates to descendants respecting independentControl flags.")
             appendLine("     *")
             appendLine("     * @return Updated FlowGraph with all nodes running")
             appendLine("     */")
             appendLine("    fun start(): FlowGraph {")
+            appendLine("        // Update FlowGraph state model")
             appendLine("        flowGraph = controller.startAll()")
             appendLine("        controller = RootControlNode.createFor(flowGraph, \"${flowGraph.name}Controller\")")
             appendLine("        _executionState.value = ExecutionState.RUNNING")
+            appendLine()
+            appendLine("        // Cancel any existing scope and create a new one")
+            appendLine("        flowScope?.cancel()")
+            appendLine("        val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)")
+            appendLine("        flowScope = scope")
+            appendLine()
+            appendLine("        // Set the timer emitter to RUNNING and start the flow")
+            appendLine("        flow.timerEmitter.executionState = ExecutionState.RUNNING")
+            appendLine("        scope.launch {")
+            appendLine("            flow.start(scope)")
+            appendLine("        }")
+            appendLine()
             appendLine("        return flowGraph")
             appendLine("    }")
             appendLine()
@@ -670,12 +698,19 @@ class ModuleGenerator {
             appendLine("    /**")
             appendLine("     * Stops all nodes in the flow.")
             appendLine("     *")
-            appendLine("     * Transitions all nodes to IDLE state.")
+            appendLine("     * Transitions all nodes to IDLE state and stops the actual flow execution.")
             appendLine("     * State propagates to descendants respecting independentControl flags.")
             appendLine("     *")
             appendLine("     * @return Updated FlowGraph with all nodes stopped")
             appendLine("     */")
             appendLine("    fun stop(): FlowGraph {")
+            appendLine("        // Stop the actual flow execution")
+            appendLine("        flow.timerEmitter.executionState = ExecutionState.IDLE")
+            appendLine("        flow.stop()")
+            appendLine("        flowScope?.cancel()")
+            appendLine("        flowScope = null")
+            appendLine()
+            appendLine("        // Update FlowGraph state model")
             appendLine("        flowGraph = controller.stopAll()")
             appendLine("        controller = RootControlNode.createFor(flowGraph, \"${flowGraph.name}Controller\")")
             appendLine("        _executionState.value = ExecutionState.IDLE")
@@ -694,8 +729,8 @@ class ModuleGenerator {
             appendLine("     */")
             appendLine("    fun reset(): FlowGraph {")
             appendLine("        wasRunningBeforePause = false")
-            appendLine("        _elapsedSeconds.value = 0")
-            appendLine("        _elapsedMinutes.value = 0")
+            appendLine("        // Reset the timer component state")
+            appendLine("        flow.timerEmitter.reset()")
             appendLine("        return stop()")
             appendLine("    }")
             appendLine()

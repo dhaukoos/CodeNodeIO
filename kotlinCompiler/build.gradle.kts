@@ -48,3 +48,14 @@ tasks.withType<Test> {
     useJUnitPlatform()
 }
 
+// Task to regenerate StopWatch module files using the latest generator
+tasks.register<JavaExec>("regenerateStopWatch") {
+    description = "Regenerate StopWatch module generated files using latest ModuleGenerator"
+    group = "generation"
+    mainClass.set("io.codenode.kotlincompiler.tools.RegenerateStopWatchKt")
+    classpath = kotlin.jvm().compilations["main"].runtimeDependencyFiles +
+            kotlin.jvm().compilations["main"].output.allOutputs
+    workingDir = rootDir
+    dependsOn("jvmMainClasses")
+}
+

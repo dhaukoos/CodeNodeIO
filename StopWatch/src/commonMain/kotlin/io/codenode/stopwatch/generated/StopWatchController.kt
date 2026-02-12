@@ -14,9 +14,14 @@ import io.codenode.fbpdsl.model.ControlConfig
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 
 /**
  * Controller for StopWatch flow execution.
@@ -42,25 +47,29 @@ class StopWatchController(
     private val flow = StopWatchFlow()
 
     /**
+     * CoroutineScope for running the flow. Created on start, cancelled on stop.
+     */
+    private var flowScope: CoroutineScope? = null
+
+    /**
      * Tracks whether the flow was running before a lifecycle-triggered pause.
      * Used to restore running state when lifecycle resumes.
      */
     private var wasRunningBeforePause: Boolean = false
 
-    // Observable state properties
-    private val _elapsedSeconds = MutableStateFlow(0)
     /**
      * Current elapsed seconds as observable StateFlow.
      * Updates when the timer ticks.
+     * Directly observes the TimerEmitterComponent's state.
      */
-    val elapsedSeconds: StateFlow<Int> = _elapsedSeconds.asStateFlow()
+    val elapsedSeconds: StateFlow<Int> = flow.timerEmitter.elapsedSecondsFlow
 
-    private val _elapsedMinutes = MutableStateFlow(0)
     /**
      * Current elapsed minutes as observable StateFlow.
      * Updates when seconds roll over to a new minute.
+     * Directly observes the TimerEmitterComponent's state.
      */
-    val elapsedMinutes: StateFlow<Int> = _elapsedMinutes.asStateFlow()
+    val elapsedMinutes: StateFlow<Int> = flow.timerEmitter.elapsedMinutesFlow
 
     private val _executionState = MutableStateFlow(ExecutionState.IDLE)
     /**
@@ -72,15 +81,28 @@ class StopWatchController(
     /**
      * Starts all nodes in the flow.
      *
-     * Transitions all nodes to RUNNING state.
+     * Transitions all nodes to RUNNING state and starts the actual flow execution.
      * State propagates to descendants respecting independentControl flags.
      *
      * @return Updated FlowGraph with all nodes running
      */
     fun start(): FlowGraph {
+        // Update FlowGraph state model
         flowGraph = controller.startAll()
         controller = RootControlNode.createFor(flowGraph, "StopWatchController")
         _executionState.value = ExecutionState.RUNNING
+
+        // Cancel any existing scope and create a new one
+        flowScope?.cancel()
+        val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+        flowScope = scope
+
+        // Set the timer emitter to RUNNING and start the flow
+        flow.timerEmitter.executionState = ExecutionState.RUNNING
+        scope.launch {
+            flow.start(scope)
+        }
+
         return flowGraph
     }
 
@@ -102,12 +124,19 @@ class StopWatchController(
     /**
      * Stops all nodes in the flow.
      *
-     * Transitions all nodes to IDLE state.
+     * Transitions all nodes to IDLE state and stops the actual flow execution.
      * State propagates to descendants respecting independentControl flags.
      *
      * @return Updated FlowGraph with all nodes stopped
      */
     fun stop(): FlowGraph {
+        // Stop the actual flow execution
+        flow.timerEmitter.executionState = ExecutionState.IDLE
+        flow.stop()
+        flowScope?.cancel()
+        flowScope = null
+
+        // Update FlowGraph state model
         flowGraph = controller.stopAll()
         controller = RootControlNode.createFor(flowGraph, "StopWatchController")
         _executionState.value = ExecutionState.IDLE
@@ -124,8 +153,8 @@ class StopWatchController(
      */
     fun reset(): FlowGraph {
         wasRunningBeforePause = false
-        _elapsedSeconds.value = 0
-        _elapsedMinutes.value = 0
+        // Reset the timer component state
+        flow.timerEmitter.reset()
         return stop()
     }
 
