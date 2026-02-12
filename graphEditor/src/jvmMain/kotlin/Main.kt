@@ -52,6 +52,8 @@ import io.codenode.grapheditor.ui.IPPalette
 import io.codenode.grapheditor.ui.ConnectionContextMenu
 import io.codenode.grapheditor.ui.NavigationBreadcrumbBar
 import io.codenode.grapheditor.ui.NavigationZoomOutButton
+import io.codenode.grapheditor.ui.FlowGraphPropertiesDialog
+import io.codenode.fbpdsl.model.FlowGraph.TargetPlatform
 import io.codenode.grapheditor.compilation.CompilationService
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.key.*
@@ -275,6 +277,7 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
     var showOpenDialog by remember { mutableStateOf(false) }
     var showCompileDialog by remember { mutableStateOf(false) }
     var showModuleSaveDialog by remember { mutableStateOf(false) }
+    var showFlowGraphPropertiesDialog by remember { mutableStateOf(false) }
     var statusMessage by remember { mutableStateOf("Ready - Create a new graph or open an existing one") }
     val compilationService = remember { CompilationService() }
     val moduleSaveService = remember { ModuleSaveService() }
@@ -299,6 +302,8 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                 canUngroup = canUngroup,
                 isInsideGraphNode = isInsideGraphNode,
                 currentGraphNodeName = currentGraphNodeName,
+                flowGraphName = graphState.flowGraph.name,
+                onShowProperties = { showFlowGraphPropertiesDialog = true },
                 onNew = {
                     val newGraph = flowGraph(
                         name = "New Graph",
@@ -837,6 +842,25 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                 showModuleSaveDialog = false
             }
         }
+
+        // FlowGraph Properties dialog
+        if (showFlowGraphPropertiesDialog) {
+            FlowGraphPropertiesDialog(
+                name = graphState.flowGraph.name,
+                targetPlatforms = graphState.flowGraph.targetPlatforms.toSet(),
+                onNameChanged = { newName ->
+                    if (newName.isNotBlank()) {
+                        graphState.setGraph(graphState.flowGraph.copy(name = newName), markDirty = true)
+                    }
+                },
+                onTargetPlatformToggled = { platform ->
+                    val current = graphState.flowGraph.targetPlatforms.toMutableList()
+                    if (platform in current) current.remove(platform) else current.add(platform)
+                    graphState.setGraph(graphState.flowGraph.withTargetPlatforms(current), markDirty = true)
+                },
+                onDismiss = { showFlowGraphPropertiesDialog = false }
+            )
+        }
     }
 }
 
@@ -850,6 +874,8 @@ fun TopToolbar(
     canUngroup: Boolean = false,
     isInsideGraphNode: Boolean = false,
     currentGraphNodeName: String? = null,
+    flowGraphName: String = "New Graph",
+    onShowProperties: () -> Unit = {},
     onNew: () -> Unit,
     onOpen: () -> Unit,
     onSave: () -> Unit,
@@ -897,6 +923,28 @@ fun TopToolbar(
                 fontWeight = FontWeight.Bold,
                 color = Color.White
             )
+
+            // Show graph name and properties button when at root level
+            if (!isInsideGraphNode) {
+                Text(
+                    text = " - ",
+                    color = Color.White.copy(alpha = 0.7f),
+                    fontSize = 18.sp
+                )
+                Text(
+                    text = flowGraphName,
+                    fontWeight = FontWeight.Medium,
+                    color = Color.White,
+                    fontSize = 18.sp
+                )
+                IconButton(onClick = onShowProperties) {
+                    Text(
+                        text = "\u2699",  // Gear icon
+                        fontSize = 18.sp,
+                        color = Color.White
+                    )
+                }
+            }
 
             Spacer(modifier = Modifier.weight(1f))
 
