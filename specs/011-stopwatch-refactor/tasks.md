@@ -98,12 +98,12 @@
 
 ### Implementation for User Story 3
 
-- [ ] T020 [US3] Update import statements in App.kt to add `import io.codenode.stopwatch.stopWatchFlowGraph` in `KMPMobileApp/src/commonMain/kotlin/io/codenode/mobileapp/App.kt`
-- [ ] T021 [US3] Update MainContent composable to use `stopWatchFlowGraph` directly instead of calling createStopWatchFlowGraph() in `KMPMobileApp/src/commonMain/kotlin/io/codenode/mobileapp/App.kt`
-- [ ] T022 [US3] Remove the entire `createStopWatchFlowGraph()` function (approximately 85 lines) from `KMPMobileApp/src/commonMain/kotlin/io/codenode/mobileapp/App.kt`
-- [ ] T023 [US3] Remove unused fbpDsl model imports that were only needed for createStopWatchFlowGraph() in `KMPMobileApp/src/commonMain/kotlin/io/codenode/mobileapp/App.kt`
-- [ ] T024 [US3] Verify KMPMobileApp builds successfully with `./gradlew :KMPMobileApp:build`
-- [ ] T025 [US3] Verify no redundant FlowGraph definitions exist by searching codebase for `createStopWatchFlowGraph`
+- [x] T020 [US3] Update import statements in App.kt to add `import io.codenode.stopwatch.stopWatchFlowGraph` in `KMPMobileApp/src/commonMain/kotlin/io/codenode/mobileapp/App.kt`
+- [x] T021 [US3] Update MainContent composable to use `stopWatchFlowGraph` directly instead of calling createStopWatchFlowGraph() in `KMPMobileApp/src/commonMain/kotlin/io/codenode/mobileapp/App.kt`
+- [x] T022 [US3] Remove the entire `createStopWatchFlowGraph()` function (approximately 85 lines) from `KMPMobileApp/src/commonMain/kotlin/io/codenode/mobileapp/App.kt`
+- [x] T023 [US3] Remove unused fbpDsl model imports that were only needed for createStopWatchFlowGraph() in `KMPMobileApp/src/commonMain/kotlin/io/codenode/mobileapp/App.kt`
+- [x] T024 [US3] Verify KMPMobileApp builds successfully with `./gradlew :KMPMobileApp:build`
+- [x] T025 [US3] Verify no redundant FlowGraph definitions exist by searching codebase for `createStopWatchFlowGraph`
 
 **Checkpoint**: Redundant code removed - KMPMobileApp uses StopWatch module directly
 
