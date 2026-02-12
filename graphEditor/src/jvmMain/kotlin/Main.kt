@@ -40,6 +40,7 @@ import io.codenode.grapheditor.ui.PropertiesPanelState
 import io.codenode.grapheditor.state.rememberPropertyChangeTracker
 import io.codenode.grapheditor.serialization.FlowGraphSerializer
 import io.codenode.grapheditor.serialization.FlowGraphDeserializer
+import io.codenode.grapheditor.serialization.FlowKtParser
 import io.codenode.grapheditor.save.ModuleSaveService
 import io.codenode.fbpdsl.model.NodeTypeDefinition
 import io.codenode.fbpdsl.model.PortTemplate
@@ -787,12 +788,24 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                 val file = showFileOpenDialog()
                 if (file != null) {
                     try {
-                        val result = FlowGraphDeserializer.deserializeFromFile(file)
-                        if (result.isSuccess && result.graph != null) {
-                            graphState.setGraph(result.graph, markDirty = false)
-                            statusMessage = "Opened ${file.name}"
+                        // T026: Use FlowKtParser for .flow.kt files, FlowGraphDeserializer for .flow.kts
+                        if (file.name.endsWith(".flow.kt")) {
+                            val parser = FlowKtParser()
+                            val parseResult = parser.parseFlowKt(file.readText())
+                            if (parseResult.isSuccess && parseResult.graph != null) {
+                                graphState.setGraph(parseResult.graph, markDirty = false)
+                                statusMessage = "Opened ${file.name}"
+                            } else {
+                                statusMessage = "Error opening: ${parseResult.errorMessage}"
+                            }
                         } else {
-                            statusMessage = "Error opening: ${result.errorMessage}"
+                            val deserializeResult = FlowGraphDeserializer.deserializeFromFile(file)
+                            if (deserializeResult.isSuccess && deserializeResult.graph != null) {
+                                graphState.setGraph(deserializeResult.graph, markDirty = false)
+                                statusMessage = "Opened ${file.name}"
+                            } else {
+                                statusMessage = "Error opening: ${deserializeResult.errorMessage}"
+                            }
                         }
                     } catch (e: Exception) {
                         statusMessage = "Error opening: ${e.message}"
@@ -1069,7 +1082,8 @@ fun showFileSaveDialog(): File? {
 fun showFileOpenDialog(): File? {
     val fileChooser = JFileChooser().apply {
         dialogTitle = "Open Flow Graph"
-        fileFilter = FileNameExtensionFilter("Flow Graph Files (*.flow.kts)", "kts")
+        // T026: Accept both .flow.kts (script) and .flow.kt (compiled) files
+        fileFilter = FileNameExtensionFilter("Flow Graph Files (*.flow.kts, *.flow.kt)", "kts", "kt")
     }
 
     return if (fileChooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {

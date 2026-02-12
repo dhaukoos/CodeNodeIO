@@ -54,15 +54,15 @@
 
 ### Implementation for User Story 2
 
-- [ ] T018 [US2] Create FlowKtGenerator class with generateFlowKt(flowGraph, packageName) method in kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/FlowKtGenerator.kt
-- [ ] T019 [US2] Implement flowGraph DSL block generation with name, version, description in kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/FlowKtGenerator.kt
-- [ ] T020 [US2] Implement codeNode DSL block generation with position, ports, config in kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/FlowKtGenerator.kt
-- [ ] T021 [US2] Implement connection DSL statement generation in kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/FlowKtGenerator.kt
-- [ ] T022 [US2] Implement processingLogic<T>() reference generation in kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/FlowKtGenerator.kt
-- [ ] T023 [US2] Create FlowKtParser class with parseFlowKt(content) method in graphEditor/src/jvmMain/kotlin/serialization/FlowKtParser.kt
-- [ ] T024 [US2] Implement Kotlin source parsing to extract FlowGraph structure in graphEditor/src/jvmMain/kotlin/serialization/FlowKtParser.kt
-- [ ] T025 [US2] Integrate FlowKtGenerator into ModuleSaveService in graphEditor/src/jvmMain/kotlin/save/ModuleSaveService.kt
-- [ ] T026 [US2] Update graphEditor Open to use FlowKtParser for .flow.kt files in graphEditor/src/jvmMain/kotlin/Main.kt
+- [X] T018 [US2] Create FlowKtGenerator class with generateFlowKt(flowGraph, packageName) method in kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/FlowKtGenerator.kt
+- [X] T019 [US2] Implement flowGraph DSL block generation with name, version, description in kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/FlowKtGenerator.kt
+- [X] T020 [US2] Implement codeNode DSL block generation with position, ports, config in kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/FlowKtGenerator.kt
+- [X] T021 [US2] Implement connection DSL statement generation in kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/FlowKtGenerator.kt
+- [X] T022 [US2] Implement processingLogic<T>() reference generation in kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/FlowKtGenerator.kt
+- [X] T023 [US2] Create FlowKtParser class with parseFlowKt(content) method in graphEditor/src/jvmMain/kotlin/serialization/FlowKtParser.kt
+- [X] T024 [US2] Implement Kotlin source parsing to extract FlowGraph structure in graphEditor/src/jvmMain/kotlin/serialization/FlowKtParser.kt
+- [X] T025 [US2] Integrate FlowKtGenerator into ModuleSaveService in graphEditor/src/jvmMain/kotlin/save/ModuleSaveService.kt
+- [X] T026 [US2] Update graphEditor Open to use FlowKtParser for .flow.kt files in graphEditor/src/jvmMain/kotlin/Main.kt
 
 **Checkpoint**: User Story 2 complete - FlowGraph saved as compiled Kotlin
 

@@ -7,6 +7,7 @@
 package io.codenode.grapheditor.save
 
 import io.codenode.fbpdsl.model.FlowGraph
+import io.codenode.kotlincompiler.generator.FlowKtGenerator
 import io.codenode.kotlincompiler.generator.ModuleGenerator
 import java.io.File
 
@@ -47,6 +48,7 @@ class ModuleSaveService {
     }
 
     private val moduleGenerator = ModuleGenerator()
+    private val flowKtGenerator = FlowKtGenerator()
 
     /**
      * Saves a FlowGraph as a KMP module.
@@ -93,6 +95,14 @@ class ModuleSaveService {
             val settingsGradleFile = File(moduleDir, "settings.gradle.kts")
             settingsGradleFile.writeText(settingsGradleContent)
             filesCreated.add("settings.gradle.kts")
+
+            // T025: Generate and write .flow.kt file
+            val packagePath = effectivePackageName.replace(".", "/")
+            val flowKtContent = flowKtGenerator.generateFlowKt(flowGraph, effectivePackageName)
+            val flowKtFileName = "${effectiveModuleName}.flow.kt"
+            val flowKtFile = File(moduleDir, "src/commonMain/kotlin/$packagePath/$flowKtFileName")
+            flowKtFile.writeText(flowKtContent)
+            filesCreated.add("src/commonMain/kotlin/$packagePath/$flowKtFileName")
 
             ModuleSaveResult(
                 success = true,
