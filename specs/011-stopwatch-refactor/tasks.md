@@ -113,10 +113,10 @@
 
 **Purpose**: Final validation and cleanup
 
-- [ ] T026 Run full test suite with `./gradlew :graphEditor:jvmTest`
-- [ ] T027 Run graphEditor and manually test complete flow: create GENERIC node, set _useCaseClass, compile successfully
-- [ ] T028 Verify success criteria SC-001 through SC-005 from spec.md are met
-- [ ] T029 [P] Update any documentation that references createStopWatchFlowGraph()
+- [x] T026 Run full test suite with `./gradlew :graphEditor:jvmTest`
+- [x] T027 Run graphEditor and manually test complete flow: create GENERIC node, set _useCaseClass, compile successfully
+- [x] T028 Verify success criteria SC-001 through SC-005 from spec.md are met
+- [x] T029 [P] Update any documentation that references createStopWatchFlowGraph()
 
 ---
 
