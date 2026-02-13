@@ -100,11 +100,11 @@
 
 **Purpose**: Final validation and cleanup
 
-- [ ] T021 [P] Run all kotlinCompiler tests: `./gradlew :kotlinCompiler:jvmTest`
-- [ ] T022 [P] Run all StopWatch tests: `./gradlew :StopWatch:jvmTest`
-- [ ] T023 Run full StopWatch flow end-to-end to verify complete data flow
-- [ ] T024 Review and update quickstart.md verification checklist at specs/012-channel-connections/quickstart.md
-- [ ] T025 Clean up any remaining MutableSharedFlow references in StopWatch module
+- [x] T021 [P] Run all kotlinCompiler tests: `./gradlew :kotlinCompiler:jvmTest`
+- [x] T022 [P] Run all StopWatch tests: `./gradlew :StopWatch:jvmTest`
+- [x] T023 Run full StopWatch flow end-to-end to verify complete data flow
+- [x] T024 Review and update quickstart.md verification checklist at specs/012-channel-connections/quickstart.md
+- [x] T025 Clean up any remaining MutableSharedFlow references in StopWatch module
 
 ---
 

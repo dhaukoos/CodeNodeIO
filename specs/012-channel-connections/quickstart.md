@@ -137,7 +137,8 @@ class TimerEmitterComponent(
     fun stop() {
         executionState = ExecutionState.IDLE
         timerJob?.cancel()
-        outputChannel?.close()  // Signal no more data
+        timerJob = null
+        // Note: Channel is owned and closed by the flow orchestrator, not the component
     }
 }
 ```
@@ -273,14 +274,16 @@ fun `channel respects capacity from Connection`() = runTest {
 
 ## Verification Checklist
 
-- [ ] ModuleGenerator creates `Channel<Any>(capacity)` instead of `MutableSharedFlow`
-- [ ] Generated code includes channel imports
-- [ ] Components use `SendChannel` / `ReceiveChannel` interfaces
-- [ ] Generated code compiles without errors
-- [ ] StopWatch flow functions correctly
-- [ ] Backpressure test passes
-- [ ] Graceful shutdown test passes
-- [ ] All existing tests pass
+- [x] ModuleGenerator creates `Channel<Any>(capacity)` instead of `MutableSharedFlow`
+- [x] Generated code includes channel imports
+- [x] Components use `SendChannel` / `ReceiveChannel` interfaces
+- [x] Generated code compiles without errors
+- [x] StopWatch flow functions correctly
+- [x] Backpressure test passes (ChannelBackpressureTest.kt)
+- [x] Graceful shutdown test passes (ChannelIntegrationTest.kt)
+- [x] All existing tests pass
+
+**Verified**: 2026-02-12 - All tests pass with `./gradlew :kotlinCompiler:jvmTest :StopWatch:jvmTest`
 
 ## Common Issues
 

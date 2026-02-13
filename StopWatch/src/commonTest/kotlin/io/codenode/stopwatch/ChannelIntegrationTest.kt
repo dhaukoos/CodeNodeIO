@@ -7,6 +7,7 @@
 package io.codenode.stopwatch
 
 import io.codenode.fbpdsl.model.ExecutionState
+import io.codenode.stopwatch.generated.StopWatchFlow
 import io.codenode.stopwatch.usecases.DisplayReceiverComponent
 import io.codenode.stopwatch.usecases.TimerEmitterComponent
 import io.codenode.stopwatch.usecases.TimerOutput
@@ -173,6 +174,46 @@ class ChannelIntegrationTest {
 
         // If we get here without exception, the test passes
         assertTrue(true, "TimerEmitter handled channel closure gracefully")
+    }
+
+    /**
+     * T023: Full end-to-end StopWatchFlow test.
+     *
+     * Given: StopWatchFlow with TimerEmitter and DisplayReceiver wired via Channel
+     * When: Flow is started and timer ticks occur
+     * Then: Data flows from emitter through channel to receiver, and shutdown is graceful
+     */
+    @Test
+    fun stopWatchFlow_end_to_end_channel_flow() = runTest {
+        // Given - create the flow orchestrator
+        val flow = StopWatchFlow()
+
+        // Start the flow in background
+        flow.timerEmitter.executionState = ExecutionState.RUNNING
+        backgroundScope.launch {
+            flow.start(this)
+        }
+
+        // When - let timer ticks occur (using fast tick rate from component default)
+        // TimerEmitter uses 1000ms by default, but we can check initial wiring works
+        advanceTimeBy(50)
+
+        // Verify wiring is correct - channels should be assigned
+        assertTrue(flow.timerEmitter.outputChannel != null, "Timer outputChannel should be wired")
+        assertTrue(flow.displayReceiver.inputChannel != null, "Display inputChannel should be wired")
+
+        // Let some time pass for data flow
+        advanceTimeBy(2100) // ~2 ticks at 1000ms
+
+        // Then - verify data flowed through the channel
+        val seconds = flow.displayReceiver.displayedSecondsFlow.first()
+        assertTrue(seconds >= 1, "DisplayReceiver should have received timer ticks, got $seconds")
+
+        // Verify graceful shutdown
+        flow.stop()
+
+        // Flow should have stopped without exceptions
+        assertTrue(true, "StopWatchFlow completed end-to-end test successfully")
     }
 
     /**
