@@ -50,11 +50,11 @@
 
 ### Implementation for User Story 1
 
-- [ ] T006 [US1] Update ModuleGenerator.kt channel declaration to generate `Channel<Any>(capacity)` instead of `MutableSharedFlow<Any>(replay = 1)` at kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/ModuleGenerator.kt:405-407
-- [ ] T007 [US1] Update ModuleGenerator.kt wireConnections to assign channels directly to component SendChannel/ReceiveChannel properties instead of using collect/emit pattern at kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/ModuleGenerator.kt:446-459
-- [ ] T008 [US1] Add channel close() calls to generated stop() method in ModuleGenerator.kt for graceful shutdown
-- [ ] T009 [US1] Write unit test for channel capacity mapping in kotlinCompiler/src/commonTest/kotlin/io/codenode/kotlincompiler/generator/ChannelCapacityTest.kt
-- [ ] T010 [US1] Write backpressure verification test in kotlinCompiler/src/commonTest/kotlin/io/codenode/kotlincompiler/generator/ChannelBackpressureTest.kt
+- [x] T006 [US1] Update ModuleGenerator.kt channel declaration to generate `Channel<Any>(capacity)` instead of `MutableSharedFlow<Any>(replay = 1)` at kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/ModuleGenerator.kt:405-407
+- [x] T007 [US1] Update ModuleGenerator.kt wireConnections to assign channels directly to component SendChannel/ReceiveChannel properties instead of using collect/emit pattern at kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/ModuleGenerator.kt:446-459
+- [x] T008 [US1] Add channel close() calls to generated stop() method in ModuleGenerator.kt for graceful shutdown
+- [x] T009 [US1] Write unit test for channel capacity mapping in kotlinCompiler/src/commonTest/kotlin/io/codenode/kotlincompiler/generator/ChannelCapacityTest.kt
+- [x] T010 [US1] Write backpressure verification test in kotlinCompiler/src/commonTest/kotlin/io/codenode/kotlincompiler/generator/ChannelBackpressureTest.kt
 
 **Checkpoint**: Channel semantics implemented in generator - core FBP behavior verified
 

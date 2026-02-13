@@ -423,7 +423,8 @@ class ModuleGenerator {
                 appendLine("    // Connection channels")
                 flowGraph.connections.forEach { connection ->
                     val channelName = "channel_${connection.id.replace("-", "_")}"
-                    appendLine("    private val $channelName = MutableSharedFlow<Any>(replay = 1)")
+                    val capacityArg = channelCapacityArg(connection.channelCapacity)
+                    appendLine("    private val $channelName = Channel<Any>($capacityArg)")
                 }
                 appendLine()
             }
@@ -435,7 +436,7 @@ class ModuleGenerator {
             appendLine("     * @param scope The coroutine scope to run in")
             appendLine("     */")
             appendLine("    suspend fun start(scope: CoroutineScope) {")
-            appendLine("        wireConnections(scope)")
+            appendLine("        wireConnections()")
             allCodeNodes.forEach { node ->
                 val propName = node.name.camelCase()
                 appendLine("        $propName.start(scope)")
@@ -446,8 +447,20 @@ class ModuleGenerator {
             // Stop method
             appendLine("    /**")
             appendLine("     * Stops all components in the flow.")
+            appendLine("     * Closes channels first for graceful shutdown, then stops components.")
             appendLine("     */")
             appendLine("    fun stop() {")
+            // Close channels first (graceful shutdown - allows buffered data to drain)
+            if (flowGraph.connections.isNotEmpty()) {
+                appendLine("        // Close channels first (graceful shutdown)")
+                flowGraph.connections.forEach { connection ->
+                    val channelName = "channel_${connection.id.replace("-", "_")}"
+                    appendLine("        $channelName.close()")
+                }
+                appendLine()
+            }
+            // Then stop components
+            appendLine("        // Stop components")
             allCodeNodes.forEach { node ->
                 val propName = node.name.camelCase()
                 appendLine("        $propName.stop()")
@@ -458,8 +471,9 @@ class ModuleGenerator {
             // Wire connections method
             appendLine("    /**")
             appendLine("     * Wires up connections between components.")
+            appendLine("     * Assigns channels to component SendChannel/ReceiveChannel properties.")
             appendLine("     */")
-            appendLine("    private fun wireConnections(scope: CoroutineScope) {")
+            appendLine("    private fun wireConnections() {")
             if (flowGraph.connections.isEmpty()) {
                 appendLine("        // No connections to wire")
             } else {
@@ -469,12 +483,10 @@ class ModuleGenerator {
                     if (sourceNode != null && targetNode != null) {
                         val sourceProp = (sourceNode as? CodeNode)?.name?.camelCase() ?: "source"
                         val targetProp = (targetNode as? CodeNode)?.name?.camelCase() ?: "target"
+                        val channelName = "channel_${connection.id.replace("-", "_")}"
                         appendLine("        // ${sourceNode.name} -> ${targetNode.name}")
-                        appendLine("        scope.launch {")
-                        appendLine("            $sourceProp.output.collect { data ->")
-                        appendLine("                $targetProp.input.emit(data)")
-                        appendLine("            }")
-                        appendLine("        }")
+                        appendLine("        $sourceProp.outputChannel = $channelName")
+                        appendLine("        $targetProp.inputChannel = $channelName")
                     }
                 }
             }
