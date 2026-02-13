@@ -23,9 +23,9 @@
 
 **Purpose**: Verify existing infrastructure and prepare for Channel migration
 
-- [ ] T001 Verify Connection.channelCapacity property exists in fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/Connection.kt
-- [ ] T002 Review current ModuleGenerator channel creation at kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/ModuleGenerator.kt:405-407
-- [ ] T003 Review current wireConnections generation at kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/ModuleGenerator.kt:446-459
+- [x] T001 Verify Connection.channelCapacity property exists in fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/Connection.kt
+- [x] T002 Review current ModuleGenerator channel creation at kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/ModuleGenerator.kt:405-407
+- [x] T003 Review current wireConnections generation at kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/ModuleGenerator.kt:446-459
 
 ---
 
@@ -35,8 +35,8 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T004 Add Channel import generation to kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/ModuleGenerator.kt (add kotlinx.coroutines.channels.Channel, SendChannel, ReceiveChannel imports to generated code)
-- [ ] T005 Create channel capacity mapping helper function in ModuleGenerator.kt that maps Connection.channelCapacity to Channel constructor argument (0→Channel.RENDEZVOUS, -1→Channel.UNLIMITED, N→N)
+- [x] T004 Add Channel import generation to kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/ModuleGenerator.kt (add kotlinx.coroutines.channels.Channel, SendChannel, ReceiveChannel imports to generated code)
+- [x] T005 Create channel capacity mapping helper function in ModuleGenerator.kt that maps Connection.channelCapacity to Channel constructor argument (0→Channel.RENDEZVOUS, -1→Channel.UNLIMITED, N→N)
 
 **Checkpoint**: Foundation ready - channel infrastructure in place
 

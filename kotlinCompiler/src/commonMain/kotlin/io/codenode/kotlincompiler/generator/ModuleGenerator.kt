@@ -43,6 +43,23 @@ class ModuleGenerator {
         const val COROUTINES_VERSION = "1.8.0"
         const val SERIALIZATION_VERSION = "1.6.0"
         const val LIFECYCLE_VERSION = "2.8.0"
+
+        /**
+         * Maps Connection.channelCapacity to the appropriate Channel constructor argument.
+         *
+         * @param capacity The channel capacity from Connection.channelCapacity
+         * @return String representation of the Channel constructor argument:
+         *         - 0 → "Channel.RENDEZVOUS" (sender blocks until receiver ready)
+         *         - -1 → "Channel.UNLIMITED" (no backpressure)
+         *         - N (positive) → "N" (buffered with backpressure at capacity)
+         */
+        fun channelCapacityArg(capacity: Int): String {
+            return when (capacity) {
+                0 -> "Channel.RENDEZVOUS"
+                -1 -> "Channel.UNLIMITED"
+                else -> "$capacity"
+            }
+        }
     }
 
     private val factoryGenerator = FlowGraphFactoryGenerator()
@@ -370,6 +387,9 @@ class ModuleGenerator {
             appendLine("import kotlinx.coroutines.flow.MutableSharedFlow")
             appendLine("import kotlinx.coroutines.flow.SharedFlow")
             appendLine("import kotlinx.coroutines.launch")
+            appendLine("import kotlinx.coroutines.channels.Channel")
+            appendLine("import kotlinx.coroutines.channels.SendChannel")
+            appendLine("import kotlinx.coroutines.channels.ReceiveChannel")
             appendLine()
 
             // Class documentation
