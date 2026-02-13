@@ -56,7 +56,8 @@ class ComponentGenerator {
 
         return FileSpec.builder(COMPONENTS_PACKAGE, className)
             .addType(componentClass)
-            .addImport("kotlinx.coroutines.flow", "Flow", "MutableSharedFlow", "collect")
+            .addImport("kotlinx.coroutines.channels", "Channel", "SendChannel", "ReceiveChannel")
+            .addImport("kotlinx.coroutines.channels", "ClosedSendChannelException", "ClosedReceiveChannelException")
             .addImport("kotlinx.coroutines", "CoroutineScope", "launch")
             .build()
     }
@@ -125,32 +126,36 @@ class ComponentGenerator {
 
     /**
      * Generates an input channel property for receiving data.
+     * Uses ReceiveChannel for FBP point-to-point semantics with backpressure.
      */
     private fun generateInputChannelProperty(port: Port<*>): PropertySpec {
-        val flowType = ClassName("kotlinx.coroutines.flow", "MutableSharedFlow")
+        val channelType = ClassName("kotlinx.coroutines.channels", "ReceiveChannel")
             .parameterizedBy(ANY)
 
         return PropertySpec.builder(
-            "${port.name.camelCase()}Input",
-            flowType
+            "${port.name.camelCase()}Channel",
+            channelType.copy(nullable = true)
         )
-            .initializer("%T()", ClassName("kotlinx.coroutines.flow", "MutableSharedFlow"))
+            .mutable(true)
+            .initializer("null")
             .addKdoc("Input channel for port: ${port.name} (type: ${port.typeName})")
             .build()
     }
 
     /**
      * Generates an output channel property for emitting data.
+     * Uses SendChannel for FBP point-to-point semantics with backpressure.
      */
     private fun generateOutputChannelProperty(port: Port<*>): PropertySpec {
-        val flowType = ClassName("kotlinx.coroutines.flow", "MutableSharedFlow")
+        val channelType = ClassName("kotlinx.coroutines.channels", "SendChannel")
             .parameterizedBy(ANY)
 
         return PropertySpec.builder(
-            "${port.name.camelCase()}Output",
-            flowType
+            "${port.name.camelCase()}Channel",
+            channelType.copy(nullable = true)
         )
-            .initializer("%T()", ClassName("kotlinx.coroutines.flow", "MutableSharedFlow"))
+            .mutable(true)
+            .initializer("null")
             .addKdoc("Output channel for port: ${port.name} (type: ${port.typeName})")
             .build()
     }
@@ -239,6 +244,7 @@ class ComponentGenerator {
 
     /**
      * Generates the start function that launches the coroutine processing loop.
+     * Uses channel iteration (for-in) and handles ClosedReceiveChannelException gracefully.
      */
     private fun generateStartFunction(node: CodeNode): FunSpec {
         val scopeType = ClassName("kotlinx.coroutines", "CoroutineScope")
@@ -248,23 +254,33 @@ class ComponentGenerator {
             .addKdoc("Starts the component's processing loop in the given coroutine scope.\n")
             .addCode(CodeBlock.builder()
                 .beginControlFlow("scope.launch")
+                .beginControlFlow("try")
                 .apply {
                     if (node.inputPorts.isNotEmpty()) {
                         val firstInput = node.inputPorts.first()
-                        beginControlFlow("${firstInput.name.camelCase()}Input.collect { input ->")
+                        val channelName = "${firstInput.name.camelCase()}Channel"
+                        addStatement("val channel = $channelName ?: return@launch")
+                        beginControlFlow("for (input in channel)")
                         addStatement("val result = process(input)")
                         if (node.outputPorts.isNotEmpty()) {
-                            addStatement("${node.outputPorts.first().name.camelCase()}Output.emit(result)")
+                            val outputChannel = "${node.outputPorts.first().name.camelCase()}Channel"
+                            addStatement("$outputChannel?.send(result)")
                         }
                         endControlFlow()
                     } else {
                         addStatement("// Generator node - implement generation loop")
                         addStatement("val result = process()")
                         if (node.outputPorts.isNotEmpty()) {
-                            addStatement("${node.outputPorts.first().name.camelCase()}Output.emit(result)")
+                            val outputChannel = "${node.outputPorts.first().name.camelCase()}Channel"
+                            addStatement("$outputChannel?.send(result)")
                         }
                     }
                 }
+                .nextControlFlow("catch (e: %T)", ClassName("kotlinx.coroutines.channels", "ClosedReceiveChannelException"))
+                .addStatement("// Channel closed - graceful shutdown")
+                .nextControlFlow("catch (e: %T)", ClassName("kotlinx.coroutines.channels", "ClosedSendChannelException"))
+                .addStatement("// Output channel closed - graceful shutdown")
+                .endControlFlow()
                 .endControlFlow()
                 .build())
             .build()

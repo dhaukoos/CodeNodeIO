@@ -12,6 +12,8 @@ import io.codenode.fbpdsl.model.InformationPacketFactory
 import io.codenode.fbpdsl.model.ProcessingLogic
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.channels.ClosedSendChannelException
+import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -48,8 +50,11 @@ class TimerEmitterComponent(
     initialMinutes: Int = 0
 ) : ProcessingLogic {
 
-    // Output SharedFlow for emitting to downstream nodes
+    // Output SharedFlow for emitting to downstream nodes (legacy)
     val output = MutableSharedFlow<TimerOutput>(replay = 1)
+
+    // Output channel for FBP point-to-point semantics (assigned by flow wiring)
+    var outputChannel: SendChannel<Any>? = null
 
     // Observable state flows for elapsed time
     private val _elapsedSeconds = MutableStateFlow(initialSeconds)
@@ -109,7 +114,15 @@ class TimerEmitterComponent(
                 _elapsedMinutes.value = newMinutes
 
                 // Emit to output for downstream connections
-                output.emit(TimerOutput(newSeconds, newMinutes))
+                val timerOutput = TimerOutput(newSeconds, newMinutes)
+                output.emit(timerOutput)
+
+                // Also send to channel if wired
+                try {
+                    outputChannel?.send(timerOutput)
+                } catch (e: ClosedSendChannelException) {
+                    // Channel closed - graceful shutdown
+                }
             }
         }
     }

@@ -41,7 +41,8 @@ class FlowGenerator {
         return FileSpec.builder(FLOW_PACKAGE, orchestratorName)
             .addType(generateOrchestratorClass(flowGraph, orchestratorName))
             .addImport("kotlinx.coroutines", "CoroutineScope", "launch", "coroutineScope")
-            .addImport("kotlinx.coroutines.flow", "collect", "onEach")
+            .addImport("kotlinx.coroutines.channels", "Channel", "SendChannel", "ReceiveChannel")
+            .addImport("kotlinx.coroutines.channels", "ClosedSendChannelException", "ClosedReceiveChannelException")
             .build()
     }
 

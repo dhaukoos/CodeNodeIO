@@ -10,6 +10,8 @@ import io.codenode.fbpdsl.model.InformationPacket
 import io.codenode.fbpdsl.model.ProcessingLogic
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.channels.ClosedReceiveChannelException
+import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -26,8 +28,11 @@ import kotlinx.coroutines.launch
  */
 class DisplayReceiverComponent : ProcessingLogic {
 
-    // Input SharedFlow for receiving from upstream nodes
+    // Input SharedFlow for receiving from upstream nodes (legacy)
     val input = MutableSharedFlow<TimerOutput>(replay = 1)
+
+    // Input channel for FBP point-to-point semantics (assigned by flow wiring)
+    var inputChannel: ReceiveChannel<Any>? = null
 
     // Observable state flows for displayed time
     private val _displayedSeconds = MutableStateFlow(0)
@@ -57,17 +62,38 @@ class DisplayReceiverComponent : ProcessingLogic {
         return emptyMap()
     }
 
+    // Job for channel collection
+    private var channelJob: Job? = null
+
     /**
-     * Starts collecting from the input flow.
+     * Starts collecting from the input flow and channel.
      *
      * @param scope CoroutineScope to run collection in
      */
     suspend fun start(scope: CoroutineScope) {
         collectionJob?.cancel()
+        channelJob?.cancel()
+
+        // Collect from legacy SharedFlow
         collectionJob = scope.launch {
             input.collect { timerOutput ->
                 receiveSeconds(timerOutput.elapsedSeconds)
                 receiveMinutes(timerOutput.elapsedMinutes)
+            }
+        }
+
+        // Collect from channel if wired
+        inputChannel?.let { channel ->
+            channelJob = scope.launch {
+                try {
+                    for (data in channel) {
+                        val timerOutput = data as? TimerOutput ?: continue
+                        receiveSeconds(timerOutput.elapsedSeconds)
+                        receiveMinutes(timerOutput.elapsedMinutes)
+                    }
+                } catch (e: ClosedReceiveChannelException) {
+                    // Channel closed - graceful shutdown
+                }
             }
         }
     }
@@ -78,6 +104,8 @@ class DisplayReceiverComponent : ProcessingLogic {
     fun stop() {
         collectionJob?.cancel()
         collectionJob = null
+        channelJob?.cancel()
+        channelJob = null
     }
 
     /**

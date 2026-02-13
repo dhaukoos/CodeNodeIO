@@ -68,11 +68,11 @@
 
 ### Implementation for User Story 2
 
-- [ ] T011 [US2] Update FlowGenerator.kt to include Channel imports in generated flow class at kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/FlowGenerator.kt
-- [ ] T012 [US2] Update ComponentGenerator.kt to generate SendChannel/ReceiveChannel properties instead of MutableSharedFlow at kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/ComponentGenerator.kt
-- [ ] T013 [US2] Regenerate StopWatchFlow.kt to verify generated code compiles with channel-based connections
-- [ ] T014 [US2] Verify generated code handles ClosedSendChannelException and ClosedReceiveChannelException gracefully
-- [ ] T015 [US2] Run existing ModuleGeneratorTest to ensure backward compatibility at kotlinCompiler/src/commonTest/kotlin/io/codenode/kotlincompiler/generator/ModuleGeneratorTest.kt
+- [x] T011 [US2] Update FlowGenerator.kt to include Channel imports in generated flow class at kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/FlowGenerator.kt
+- [x] T012 [US2] Update ComponentGenerator.kt to generate SendChannel/ReceiveChannel properties instead of MutableSharedFlow at kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/ComponentGenerator.kt
+- [x] T013 [US2] Regenerate StopWatchFlow.kt to verify generated code compiles with channel-based connections
+- [x] T014 [US2] Verify generated code handles ClosedSendChannelException and ClosedReceiveChannelException gracefully
+- [x] T015 [US2] Run existing ModuleGeneratorTest to ensure backward compatibility at kotlinCompiler/src/commonTest/kotlin/io/codenode/kotlincompiler/generator/ModuleGeneratorTest.kt
 
 **Checkpoint**: Generated code compiles and uses proper channel patterns
 
