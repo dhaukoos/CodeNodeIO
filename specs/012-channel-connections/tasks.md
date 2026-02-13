@@ -86,11 +86,11 @@
 
 ### Implementation for User Story 3
 
-- [ ] T016 [P] [US3] Update TimerEmitterComponent to use SendChannel<TimerOutput> output pattern at StopWatch/src/commonMain/kotlin/io/codenode/stopwatch/usecases/TimerEmitterComponent.kt
-- [ ] T017 [P] [US3] Update DisplayReceiverComponent to use ReceiveChannel<TimerOutput> input pattern with for-loop iteration at StopWatch/src/commonMain/kotlin/io/codenode/stopwatch/usecases/DisplayReceiverComponent.kt
-- [ ] T018 [US3] Update component stop() methods to properly close output channels and handle channel closure
-- [ ] T019 [US3] Run StopWatch integration tests to verify timer emitter and display receiver work with channels at StopWatch/src/commonTest/kotlin/io/codenode/stopwatch/
-- [ ] T020 [US3] Verify graceful shutdown - buffered data consumed before channel reports closed
+- [x] T016 [P] [US3] Update TimerEmitterComponent to use SendChannel<TimerOutput> output pattern at StopWatch/src/commonMain/kotlin/io/codenode/stopwatch/usecases/TimerEmitterComponent.kt
+- [x] T017 [P] [US3] Update DisplayReceiverComponent to use ReceiveChannel<TimerOutput> input pattern with for-loop iteration at StopWatch/src/commonMain/kotlin/io/codenode/stopwatch/usecases/DisplayReceiverComponent.kt
+- [x] T018 [US3] Update component stop() methods to properly close output channels and handle channel closure
+- [x] T019 [US3] Run StopWatch integration tests to verify timer emitter and display receiver work with channels at StopWatch/src/commonTest/kotlin/io/codenode/stopwatch/
+- [x] T020 [US3] Verify graceful shutdown - buffered data consumed before channel reports closed
 
 **Checkpoint**: Components fully integrated with channel-based architecture
 

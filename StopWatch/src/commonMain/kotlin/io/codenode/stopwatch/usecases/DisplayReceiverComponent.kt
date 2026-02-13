@@ -12,7 +12,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.ClosedReceiveChannelException
 import kotlinx.coroutines.channels.ReceiveChannel
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -28,11 +27,12 @@ import kotlinx.coroutines.launch
  */
 class DisplayReceiverComponent : ProcessingLogic {
 
-    // Input SharedFlow for receiving from upstream nodes (legacy)
-    val input = MutableSharedFlow<TimerOutput>(replay = 1)
-
-    // Input channel for FBP point-to-point semantics (assigned by flow wiring)
-    var inputChannel: ReceiveChannel<Any>? = null
+    /**
+     * Input channel for FBP point-to-point semantics with backpressure.
+     * Assigned by flow wiring before start() is called.
+     * Uses typed ReceiveChannel<TimerOutput> for type safety.
+     */
+    var inputChannel: ReceiveChannel<TimerOutput>? = null
 
     // Observable state flows for displayed time
     private val _displayedSeconds = MutableStateFlow(0)
@@ -62,50 +62,38 @@ class DisplayReceiverComponent : ProcessingLogic {
         return emptyMap()
     }
 
-    // Job for channel collection
-    private var channelJob: Job? = null
-
     /**
-     * Starts collecting from the input flow and channel.
+     * Starts collecting from the input channel using for-loop iteration.
+     * The for-loop automatically handles channel closure gracefully.
      *
      * @param scope CoroutineScope to run collection in
      */
     suspend fun start(scope: CoroutineScope) {
         collectionJob?.cancel()
-        channelJob?.cancel()
 
-        // Collect from legacy SharedFlow
-        collectionJob = scope.launch {
-            input.collect { timerOutput ->
-                receiveSeconds(timerOutput.elapsedSeconds)
-                receiveMinutes(timerOutput.elapsedMinutes)
-            }
-        }
-
-        // Collect from channel if wired
+        // Collect from typed channel using for-loop iteration
         inputChannel?.let { channel ->
-            channelJob = scope.launch {
+            collectionJob = scope.launch {
                 try {
-                    for (data in channel) {
-                        val timerOutput = data as? TimerOutput ?: continue
+                    for (timerOutput in channel) {
                         receiveSeconds(timerOutput.elapsedSeconds)
                         receiveMinutes(timerOutput.elapsedMinutes)
                     }
+                    // For-loop exits normally when channel is closed
                 } catch (e: ClosedReceiveChannelException) {
-                    // Channel closed - graceful shutdown
+                    // Channel closed unexpectedly - graceful shutdown
                 }
             }
         }
     }
 
     /**
-     * Stops collecting from input.
+     * Stops collecting from input channel.
+     * Channel closure is handled by the flow orchestrator.
      */
     fun stop() {
         collectionJob?.cancel()
         collectionJob = null
-        channelJob?.cancel()
-        channelJob = null
     }
 
     /**

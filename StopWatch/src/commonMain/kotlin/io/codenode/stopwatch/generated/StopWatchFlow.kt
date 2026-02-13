@@ -30,8 +30,8 @@ class StopWatchFlow {
     internal val timerEmitter = TimerEmitterComponent()
     internal val displayReceiver = DisplayReceiverComponent()
 
-    // Connection channels (using Kotlin Channel for FBP point-to-point semantics)
-    private val channel_conn_1 = Channel<Any>(Channel.RENDEZVOUS)
+    // Connection channels (using typed Kotlin Channel for FBP point-to-point semantics)
+    private val channel_conn_1 = Channel<TimerOutput>(Channel.RENDEZVOUS)
 
     /**
      * Starts the flow with the given coroutine scope.

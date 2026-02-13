@@ -15,7 +15,6 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.ClosedSendChannelException
 import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -50,11 +49,12 @@ class TimerEmitterComponent(
     initialMinutes: Int = 0
 ) : ProcessingLogic {
 
-    // Output SharedFlow for emitting to downstream nodes (legacy)
-    val output = MutableSharedFlow<TimerOutput>(replay = 1)
-
-    // Output channel for FBP point-to-point semantics (assigned by flow wiring)
-    var outputChannel: SendChannel<Any>? = null
+    /**
+     * Output channel for FBP point-to-point semantics with backpressure.
+     * Assigned by flow wiring before start() is called.
+     * Uses typed SendChannel<TimerOutput> for type safety.
+     */
+    var outputChannel: SendChannel<TimerOutput>? = null
 
     // Observable state flows for elapsed time
     private val _elapsedSeconds = MutableStateFlow(initialSeconds)
@@ -113,15 +113,13 @@ class TimerEmitterComponent(
                 _elapsedSeconds.value = newSeconds
                 _elapsedMinutes.value = newMinutes
 
-                // Emit to output for downstream connections
+                // Send to output channel for downstream connections
                 val timerOutput = TimerOutput(newSeconds, newMinutes)
-                output.emit(timerOutput)
-
-                // Also send to channel if wired
                 try {
                     outputChannel?.send(timerOutput)
                 } catch (e: ClosedSendChannelException) {
-                    // Channel closed - graceful shutdown
+                    // Channel closed - graceful shutdown, exit loop
+                    break
                 }
             }
         }
