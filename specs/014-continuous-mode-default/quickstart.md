@@ -306,16 +306,16 @@ val wiring = CodeNodeFactory.createContinuousGenerator<MyOutput>(
 
 ## Verification Checklist
 
-- [ ] `createContinuousGenerator<T>` creates NodeRuntime with output channel
-- [ ] `createContinuousSink<T>` creates NodeRuntime with input channel
-- [ ] `createContinuousTransformer<TIn, TOut>` creates NodeRuntime with both channels
-- [ ] `createContinuousFilter<T>` creates NodeRuntime with both channels
-- [ ] Generator loop respects `isActive` check
-- [ ] Sink handles `ClosedReceiveChannelException` gracefully
-- [ ] Channels close when node stops
-- [ ] Virtual time testing works with `runTest`
-- [ ] Existing single-invocation methods still work (deprecated)
-- [ ] All existing tests pass
+- [x] `createContinuousGenerator<T>` creates NodeRuntime with output channel
+- [x] `createContinuousSink<T>` creates NodeRuntime with input channel
+- [x] `createContinuousTransformer<TIn, TOut>` creates NodeRuntime with both channels
+- [x] `createContinuousFilter<T>` creates NodeRuntime with both channels
+- [x] Generator loop respects `isActive` check
+- [x] Sink handles `ClosedReceiveChannelException` gracefully
+- [x] Channels close when node stops
+- [x] Virtual time testing works with `runTest`
+- [x] Existing single-invocation methods still work (deprecated)
+- [x] All existing tests pass
 
 ## Common Issues
 
