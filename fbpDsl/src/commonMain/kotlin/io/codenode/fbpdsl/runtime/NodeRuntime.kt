@@ -27,7 +27,7 @@ import kotlinx.coroutines.launch
  * @param T The primary data type flowing through this node
  * @property codeNode The underlying CodeNode model (immutable definition)
  */
-class NodeRuntime<T : Any>(
+open class NodeRuntime<T : Any>(
     val codeNode: CodeNode
 ) {
     /**
@@ -64,7 +64,7 @@ class NodeRuntime<T : Any>(
      * @param scope CoroutineScope to launch the processing job in
      * @param processingBlock Custom processing logic to execute in the job loop
      */
-    fun start(scope: CoroutineScope, processingBlock: suspend () -> Unit) {
+    open fun start(scope: CoroutineScope, processingBlock: suspend () -> Unit) {
         // Cancel existing job if running (prevents duplicate jobs)
         nodeControlJob?.cancel()
 

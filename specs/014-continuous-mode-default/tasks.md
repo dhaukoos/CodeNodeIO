@@ -65,17 +65,17 @@
 
 ### Tests for User Story 1
 
-- [ ] T014 [P] [US1] Create ContinuousFactoryTest.kt test file at fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/runtime/ContinuousFactoryTest.kt
-- [ ] T015 [US1] Write test: generator emits values at correct intervals using runTest and advanceTimeBy in ContinuousFactoryTest.kt
-- [ ] T016 [US1] Write test: generator respects isActive check for graceful shutdown in ContinuousFactoryTest.kt
-- [ ] T017 [US1] Write test: generator output channel closes when stopped in ContinuousFactoryTest.kt
+- [x] T014 [P] [US1] Create ContinuousFactoryTest.kt test file at fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/runtime/ContinuousFactoryTest.kt
+- [x] T015 [US1] Write test: generator emits values at correct intervals using runTest and advanceTimeBy in ContinuousFactoryTest.kt
+- [x] T016 [US1] Write test: generator respects isActive check for graceful shutdown in ContinuousFactoryTest.kt
+- [x] T017 [US1] Write test: generator output channel closes when stopped in ContinuousFactoryTest.kt
 
 ### Implementation for User Story 1
 
-- [ ] T018 [US1] Add createContinuousGenerator<T> method to CodeNodeFactory in fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/CodeNodeFactory.kt
-- [ ] T019 [US1] Implement generator loop with isActive check and emit function in createContinuousGenerator
-- [ ] T020 [US1] Add channelCapacity parameter to createContinuousGenerator with default Channel.BUFFERED
-- [ ] T021 [US1] Verify all US1 tests pass: ./gradlew test --tests "*ContinuousFactoryTest*"
+- [x] T018 [US1] Add createContinuousGenerator<T> method to CodeNodeFactory in fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/CodeNodeFactory.kt
+- [x] T019 [US1] Implement generator loop with isActive check and emit function in createContinuousGenerator
+- [x] T020 [US1] Add channelCapacity parameter to createContinuousGenerator with default Channel.BUFFERED
+- [x] T021 [US1] Verify all US1 tests pass: ./gradlew test --tests "*ContinuousFactoryTest*"
 
 **Checkpoint**: Continuous generators work with virtual time testing
 

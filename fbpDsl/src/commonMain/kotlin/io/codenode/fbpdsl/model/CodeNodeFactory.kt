@@ -6,6 +6,10 @@
 
 package io.codenode.fbpdsl.model
 
+import io.codenode.fbpdsl.runtime.ContinuousGeneratorBlock
+import io.codenode.fbpdsl.runtime.GeneratorRuntime
+import kotlinx.coroutines.channels.Channel
+
 /**
  * Factory for creating CodeNode instances with type-safe patterns
  */
@@ -464,5 +468,61 @@ object CodeNodeFactory {
             outputPorts = emptyList(),
             processingLogic = processingLogic
         )
+    }
+
+    // ========== Continuous Factory Methods ==========
+
+    /**
+     * Creates a continuous generator node that emits values in a loop.
+     *
+     * The generator runs continuously until stopped, emitting values via the
+     * provided emit function. The generator block should check `isActive` to
+     * support graceful shutdown.
+     *
+     * @param T Type of values emitted
+     * @param name Human-readable name
+     * @param channelCapacity Buffer capacity for output channel (default: BUFFERED = 64)
+     * @param position Canvas position
+     * @param description Optional documentation
+     * @param generate Processing block that receives an emit function
+     * @return NodeRuntime configured for continuous generation
+     *
+     * @sample
+     * ```kotlin
+     * val timer = CodeNodeFactory.createContinuousGenerator<Int>(
+     *     name = "Counter"
+     * ) { emit ->
+     *     var count = 0
+     *     while (isActive) {
+     *         delay(1000)
+     *         emit(++count)
+     *     }
+     * }
+     *
+     * timer.start(scope) { }
+     * ```
+     */
+    inline fun <reified T : Any> createContinuousGenerator(
+        name: String,
+        channelCapacity: Int = Channel.BUFFERED,
+        position: Node.Position = Node.Position.ORIGIN,
+        description: String? = null,
+        noinline generate: ContinuousGeneratorBlock<T>
+    ): GeneratorRuntime<T> {
+        val nodeId = NodeIdGenerator.generateId("codenode")
+
+        val codeNode = CodeNode(
+            id = nodeId,
+            name = name,
+            codeNodeType = CodeNodeType.GENERATOR,
+            description = description,
+            position = position,
+            inputPorts = emptyList(),
+            outputPorts = listOf(
+                PortFactory.output<T>("output", nodeId)
+            )
+        )
+
+        return GeneratorRuntime(codeNode, channelCapacity, generate)
     }
 }
