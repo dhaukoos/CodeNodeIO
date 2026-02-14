@@ -50,24 +50,24 @@
 
 ### Tests for User Story 1
 
-- [ ] T007 [US1] Create CodeNodeLifecycleTest file at fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/model/CodeNodeLifecycleTest.kt with test imports and class structure
-- [ ] T008 [US1] Write test `start creates nodeControlJob and runs processingBlock` in CodeNodeLifecycleTest.kt
-- [ ] T009 [US1] Write test `stop cancels nodeControlJob` in CodeNodeLifecycleTest.kt
-- [ ] T010 [US1] Write test `start cancels existing job before creating new one` in CodeNodeLifecycleTest.kt
-- [ ] T011 [US1] Write test `stop on idle node is no-op` in CodeNodeLifecycleTest.kt
-- [ ] T012 [US1] Write test `stop on paused node transitions to IDLE` in CodeNodeLifecycleTest.kt
-- [ ] T013 [US1] Write test `pause on running node transitions to PAUSED` in CodeNodeLifecycleTest.kt
-- [ ] T014 [US1] Write test `resume from paused transitions back to RUNNING` in CodeNodeLifecycleTest.kt
-- [ ] T015 [US1] Write test `pause on non-running node is no-op` in CodeNodeLifecycleTest.kt
-- [ ] T016 [US1] Write test `resume on non-paused node is no-op` in CodeNodeLifecycleTest.kt
+- [x] T007 [US1] Create CodeNodeLifecycleTest file at fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/model/CodeNodeLifecycleTest.kt with test imports and class structure
+- [x] T008 [US1] Write test `start creates nodeControlJob and runs processingBlock` in CodeNodeLifecycleTest.kt
+- [x] T009 [US1] Write test `stop cancels nodeControlJob` in CodeNodeLifecycleTest.kt
+- [x] T010 [US1] Write test `start cancels existing job before creating new one` in CodeNodeLifecycleTest.kt
+- [x] T011 [US1] Write test `stop on idle node is no-op` in CodeNodeLifecycleTest.kt
+- [x] T012 [US1] Write test `stop on paused node transitions to IDLE` in CodeNodeLifecycleTest.kt
+- [x] T013 [US1] Write test `pause on running node transitions to PAUSED` in CodeNodeLifecycleTest.kt
+- [x] T014 [US1] Write test `resume from paused transitions back to RUNNING` in CodeNodeLifecycleTest.kt
+- [x] T015 [US1] Write test `pause on non-running node is no-op` in CodeNodeLifecycleTest.kt
+- [x] T016 [US1] Write test `resume on non-paused node is no-op` in CodeNodeLifecycleTest.kt
 
 ### Implementation for User Story 1
 
-- [ ] T017 [US1] Implement `suspend fun start(scope: CoroutineScope, processingBlock: suspend () -> Unit)` method in CodeNode.kt
-- [ ] T018 [US1] Implement `fun stop()` method in CodeNode.kt that cancels nodeControlJob and sets it to null
-- [ ] T019 [US1] Implement `fun pause()` method in CodeNode.kt (only valid when RUNNING)
-- [ ] T020 [US1] Implement `fun resume()` method in CodeNode.kt (only valid when PAUSED)
-- [ ] T021 [US1] Run CodeNodeLifecycleTest to verify all 9 tests pass: `./gradlew :fbpDsl:jvmTest --tests "*CodeNodeLifecycleTest*"`
+- [x] T017 [US1] Implement `suspend fun start(scope: CoroutineScope, processingBlock: suspend () -> Unit)` method in CodeNode.kt
+- [x] T018 [US1] Implement `fun stop()` method in CodeNode.kt that cancels nodeControlJob and sets it to null
+- [x] T019 [US1] Implement `fun pause()` method in CodeNode.kt (only valid when RUNNING)
+- [x] T020 [US1] Implement `fun resume()` method in CodeNode.kt (only valid when PAUSED)
+- [x] T021 [US1] Run CodeNodeLifecycleTest to verify all 9 tests pass: `./gradlew :fbpDsl:jvmTest --tests "*CodeNodeLifecycleTest*"`
 
 **Checkpoint**: CodeNode has full lifecycle control (start, stop, pause, resume) - independently testable
 
