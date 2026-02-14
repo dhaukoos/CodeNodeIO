@@ -25,8 +25,8 @@
 
 **Purpose**: Create new runtime package and type aliases
 
-- [ ] T001 Create runtime package directory at fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/
-- [ ] T002 [P] Create ContinuousTypes.kt with type aliases in fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/ContinuousTypes.kt
+- [x] T001 Create runtime package directory at fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/
+- [x] T002 [P] Create ContinuousTypes.kt with type aliases in fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/ContinuousTypes.kt
 
 ---
 
@@ -38,20 +38,20 @@
 
 ### Tests for Foundational Phase
 
-- [ ] T003 Rename CodeNodeLifecycleTest.kt to NodeRuntimeTest.kt at fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/runtime/NodeRuntimeTest.kt
-- [ ] T004 Update test imports and class references in NodeRuntimeTest.kt to test NodeRuntime instead of CodeNode
+- [x] T003 Rename CodeNodeLifecycleTest.kt to NodeRuntimeTest.kt at fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/runtime/NodeRuntimeTest.kt
+- [x] T004 Update test imports and class references in NodeRuntimeTest.kt to test NodeRuntime instead of CodeNode
 
 ### Implementation for Foundational Phase
 
-- [ ] T005 Create NodeRuntime.kt class with lifecycle methods in fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/NodeRuntime.kt
-- [ ] T006 Remove @Transient nodeControlJob property from CodeNode in fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/CodeNode.kt
-- [ ] T007 Remove start(scope, processingBlock) method from CodeNode in fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/CodeNode.kt
-- [ ] T008 Remove stop() method from CodeNode in fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/CodeNode.kt
-- [ ] T009 Remove pause() and resume() methods from CodeNode in fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/CodeNode.kt
-- [ ] T010 Update TimerEmitterComponent to use NodeRuntime in StopWatch/src/commonMain/kotlin/io/codenode/stopwatch/usecases/TimerEmitterComponent.kt
-- [ ] T011 Update DisplayReceiverComponent to use NodeRuntime in StopWatch/src/commonMain/kotlin/io/codenode/stopwatch/usecases/DisplayReceiverComponent.kt
-- [ ] T012 Update ChannelIntegrationTest to use NodeRuntime in StopWatch/src/commonTest/kotlin/io/codenode/stopwatch/usecases/ChannelIntegrationTest.kt
-- [ ] T013 Run all tests to verify lifecycle relocation works: ./gradlew test
+- [x] T005 Create NodeRuntime.kt class with lifecycle methods in fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/NodeRuntime.kt
+- [x] T006 Remove @Transient nodeControlJob property from CodeNode in fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/CodeNode.kt
+- [x] T007 Remove start(scope, processingBlock) method from CodeNode in fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/CodeNode.kt
+- [x] T008 Remove stop() method from CodeNode in fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/CodeNode.kt
+- [x] T009 Remove pause() and resume() methods from CodeNode in fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/CodeNode.kt
+- [x] T010 Update TimerEmitterComponent to use NodeRuntime in StopWatch/src/commonMain/kotlin/io/codenode/stopwatch/usecases/TimerEmitterComponent.kt
+- [x] T011 Update DisplayReceiverComponent to use NodeRuntime in StopWatch/src/commonMain/kotlin/io/codenode/stopwatch/usecases/DisplayReceiverComponent.kt
+- [x] T012 Update ChannelIntegrationTest to use NodeRuntime in StopWatch/src/commonTest/kotlin/io/codenode/stopwatch/ChannelIntegrationTest.kt
+- [x] T013 Run all tests to verify lifecycle relocation works: ./gradlew test
 
 **Checkpoint**: NodeRuntime owns all lifecycle control, CodeNode is pure serializable model
 

@@ -6,9 +6,6 @@
 
 package io.codenode.fbpdsl.model
 
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 
@@ -162,14 +159,6 @@ data class CodeNode(
     @Transient val processingLogic: ProcessingLogic? = null,
     override val controlConfig: ControlConfig = ControlConfig()
 ) : Node() {
-
-    /**
-     * Runtime job reference for node lifecycle control.
-     * Tracks the active coroutine job when the node is running.
-     * Marked @Transient as Job cannot be serialized.
-     */
-    @Transient
-    var nodeControlJob: Job? = null
 
     /**
      * Returns the string representation of the node type
@@ -353,82 +342,5 @@ data class CodeNode(
             "CodeNode '$name' has no processing logic defined. Cannot execute."
         )
         return logic(inputs)
-    }
-
-    /**
-     * Starts the node's processing loop.
-     *
-     * Manages the nodeControlJob lifecycle:
-     * 1. Cancels any existing job (prevents duplicate jobs)
-     * 2. Launches new job in provided scope
-     * 3. Executes processingBlock within the job
-     *
-     * Note: executionState should be set to RUNNING by the caller before calling start(),
-     * or use withExecutionState() for immutability.
-     *
-     * @param scope CoroutineScope to launch the processing job in
-     * @param processingBlock Custom processing logic to execute in the job loop
-     */
-    fun start(
-        scope: CoroutineScope,
-        processingBlock: suspend () -> Unit
-    ) {
-        // Cancel existing job if running (prevents duplicate jobs)
-        nodeControlJob?.cancel()
-
-        // Launch the processing job
-        nodeControlJob = scope.launch {
-            processingBlock()
-        }
-    }
-
-    /**
-     * Stops the node's processing loop.
-     *
-     * Manages graceful shutdown:
-     * 1. Cancels the nodeControlJob
-     * 2. Sets nodeControlJob to null
-     *
-     * Valid from RUNNING or PAUSED states. No-op if already IDLE.
-     *
-     * Note: executionState transition to IDLE should be handled
-     * by the caller or via withExecutionState() for immutability.
-     */
-    fun stop() {
-        nodeControlJob?.cancel()
-        nodeControlJob = null
-    }
-
-    /**
-     * Pauses the node's processing loop.
-     *
-     * Signals pause intent without cancelling the job:
-     * 1. Only meaningful when state is RUNNING
-     * 2. Job remains active but processing should check isPaused()
-     *
-     * Note: For data class immutability, caller should use withExecutionState()
-     * to transition to PAUSED state. This method signals intent.
-     * The processing loop must check isPaused() to honor pause requests.
-     */
-    fun pause() {
-        // No-op if not running - pause only valid from RUNNING state
-        if (executionState != ExecutionState.RUNNING) return
-        // Actual state change handled by caller via withExecutionState()
-    }
-
-    /**
-     * Resumes the node's processing loop from paused state.
-     *
-     * Signals resume intent:
-     * 1. Only meaningful when state is PAUSED
-     * 2. Processing loop should resume when isPaused() returns false
-     *
-     * Note: For data class immutability, caller should use withExecutionState()
-     * to transition back to RUNNING state. This method signals intent.
-     */
-    fun resume() {
-        // No-op if not paused - resume only valid from PAUSED state
-        if (executionState != ExecutionState.PAUSED) return
-        // Actual state change handled by caller via withExecutionState()
     }
 }

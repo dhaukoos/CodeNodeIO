@@ -11,6 +11,7 @@ import io.codenode.fbpdsl.model.CodeNodeType
 import io.codenode.fbpdsl.model.InformationPacket
 import io.codenode.fbpdsl.model.Node
 import io.codenode.fbpdsl.model.ProcessingLogic
+import io.codenode.fbpdsl.runtime.NodeRuntime
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.ClosedReceiveChannelException
 import kotlinx.coroutines.channels.ReceiveChannel
@@ -29,22 +30,35 @@ import kotlinx.coroutines.flow.asStateFlow
 class DisplayReceiverComponent : ProcessingLogic {
 
     /**
-     * CodeNode reference for lifecycle delegation.
-     * Job management is delegated to this node's nodeControlJob.
+     * NodeRuntime reference for lifecycle delegation.
+     * Job management is delegated to this runtime's nodeControlJob.
      */
-    var codeNode: CodeNode? = CodeNode(
-        id = "display-receiver",
-        name = "DisplayReceiver",
-        codeNodeType = CodeNodeType.SINK,
-        position = Node.Position(0.0, 0.0)
+    var nodeRuntime: NodeRuntime<TimerOutput>? = NodeRuntime(
+        CodeNode(
+            id = "display-receiver",
+            name = "DisplayReceiver",
+            codeNodeType = CodeNodeType.SINK,
+            position = Node.Position(0.0, 0.0)
+        )
     )
+
+    /**
+     * CodeNode reference - delegates to nodeRuntime.
+     */
+    val codeNode: CodeNode?
+        get() = nodeRuntime?.codeNode
 
     /**
      * Input channel for FBP point-to-point semantics with backpressure.
      * Assigned by flow wiring before start() is called.
      * Uses typed ReceiveChannel<TimerOutput> for type safety.
      */
-    var inputChannel: ReceiveChannel<TimerOutput>? = null
+    var inputChannel: ReceiveChannel<TimerOutput>?
+        get() = nodeRuntime?.inputChannel
+        set(value) {
+            @Suppress("UNCHECKED_CAST")
+            nodeRuntime?.inputChannel = value as? ReceiveChannel<TimerOutput>
+        }
 
     // Observable state flows for displayed time
     private val _displayedSeconds = MutableStateFlow(0)
@@ -73,17 +87,17 @@ class DisplayReceiverComponent : ProcessingLogic {
 
     /**
      * Starts collecting from the input channel using for-loop iteration.
-     * Delegates job management to CodeNode.start().
+     * Delegates job management to NodeRuntime.start().
      * The for-loop automatically handles channel closure gracefully.
      *
      * @param scope CoroutineScope to run collection in
      */
     suspend fun start(scope: CoroutineScope) {
-        val node = codeNode ?: return
+        val runtime = nodeRuntime ?: return
         val channel = inputChannel ?: return
 
-        // Delegate job management to CodeNode
-        node.start(scope) {
+        // Delegate job management to NodeRuntime
+        runtime.start(scope) {
             try {
                 for (timerOutput in channel) {
                     receiveSeconds(timerOutput.elapsedSeconds)
@@ -98,11 +112,11 @@ class DisplayReceiverComponent : ProcessingLogic {
 
     /**
      * Stops collecting from input channel.
-     * Delegates job cancellation to CodeNode.stop().
+     * Delegates job cancellation to NodeRuntime.stop().
      * Channel closure is handled by the flow orchestrator.
      */
     fun stop() {
-        codeNode?.stop()
+        nodeRuntime?.stop()
     }
 
     /**
