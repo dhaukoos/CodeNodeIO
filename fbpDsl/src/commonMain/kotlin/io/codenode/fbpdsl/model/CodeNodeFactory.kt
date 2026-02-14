@@ -373,7 +373,7 @@ object CodeNodeFactory {
     }
 
     /**
-     * Creates a generator CodeNode with no input and one output port
+     * Creates a generator CodeNode with no input and one output port.
      *
      * @param T Type parameter for output
      * @param name Human-readable name
@@ -393,6 +393,17 @@ object CodeNodeFactory {
      * )
      * ```
      */
+    @Deprecated(
+        message = "Use createContinuousGenerator for continuous mode operation. " +
+            "This method returns a CodeNode for single-invocation patterns. " +
+            "For continuous streaming, migrate to: " +
+            "CodeNodeFactory.createContinuousGenerator<T>(name) { emit -> while (isActive) { emit(value) } }",
+        replaceWith = ReplaceWith(
+            "createContinuousGenerator(name, position = position, description = description) { emit -> emit(generate()) }",
+            "io.codenode.fbpdsl.model.CodeNodeFactory.createContinuousGenerator"
+        ),
+        level = DeprecationLevel.WARNING
+    )
     inline fun <reified T : Any> createGenerator(
         name: String,
         outputPortName: String = "output",
@@ -423,7 +434,7 @@ object CodeNodeFactory {
     }
 
     /**
-     * Creates a sink CodeNode with one input and no output ports
+     * Creates a sink CodeNode with one input and no output ports.
      *
      * @param T Type parameter for input
      * @param name Human-readable name
@@ -443,6 +454,17 @@ object CodeNodeFactory {
      * )
      * ```
      */
+    @Deprecated(
+        message = "Use createContinuousSink for continuous mode operation. " +
+            "This method returns a CodeNode for single-invocation patterns. " +
+            "For continuous streaming, migrate to: " +
+            "CodeNodeFactory.createContinuousSink<T>(name) { value -> consume(value) }",
+        replaceWith = ReplaceWith(
+            "createContinuousSink(name, position = position, description = description, consume = consume)",
+            "io.codenode.fbpdsl.model.CodeNodeFactory.createContinuousSink"
+        ),
+        level = DeprecationLevel.WARNING
+    )
     inline fun <reified T : Any> createSink(
         name: String,
         inputPortName: String = "input",

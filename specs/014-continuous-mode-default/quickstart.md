@@ -259,6 +259,19 @@ class ContinuousGeneratorTest {
 
 ## Migration Guide
 
+### Deprecated Methods
+
+The following factory methods are now deprecated in favor of continuous mode:
+
+| Deprecated Method | Replacement | Notes |
+|-------------------|-------------|-------|
+| `createGenerator<T>` | `createContinuousGenerator<T>` | Returns `GeneratorRuntime<T>` instead of `CodeNode` |
+| `createSink<T>` | `createContinuousSink<T>` | Returns `SinkRuntime<T>` instead of `CodeNode` |
+
+**Deprecation Level**: WARNING - Code will compile but show warnings.
+
+**Timeline**: These methods will remain available for backward compatibility but may be removed in a future major version.
+
 ### From Single-Invocation to Continuous
 
 **Before** (single invocation):

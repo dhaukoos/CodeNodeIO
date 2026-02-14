@@ -156,16 +156,16 @@
 
 ### Tests for User Story 5
 
-- [ ] T041 [P] [US5] Write test: existing createGenerator method still works in ContinuousFactoryTest.kt
-- [ ] T042 [P] [US5] Write test: existing createSink method still works in ContinuousFactoryTest.kt
-- [ ] T043 [US5] Write test: ProcessingLogic implementations work unchanged
+- [x] T041 [P] [US5] Write test: existing createGenerator method still works in ContinuousFactoryTest.kt
+- [x] T042 [P] [US5] Write test: existing createSink method still works in ContinuousFactoryTest.kt
+- [x] T043 [US5] Write test: ProcessingLogic implementations work unchanged
 
 ### Implementation for User Story 5
 
-- [ ] T044 [US5] Add @Deprecated annotation to createGenerator with migration message in CodeNodeFactory.kt
-- [ ] T045 [US5] Add @Deprecated annotation to createSink with migration message in CodeNodeFactory.kt
-- [ ] T046 [US5] Verify existing tests still pass: ./gradlew test
-- [ ] T047 [US5] Document migration path in quickstart.md
+- [x] T044 [US5] Add @Deprecated annotation to createGenerator with migration message in CodeNodeFactory.kt
+- [x] T045 [US5] Add @Deprecated annotation to createSink with migration message in CodeNodeFactory.kt
+- [x] T046 [US5] Verify existing tests still pass: ./gradlew test
+- [x] T047 [US5] Document migration path in quickstart.md
 
 **Checkpoint**: Backward compatibility verified, deprecation warnings in place
 

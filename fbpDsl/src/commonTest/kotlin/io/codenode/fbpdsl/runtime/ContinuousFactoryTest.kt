@@ -787,4 +787,100 @@ class ContinuousFactoryTest {
         assertEquals(CodeNodeType.FILTER, filter.codeNode.codeNodeType)
         assertTrue(filter.isIdle(), "Initial state should be IDLE")
     }
+
+    // ========== User Story 5: Backward Compatibility Tests ==========
+
+    /**
+     * T041: Test existing createGenerator method still works
+     */
+    @Test
+    fun `existing createGenerator method still works`() = runTest {
+        // Use the original single-invocation generator factory
+        @Suppress("DEPRECATION")
+        val node = CodeNodeFactory.createGenerator<String>(
+            name = "LegacyGenerator",
+            description = "A legacy generator"
+        ) {
+            "generated value"
+        }
+
+        // Verify CodeNode is returned (not NodeRuntime)
+        assertNotNull(node, "Node should not be null")
+        assertEquals("LegacyGenerator", node.name)
+        assertEquals("A legacy generator", node.description)
+        assertEquals(CodeNodeType.GENERATOR, node.codeNodeType)
+
+        // Verify processing logic works
+        assertNotNull(node.processingLogic, "ProcessingLogic should be set")
+        val result = node.processingLogic?.process(emptyMap())
+        assertNotNull(result, "Result should not be null")
+        assertEquals(1, result?.size, "Should have one output")
+        assertTrue(result?.containsKey("output") == true, "Should have 'output' key")
+    }
+
+    /**
+     * T042: Test existing createSink method still works
+     */
+    @Test
+    fun `existing createSink method still works`() = runTest {
+        var receivedValue: String? = null
+
+        // Use the original single-invocation sink factory
+        @Suppress("DEPRECATION")
+        val node = CodeNodeFactory.createSink<String>(
+            name = "LegacySink",
+            description = "A legacy sink"
+        ) { value ->
+            receivedValue = value
+        }
+
+        // Verify CodeNode is returned (not NodeRuntime)
+        assertNotNull(node, "Node should not be null")
+        assertEquals("LegacySink", node.name)
+        assertEquals("A legacy sink", node.description)
+        assertEquals(CodeNodeType.SINK, node.codeNodeType)
+
+        // Verify processing logic works
+        assertNotNull(node.processingLogic, "ProcessingLogic should be set")
+        val inputPacket = io.codenode.fbpdsl.model.InformationPacketFactory.create("test input")
+        val result = node.processingLogic?.process(mapOf("input" to inputPacket))
+        assertEquals("test input", receivedValue, "Sink should have received the value")
+        assertTrue(result?.isEmpty() == true, "Sink should return empty map")
+    }
+
+    /**
+     * T043: Test ProcessingLogic implementations work unchanged
+     */
+    @Test
+    fun `ProcessingLogic implementations work unchanged`() = runTest {
+        // Create a node using the traditional ProcessingLogic pattern
+        val processingLogic = io.codenode.fbpdsl.model.ProcessingLogic { inputs ->
+            val inputPacket = inputs["input"] as? io.codenode.fbpdsl.model.InformationPacket<Int>
+            val value = inputPacket?.payload ?: 0
+            val result = value * 2
+            mapOf("output" to io.codenode.fbpdsl.model.InformationPacketFactory.create(result))
+        }
+
+        val node = CodeNodeFactory.create(
+            name = "ProcessingLogicNode",
+            codeNodeType = CodeNodeType.TRANSFORMER,
+            processingLogic = processingLogic
+        )
+
+        // Verify node works with ProcessingLogic
+        assertNotNull(node, "Node should not be null")
+        assertNotNull(node.processingLogic, "ProcessingLogic should be set")
+
+        // Execute processing logic
+        val inputPacket = io.codenode.fbpdsl.model.InformationPacketFactory.create(5)
+        val result = node.processingLogic?.process(mapOf("input" to inputPacket))
+
+        // Verify result
+        assertNotNull(result, "Result should not be null")
+        assertEquals(1, result?.size, "Should have one output")
+
+        @Suppress("UNCHECKED_CAST")
+        val outputPacket = result?.get("output") as? io.codenode.fbpdsl.model.InformationPacket<Int>
+        assertEquals(10, outputPacket?.payload, "Should double the input value")
+    }
 }
