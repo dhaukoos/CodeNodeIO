@@ -6,6 +6,8 @@
 
 package io.codenode.fbpdsl.runtime
 
+import kotlinx.coroutines.channels.Channel
+
 /**
  * Type alias for continuous generator processing block.
  * Receives an emit function to send values to the output channel.
@@ -38,3 +40,15 @@ typealias ContinuousTransformBlock<TIn, TOut> = suspend (TIn) -> TOut
  * @param T Type of values being filtered
  */
 typealias ContinuousFilterPredicate<T> = suspend (T) -> Boolean
+
+/**
+ * Creates a typed channel for wiring continuous nodes together.
+ *
+ * This is a convenience function for creating channels with appropriate
+ * capacity for FBP-style data flow between nodes.
+ *
+ * @param T Type of values flowing through the channel
+ * @param capacity Channel buffer capacity (default: BUFFERED = 64)
+ * @return A new Channel instance
+ */
+fun <T> createFlowChannel(capacity: Int = Channel.BUFFERED): Channel<T> = Channel(capacity)

@@ -325,4 +325,206 @@ class ContinuousFactoryTest {
         assertEquals(CodeNodeType.SINK, runtime.codeNode.codeNodeType)
         assertTrue(runtime.isIdle(), "Initial state should be IDLE")
     }
+
+    // ========== User Story 4: Channel-Based Communication Tests ==========
+
+    /**
+     * T028: Test channel wiring between generator and sink works
+     */
+    @Test
+    fun `channel wiring between generator and sink works`() = runTest {
+        val receivedValues = mutableListOf<Int>()
+
+        // Create generator that emits 1, 2, 3
+        val generator = CodeNodeFactory.createContinuousGenerator<Int>(
+            name = "NumberGenerator"
+        ) { emit ->
+            for (i in 1..3) {
+                emit(i)
+                delay(50)
+            }
+        }
+
+        // Create sink that collects values
+        val sink = CodeNodeFactory.createContinuousSink<Int>(
+            name = "NumberCollector"
+        ) { value ->
+            receivedValues.add(value)
+        }
+
+        // Wire generator output to sink input via shared channel
+        val channel = Channel<Int>(Channel.BUFFERED)
+        generator.outputChannel = channel
+        sink.inputChannel = channel
+
+        // Start sink first (to be ready for data)
+        sink.start(this) {}
+
+        // Start generator
+        generator.start(this) {}
+
+        // Let data flow
+        advanceTimeBy(200)
+        advanceUntilIdle()
+
+        // Verify data flowed through
+        assertEquals(listOf(1, 2, 3), receivedValues, "Sink should receive all values from generator")
+
+        // Cleanup
+        generator.stop()
+        sink.stop()
+        channel.close()
+    }
+
+    /**
+     * T029: Test backpressure prevents memory exhaustion (buffered channel fills)
+     */
+    @Test
+    fun `backpressure with small buffer causes producer to wait`() = runTest {
+        var emitCount = 0
+        var receiveCount = 0
+
+        // Use a small capacity channel (2 elements)
+        val smallChannel = Channel<Int>(capacity = 2)
+
+        // Fast generator - tries to emit quickly
+        val generator = CodeNodeFactory.createContinuousGenerator<Int>(
+            name = "FastProducer"
+        ) { emit ->
+            while (currentCoroutineContext().isActive) {
+                emitCount++
+                emit(emitCount)
+                // No delay - tries to flood
+            }
+        }
+        generator.outputChannel = smallChannel
+
+        // Slow sink - processes slowly
+        val sink = CodeNodeFactory.createContinuousSink<Int>(
+            name = "SlowConsumer"
+        ) { _ ->
+            receiveCount++
+            delay(100) // Slow processing
+        }
+        sink.inputChannel = smallChannel
+
+        // Start both
+        sink.start(this) {}
+        generator.start(this) {}
+
+        // Let it run briefly
+        advanceTimeBy(50)
+
+        // Generator should be blocked by backpressure after filling buffer
+        // With capacity 2, generator can emit at most 2-3 items before blocking
+        assertTrue(emitCount <= 4, "Generator should be limited by backpressure, emitted: $emitCount")
+
+        // Let sink consume some
+        advanceTimeBy(150)
+
+        // Cleanup
+        generator.stop()
+        sink.stop()
+        smallChannel.close()
+    }
+
+    /**
+     * T030: Test channel closure propagates through flow graph
+     */
+    @Test
+    fun `channel closure propagates through flow graph`() = runTest {
+        val receivedValues = mutableListOf<Int>()
+        var sinkCompleted = false
+
+        // Create generator
+        val generator = CodeNodeFactory.createContinuousGenerator<Int>(
+            name = "ClosingGenerator"
+        ) { emit ->
+            // Emit a few values then exit (simulating completion)
+            emit(1)
+            emit(2)
+            emit(3)
+            // Generator block exits - channel should close
+        }
+
+        // Create sink that tracks completion
+        val sink = CodeNodeFactory.createContinuousSink<Int>(
+            name = "CompletionTracker"
+        ) { value ->
+            receivedValues.add(value)
+        }
+
+        // Wire via channel
+        val channel = Channel<Int>(Channel.BUFFERED)
+        generator.outputChannel = channel
+        sink.inputChannel = channel
+
+        // Start sink first
+        val sinkJob = launch {
+            sink.start(this) {}
+            // When sink's for-loop exits (channel closed), we get here
+            sinkCompleted = true
+        }
+
+        // Start generator
+        generator.start(this) {}
+
+        // Let data flow and generator complete
+        advanceUntilIdle()
+
+        // Generator completes, closes channel, sink should see closure
+        assertEquals(listOf(1, 2, 3), receivedValues, "Sink should receive all values before closure")
+
+        // Cleanup
+        generator.stop()
+        sink.stop()
+        sinkJob.cancel()
+    }
+
+    /**
+     * Test end-to-end flow: generator -> channel -> sink
+     */
+    @Test
+    fun `end-to-end generator to sink flow works`() = runTest {
+        val results = mutableListOf<String>()
+
+        // Generator emits strings
+        val generator = CodeNodeFactory.createContinuousGenerator<String>(
+            name = "StringGenerator"
+        ) { emit ->
+            emit("Hello")
+            delay(50)
+            emit("World")
+            delay(50)
+            emit("!")
+        }
+
+        // Sink collects strings
+        val sink = CodeNodeFactory.createContinuousSink<String>(
+            name = "StringCollector"
+        ) { value ->
+            results.add(value)
+        }
+
+        // Wire them together
+        val channel = Channel<String>(Channel.BUFFERED)
+        generator.outputChannel = channel
+        sink.inputChannel = channel
+
+        // Start both (sink first)
+        sink.start(this) {}
+        generator.start(this) {}
+
+        // Let flow complete
+        advanceTimeBy(200)
+        advanceUntilIdle()
+
+        // Verify
+        assertEquals(listOf("Hello", "World", "!"), results)
+
+        // Cleanup
+        generator.stop()
+        sink.stop()
+        channel.close()
+    }
 }

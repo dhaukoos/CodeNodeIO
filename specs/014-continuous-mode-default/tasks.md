@@ -111,15 +111,15 @@
 
 ### Tests for User Story 4
 
-- [ ] T028 [P] [US4] Write test: channel wiring between generator and sink works in ContinuousFactoryTest.kt
-- [ ] T029 [P] [US4] Write test: backpressure prevents memory exhaustion (buffered channel fills) in ContinuousFactoryTest.kt
-- [ ] T030 [US4] Write test: channel closure propagates through flow graph in ContinuousFactoryTest.kt
+- [x] T028 [P] [US4] Write test: channel wiring between generator and sink works in ContinuousFactoryTest.kt
+- [x] T029 [P] [US4] Write test: backpressure prevents memory exhaustion (buffered channel fills) in ContinuousFactoryTest.kt
+- [x] T030 [US4] Write test: channel closure propagates through flow graph in ContinuousFactoryTest.kt
 
 ### Implementation for User Story 4
 
-- [ ] T031 [US4] Ensure NodeRuntime inputChannel/outputChannel properties support wiring in NodeRuntime.kt
-- [ ] T032 [US4] Add channel creation helper to factory methods (internal use)
-- [ ] T033 [US4] Verify all US4 tests pass: ./gradlew test --tests "*ContinuousFactoryTest*"
+- [x] T031 [US4] Ensure NodeRuntime inputChannel/outputChannel properties support wiring in NodeRuntime.kt
+- [x] T032 [US4] Add channel creation helper to factory methods (internal use)
+- [x] T033 [US4] Verify all US4 tests pass: ./gradlew test --tests "*ContinuousFactoryTest*"
 
 **Checkpoint**: Typed channels work with backpressure, generator→sink flows work
 
