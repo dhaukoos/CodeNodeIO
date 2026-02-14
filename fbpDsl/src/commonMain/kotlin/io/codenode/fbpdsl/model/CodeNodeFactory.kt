@@ -7,7 +7,9 @@
 package io.codenode.fbpdsl.model
 
 import io.codenode.fbpdsl.runtime.ContinuousGeneratorBlock
+import io.codenode.fbpdsl.runtime.ContinuousSinkBlock
 import io.codenode.fbpdsl.runtime.GeneratorRuntime
+import io.codenode.fbpdsl.runtime.SinkRuntime
 import kotlinx.coroutines.channels.Channel
 
 /**
@@ -524,5 +526,53 @@ object CodeNodeFactory {
         )
 
         return GeneratorRuntime(codeNode, channelCapacity, generate)
+    }
+
+    /**
+     * Creates a continuous sink node that consumes values in a loop.
+     *
+     * The sink runs continuously until stopped, consuming values from the
+     * input channel. The sink handles channel closure gracefully.
+     *
+     * @param T Type of values consumed
+     * @param name Human-readable name
+     * @param position Canvas position
+     * @param description Optional documentation
+     * @param consume Processing block called for each received value
+     * @return SinkRuntime configured for continuous consumption
+     *
+     * @sample
+     * ```kotlin
+     * val logger = CodeNodeFactory.createContinuousSink<String>(
+     *     name = "Logger"
+     * ) { message ->
+     *     println(message)
+     * }
+     *
+     * logger.inputChannel = sourceChannel
+     * logger.start(scope) { }
+     * ```
+     */
+    inline fun <reified T : Any> createContinuousSink(
+        name: String,
+        position: Node.Position = Node.Position.ORIGIN,
+        description: String? = null,
+        noinline consume: ContinuousSinkBlock<T>
+    ): SinkRuntime<T> {
+        val nodeId = NodeIdGenerator.generateId("codenode")
+
+        val codeNode = CodeNode(
+            id = nodeId,
+            name = name,
+            codeNodeType = CodeNodeType.SINK,
+            description = description,
+            position = position,
+            inputPorts = listOf(
+                PortFactory.input<T>("input", nodeId, required = true)
+            ),
+            outputPorts = emptyList()
+        )
+
+        return SinkRuntime(codeNode, consume)
     }
 }

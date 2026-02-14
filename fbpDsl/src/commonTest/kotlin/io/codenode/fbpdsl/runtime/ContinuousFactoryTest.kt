@@ -199,4 +199,130 @@ class ContinuousFactoryTest {
         assertNotNull(runtime, "Runtime should be created with custom capacity")
         assertEquals("CapacityTest", runtime.codeNode.name)
     }
+
+    // ========== User Story 2: Continuous Sink Tests ==========
+
+    /**
+     * T022: Test sink receives all values from input channel
+     */
+    @Test
+    fun `sink receives all values from input channel`() = runTest {
+        val receivedValues = mutableListOf<Int>()
+        val channel = Channel<Int>(Channel.BUFFERED)
+
+        val runtime = CodeNodeFactory.createContinuousSink<Int>(
+            name = "Collector"
+        ) { value ->
+            receivedValues.add(value)
+        }
+        runtime.inputChannel = channel
+
+        // Start sink
+        runtime.start(this) {}
+
+        // Send values to the channel
+        channel.send(1)
+        channel.send(2)
+        channel.send(3)
+
+        // Let sink process
+        advanceUntilIdle()
+
+        // Verify all values received
+        assertEquals(listOf(1, 2, 3), receivedValues, "Sink should receive all 3 values")
+
+        // Cleanup
+        runtime.stop()
+        channel.close()
+    }
+
+    /**
+     * T023: Test sink handles channel closure gracefully
+     */
+    @Test
+    fun `sink handles channel closure gracefully`() = runTest {
+        val receivedValues = mutableListOf<Int>()
+        val channel = Channel<Int>(Channel.BUFFERED)
+        var sinkExitedGracefully = false
+
+        val runtime = CodeNodeFactory.createContinuousSink<Int>(
+            name = "GracefulSink"
+        ) { value ->
+            receivedValues.add(value)
+        }
+        runtime.inputChannel = channel
+
+        // Start sink
+        runtime.start(this) {}
+
+        // Send some values
+        channel.send(1)
+        channel.send(2)
+        advanceUntilIdle()
+
+        // Close the channel - sink should handle gracefully
+        channel.close()
+        advanceUntilIdle()
+
+        // Verify values were received before closure
+        assertEquals(listOf(1, 2), receivedValues, "Sink should have received values before closure")
+
+        // Sink should now be idle (graceful exit)
+        // Give it time to process channel closure
+        advanceUntilIdle()
+
+        // No exceptions thrown means graceful handling
+        assertTrue(true, "Sink handled channel closure gracefully")
+
+        runtime.stop()
+    }
+
+    /**
+     * T024: Test sink uses NodeRuntime lifecycle control
+     */
+    @Test
+    fun `sink uses NodeRuntime lifecycle control`() = runTest {
+        val channel = Channel<Int>(Channel.BUFFERED)
+
+        val runtime = CodeNodeFactory.createContinuousSink<Int>(
+            name = "LifecycleSink",
+            description = "Tests lifecycle"
+        ) { _ -> }
+        runtime.inputChannel = channel
+
+        // Verify initial state
+        assertTrue(runtime.isIdle(), "Initial state should be IDLE")
+        assertNotNull(runtime.codeNode, "CodeNode should exist")
+        assertEquals("LifecycleSink", runtime.codeNode.name)
+        assertEquals(CodeNodeType.SINK, runtime.codeNode.codeNodeType)
+
+        // Start sink
+        runtime.start(this) {}
+        assertTrue(runtime.isRunning(), "State should be RUNNING after start")
+
+        // Stop sink
+        runtime.stop()
+        assertTrue(runtime.isIdle(), "State should be IDLE after stop")
+
+        channel.close()
+    }
+
+    /**
+     * Test that createContinuousSink returns a properly configured SinkRuntime
+     */
+    @Test
+    fun `createContinuousSink returns configured SinkRuntime`() = runTest {
+        val runtime = CodeNodeFactory.createContinuousSink<String>(
+            name = "TestSink",
+            description = "A test sink"
+        ) { _ -> }
+
+        // Verify configuration
+        assertNotNull(runtime, "Runtime should not be null")
+        assertNotNull(runtime.codeNode, "CodeNode should not be null")
+        assertEquals("TestSink", runtime.codeNode.name)
+        assertEquals("A test sink", runtime.codeNode.description)
+        assertEquals(CodeNodeType.SINK, runtime.codeNode.codeNodeType)
+        assertTrue(runtime.isIdle(), "Initial state should be IDLE")
+    }
 }

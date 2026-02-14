@@ -89,15 +89,15 @@
 
 ### Tests for User Story 2
 
-- [ ] T022 [P] [US2] Write test: sink receives all values from input channel in ContinuousFactoryTest.kt
-- [ ] T023 [P] [US2] Write test: sink handles channel closure gracefully in ContinuousFactoryTest.kt
-- [ ] T024 [US2] Write test: sink uses NodeRuntime lifecycle control in ContinuousFactoryTest.kt
+- [x] T022 [P] [US2] Write test: sink receives all values from input channel in ContinuousFactoryTest.kt
+- [x] T023 [P] [US2] Write test: sink handles channel closure gracefully in ContinuousFactoryTest.kt
+- [x] T024 [US2] Write test: sink uses NodeRuntime lifecycle control in ContinuousFactoryTest.kt
 
 ### Implementation for User Story 2
 
-- [ ] T025 [US2] Add createContinuousSink<T> method to CodeNodeFactory in fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/CodeNodeFactory.kt
-- [ ] T026 [US2] Implement sink loop that iterates over input channel with ClosedReceiveChannelException handling
-- [ ] T027 [US2] Verify all US2 tests pass: ./gradlew test --tests "*ContinuousFactoryTest*"
+- [x] T025 [US2] Add createContinuousSink<T> method to CodeNodeFactory in fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/CodeNodeFactory.kt
+- [x] T026 [US2] Implement sink loop that iterates over input channel with ClosedReceiveChannelException handling
+- [x] T027 [US2] Verify all US2 tests pass: ./gradlew test --tests "*ContinuousFactoryTest*"
 
 **Checkpoint**: Continuous sinks work, handle channel closure gracefully
 
