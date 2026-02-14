@@ -101,11 +101,11 @@
 
 ### Implementation for User Story 3
 
-- [ ] T029 [US3] Add `var codeNode: CodeNode? = null` property to DisplayReceiverComponent at StopWatch/src/commonMain/kotlin/io/codenode/stopwatch/usecases/DisplayReceiverComponent.kt
-- [ ] T030 [US3] Refactor `start(scope)` method to delegate job management to `codeNode.start()` while retaining channel iteration logic in DisplayReceiverComponent.kt
-- [ ] T031 [US3] Refactor `stop()` method to delegate to `codeNode.stop()` in DisplayReceiverComponent.kt
-- [ ] T032 [US3] Remove `private var collectionJob: Job?` property (now delegated to CodeNode) from DisplayReceiverComponent.kt
-- [ ] T033 [US3] Run DisplayReceiverComponentTest to verify all existing tests pass: `./gradlew :StopWatch:jvmTest --tests "*DisplayReceiverComponentTest*"`
+- [x] T029 [US3] Add `var codeNode: CodeNode? = null` property to DisplayReceiverComponent at StopWatch/src/commonMain/kotlin/io/codenode/stopwatch/usecases/DisplayReceiverComponent.kt
+- [x] T030 [US3] Refactor `start(scope)` method to delegate job management to `codeNode.start()` while retaining channel iteration logic in DisplayReceiverComponent.kt
+- [x] T031 [US3] Refactor `stop()` method to delegate to `codeNode.stop()` in DisplayReceiverComponent.kt
+- [x] T032 [US3] Remove `private var collectionJob: Job?` property (now delegated to CodeNode) from DisplayReceiverComponent.kt
+- [x] T033 [US3] Run DisplayReceiverComponentTest to verify all existing tests pass: `./gradlew :StopWatch:jvmTest --tests "*DisplayReceiverComponentTest*"`
 
 **Checkpoint**: DisplayReceiverComponent delegates lifecycle to CodeNode - existing tests pass
 

@@ -6,16 +6,17 @@
 
 package io.codenode.stopwatch.usecases
 
+import io.codenode.fbpdsl.model.CodeNode
+import io.codenode.fbpdsl.model.CodeNodeType
 import io.codenode.fbpdsl.model.InformationPacket
+import io.codenode.fbpdsl.model.Node
 import io.codenode.fbpdsl.model.ProcessingLogic
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.ClosedReceiveChannelException
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.launch
 
 /**
  * DisplayReceiver UseCase - Sink node that receives time values for UI rendering.
@@ -26,6 +27,17 @@ import kotlinx.coroutines.launch
  * Type: SINK (2 inputs: seconds, minutes; 0 outputs)
  */
 class DisplayReceiverComponent : ProcessingLogic {
+
+    /**
+     * CodeNode reference for lifecycle delegation.
+     * Job management is delegated to this node's nodeControlJob.
+     */
+    var codeNode: CodeNode? = CodeNode(
+        id = "display-receiver",
+        name = "DisplayReceiver",
+        codeNodeType = CodeNodeType.SINK,
+        position = Node.Position(0.0, 0.0)
+    )
 
     /**
      * Input channel for FBP point-to-point semantics with backpressure.
@@ -40,9 +52,6 @@ class DisplayReceiverComponent : ProcessingLogic {
 
     private val _displayedMinutes = MutableStateFlow(0)
     val displayedMinutesFlow: StateFlow<Int> = _displayedMinutes.asStateFlow()
-
-    // Job for input collection
-    private var collectionJob: Job? = null
 
     /**
      * ProcessingLogic implementation - processes incoming time values.
@@ -64,36 +73,36 @@ class DisplayReceiverComponent : ProcessingLogic {
 
     /**
      * Starts collecting from the input channel using for-loop iteration.
+     * Delegates job management to CodeNode.start().
      * The for-loop automatically handles channel closure gracefully.
      *
      * @param scope CoroutineScope to run collection in
      */
     suspend fun start(scope: CoroutineScope) {
-        collectionJob?.cancel()
+        val node = codeNode ?: return
+        val channel = inputChannel ?: return
 
-        // Collect from typed channel using for-loop iteration
-        inputChannel?.let { channel ->
-            collectionJob = scope.launch {
-                try {
-                    for (timerOutput in channel) {
-                        receiveSeconds(timerOutput.elapsedSeconds)
-                        receiveMinutes(timerOutput.elapsedMinutes)
-                    }
-                    // For-loop exits normally when channel is closed
-                } catch (e: ClosedReceiveChannelException) {
-                    // Channel closed unexpectedly - graceful shutdown
+        // Delegate job management to CodeNode
+        node.start(scope) {
+            try {
+                for (timerOutput in channel) {
+                    receiveSeconds(timerOutput.elapsedSeconds)
+                    receiveMinutes(timerOutput.elapsedMinutes)
                 }
+                // For-loop exits normally when channel is closed
+            } catch (e: ClosedReceiveChannelException) {
+                // Channel closed unexpectedly - graceful shutdown
             }
         }
     }
 
     /**
      * Stops collecting from input channel.
+     * Delegates job cancellation to CodeNode.stop().
      * Channel closure is handled by the flow orchestrator.
      */
     fun stop() {
-        collectionJob?.cancel()
-        collectionJob = null
+        codeNode?.stop()
     }
 
     /**
