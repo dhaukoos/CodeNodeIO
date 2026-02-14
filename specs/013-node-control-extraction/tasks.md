@@ -115,11 +115,11 @@
 
 **Purpose**: Final validation and integration verification
 
-- [ ] T034 [P] Run all fbpDsl tests: `./gradlew :fbpDsl:jvmTest`
-- [ ] T035 [P] Run all StopWatch tests: `./gradlew :StopWatch:jvmTest`
-- [ ] T036 Run ChannelIntegrationTest to verify end-to-end flow: `./gradlew :StopWatch:jvmTest --tests "*ChannelIntegrationTest*"`
-- [ ] T037 Update quickstart.md verification checklist at specs/013-node-control-extraction/quickstart.md
-- [ ] T038 Verify no duplicate job management code remains in components (code review)
+- [x] T034 [P] Run all fbpDsl tests: `./gradlew :fbpDsl:jvmTest`
+- [x] T035 [P] Run all StopWatch tests: `./gradlew :StopWatch:jvmTest`
+- [x] T036 Run ChannelIntegrationTest to verify end-to-end flow: `./gradlew :StopWatch:jvmTest --tests "*ChannelIntegrationTest*"`
+- [x] T037 Update quickstart.md verification checklist at specs/013-node-control-extraction/quickstart.md
+- [x] T038 Verify no duplicate job management code remains in components (code review)
 
 ---
 

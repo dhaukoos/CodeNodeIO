@@ -499,25 +499,25 @@ class CodeNodeLifecycleTest {
 
 ## Verification Checklist
 
-- [ ] CodeNode has `nodeControlJob: Job?` property
-- [ ] CodeNode has `start(scope, processingBlock)` method
-- [ ] CodeNode has `stop()` method
-- [ ] CodeNode has `pause()` method
-- [ ] CodeNode has `resume()` method
-- [ ] `start()` cancels existing job before creating new one
-- [ ] `stop()` on RUNNING transitions to IDLE (job cancelled)
-- [ ] `stop()` on PAUSED transitions to IDLE (job cancelled)
-- [ ] `stop()` on IDLE is a no-op
-- [ ] `pause()` on RUNNING transitions to PAUSED (job not cancelled)
-- [ ] `resume()` on PAUSED transitions to RUNNING
-- [ ] `pause()` on non-RUNNING is a no-op
-- [ ] `resume()` on non-PAUSED is a no-op
-- [ ] TimerEmitterComponent delegates to CodeNode
-- [ ] DisplayReceiverComponent delegates to CodeNode
-- [ ] All existing TimerEmitterComponentTest tests pass
-- [ ] All existing DisplayReceiverComponentTest tests pass
-- [ ] All existing ChannelIntegrationTest tests pass
-- [ ] Run: `./gradlew :fbpDsl:jvmTest :StopWatch:jvmTest`
+- [x] CodeNode has `nodeControlJob: Job?` property
+- [x] CodeNode has `start(scope, processingBlock)` method
+- [x] CodeNode has `stop()` method
+- [x] CodeNode has `pause()` method
+- [x] CodeNode has `resume()` method
+- [x] `start()` cancels existing job before creating new one
+- [x] `stop()` on RUNNING transitions to IDLE (job cancelled)
+- [x] `stop()` on PAUSED transitions to IDLE (job cancelled)
+- [x] `stop()` on IDLE is a no-op
+- [x] `pause()` on RUNNING transitions to PAUSED (job not cancelled)
+- [x] `resume()` on PAUSED transitions to RUNNING
+- [x] `pause()` on non-RUNNING is a no-op
+- [x] `resume()` on non-PAUSED is a no-op
+- [x] TimerEmitterComponent delegates to CodeNode
+- [x] DisplayReceiverComponent delegates to CodeNode
+- [x] All existing TimerEmitterComponentTest tests pass
+- [x] All existing DisplayReceiverComponentTest tests pass
+- [x] All existing ChannelIntegrationTest tests pass
+- [x] Run: `./gradlew :fbpDsl:jvmTest :StopWatch:jvmTest`
 
 ## Common Issues
 
