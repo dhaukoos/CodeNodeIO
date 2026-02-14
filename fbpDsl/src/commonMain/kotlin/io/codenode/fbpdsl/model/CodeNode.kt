@@ -6,6 +6,9 @@
 
 package io.codenode.fbpdsl.model
 
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 
@@ -159,6 +162,14 @@ data class CodeNode(
     @Transient val processingLogic: ProcessingLogic? = null,
     override val controlConfig: ControlConfig = ControlConfig()
 ) : Node() {
+
+    /**
+     * Runtime job reference for node lifecycle control.
+     * Tracks the active coroutine job when the node is running.
+     * Marked @Transient as Job cannot be serialized.
+     */
+    @Transient
+    var nodeControlJob: Job? = null
 
     /**
      * Returns the string representation of the node type

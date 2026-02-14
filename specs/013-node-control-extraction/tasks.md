@@ -22,10 +22,10 @@
 
 **Purpose**: Verify existing infrastructure and prepare for extraction
 
-- [ ] T001 Review current CodeNode structure at fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/CodeNode.kt
-- [ ] T002 Review current TimerEmitterComponent at StopWatch/src/commonMain/kotlin/io/codenode/stopwatch/usecases/TimerEmitterComponent.kt
-- [ ] T003 Review current DisplayReceiverComponent at StopWatch/src/commonMain/kotlin/io/codenode/stopwatch/usecases/DisplayReceiverComponent.kt
-- [ ] T004 Run existing test suites to establish baseline: `./gradlew :fbpDsl:jvmTest :StopWatch:jvmTest`
+- [x] T001 Review current CodeNode structure at fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/CodeNode.kt
+- [x] T002 Review current TimerEmitterComponent at StopWatch/src/commonMain/kotlin/io/codenode/stopwatch/usecases/TimerEmitterComponent.kt
+- [x] T003 Review current DisplayReceiverComponent at StopWatch/src/commonMain/kotlin/io/codenode/stopwatch/usecases/DisplayReceiverComponent.kt
+- [x] T004 Run existing test suites to establish baseline: `./gradlew :fbpDsl:jvmTest :StopWatch:jvmTest`
 
 ---
 
@@ -35,8 +35,8 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T005 Add coroutine imports (Job, CoroutineScope, launch, isActive) to fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/CodeNode.kt
-- [ ] T006 Add `@Transient var nodeControlJob: Job? = null` property to CodeNode data class at fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/CodeNode.kt
+- [x] T005 Add coroutine imports (Job, CoroutineScope, launch, isActive) to fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/CodeNode.kt
+- [x] T006 Add `@Transient var nodeControlJob: Job? = null` property to CodeNode data class at fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/CodeNode.kt
 
 **Checkpoint**: Foundation ready - CodeNode has nodeControlJob property
 
