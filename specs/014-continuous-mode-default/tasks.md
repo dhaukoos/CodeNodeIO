@@ -133,16 +133,16 @@
 
 ### Tests for User Story 3
 
-- [ ] T034 [P] [US3] Write test: transformer receives input and emits transformed output in ContinuousFactoryTest.kt
-- [ ] T035 [P] [US3] Write test: transformer respects pause/resume for flow control in ContinuousFactoryTest.kt
-- [ ] T036 [US3] Write test: transformer chain (generator→transformer→sink) works in ContinuousFactoryTest.kt
+- [x] T034 [P] [US3] Write test: transformer receives input and emits transformed output in ContinuousFactoryTest.kt
+- [x] T035 [P] [US3] Write test: transformer respects pause/resume for flow control in ContinuousFactoryTest.kt
+- [x] T036 [US3] Write test: transformer chain (generator→transformer→sink) works in ContinuousFactoryTest.kt
 
 ### Implementation for User Story 3
 
-- [ ] T037 [US3] Add createContinuousTransformer<TIn, TOut> method to CodeNodeFactory in fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/CodeNodeFactory.kt
-- [ ] T038 [US3] Implement transformer loop: receive→transform→send with proper channel handling
-- [ ] T039 [US3] Add createContinuousFilter<T> method to CodeNodeFactory for predicate-based filtering
-- [ ] T040 [US3] Verify all US3 tests pass: ./gradlew test --tests "*ContinuousFactoryTest*"
+- [x] T037 [US3] Add createContinuousTransformer<TIn, TOut> method to CodeNodeFactory in fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/CodeNodeFactory.kt
+- [x] T038 [US3] Implement transformer loop: receive→transform→send with proper channel handling
+- [x] T039 [US3] Add createContinuousFilter<T> method to CodeNodeFactory for predicate-based filtering
+- [x] T040 [US3] Verify all US3 tests pass: ./gradlew test --tests "*ContinuousFactoryTest*"
 
 **Checkpoint**: Transformers and filters work in continuous pipelines
 

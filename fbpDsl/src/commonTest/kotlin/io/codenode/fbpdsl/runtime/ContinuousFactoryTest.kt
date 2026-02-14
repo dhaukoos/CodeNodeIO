@@ -527,4 +527,264 @@ class ContinuousFactoryTest {
         sink.stop()
         channel.close()
     }
+
+    // ========== User Story 3: Continuous Transformer Tests ==========
+
+    /**
+     * T034: Test transformer receives input and emits transformed output
+     */
+    @Test
+    fun `transformer receives input and emits transformed output`() = runTest {
+        val results = mutableListOf<Int>()
+
+        // Create transformer that doubles input values
+        val transformer = CodeNodeFactory.createContinuousTransformer<Int, Int>(
+            name = "Doubler"
+        ) { value ->
+            value * 2
+        }
+
+        // Create channels
+        val inputChannel = Channel<Int>(Channel.BUFFERED)
+        val outputChannel = Channel<Int>(Channel.BUFFERED)
+        transformer.inputChannel = inputChannel
+        transformer.transformerOutputChannel = outputChannel
+
+        // Collect outputs in background
+        val collectJob = launch {
+            for (value in outputChannel) {
+                results.add(value)
+            }
+        }
+
+        // Start transformer
+        transformer.start(this) {}
+
+        // Send input values
+        inputChannel.send(1)
+        inputChannel.send(2)
+        inputChannel.send(3)
+        advanceUntilIdle()
+
+        // Verify transformed output
+        assertEquals(listOf(2, 4, 6), results, "Transformer should double input values")
+
+        // Cleanup
+        transformer.stop()
+        inputChannel.close()
+        outputChannel.close()
+        collectJob.cancel()
+    }
+
+    /**
+     * T035: Test transformer respects pause/resume for flow control
+     */
+    @Test
+    fun `transformer respects pause and resume for flow control`() = runTest {
+        val results = mutableListOf<Int>()
+        var processedCount = 0
+
+        // Create transformer that tracks processing
+        val transformer = CodeNodeFactory.createContinuousTransformer<Int, Int>(
+            name = "PausableTransformer"
+        ) { value ->
+            processedCount++
+            value + 10
+        }
+
+        // Create channels
+        val inputChannel = Channel<Int>(Channel.BUFFERED)
+        val outputChannel = Channel<Int>(Channel.BUFFERED)
+        transformer.inputChannel = inputChannel
+        transformer.transformerOutputChannel = outputChannel
+
+        // Collect outputs
+        val collectJob = launch {
+            for (value in outputChannel) {
+                results.add(value)
+            }
+        }
+
+        // Start transformer
+        transformer.start(this) {}
+
+        // Send value and verify processing
+        inputChannel.send(1)
+        advanceUntilIdle()
+        assertEquals(1, processedCount, "Should process first value")
+        assertTrue(transformer.isRunning(), "Transformer should be running")
+
+        // Pause transformer
+        transformer.pause()
+        assertTrue(transformer.isPaused(), "Transformer should be paused")
+
+        // Resume transformer
+        transformer.resume()
+        assertTrue(transformer.isRunning(), "Transformer should be running after resume")
+
+        // Send more values
+        inputChannel.send(2)
+        inputChannel.send(3)
+        advanceUntilIdle()
+
+        assertEquals(listOf(11, 12, 13), results, "All values should be transformed")
+
+        // Cleanup
+        transformer.stop()
+        inputChannel.close()
+        outputChannel.close()
+        collectJob.cancel()
+    }
+
+    /**
+     * T036: Test transformer chain (generator→transformer→sink) works
+     */
+    @Test
+    fun `transformer chain generator to transformer to sink works`() = runTest {
+        val results = mutableListOf<String>()
+
+        // Create generator that emits numbers
+        val generator = CodeNodeFactory.createContinuousGenerator<Int>(
+            name = "NumberGenerator"
+        ) { emit ->
+            emit(1)
+            emit(2)
+            emit(3)
+        }
+
+        // Create transformer that converts Int to String with prefix
+        val transformer = CodeNodeFactory.createContinuousTransformer<Int, String>(
+            name = "IntToStringTransformer"
+        ) { value ->
+            "Value: $value"
+        }
+
+        // Create sink that collects strings
+        val sink = CodeNodeFactory.createContinuousSink<String>(
+            name = "StringCollector"
+        ) { value ->
+            results.add(value)
+        }
+
+        // Wire: generator -> transformer -> sink
+        val channel1 = Channel<Int>(Channel.BUFFERED)
+        val channel2 = Channel<String>(Channel.BUFFERED)
+
+        generator.outputChannel = channel1
+        transformer.inputChannel = channel1
+        transformer.transformerOutputChannel = channel2
+        sink.inputChannel = channel2
+
+        // Start all nodes (sink first, then transformer, then generator)
+        sink.start(this) {}
+        transformer.start(this) {}
+        generator.start(this) {}
+
+        // Let data flow through the pipeline
+        advanceUntilIdle()
+
+        // Verify complete pipeline worked
+        assertEquals(
+            listOf("Value: 1", "Value: 2", "Value: 3"),
+            results,
+            "Data should flow through generator→transformer→sink pipeline"
+        )
+
+        // Cleanup
+        generator.stop()
+        transformer.stop()
+        sink.stop()
+        channel1.close()
+        channel2.close()
+    }
+
+    /**
+     * Test that createContinuousTransformer returns a properly configured TransformerRuntime
+     */
+    @Test
+    fun `createContinuousTransformer returns configured TransformerRuntime`() = runTest {
+        val transformer = CodeNodeFactory.createContinuousTransformer<Int, String>(
+            name = "TestTransformer",
+            description = "A test transformer"
+        ) { value ->
+            value.toString()
+        }
+
+        // Verify configuration
+        assertNotNull(transformer, "Transformer should not be null")
+        assertNotNull(transformer.codeNode, "CodeNode should not be null")
+        assertEquals("TestTransformer", transformer.codeNode.name)
+        assertEquals("A test transformer", transformer.codeNode.description)
+        assertEquals(CodeNodeType.TRANSFORMER, transformer.codeNode.codeNodeType)
+        assertTrue(transformer.isIdle(), "Initial state should be IDLE")
+    }
+
+    /**
+     * Test continuous filter passes values that match predicate
+     */
+    @Test
+    fun `continuous filter passes values that match predicate`() = runTest {
+        val results = mutableListOf<Int>()
+
+        // Create filter that only passes even numbers
+        val filter = CodeNodeFactory.createContinuousFilter<Int>(
+            name = "EvenFilter"
+        ) { value ->
+            value % 2 == 0
+        }
+
+        // Create channels
+        val inputChannel = Channel<Int>(Channel.BUFFERED)
+        val outputChannel = Channel<Int>(Channel.BUFFERED)
+        filter.inputChannel = inputChannel
+        filter.outputChannel = outputChannel
+
+        // Collect outputs
+        val collectJob = launch {
+            for (value in outputChannel) {
+                results.add(value)
+            }
+        }
+
+        // Start filter
+        filter.start(this) {}
+
+        // Send mixed values
+        inputChannel.send(1)
+        inputChannel.send(2)
+        inputChannel.send(3)
+        inputChannel.send(4)
+        inputChannel.send(5)
+        advanceUntilIdle()
+
+        // Verify only even numbers passed through
+        assertEquals(listOf(2, 4), results, "Filter should only pass even numbers")
+
+        // Cleanup
+        filter.stop()
+        inputChannel.close()
+        outputChannel.close()
+        collectJob.cancel()
+    }
+
+    /**
+     * Test that createContinuousFilter returns a properly configured FilterRuntime
+     */
+    @Test
+    fun `createContinuousFilter returns configured FilterRuntime`() = runTest {
+        val filter = CodeNodeFactory.createContinuousFilter<Int>(
+            name = "TestFilter",
+            description = "A test filter"
+        ) { value ->
+            value > 0
+        }
+
+        // Verify configuration
+        assertNotNull(filter, "Filter should not be null")
+        assertNotNull(filter.codeNode, "CodeNode should not be null")
+        assertEquals("TestFilter", filter.codeNode.name)
+        assertEquals("A test filter", filter.codeNode.description)
+        assertEquals(CodeNodeType.FILTER, filter.codeNode.codeNodeType)
+        assertTrue(filter.isIdle(), "Initial state should be IDLE")
+    }
 }

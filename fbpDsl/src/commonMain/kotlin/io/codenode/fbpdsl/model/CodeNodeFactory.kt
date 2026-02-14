@@ -6,10 +6,14 @@
 
 package io.codenode.fbpdsl.model
 
+import io.codenode.fbpdsl.runtime.ContinuousFilterPredicate
 import io.codenode.fbpdsl.runtime.ContinuousGeneratorBlock
 import io.codenode.fbpdsl.runtime.ContinuousSinkBlock
+import io.codenode.fbpdsl.runtime.ContinuousTransformBlock
+import io.codenode.fbpdsl.runtime.FilterRuntime
 import io.codenode.fbpdsl.runtime.GeneratorRuntime
 import io.codenode.fbpdsl.runtime.SinkRuntime
+import io.codenode.fbpdsl.runtime.TransformerRuntime
 import kotlinx.coroutines.channels.Channel
 
 /**
@@ -574,5 +578,110 @@ object CodeNodeFactory {
         )
 
         return SinkRuntime(codeNode, consume)
+    }
+
+    /**
+     * Creates a continuous transformer node that transforms values in a loop.
+     *
+     * The transformer runs continuously until stopped, receiving values from
+     * the input channel, applying the transform function, and sending results
+     * to the output channel.
+     *
+     * @param TIn Type of input values
+     * @param TOut Type of output values
+     * @param name Human-readable name
+     * @param position Canvas position
+     * @param description Optional documentation
+     * @param transform Processing block that transforms input to output
+     * @return TransformerRuntime configured for continuous transformation
+     *
+     * @sample
+     * ```kotlin
+     * val doubler = CodeNodeFactory.createContinuousTransformer<Int, Int>(
+     *     name = "Doubler"
+     * ) { value ->
+     *     value * 2
+     * }
+     *
+     * doubler.inputChannel = sourceChannel
+     * doubler.transformerOutputChannel = destChannel
+     * doubler.start(scope) { }
+     * ```
+     */
+    inline fun <reified TIn : Any, reified TOut : Any> createContinuousTransformer(
+        name: String,
+        position: Node.Position = Node.Position.ORIGIN,
+        description: String? = null,
+        noinline transform: ContinuousTransformBlock<TIn, TOut>
+    ): TransformerRuntime<TIn, TOut> {
+        val nodeId = NodeIdGenerator.generateId("codenode")
+
+        val codeNode = CodeNode(
+            id = nodeId,
+            name = name,
+            codeNodeType = CodeNodeType.TRANSFORMER,
+            description = description,
+            position = position,
+            inputPorts = listOf(
+                PortFactory.input<TIn>("input", nodeId, required = true)
+            ),
+            outputPorts = listOf(
+                PortFactory.output<TOut>("output", nodeId)
+            )
+        )
+
+        return TransformerRuntime(codeNode, transform)
+    }
+
+    /**
+     * Creates a continuous filter node that filters values in a loop.
+     *
+     * The filter runs continuously until stopped, receiving values from
+     * the input channel, applying the predicate, and sending matching values
+     * to the output channel. Values that don't match are dropped.
+     *
+     * @param T Type of values being filtered
+     * @param name Human-readable name
+     * @param position Canvas position
+     * @param description Optional documentation
+     * @param predicate Returns true to pass value through, false to drop
+     * @return FilterRuntime configured for continuous filtering
+     *
+     * @sample
+     * ```kotlin
+     * val evenFilter = CodeNodeFactory.createContinuousFilter<Int>(
+     *     name = "EvenFilter"
+     * ) { value ->
+     *     value % 2 == 0
+     * }
+     *
+     * evenFilter.inputChannel = sourceChannel
+     * evenFilter.outputChannel = destChannel
+     * evenFilter.start(scope) { }
+     * ```
+     */
+    inline fun <reified T : Any> createContinuousFilter(
+        name: String,
+        position: Node.Position = Node.Position.ORIGIN,
+        description: String? = null,
+        noinline predicate: ContinuousFilterPredicate<T>
+    ): FilterRuntime<T> {
+        val nodeId = NodeIdGenerator.generateId("codenode")
+
+        val codeNode = CodeNode(
+            id = nodeId,
+            name = name,
+            codeNodeType = CodeNodeType.FILTER,
+            description = description,
+            position = position,
+            inputPorts = listOf(
+                PortFactory.input<T>("input", nodeId, required = true)
+            ),
+            outputPorts = listOf(
+                PortFactory.output<T>("output", nodeId)
+            )
+        )
+
+        return FilterRuntime(codeNode, predicate)
     }
 }
