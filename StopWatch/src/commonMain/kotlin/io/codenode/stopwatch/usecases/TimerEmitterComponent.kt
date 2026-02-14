@@ -6,20 +6,22 @@
 
 package io.codenode.stopwatch.usecases
 
+import io.codenode.fbpdsl.model.CodeNode
+import io.codenode.fbpdsl.model.CodeNodeType
 import io.codenode.fbpdsl.model.ExecutionState
 import io.codenode.fbpdsl.model.InformationPacket
 import io.codenode.fbpdsl.model.InformationPacketFactory
+import io.codenode.fbpdsl.model.Node
 import io.codenode.fbpdsl.model.ProcessingLogic
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.ClosedSendChannelException
 import kotlinx.coroutines.channels.SendChannel
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.isActive
-import kotlinx.coroutines.launch
 
 /**
  * Data class for timer output values
@@ -50,6 +52,17 @@ class TimerEmitterComponent(
 ) : ProcessingLogic {
 
     /**
+     * CodeNode reference for lifecycle delegation.
+     * Job management is delegated to this node's nodeControlJob.
+     */
+    var codeNode: CodeNode? = CodeNode(
+        id = "timer-emitter",
+        name = "TimerEmitter",
+        codeNodeType = CodeNodeType.GENERATOR,
+        position = Node.Position(0.0, 0.0)
+    )
+
+    /**
      * Output channel for FBP point-to-point semantics with backpressure.
      * Assigned by flow wiring before start() is called.
      * Uses typed SendChannel<TimerOutput> for type safety.
@@ -63,11 +76,15 @@ class TimerEmitterComponent(
     private val _elapsedMinutes = MutableStateFlow(initialMinutes)
     val elapsedMinutesFlow: StateFlow<Int> = _elapsedMinutes.asStateFlow()
 
-    // Execution state - controls whether timer is running
-    var executionState: ExecutionState = ExecutionState.IDLE
-
-    // Job tracking for cancellation
-    private var timerJob: Job? = null
+    /**
+     * Execution state - delegated to CodeNode.
+     * Getter returns codeNode's executionState; setter updates codeNode via copy.
+     */
+    var executionState: ExecutionState
+        get() = codeNode?.executionState ?: ExecutionState.IDLE
+        set(value) {
+            codeNode = codeNode?.withExecutionState(value)
+        }
 
     /**
      * ProcessingLogic implementation - generates timer output.
@@ -83,17 +100,17 @@ class TimerEmitterComponent(
 
     /**
      * Starts the continuous timer tick loop.
+     * Delegates job management to CodeNode.start().
      *
      * @param scope CoroutineScope to run the timer in
      */
     suspend fun start(scope: CoroutineScope) {
-        // Cancel any existing timer job
-        timerJob?.cancel()
+        val node = codeNode ?: return
 
-        // Launch coroutine tick loop
-        timerJob = scope.launch {
+        // Delegate job management to CodeNode
+        node.start(scope) {
             // Check executionState in while loop condition
-            while (isActive && executionState == ExecutionState.RUNNING) {
+            while (currentCoroutineContext().isActive && executionState == ExecutionState.RUNNING) {
                 // delay for speedAttenuation interval
                 delay(speedAttenuation)
 
@@ -127,11 +144,11 @@ class TimerEmitterComponent(
 
     /**
      * Stops the timer.
+     * Delegates job cancellation to CodeNode.stop().
      */
     fun stop() {
         executionState = ExecutionState.IDLE
-        timerJob?.cancel()
-        timerJob = null
+        codeNode?.stop()
     }
 
     /**

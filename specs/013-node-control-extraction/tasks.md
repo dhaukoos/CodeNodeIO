@@ -81,13 +81,13 @@
 
 ### Implementation for User Story 2
 
-- [ ] T022 [US2] Add `var codeNode: CodeNode? = null` property to TimerEmitterComponent at StopWatch/src/commonMain/kotlin/io/codenode/stopwatch/usecases/TimerEmitterComponent.kt
-- [ ] T023 [US2] Add convenience `executionState` getter that delegates to codeNode in TimerEmitterComponent.kt
-- [ ] T024 [US2] Refactor `start(scope)` method to delegate job management to `codeNode.start()` while retaining timer tick logic in TimerEmitterComponent.kt
-- [ ] T025 [US2] Refactor `stop()` method to delegate to `codeNode.stop()` in TimerEmitterComponent.kt
-- [ ] T026 [US2] Remove `private var timerJob: Job?` property (now delegated to CodeNode) from TimerEmitterComponent.kt
-- [ ] T027 [US2] Remove local `var executionState` property (now delegated to CodeNode) from TimerEmitterComponent.kt
-- [ ] T028 [US2] Run TimerEmitterComponentTest to verify all existing tests pass: `./gradlew :StopWatch:jvmTest --tests "*TimerEmitterComponentTest*"`
+- [x] T022 [US2] Add `var codeNode: CodeNode? = null` property to TimerEmitterComponent at StopWatch/src/commonMain/kotlin/io/codenode/stopwatch/usecases/TimerEmitterComponent.kt
+- [x] T023 [US2] Add convenience `executionState` getter that delegates to codeNode in TimerEmitterComponent.kt
+- [x] T024 [US2] Refactor `start(scope)` method to delegate job management to `codeNode.start()` while retaining timer tick logic in TimerEmitterComponent.kt
+- [x] T025 [US2] Refactor `stop()` method to delegate to `codeNode.stop()` in TimerEmitterComponent.kt
+- [x] T026 [US2] Remove `private var timerJob: Job?` property (now delegated to CodeNode) from TimerEmitterComponent.kt
+- [x] T027 [US2] Remove local `var executionState` property (now delegated to CodeNode) from TimerEmitterComponent.kt
+- [x] T028 [US2] Run TimerEmitterComponentTest to verify all existing tests pass: `./gradlew :StopWatch:jvmTest --tests "*TimerEmitterComponentTest*"`
 
 **Checkpoint**: TimerEmitterComponent delegates lifecycle to CodeNode - existing tests pass
 
