@@ -10,6 +10,7 @@ import io.codenode.fbpdsl.model.CodeNode
 import io.codenode.fbpdsl.model.ExecutionState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.ClosedSendChannelException
 import kotlinx.coroutines.launch
 
 /**
@@ -62,6 +63,8 @@ class GeneratorRuntime<T : Any>(
 
                 // Run the generator block with emit function
                 generate(emit)
+            } catch (e: ClosedSendChannelException) {
+                // Channel closed - graceful shutdown
             } finally {
                 // Close output channel when loop exits
                 outputChannel?.close()

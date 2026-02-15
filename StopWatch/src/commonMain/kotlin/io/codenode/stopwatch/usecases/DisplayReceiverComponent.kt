@@ -7,13 +7,11 @@
 package io.codenode.stopwatch.usecases
 
 import io.codenode.fbpdsl.model.CodeNode
-import io.codenode.fbpdsl.model.CodeNodeType
+import io.codenode.fbpdsl.model.CodeNodeFactory
 import io.codenode.fbpdsl.model.InformationPacket
-import io.codenode.fbpdsl.model.Node
 import io.codenode.fbpdsl.model.ProcessingLogic
-import io.codenode.fbpdsl.runtime.NodeRuntime
+import io.codenode.fbpdsl.runtime.SinkRuntime
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.channels.ClosedReceiveChannelException
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -22,45 +20,19 @@ import kotlinx.coroutines.flow.asStateFlow
 /**
  * DisplayReceiver UseCase - Sink node that receives time values for UI rendering.
  *
- * This component receives elapsed time from TimerEmitter and exposes it as
- * observable StateFlows for the UI layer (StopWatchFace composable).
+ * This component uses CodeNodeFactory.createContinuousSink to create a
+ * SinkRuntime that manages the receive loop lifecycle.
  *
- * Type: SINK (2 inputs: seconds, minutes; 0 outputs)
+ * Features:
+ * - Receives elapsed time from TimerEmitter via channel
+ * - Exposes StateFlows for UI observation
+ * - Handles channel closure gracefully
+ *
+ * Type: SINK (1 input: TimerOutput, 0 outputs)
  */
 class DisplayReceiverComponent : ProcessingLogic {
 
-    /**
-     * NodeRuntime reference for lifecycle delegation.
-     * Job management is delegated to this runtime's nodeControlJob.
-     */
-    var nodeRuntime: NodeRuntime<TimerOutput>? = NodeRuntime(
-        CodeNode(
-            id = "display-receiver",
-            name = "DisplayReceiver",
-            codeNodeType = CodeNodeType.SINK,
-            position = Node.Position(0.0, 0.0)
-        )
-    )
-
-    /**
-     * CodeNode reference - delegates to nodeRuntime.
-     */
-    val codeNode: CodeNode?
-        get() = nodeRuntime?.codeNode
-
-    /**
-     * Input channel for FBP point-to-point semantics with backpressure.
-     * Assigned by flow wiring before start() is called.
-     * Uses typed ReceiveChannel<TimerOutput> for type safety.
-     */
-    var inputChannel: ReceiveChannel<TimerOutput>?
-        get() = nodeRuntime?.inputChannel
-        set(value) {
-            @Suppress("UNCHECKED_CAST")
-            nodeRuntime?.inputChannel = value as? ReceiveChannel<TimerOutput>
-        }
-
-    // Observable state flows for displayed time
+    // Observable state flows for displayed time - declared first for closure capture
     private val _displayedSeconds = MutableStateFlow(0)
     val displayedSecondsFlow: StateFlow<Int> = _displayedSeconds.asStateFlow()
 
@@ -68,7 +40,37 @@ class DisplayReceiverComponent : ProcessingLogic {
     val displayedMinutesFlow: StateFlow<Int> = _displayedMinutes.asStateFlow()
 
     /**
+     * SinkRuntime created via factory method.
+     * Manages the receive loop lifecycle with proper channel handling.
+     */
+    private val sinkRuntime: SinkRuntime<TimerOutput> = CodeNodeFactory.createContinuousSink(
+        name = "DisplayReceiver",
+        description = "Receives timer values and exposes them for UI rendering"
+    ) { timerOutput ->
+        // Update state flows for UI observation
+        _displayedSeconds.value = timerOutput.elapsedSeconds
+        _displayedMinutes.value = timerOutput.elapsedMinutes
+    }
+
+    /**
+     * CodeNode reference - delegates to sinkRuntime.
+     */
+    val codeNode: CodeNode
+        get() = sinkRuntime.codeNode
+
+    /**
+     * Input channel for FBP point-to-point semantics with backpressure.
+     * Must be assigned before start() is called.
+     */
+    var inputChannel: ReceiveChannel<TimerOutput>?
+        get() = sinkRuntime.inputChannel
+        set(value) {
+            sinkRuntime.inputChannel = value
+        }
+
+    /**
      * ProcessingLogic implementation - processes incoming time values.
+     * For continuous operation, use start() instead.
      */
     override suspend fun invoke(inputs: Map<String, InformationPacket<*>>): Map<String, InformationPacket<*>> {
         // Extract seconds and minutes from inputs
@@ -86,41 +88,28 @@ class DisplayReceiverComponent : ProcessingLogic {
     }
 
     /**
-     * Starts collecting from the input channel using for-loop iteration.
-     * Delegates job management to NodeRuntime.start().
-     * The for-loop automatically handles channel closure gracefully.
+     * Starts collecting from the input channel.
+     * Delegates to SinkRuntime.start().
      *
      * @param scope CoroutineScope to run collection in
      */
     suspend fun start(scope: CoroutineScope) {
-        val runtime = nodeRuntime ?: return
-        val channel = inputChannel ?: return
-
-        // Delegate job management to NodeRuntime
-        runtime.start(scope) {
-            try {
-                for (timerOutput in channel) {
-                    receiveSeconds(timerOutput.elapsedSeconds)
-                    receiveMinutes(timerOutput.elapsedMinutes)
-                }
-                // For-loop exits normally when channel is closed
-            } catch (e: ClosedReceiveChannelException) {
-                // Channel closed unexpectedly - graceful shutdown
-            }
+        sinkRuntime.start(scope) {
+            // Processing block is ignored - sink uses its own block
         }
     }
 
     /**
      * Stops collecting from input channel.
-     * Delegates job cancellation to NodeRuntime.stop().
-     * Channel closure is handled by the flow orchestrator.
+     * Delegates to SinkRuntime.stop().
      */
     fun stop() {
-        nodeRuntime?.stop()
+        sinkRuntime.stop()
     }
 
     /**
      * Receives a seconds value from the timer.
+     * Used by ProcessingLogic interface for single-invocation mode.
      *
      * @param seconds The elapsed seconds value
      */
@@ -130,6 +119,7 @@ class DisplayReceiverComponent : ProcessingLogic {
 
     /**
      * Receives a minutes value from the timer.
+     * Used by ProcessingLogic interface for single-invocation mode.
      *
      * @param minutes The elapsed minutes value
      */

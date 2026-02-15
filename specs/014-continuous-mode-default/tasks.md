@@ -175,8 +175,8 @@
 
 **Purpose**: Integration validation and documentation
 
-- [x] T048 [P] Replace TimerEmitterComponent implementation with factory-created generator (optional refactor) - SKIPPED: Already uses NodeRuntime pattern correctly
-- [x] T049 [P] Replace DisplayReceiverComponent implementation with factory-created sink (optional refactor) - SKIPPED: Already uses NodeRuntime pattern correctly
+- [x] T048 [P] Replace TimerEmitterComponent implementation with factory-created generator (optional refactor) - DONE: Uses CodeNodeFactory.createContinuousGenerator
+- [x] T049 [P] Replace DisplayReceiverComponent implementation with factory-created sink (optional refactor) - DONE: Uses CodeNodeFactory.createContinuousSink
 - [x] T050 Run ChannelIntegrationTest with factory-created nodes: ./gradlew :StopWatch:jvmTest
 - [x] T051 Run all tests to verify no regressions: ./gradlew test
 - [x] T052 Update MEMORY.md with lessons learned from this feature

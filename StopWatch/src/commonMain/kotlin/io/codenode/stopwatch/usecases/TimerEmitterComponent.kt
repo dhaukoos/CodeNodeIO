@@ -7,16 +7,13 @@
 package io.codenode.stopwatch.usecases
 
 import io.codenode.fbpdsl.model.CodeNode
-import io.codenode.fbpdsl.model.CodeNodeType
+import io.codenode.fbpdsl.model.CodeNodeFactory
 import io.codenode.fbpdsl.model.ExecutionState
 import io.codenode.fbpdsl.model.InformationPacket
 import io.codenode.fbpdsl.model.InformationPacketFactory
-import io.codenode.fbpdsl.model.Node
 import io.codenode.fbpdsl.model.ProcessingLogic
-import io.codenode.fbpdsl.runtime.NodeRuntime
+import io.codenode.fbpdsl.runtime.GeneratorRuntime
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.channels.ClosedSendChannelException
-import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -35,12 +32,16 @@ data class TimerOutput(
 /**
  * TimerEmitter UseCase - Generator node that emits elapsed time at regular intervals.
  *
- * This component implements the timer logic from the original StopWatch LaunchedEffect:
+ * This component uses CodeNodeFactory.createContinuousGenerator to create a
+ * GeneratorRuntime that manages the timer loop lifecycle.
+ *
+ * Features:
  * - Emits elapsedSeconds every speedAttenuation milliseconds
  * - Rolls seconds to 0 and increments minutes at 60
  * - Only emits when executionState == RUNNING
+ * - Exposes StateFlows for UI observation
  *
- * Type: GENERATOR (0 inputs, 2 outputs: elapsedSeconds, elapsedMinutes)
+ * Type: GENERATOR (0 inputs, 1 output: TimerOutput)
  *
  * @param speedAttenuation Tick interval in milliseconds (default: 1000ms = 1 second)
  * @param initialSeconds Initial seconds value (for testing)
@@ -52,38 +53,7 @@ class TimerEmitterComponent(
     initialMinutes: Int = 0
 ) : ProcessingLogic {
 
-    /**
-     * NodeRuntime reference for lifecycle delegation.
-     * Job management is delegated to this runtime's nodeControlJob.
-     */
-    var nodeRuntime: NodeRuntime<TimerOutput>? = NodeRuntime(
-        CodeNode(
-            id = "timer-emitter",
-            name = "TimerEmitter",
-            codeNodeType = CodeNodeType.GENERATOR,
-            position = Node.Position(0.0, 0.0)
-        )
-    )
-
-    /**
-     * CodeNode reference - delegates to nodeRuntime.
-     */
-    val codeNode: CodeNode?
-        get() = nodeRuntime?.codeNode
-
-    /**
-     * Output channel for FBP point-to-point semantics with backpressure.
-     * Assigned by flow wiring before start() is called.
-     * Uses typed SendChannel<TimerOutput> for type safety.
-     */
-    var outputChannel: SendChannel<TimerOutput>?
-        get() = nodeRuntime?.outputChannel
-        set(value) {
-            @Suppress("UNCHECKED_CAST")
-            nodeRuntime?.outputChannel = value as? SendChannel<TimerOutput>
-        }
-
-    // Observable state flows for elapsed time
+    // Observable state flows for elapsed time - declared first for closure capture
     private val _elapsedSeconds = MutableStateFlow(initialSeconds)
     val elapsedSecondsFlow: StateFlow<Int> = _elapsedSeconds.asStateFlow()
 
@@ -91,13 +61,63 @@ class TimerEmitterComponent(
     val elapsedMinutesFlow: StateFlow<Int> = _elapsedMinutes.asStateFlow()
 
     /**
-     * Execution state - delegated to NodeRuntime.
-     * Getter returns nodeRuntime's executionState; setter updates nodeRuntime directly.
+     * GeneratorRuntime created via factory method.
+     * Manages the timer loop lifecycle with proper channel handling.
+     */
+    private val generatorRuntime: GeneratorRuntime<TimerOutput> = CodeNodeFactory.createContinuousGenerator(
+        name = "TimerEmitter",
+        description = "Emits elapsed time at regular intervals"
+    ) { emit ->
+        // Continuous timer loop - runs until stopped
+        while (currentCoroutineContext().isActive && executionState == ExecutionState.RUNNING) {
+            // Delay for tick interval
+            delay(speedAttenuation)
+
+            // Check state again after delay (may have changed during delay)
+            if (executionState != ExecutionState.RUNNING) break
+
+            // Increment seconds with rollover logic
+            var newSeconds = _elapsedSeconds.value + 1
+            var newMinutes = _elapsedMinutes.value
+
+            if (newSeconds >= 60) {
+                newSeconds = 0
+                newMinutes += 1
+            }
+
+            // Update state flows for UI observation
+            _elapsedSeconds.value = newSeconds
+            _elapsedMinutes.value = newMinutes
+
+            // Emit to output channel for downstream nodes
+            emit(TimerOutput(newSeconds, newMinutes))
+        }
+    }
+
+    /**
+     * CodeNode reference - delegates to generatorRuntime.
+     */
+    val codeNode: CodeNode
+        get() = generatorRuntime.codeNode
+
+    /**
+     * Output channel for FBP point-to-point semantics with backpressure.
+     * The GeneratorRuntime creates its own buffered channel.
+     * Can be overwritten for external wiring if needed.
+     */
+    var outputChannel
+        get() = generatorRuntime.outputChannel
+        set(value) {
+            generatorRuntime.outputChannel = value
+        }
+
+    /**
+     * Execution state - delegated to GeneratorRuntime.
      */
     var executionState: ExecutionState
-        get() = nodeRuntime?.executionState ?: ExecutionState.IDLE
+        get() = generatorRuntime.executionState
         set(value) {
-            nodeRuntime?.executionState = value
+            generatorRuntime.executionState = value
         }
 
     /**
@@ -114,54 +134,22 @@ class TimerEmitterComponent(
 
     /**
      * Starts the continuous timer tick loop.
-     * Delegates job management to NodeRuntime.start().
+     * Delegates to GeneratorRuntime.start().
      *
      * @param scope CoroutineScope to run the timer in
      */
     suspend fun start(scope: CoroutineScope) {
-        val runtime = nodeRuntime ?: return
-
-        // Delegate job management to NodeRuntime
-        runtime.start(scope) {
-            // Check executionState in while loop condition
-            while (currentCoroutineContext().isActive && executionState == ExecutionState.RUNNING) {
-                // delay for speedAttenuation interval
-                delay(speedAttenuation)
-
-                // Check state again after delay (may have changed during delay)
-                if (executionState != ExecutionState.RUNNING) break
-
-                // Increment seconds with rollover logic
-                var newSeconds = _elapsedSeconds.value + 1
-                var newMinutes = _elapsedMinutes.value
-
-                if (newSeconds >= 60) {
-                    newSeconds = 0
-                    newMinutes += 1
-                }
-
-                // Update state flows
-                _elapsedSeconds.value = newSeconds
-                _elapsedMinutes.value = newMinutes
-
-                // Send to output channel for downstream connections
-                val timerOutput = TimerOutput(newSeconds, newMinutes)
-                try {
-                    outputChannel?.send(timerOutput)
-                } catch (e: ClosedSendChannelException) {
-                    // Channel closed - graceful shutdown, exit loop
-                    break
-                }
-            }
+        generatorRuntime.start(scope) {
+            // Processing block is ignored - generator uses its own block
         }
     }
 
     /**
      * Stops the timer.
-     * Delegates job cancellation to NodeRuntime.stop().
+     * Delegates to GeneratorRuntime.stop().
      */
     fun stop() {
-        nodeRuntime?.stop()
+        generatorRuntime.stop()
     }
 
     /**
