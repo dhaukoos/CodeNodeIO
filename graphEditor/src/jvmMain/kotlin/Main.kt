@@ -28,6 +28,7 @@ import io.codenode.grapheditor.viewmodel.SharedStateProvider
 import io.codenode.grapheditor.viewmodel.LocalSharedState
 import io.codenode.grapheditor.viewmodel.NodeGeneratorViewModel
 import io.codenode.grapheditor.viewmodel.NodePaletteViewModel
+import io.codenode.grapheditor.viewmodel.IPPaletteViewModel
 import androidx.compose.runtime.CompositionLocalProvider
 import io.codenode.grapheditor.state.MoveNodeCommand
 import io.codenode.grapheditor.state.AddConnectionCommand
@@ -321,6 +322,18 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
     var showModuleSaveDialog by remember { mutableStateOf(false) }
     var showFlowGraphPropertiesDialog by remember { mutableStateOf(false) }
     var statusMessage by remember { mutableStateOf("Ready - Create a new graph or open an existing one") }
+
+    // IPPaletteViewModel for the IP Palette
+    val ipPaletteViewModel = remember {
+        IPPaletteViewModel(
+            onTypeSelected = { ipType ->
+                selectedIPType = ipType
+                if (ipType != null) {
+                    statusMessage = "Selected IP type: ${ipType.typeName}"
+                }
+            }
+        )
+    }
     val compilationService = remember { CompilationService() }
     val moduleSaveService = remember { ModuleSaveService() }
 
@@ -491,6 +504,7 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                             onNodeSelected = { nodeType ->
                             // Clear IP type selection when working with nodes
                             selectedIPType = null
+                            ipPaletteViewModel.clearSelection()
                             // Create a new node from the selected type
                             // Offset each new node so they don't stack on top of each other
                             val nodeId = "node_${System.currentTimeMillis()}"
@@ -543,12 +557,8 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
 
                     // IP Palette
                     IPPalette(
-                        ipTypes = ipTypes,
-                        selectedTypeId = selectedIPType?.id,
-                        onTypeSelected = { ipType ->
-                            selectedIPType = ipType
-                            statusMessage = "Selected IP type: ${ipType.typeName}"
-                        }
+                        viewModel = ipPaletteViewModel,
+                        ipTypes = ipTypes
                     )
 
                     // Compute connection colors based on IP types

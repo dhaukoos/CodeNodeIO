@@ -24,35 +24,57 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.codenode.fbpdsl.model.IPColor
 import io.codenode.fbpdsl.model.InformationPacketType
+import io.codenode.grapheditor.viewmodel.IPPaletteViewModel
+import io.codenode.grapheditor.viewmodel.IPPaletteState
 
 /**
  * IP Palette component for browsing and selecting InformationPacket types.
+ * Uses IPPaletteViewModel for state management.
  *
- * Displays a searchable list of IP types with color indicators. Users can
- * search by type name (case-insensitive) and click to select a type.
+ * This composable is purely for UI rendering - all business logic and state
+ * management is delegated to the IPPaletteViewModel.
  *
+ * @param viewModel The ViewModel managing state and business logic
  * @param ipTypes List of available IP types to display
- * @param selectedTypeId ID of the currently selected type (for highlighting)
- * @param onTypeSelected Callback when a type is selected
  * @param modifier Modifier for the palette
  */
 @Composable
 fun IPPalette(
+    viewModel: IPPaletteViewModel,
     ipTypes: List<InformationPacketType>,
-    selectedTypeId: String? = null,
-    onTypeSelected: (InformationPacketType) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
-    var searchQuery by remember { mutableStateOf("") }
+    val state by viewModel.state.collectAsState()
 
+    IPPaletteContent(
+        state = state,
+        ipTypes = ipTypes,
+        onSearchQueryChange = { viewModel.setSearchQuery(it) },
+        onTypeSelected = { viewModel.selectType(it) },
+        modifier = modifier
+    )
+}
+
+/**
+ * Stateless content composable for the IP Palette.
+ * Pure rendering function with no business logic.
+ */
+@Composable
+private fun IPPaletteContent(
+    state: IPPaletteState,
+    ipTypes: List<InformationPacketType>,
+    onSearchQueryChange: (String) -> Unit,
+    onTypeSelected: (InformationPacketType) -> Unit,
+    modifier: Modifier = Modifier
+) {
     // Filter types by search query
-    val filteredTypes = remember(ipTypes, searchQuery) {
-        if (searchQuery.isBlank()) {
+    val filteredTypes = remember(ipTypes, state.searchQuery) {
+        if (state.searchQuery.isBlank()) {
             ipTypes
         } else {
             ipTypes.filter { ipType ->
-                ipType.typeName.contains(searchQuery, ignoreCase = true) ||
-                    ipType.description?.contains(searchQuery, ignoreCase = true) == true
+                ipType.typeName.contains(state.searchQuery, ignoreCase = true) ||
+                    ipType.description?.contains(state.searchQuery, ignoreCase = true) == true
             }
         }
     }
@@ -76,8 +98,8 @@ fun IPPalette(
 
         // Search box
         OutlinedTextField(
-            value = searchQuery,
-            onValueChange = { searchQuery = it },
+            value = state.searchQuery,
+            onValueChange = onSearchQueryChange,
             placeholder = { Text("Search types...", fontSize = 12.sp) },
             singleLine = true,
             modifier = Modifier
@@ -113,7 +135,7 @@ fun IPPalette(
                 items(filteredTypes, key = { it.id }) { ipType ->
                     IPTypeItem(
                         ipType = ipType,
-                        isSelected = ipType.id == selectedTypeId,
+                        isSelected = ipType.id == state.selectedTypeId,
                         onClick = { onTypeSelected(ipType) }
                     )
                 }
@@ -206,4 +228,3 @@ fun ColorSwatch(
             .border(1.dp, Color(0xFFBDBDBD), CircleShape)
     )
 }
-

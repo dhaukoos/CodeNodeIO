@@ -74,10 +74,10 @@
 
 #### IPPaletteViewModel
 
-- [ ] T018 [P] [US1] Create `IPPaletteState` data class with allTypes, selectedTypeId, expandedCategories fields at `graphEditor/src/jvmMain/kotlin/viewmodel/IPPaletteViewModel.kt`
-- [ ] T019 [US1] Create `IPPaletteViewModel` class with StateFlow<IPPaletteState> at `graphEditor/src/jvmMain/kotlin/viewmodel/IPPaletteViewModel.kt`
-- [ ] T020 [US1] Implement selectType(), clearSelection(), toggleCategory() actions in `IPPaletteViewModel`
-- [ ] T021 [US1] Refactor `IPPalette.kt` to use `IPPaletteViewModel` at `graphEditor/src/jvmMain/kotlin/ui/IPPalette.kt`
+- [x] T018 [P] [US1] Create `IPPaletteState` data class with allTypes, selectedTypeId, expandedCategories fields at `graphEditor/src/jvmMain/kotlin/viewmodel/IPPaletteViewModel.kt`
+- [x] T019 [US1] Create `IPPaletteViewModel` class with StateFlow<IPPaletteState> at `graphEditor/src/jvmMain/kotlin/viewmodel/IPPaletteViewModel.kt`
+- [x] T020 [US1] Implement selectType(), clearSelection(), toggleCategory() actions in `IPPaletteViewModel`
+- [x] T021 [US1] Refactor `IPPalette.kt` to use `IPPaletteViewModel` at `graphEditor/src/jvmMain/kotlin/ui/IPPalette.kt`
 
 #### PropertiesPanelViewModel
 
