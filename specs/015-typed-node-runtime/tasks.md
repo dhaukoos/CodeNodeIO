@@ -109,20 +109,20 @@
 
 ### Tests for User Story 3
 
-- [ ] T032 [P] [US3] Write test: In2SinkRuntime consumes from two inputs continuously in TypedNodeRuntimeTest.kt
-- [ ] T033 [P] [US3] Write test: In3SinkRuntime consumes from three inputs continuously in TypedNodeRuntimeTest.kt
-- [ ] T034 [P] [US3] Write test: Out2GeneratorRuntime emits ProcessResult2 to two output channels in TypedNodeRuntimeTest.kt
-- [ ] T035 [P] [US3] Write test: Out3GeneratorRuntime emits ProcessResult3 to three output channels in TypedNodeRuntimeTest.kt
+- [x] T032 [P] [US3] Write test: In2SinkRuntime consumes from two inputs continuously in TypedNodeRuntimeTest.kt
+- [x] T033 [P] [US3] Write test: In3SinkRuntime consumes from three inputs continuously in TypedNodeRuntimeTest.kt
+- [x] T034 [P] [US3] Write test: Out2GeneratorRuntime emits ProcessResult2 to two output channels in TypedNodeRuntimeTest.kt
+- [x] T035 [P] [US3] Write test: Out3GeneratorRuntime emits ProcessResult3 to three output channels in TypedNodeRuntimeTest.kt
 
 ### Implementation for User Story 3
 
-- [ ] T036 [US3] Create In2SinkRuntime<A, B> class in fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/In2SinkRuntime.kt
-- [ ] T037 [P] [US3] Create In3SinkRuntime<A, B, C> class in fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/In3SinkRuntime.kt
-- [ ] T038 [P] [US3] Create Out2GeneratorRuntime<U, V> class in fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/Out2GeneratorRuntime.kt
-- [ ] T039 [P] [US3] Create Out3GeneratorRuntime<U, V, W> class in fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/Out3GeneratorRuntime.kt
-- [ ] T040 [US3] Add createIn2Sink<A, B> and createIn3Sink<A, B, C> factory methods to CodeNodeFactory
-- [ ] T041 [US3] Add createOut2Generator<U, V> and createOut3Generator<U, V, W> factory methods to CodeNodeFactory
-- [ ] T042 [US3] Verify all US3 tests pass: ./gradlew test --tests "*TypedNodeRuntimeTest*"
+- [x] T036 [US3] Create In2SinkRuntime<A, B> class in fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/In2SinkRuntime.kt
+- [x] T037 [P] [US3] Create In3SinkRuntime<A, B, C> class in fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/In3SinkRuntime.kt
+- [x] T038 [P] [US3] Create Out2GeneratorRuntime<U, V> class in fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/Out2GeneratorRuntime.kt
+- [x] T039 [P] [US3] Create Out3GeneratorRuntime<U, V, W> class in fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/Out3GeneratorRuntime.kt
+- [x] T040 [US3] Add createIn2Sink<A, B> and createIn3Sink<A, B, C> factory methods to CodeNodeFactory
+- [x] T041 [US3] Add createOut2Generator<U, V> and createOut3Generator<U, V, W> factory methods to CodeNodeFactory
+- [x] T042 [US3] Verify all US3 tests pass: ./gradlew test --tests "*TypedNodeRuntimeTest*"
 
 **Checkpoint**: Multi-input sinks and multi-output generators work
 

@@ -315,4 +315,140 @@ class TypedNodeRuntimeTest {
 
         processor.stop()
     }
+
+    // ========== User Story 3: Generator and Sink Node Variants ==========
+
+    @Test
+    fun `In2SinkRuntime consumes from two inputs continuously`() = runTest {
+        // Given: A sink that collects pairs
+        val collected = mutableListOf<Pair<Int, String>>()
+        val sink = CodeNodeFactory.createIn2Sink<Int, String>(
+            name = "PairCollector"
+        ) { a, b -> collected.add(Pair(a, b)) }
+
+        val input1 = Channel<Int>(Channel.BUFFERED)
+        val input2 = Channel<String>(Channel.BUFFERED)
+
+        sink.inputChannel = input1
+        sink.inputChannel2 = input2
+
+        // When: Start and send multiple pairs
+        sink.start(this) { }
+
+        input1.send(1)
+        input2.send("one")
+        advanceUntilIdle()
+
+        input1.send(2)
+        input2.send("two")
+        advanceUntilIdle()
+
+        input1.send(3)
+        input2.send("three")
+        advanceUntilIdle()
+
+        // Then: All pairs should be collected
+        assertEquals(3, collected.size)
+        assertEquals(Pair(1, "one"), collected[0])
+        assertEquals(Pair(2, "two"), collected[1])
+        assertEquals(Pair(3, "three"), collected[2])
+
+        sink.stop()
+    }
+
+    @Test
+    fun `In3SinkRuntime consumes from three inputs continuously`() = runTest {
+        // Given: A sink that collects triples
+        val collected = mutableListOf<Triple<Int, Int, Int>>()
+        val sink = CodeNodeFactory.createIn3Sink<Int, Int, Int>(
+            name = "TripleCollector"
+        ) { a, b, c -> collected.add(Triple(a, b, c)) }
+
+        val input1 = Channel<Int>(Channel.BUFFERED)
+        val input2 = Channel<Int>(Channel.BUFFERED)
+        val input3 = Channel<Int>(Channel.BUFFERED)
+
+        sink.inputChannel = input1
+        sink.inputChannel2 = input2
+        sink.inputChannel3 = input3
+
+        // When: Start and send multiple triples
+        sink.start(this) { }
+
+        input1.send(1)
+        input2.send(2)
+        input3.send(3)
+        advanceUntilIdle()
+
+        input1.send(10)
+        input2.send(20)
+        input3.send(30)
+        advanceUntilIdle()
+
+        // Then: All triples should be collected
+        assertEquals(2, collected.size)
+        assertEquals(Triple(1, 2, 3), collected[0])
+        assertEquals(Triple(10, 20, 30), collected[1])
+
+        sink.stop()
+    }
+
+    @Test
+    fun `Out2GeneratorRuntime emits ProcessResult2 to two output channels`() = runTest {
+        // Given: A generator that emits pairs
+        var count = 0
+        val generator = CodeNodeFactory.createOut2Generator<Int, String>(
+            name = "PairGenerator"
+        ) { emit ->
+            emit(ProcessResult2(1, "one"))
+            emit(ProcessResult2(2, "two"))
+            emit(ProcessResult2(3, "three"))
+        }
+
+        // When: Start the generator
+        generator.start(this) { }
+        advanceUntilIdle()
+
+        // Then: Both output channels should have values
+        val output1 = generator.outputChannel1!!
+        val output2 = generator.outputChannel2!!
+
+        assertEquals(1, output1.receive())
+        assertEquals("one", output2.receive())
+        assertEquals(2, output1.receive())
+        assertEquals("two", output2.receive())
+        assertEquals(3, output1.receive())
+        assertEquals("three", output2.receive())
+
+        generator.stop()
+    }
+
+    @Test
+    fun `Out3GeneratorRuntime emits ProcessResult3 to three output channels`() = runTest {
+        // Given: A generator that emits triples
+        val generator = CodeNodeFactory.createOut3Generator<Int, String, Boolean>(
+            name = "TripleGenerator"
+        ) { emit ->
+            emit(ProcessResult3(1, "a", true))
+            emit(ProcessResult3(2, "b", false))
+        }
+
+        // When: Start the generator
+        generator.start(this) { }
+        advanceUntilIdle()
+
+        // Then: All three output channels should have values
+        val output1 = generator.outputChannel1!!
+        val output2 = generator.outputChannel2!!
+        val output3 = generator.outputChannel3!!
+
+        assertEquals(1, output1.receive())
+        assertEquals("a", output2.receive())
+        assertEquals(true, output3.receive())
+        assertEquals(2, output1.receive())
+        assertEquals("b", output2.receive())
+        assertEquals(false, output3.receive())
+
+        generator.stop()
+    }
 }

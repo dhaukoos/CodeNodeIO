@@ -819,4 +819,226 @@ object CodeNodeFactory {
 
         return io.codenode.fbpdsl.runtime.In3Out1Runtime(codeNode, process)
     }
+
+    // ========== Multi-Input Sink Factory Methods ==========
+
+    /**
+     * Creates a continuous sink node with 2 inputs.
+     *
+     * The sink runs continuously until stopped, receiving values from
+     * both input channels (synchronous receive) and consuming them.
+     * No output channels.
+     *
+     * @param A Type of first input
+     * @param B Type of second input
+     * @param name Human-readable name
+     * @param position Canvas position
+     * @param description Optional documentation
+     * @param consume Sink function that processes both inputs
+     * @return In2SinkRuntime configured for continuous consumption
+     *
+     * @sample
+     * ```kotlin
+     * val pairLogger = CodeNodeFactory.createIn2Sink<Int, String>(
+     *     name = "PairLogger"
+     * ) { num, text -> println("$num: $text") }
+     *
+     * pairLogger.inputChannel = channel1
+     * pairLogger.inputChannel2 = channel2
+     * pairLogger.start(scope) { }
+     * ```
+     */
+    inline fun <reified A : Any, reified B : Any> createIn2Sink(
+        name: String,
+        position: Node.Position = Node.Position.ORIGIN,
+        description: String? = null,
+        noinline consume: io.codenode.fbpdsl.runtime.In2SinkBlock<A, B>
+    ): io.codenode.fbpdsl.runtime.In2SinkRuntime<A, B> {
+        val nodeId = NodeIdGenerator.generateId("codenode")
+
+        val codeNode = CodeNode(
+            id = nodeId,
+            name = name,
+            codeNodeType = CodeNodeType.SINK,
+            description = description,
+            position = position,
+            inputPorts = listOf(
+                PortFactory.input<A>("input1", nodeId, required = true),
+                PortFactory.input<B>("input2", nodeId, required = true)
+            ),
+            outputPorts = emptyList()
+        )
+
+        return io.codenode.fbpdsl.runtime.In2SinkRuntime(codeNode, consume)
+    }
+
+    /**
+     * Creates a continuous sink node with 3 inputs.
+     *
+     * The sink runs continuously until stopped, receiving values from
+     * all three input channels (synchronous receive) and consuming them.
+     * No output channels.
+     *
+     * @param A Type of first input
+     * @param B Type of second input
+     * @param C Type of third input
+     * @param name Human-readable name
+     * @param position Canvas position
+     * @param description Optional documentation
+     * @param consume Sink function that processes all three inputs
+     * @return In3SinkRuntime configured for continuous consumption
+     *
+     * @sample
+     * ```kotlin
+     * val tripleLogger = CodeNodeFactory.createIn3Sink<Int, Int, Int>(
+     *     name = "TripleLogger"
+     * ) { a, b, c -> println("Sum: ${a + b + c}") }
+     *
+     * tripleLogger.inputChannel = channel1
+     * tripleLogger.inputChannel2 = channel2
+     * tripleLogger.inputChannel3 = channel3
+     * tripleLogger.start(scope) { }
+     * ```
+     */
+    inline fun <reified A : Any, reified B : Any, reified C : Any> createIn3Sink(
+        name: String,
+        position: Node.Position = Node.Position.ORIGIN,
+        description: String? = null,
+        noinline consume: io.codenode.fbpdsl.runtime.In3SinkBlock<A, B, C>
+    ): io.codenode.fbpdsl.runtime.In3SinkRuntime<A, B, C> {
+        val nodeId = NodeIdGenerator.generateId("codenode")
+
+        val codeNode = CodeNode(
+            id = nodeId,
+            name = name,
+            codeNodeType = CodeNodeType.SINK,
+            description = description,
+            position = position,
+            inputPorts = listOf(
+                PortFactory.input<A>("input1", nodeId, required = true),
+                PortFactory.input<B>("input2", nodeId, required = true),
+                PortFactory.input<C>("input3", nodeId, required = true)
+            ),
+            outputPorts = emptyList()
+        )
+
+        return io.codenode.fbpdsl.runtime.In3SinkRuntime(codeNode, consume)
+    }
+
+    // ========== Multi-Output Generator Factory Methods ==========
+
+    /**
+     * Creates a continuous generator node with 2 outputs.
+     *
+     * The generator runs continuously until stopped, emitting ProcessResult2
+     * values that are distributed to the two output channels. Non-null values
+     * in the ProcessResult2 are sent to their respective channels.
+     *
+     * @param U Type of first output
+     * @param V Type of second output
+     * @param name Human-readable name
+     * @param channelCapacity Buffer capacity for output channels (default: BUFFERED = 64)
+     * @param position Canvas position
+     * @param description Optional documentation
+     * @param generate Generator function that emits ProcessResult2 values
+     * @return Out2GeneratorRuntime configured for continuous generation
+     *
+     * @sample
+     * ```kotlin
+     * val pairGenerator = CodeNodeFactory.createOut2Generator<Int, String>(
+     *     name = "PairGenerator"
+     * ) { emit ->
+     *     var count = 0
+     *     while (isActive) {
+     *         emit(ProcessResult2(++count, "item$count"))
+     *     }
+     * }
+     *
+     * val out1 = pairGenerator.outputChannel1!!
+     * val out2 = pairGenerator.outputChannel2!!
+     * pairGenerator.start(scope) { }
+     * ```
+     */
+    inline fun <reified U : Any, reified V : Any> createOut2Generator(
+        name: String,
+        channelCapacity: Int = Channel.BUFFERED,
+        position: Node.Position = Node.Position.ORIGIN,
+        description: String? = null,
+        noinline generate: io.codenode.fbpdsl.runtime.Out2GeneratorBlock<U, V>
+    ): io.codenode.fbpdsl.runtime.Out2GeneratorRuntime<U, V> {
+        val nodeId = NodeIdGenerator.generateId("codenode")
+
+        val codeNode = CodeNode(
+            id = nodeId,
+            name = name,
+            codeNodeType = CodeNodeType.GENERATOR,
+            description = description,
+            position = position,
+            inputPorts = emptyList(),
+            outputPorts = listOf(
+                PortFactory.output<U>("output1", nodeId),
+                PortFactory.output<V>("output2", nodeId)
+            )
+        )
+
+        return io.codenode.fbpdsl.runtime.Out2GeneratorRuntime(codeNode, channelCapacity, generate)
+    }
+
+    /**
+     * Creates a continuous generator node with 3 outputs.
+     *
+     * The generator runs continuously until stopped, emitting ProcessResult3
+     * values that are distributed to the three output channels. Non-null values
+     * in the ProcessResult3 are sent to their respective channels.
+     *
+     * @param U Type of first output
+     * @param V Type of second output
+     * @param W Type of third output
+     * @param name Human-readable name
+     * @param channelCapacity Buffer capacity for output channels (default: BUFFERED = 64)
+     * @param position Canvas position
+     * @param description Optional documentation
+     * @param generate Generator function that emits ProcessResult3 values
+     * @return Out3GeneratorRuntime configured for continuous generation
+     *
+     * @sample
+     * ```kotlin
+     * val tripleGenerator = CodeNodeFactory.createOut3Generator<Int, String, Boolean>(
+     *     name = "TripleGenerator"
+     * ) { emit ->
+     *     emit(ProcessResult3(1, "a", true))
+     *     emit(ProcessResult3(2, "b", false))
+     * }
+     *
+     * val out1 = tripleGenerator.outputChannel1!!
+     * val out2 = tripleGenerator.outputChannel2!!
+     * val out3 = tripleGenerator.outputChannel3!!
+     * tripleGenerator.start(scope) { }
+     * ```
+     */
+    inline fun <reified U : Any, reified V : Any, reified W : Any> createOut3Generator(
+        name: String,
+        channelCapacity: Int = Channel.BUFFERED,
+        position: Node.Position = Node.Position.ORIGIN,
+        description: String? = null,
+        noinline generate: io.codenode.fbpdsl.runtime.Out3GeneratorBlock<U, V, W>
+    ): io.codenode.fbpdsl.runtime.Out3GeneratorRuntime<U, V, W> {
+        val nodeId = NodeIdGenerator.generateId("codenode")
+
+        val codeNode = CodeNode(
+            id = nodeId,
+            name = name,
+            codeNodeType = CodeNodeType.GENERATOR,
+            description = description,
+            position = position,
+            inputPorts = emptyList(),
+            outputPorts = listOf(
+                PortFactory.output<U>("output1", nodeId),
+                PortFactory.output<V>("output2", nodeId),
+                PortFactory.output<W>("output3", nodeId)
+            )
+        )
+
+        return io.codenode.fbpdsl.runtime.Out3GeneratorRuntime(codeNode, channelCapacity, generate)
+    }
 }
