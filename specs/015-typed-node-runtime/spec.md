@@ -143,9 +143,16 @@ As a flow graph manager, I want typed node runtimes to be generated as uniquely 
 - **SC-005**: All edge cases (channel closure, exceptions) are handled gracefully without crashing the application
 - **SC-006**: Generated nodes integrate seamlessly with existing StopWatch and other FBP flow implementations
 
+## Clarifications
+
+### Session 2026-02-15
+
+- Q: What is the processing loop behavior for multi-input nodes? → A: Continuous loop - nodes continuously wait for input tuples and process until stopped (consistent with feature 014's continuous mode default)
+
 ## Assumptions
 
 - The existing NodeRuntime, ExecutionState, and CodeNode infrastructure from feature 014 will be leveraged
+- **Continuous processing mode**: All typed node runtimes run in continuous loop mode by default, processing input tuples repeatedly until stop() is called (aligned with feature 014)
 - The synchronous receive pattern (wait for all inputs before processing) is the default behavior for multi-input nodes
 - Maximum of 3 inputs and 3 outputs is sufficient for the current use cases (down from 5)
 - ProcessResult types are nullable to allow selective output (send to some channels but not others)
