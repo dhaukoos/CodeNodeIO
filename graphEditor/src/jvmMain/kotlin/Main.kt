@@ -26,6 +26,7 @@ import io.codenode.grapheditor.state.rememberUndoRedoManager
 import io.codenode.grapheditor.state.AddNodeCommand
 import io.codenode.grapheditor.viewmodel.SharedStateProvider
 import io.codenode.grapheditor.viewmodel.LocalSharedState
+import io.codenode.grapheditor.viewmodel.NodeGeneratorViewModel
 import androidx.compose.runtime.CompositionLocalProvider
 import io.codenode.grapheditor.state.MoveNodeCommand
 import io.codenode.grapheditor.state.AddConnectionCommand
@@ -41,7 +42,6 @@ import io.codenode.grapheditor.ui.GraphEditorWithToggle
 import io.codenode.grapheditor.ui.ViewMode
 import io.codenode.grapheditor.ui.CompactPropertiesPanel
 import io.codenode.grapheditor.ui.PropertiesPanelState
-import io.codenode.grapheditor.state.NodeGeneratorState
 import io.codenode.grapheditor.repository.FileCustomNodeRepository
 import io.codenode.grapheditor.state.rememberPropertyChangeTracker
 import io.codenode.grapheditor.serialization.FlowKtParser
@@ -280,7 +280,11 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
     // Custom node repository and state
     val customNodeRepository = remember { FileCustomNodeRepository() }
     var customNodes by remember { mutableStateOf(emptyList<io.codenode.grapheditor.repository.CustomNodeDefinition>()) }
-    var nodeGeneratorState by remember { mutableStateOf(NodeGeneratorState()) }
+
+    // NodeGeneratorViewModel for the Node Generator Panel
+    val nodeGeneratorViewModel = remember(customNodeRepository) {
+        NodeGeneratorViewModel(customNodeRepository)
+    }
 
     // Load custom nodes on startup
     LaunchedEffect(Unit) {
@@ -457,10 +461,9 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                     Column(modifier = Modifier.fillMaxHeight()) {
                         // Node Generator Panel
                         NodeGeneratorPanel(
-                            state = nodeGeneratorState,
-                            onStateChange = { nodeGeneratorState = it },
-                            onCreateNode = { node ->
-                                customNodeRepository.add(node)
+                            viewModel = nodeGeneratorViewModel,
+                            onNodeCreated = { node ->
+                                // Refresh custom nodes list after creation
                                 customNodes = customNodeRepository.getAll()
                             }
                         )

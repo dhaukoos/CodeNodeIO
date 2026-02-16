@@ -59,11 +59,11 @@
 
 #### NodeGeneratorViewModel (Simplest - Start Here)
 
-- [ ] T009 [US1] Create `NodeGeneratorPanelState` data class with name, inputCount, outputCount, isExpanded, dropdownExpanded fields at `graphEditor/src/jvmMain/kotlin/viewmodel/NodeGeneratorViewModel.kt`
-- [ ] T010 [US1] Create `NodeGeneratorViewModel` class extending ViewModel with StateFlow<NodeGeneratorPanelState> at `graphEditor/src/jvmMain/kotlin/viewmodel/NodeGeneratorViewModel.kt`
-- [ ] T011 [US1] Implement setName(), setInputCount(), setOutputCount(), toggleExpanded(), createNode(), reset() actions in `NodeGeneratorViewModel`
-- [ ] T012 [US1] Refactor `NodeGeneratorPanel.kt` to use `NodeGeneratorViewModel` instead of local mutableStateOf calls at `graphEditor/src/jvmMain/kotlin/ui/NodeGeneratorPanel.kt`
-- [ ] T013 [US1] Remove business logic from `NodeGeneratorPanel.kt` composable - keep only UI rendering
+- [x] T009 [US1] Create `NodeGeneratorPanelState` data class with name, inputCount, outputCount, isExpanded, dropdownExpanded fields at `graphEditor/src/jvmMain/kotlin/viewmodel/NodeGeneratorViewModel.kt`
+- [x] T010 [US1] Create `NodeGeneratorViewModel` class extending ViewModel with StateFlow<NodeGeneratorPanelState> at `graphEditor/src/jvmMain/kotlin/viewmodel/NodeGeneratorViewModel.kt`
+- [x] T011 [US1] Implement setName(), setInputCount(), setOutputCount(), toggleExpanded(), createNode(), reset() actions in `NodeGeneratorViewModel`
+- [x] T012 [US1] Refactor `NodeGeneratorPanel.kt` to use `NodeGeneratorViewModel` instead of local mutableStateOf calls at `graphEditor/src/jvmMain/kotlin/ui/NodeGeneratorPanel.kt`
+- [x] T013 [US1] Remove business logic from `NodeGeneratorPanel.kt` composable - keep only UI rendering
 
 #### NodePaletteViewModel
 

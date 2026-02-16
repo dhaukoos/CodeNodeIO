@@ -17,29 +17,65 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import io.codenode.grapheditor.state.NodeGeneratorState
+import io.codenode.grapheditor.viewmodel.NodeGeneratorViewModel
+import io.codenode.grapheditor.viewmodel.NodeGeneratorPanelState
 import io.codenode.grapheditor.repository.CustomNodeDefinition
 
 /**
  * Node Generator panel composable for creating custom node types.
  * Allows users to specify name, input count (0-3), and output count (0-3).
  *
- * @param state Current form state
- * @param onStateChange Callback when form values change
- * @param onCreateNode Callback when Create is clicked with valid data
+ * This composable is purely for UI rendering - all business logic and state
+ * management is delegated to the NodeGeneratorViewModel.
+ *
+ * @param viewModel The ViewModel managing state and business logic
+ * @param onNodeCreated Callback when a node is successfully created
  * @param modifier Compose modifier for styling/layout
  */
 @Composable
 fun NodeGeneratorPanel(
-    state: NodeGeneratorState,
-    onStateChange: (NodeGeneratorState) -> Unit,
-    onCreateNode: (CustomNodeDefinition) -> Unit,
+    viewModel: NodeGeneratorViewModel,
+    onNodeCreated: (CustomNodeDefinition) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val state by viewModel.state.collectAsState()
+
+    NodeGeneratorPanelContent(
+        state = state,
+        onToggleExpanded = { viewModel.toggleExpanded() },
+        onNameChange = { viewModel.setName(it) },
+        onInputCountChange = { viewModel.setInputCount(it) },
+        onOutputCountChange = { viewModel.setOutputCount(it) },
+        onInputDropdownExpandedChange = { viewModel.setInputDropdownExpanded(it) },
+        onOutputDropdownExpandedChange = { viewModel.setOutputDropdownExpanded(it) },
+        onCancel = { viewModel.reset() },
+        onCreate = {
+            viewModel.createNode()?.let { node ->
+                onNodeCreated(node)
+            }
+        },
+        modifier = modifier
+    )
+}
+
+/**
+ * Stateless content composable for the Node Generator Panel.
+ * Pure rendering function with no business logic.
+ */
+@Composable
+private fun NodeGeneratorPanelContent(
+    state: NodeGeneratorPanelState,
+    onToggleExpanded: () -> Unit,
+    onNameChange: (String) -> Unit,
+    onInputCountChange: (Int) -> Unit,
+    onOutputCountChange: (Int) -> Unit,
+    onInputDropdownExpandedChange: (Boolean) -> Unit,
+    onOutputDropdownExpandedChange: (Boolean) -> Unit,
+    onCancel: () -> Unit,
+    onCreate: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val portOptions = listOf(0, 1, 2, 3)
-    var inputDropdownExpanded by remember { mutableStateOf(false) }
-    var outputDropdownExpanded by remember { mutableStateOf(false) }
-    var isExpanded by remember { mutableStateOf(false) }
 
     Column(
         modifier = modifier
@@ -53,11 +89,11 @@ fun NodeGeneratorPanel(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .clickable { isExpanded = !isExpanded },
+                .clickable { onToggleExpanded() },
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = if (isExpanded) "▼" else "▶",
+                text = if (state.isExpanded) "▼" else "▶",
                 fontSize = 12.sp,
                 modifier = Modifier.padding(end = 8.dp)
             )
@@ -70,150 +106,142 @@ fun NodeGeneratorPanel(
         }
 
         // Expandable content
-        if (isExpanded) {
+        if (state.isExpanded) {
             Divider(color = Color(0xFFE0E0E0))
 
             // Name input
-        OutlinedTextField(
-            value = state.name,
-            onValueChange = { onStateChange(state.withName(it)) },
-            label = { Text("Name") },
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth(),
-            colors = TextFieldDefaults.outlinedTextFieldColors(
-                backgroundColor = Color.White
+            OutlinedTextField(
+                value = state.name,
+                onValueChange = onNameChange,
+                label = { Text("Name") },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth(),
+                colors = TextFieldDefaults.outlinedTextFieldColors(
+                    backgroundColor = Color.White
+                )
             )
-        )
 
-        // Input count dropdown
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Text(
-                text = "Inputs",
-                fontSize = 12.sp,
-                color = Color(0xFF757575)
-            )
-            Box {
-                OutlinedButton(
-                    onClick = { inputDropdownExpanded = true },
-                    modifier = Modifier.width(80.dp)
-                ) {
-                    Text("${state.inputCount}")
-                    Spacer(Modifier.weight(1f))
-                    Text("▼", fontSize = 10.sp)
-                }
-                DropdownMenu(
-                    expanded = inputDropdownExpanded,
-                    onDismissRequest = { inputDropdownExpanded = false }
-                ) {
-                    portOptions.forEach { count ->
-                        DropdownMenuItem(
-                            onClick = {
-                                onStateChange(state.withInputCount(count))
-                                inputDropdownExpanded = false
-                            }
-                        ) {
-                            Text("$count")
-                        }
-                    }
-                }
-            }
-        }
-
-        // Output count dropdown
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Text(
-                text = "Outputs",
-                fontSize = 12.sp,
-                color = Color(0xFF757575)
-            )
-            Box {
-                OutlinedButton(
-                    onClick = { outputDropdownExpanded = true },
-                    modifier = Modifier.width(80.dp)
-                ) {
-                    Text("${state.outputCount}")
-                    Spacer(Modifier.weight(1f))
-                    Text("▼", fontSize = 10.sp)
-                }
-                DropdownMenu(
-                    expanded = outputDropdownExpanded,
-                    onDismissRequest = { outputDropdownExpanded = false }
-                ) {
-                    portOptions.forEach { count ->
-                        DropdownMenuItem(
-                            onClick = {
-                                onStateChange(state.withOutputCount(count))
-                                outputDropdownExpanded = false
-                            }
-                        ) {
-                            Text("$count")
-                        }
-                    }
-                }
-            }
-        }
-
-        // Preview of genericType (only show when valid)
-        if (state.name.isNotBlank()) {
-            Text(
-                text = "Type: ${state.genericType}",
-                fontSize = 11.sp,
-                color = if (state.isValid) Color(0xFF4CAF50) else Color(0xFFFF5722),
-                modifier = Modifier.padding(vertical = 4.dp)
-            )
-            if (!state.isValid && state.inputCount == 0 && state.outputCount == 0) {
+            // Input count dropdown
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
                 Text(
-                    text = "At least one port required",
-                    fontSize = 10.sp,
-                    color = Color(0xFFFF5722)
+                    text = "Inputs",
+                    fontSize = 12.sp,
+                    color = Color(0xFF757575)
                 )
+                Box {
+                    OutlinedButton(
+                        onClick = { onInputDropdownExpandedChange(true) },
+                        modifier = Modifier.width(80.dp)
+                    ) {
+                        Text("${state.inputCount}")
+                        Spacer(Modifier.weight(1f))
+                        Text("▼", fontSize = 10.sp)
+                    }
+                    DropdownMenu(
+                        expanded = state.inputDropdownExpanded,
+                        onDismissRequest = { onInputDropdownExpandedChange(false) }
+                    ) {
+                        portOptions.forEach { count ->
+                            DropdownMenuItem(
+                                onClick = {
+                                    onInputCountChange(count)
+                                    onInputDropdownExpandedChange(false)
+                                }
+                            ) {
+                                Text("$count")
+                            }
+                        }
+                    }
+                }
             }
-        }
 
-        Divider(color = Color(0xFFE0E0E0))
-
-        // Buttons
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            // Cancel button
-            OutlinedButton(
-                onClick = { onStateChange(state.reset()) },
-                modifier = Modifier.weight(1f)
+            // Output count dropdown
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text("Cancel")
+                Text(
+                    text = "Outputs",
+                    fontSize = 12.sp,
+                    color = Color(0xFF757575)
+                )
+                Box {
+                    OutlinedButton(
+                        onClick = { onOutputDropdownExpandedChange(true) },
+                        modifier = Modifier.width(80.dp)
+                    ) {
+                        Text("${state.outputCount}")
+                        Spacer(Modifier.weight(1f))
+                        Text("▼", fontSize = 10.sp)
+                    }
+                    DropdownMenu(
+                        expanded = state.outputDropdownExpanded,
+                        onDismissRequest = { onOutputDropdownExpandedChange(false) }
+                    ) {
+                        portOptions.forEach { count ->
+                            DropdownMenuItem(
+                                onClick = {
+                                    onOutputCountChange(count)
+                                    onOutputDropdownExpandedChange(false)
+                                }
+                            ) {
+                                Text("$count")
+                            }
+                        }
+                    }
+                }
             }
 
-            // Create button - disabled when !state.isValid
-            Button(
-                onClick = {
-                    val node = CustomNodeDefinition.create(
-                        name = state.name.trim(),
-                        inputCount = state.inputCount,
-                        outputCount = state.outputCount
+            // Preview of genericType (only show when valid)
+            if (state.name.isNotBlank()) {
+                Text(
+                    text = "Type: ${state.genericType}",
+                    fontSize = 11.sp,
+                    color = if (state.isValid) Color(0xFF4CAF50) else Color(0xFFFF5722),
+                    modifier = Modifier.padding(vertical = 4.dp)
+                )
+                if (!state.isValid && state.inputCount == 0 && state.outputCount == 0) {
+                    Text(
+                        text = "At least one port required",
+                        fontSize = 10.sp,
+                        color = Color(0xFFFF5722)
                     )
-                    onCreateNode(node)
-                    onStateChange(state.reset())
-                },
-                enabled = state.isValid,
-                modifier = Modifier.weight(1f),
-                colors = ButtonDefaults.buttonColors(
-                    backgroundColor = Color(0xFF2196F3),
-                    disabledBackgroundColor = Color(0xFFBDBDBD)
-                )
-            ) {
-                Text("Create", color = Color.White)
+                }
             }
-        }
+
+            Divider(color = Color(0xFFE0E0E0))
+
+            // Buttons
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                // Cancel button
+                OutlinedButton(
+                    onClick = onCancel,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text("Cancel")
+                }
+
+                // Create button - disabled when !state.isValid
+                Button(
+                    onClick = onCreate,
+                    enabled = state.isValid,
+                    modifier = Modifier.weight(1f),
+                    colors = ButtonDefaults.buttonColors(
+                        backgroundColor = Color(0xFF2196F3),
+                        disabledBackgroundColor = Color(0xFFBDBDBD)
+                    )
+                ) {
+                    Text("Create", color = Color.White)
+                }
+            }
         }
     }
 }
