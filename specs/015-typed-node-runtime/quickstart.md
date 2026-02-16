@@ -39,7 +39,7 @@ fun `two-input processor continuously combines names`() = runTest {
     // Wire channels
     combiner.inputChannel = firstNameChannel
     combiner.inputChannel2 = lastNameChannel
-    combiner.outputChannel = outputChannel
+    combiner.processorOutputChannel = outputChannel
 
     // Start processor - runs continuously until stopped
     combiner.start(this) { }
@@ -84,15 +84,15 @@ fun `multi-output processor continuously extracts fields`() = runTest {
         ProcessResult2.both(Name(person.name), Age(person.age))
     }
 
-    // Create channels
+    // Create input channel
     val inputChannel = Channel<Person>(Channel.BUFFERED)
-    val nameChannel = Channel<Name>(Channel.BUFFERED)
-    val ageChannel = Channel<Age>(Channel.BUFFERED)
 
-    // Wire channels
+    // Wire input channel (output channels are created by the runtime)
     extractor.inputChannel = inputChannel
-    extractor.outputChannel1 = nameChannel
-    extractor.outputChannel2 = ageChannel
+
+    // Get output channels from runtime
+    val nameChannel = extractor.outputChannel1!!
+    val ageChannel = extractor.outputChannel2!!
 
     // Start processor - runs continuously
     extractor.start(this) { }
@@ -140,12 +140,12 @@ fun `router continuously routes to different outputs`() = runTest {
     }
 
     val inputChannel = Channel<Number>(Channel.BUFFERED)
-    val evenChannel = Channel<EvenNumber>(Channel.BUFFERED)
-    val oddChannel = Channel<OddNumber>(Channel.BUFFERED)
 
     router.inputChannel = inputChannel
-    router.outputChannel1 = evenChannel
-    router.outputChannel2 = oddChannel
+
+    // Get output channels from runtime
+    val evenChannel = router.outputChannel1!!
+    val oddChannel = router.outputChannel2!!
 
     // Start - runs continuously
     router.start(this) { }
@@ -247,11 +247,9 @@ fun `two-output generator continuously emits to both channels`() = runTest {
         }
     }
 
-    val timestampChannel = Channel<Timestamp>(Channel.BUFFERED)
-    val tickChannel = Channel<TickCount>(Channel.BUFFERED)
-
-    ticker.outputChannel1 = timestampChannel
-    ticker.outputChannel2 = tickChannel
+    // Get output channels from runtime (created internally)
+    val timestampChannel = ticker.outputChannel1!!
+    val tickChannel = ticker.outputChannel2!!
 
     // Start generator - runs continuously
     ticker.start(this) { }
@@ -312,14 +310,13 @@ fun `full pipeline processes data continuously`() = runTest {
     }
 
     // Wire the pipeline
-    val genToDoubler = Channel<Int>(Channel.BUFFERED)
+    val genToDoubler = generator.outputChannel!!
     val constantChannel = Channel<Int>(Channel.BUFFERED)
     val doublerToSink = Channel<Int>(Channel.BUFFERED)
 
-    generator.outputChannel = genToDoubler
     doubler.inputChannel = genToDoubler
     doubler.inputChannel2 = constantChannel
-    doubler.outputChannel = doublerToSink
+    doubler.processorOutputChannel = doublerToSink
     collector.inputChannel = doublerToSink
 
     // Start all nodes - all run continuously
@@ -367,7 +364,7 @@ class TypedNodeRuntimeTest {
 
         combiner.inputChannel = input1
         combiner.inputChannel2 = input2
-        combiner.outputChannel = output
+        combiner.processorOutputChannel = output
 
         combiner.start(this) { }
 
@@ -398,7 +395,7 @@ class TypedNodeRuntimeTest {
 
         combiner.inputChannel = input1
         combiner.inputChannel2 = input2
-        combiner.outputChannel = output
+        combiner.processorOutputChannel = output
 
         combiner.start(this) { }
 

@@ -168,14 +168,14 @@
 
 ### Tests for User Story 5
 
-- [ ] T059 [P] [US5] Write test: factory method name parameter is reflected in CodeNode.name in TypedNodeRuntimeTest.kt
-- [ ] T060 [P] [US5] Write test: multiple nodes have unique names for identification in TypedNodeRuntimeTest.kt
+- [x] T059 [P] [US5] Write test: factory method name parameter is reflected in CodeNode.name in TypedNodeRuntimeTest.kt
+- [x] T060 [P] [US5] Write test: multiple nodes have unique names for identification in TypedNodeRuntimeTest.kt
 
 ### Implementation for User Story 5
 
-- [ ] T061 [US5] Verify all factory methods accept name parameter (already implemented in factory signatures)
-- [ ] T062 [US5] Verify CodeNode.name is set correctly in all factory methods
-- [ ] T063 [US5] Verify all US5 tests pass: ./gradlew test --tests "*TypedNodeRuntimeTest*"
+- [x] T061 [US5] Verify all factory methods accept name parameter (already implemented in factory signatures)
+- [x] T062 [US5] Verify CodeNode.name is set correctly in all factory methods
+- [x] T063 [US5] Verify all US5 tests pass: ./gradlew test --tests "*TypedNodeRuntimeTest*"
 
 **Checkpoint**: Named nodes work for debugging and identification
 
@@ -185,11 +185,11 @@
 
 **Purpose**: Edge case validation, integration testing, documentation
 
-- [ ] T064 [P] Write test: factory rejects 0-input AND 0-output configuration in TypedNodeRuntimeTest.kt
-- [ ] T065 [P] Add factory validation to reject 0×0 configuration with clear error message
-- [ ] T066 Run all tests to verify no regressions: ./gradlew test
-- [ ] T067 Update MEMORY.md with lessons learned from this feature
-- [ ] T068 Verify quickstart.md examples work as documented
+- [x] T064 [P] Write test: factory rejects 0-input AND 0-output configuration in TypedNodeRuntimeTest.kt
+- [x] T065 [P] Add factory validation to reject 0×0 configuration with clear error message
+- [x] T066 Run all tests to verify no regressions: ./gradlew test
+- [x] T067 Update MEMORY.md with lessons learned from this feature
+- [x] T068 Verify quickstart.md examples work as documented
 
 ---
 

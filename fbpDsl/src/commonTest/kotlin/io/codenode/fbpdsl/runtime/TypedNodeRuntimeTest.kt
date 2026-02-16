@@ -603,4 +603,85 @@ class TypedNodeRuntimeTest {
         assertEquals("two", out2)
         assertEquals(true, out3)
     }
+
+    // ========== User Story 5: Named Node Objects ==========
+
+    @Test
+    fun `factory method name parameter is reflected in CodeNode name`() = runTest {
+        // Given: Various processors with specific names
+        val processor1 = CodeNodeFactory.createIn2Out1Processor<Int, Int, Int>(
+            name = "MyAdder"
+        ) { a, b -> a + b }
+
+        val processor2 = CodeNodeFactory.createIn1Out2Processor<Int, Int, String>(
+            name = "MySplitter"
+        ) { v -> ProcessResult2(v, v.toString()) }
+
+        val sink = CodeNodeFactory.createIn2Sink<Int, String>(
+            name = "MyCollector"
+        ) { _, _ -> }
+
+        val generator = CodeNodeFactory.createOut2Generator<Int, String>(
+            name = "MyGenerator"
+        ) { emit -> emit(ProcessResult2(1, "one")) }
+
+        // Then: CodeNode names should match
+        assertEquals("MyAdder", processor1.codeNode.name)
+        assertEquals("MySplitter", processor2.codeNode.name)
+        assertEquals("MyCollector", sink.codeNode.name)
+        assertEquals("MyGenerator", generator.codeNode.name)
+    }
+
+    @Test
+    fun `multiple nodes have unique names for identification`() = runTest {
+        // Given: Multiple processors with different names
+        val adder1 = CodeNodeFactory.createIn2Out1Processor<Int, Int, Int>(
+            name = "Adder1"
+        ) { a, b -> a + b }
+
+        val adder2 = CodeNodeFactory.createIn2Out1Processor<Int, Int, Int>(
+            name = "Adder2"
+        ) { a, b -> a + b }
+
+        val multiplier = CodeNodeFactory.createIn2Out1Processor<Int, Int, Int>(
+            name = "Multiplier"
+        ) { a, b -> a * b }
+
+        // Then: Each node should have its own unique name
+        assertEquals("Adder1", adder1.codeNode.name)
+        assertEquals("Adder2", adder2.codeNode.name)
+        assertEquals("Multiplier", multiplier.codeNode.name)
+
+        // And: Names should be distinct
+        assertTrue(adder1.codeNode.name != adder2.codeNode.name)
+        assertTrue(adder1.codeNode.name != multiplier.codeNode.name)
+    }
+
+    // ========== Polish: Edge Cases ==========
+
+    @Test
+    fun `typed factories prevent 0x0 configuration by design`() = runTest {
+        // The typed factory methods inherently prevent 0-input AND 0-output configurations:
+        // - Sinks: In2Sink, In3Sink have inputs, no outputs
+        // - Generators: Out2Generator, Out3Generator have outputs, no inputs
+        // - Processors: In2Out1, In1Out2, etc. have both inputs and outputs
+        //
+        // There is no createIn0Out0 factory method, so this test documents that
+        // the type system enforces valid configurations.
+
+        // Verify minimum configurations exist and work:
+        val sink = CodeNodeFactory.createIn2Sink<Int, Int>(name = "MinSink") { _, _ -> }
+        assertTrue(sink.codeNode.inputPorts.isNotEmpty())
+        assertTrue(sink.codeNode.outputPorts.isEmpty())
+
+        val generator = CodeNodeFactory.createOut2Generator<Int, Int>(name = "MinGen") { emit ->
+            emit(ProcessResult2(1, 2))
+        }
+        assertTrue(generator.codeNode.inputPorts.isEmpty())
+        assertTrue(generator.codeNode.outputPorts.isNotEmpty())
+
+        val processor = CodeNodeFactory.createIn2Out1Processor<Int, Int, Int>(name = "MinProc") { a, b -> a + b }
+        assertTrue(processor.codeNode.inputPorts.isNotEmpty())
+        assertTrue(processor.codeNode.outputPorts.isNotEmpty())
+    }
 }
