@@ -317,3 +317,339 @@ fun GraphEditorApp() {
 - [ ] Unit tests pass without Compose dependencies
 - [ ] Existing functionality preserved
 - [ ] Undo/redo still works
+
+---
+
+## Template: Adding a New ViewModel
+
+Use this template when adding a new UI component with its own ViewModel.
+
+### Step 1: Create the ViewModel File
+
+Create `graphEditor/src/jvmMain/kotlin/viewmodel/MyFeatureViewModel.kt`:
+
+```kotlin
+/*
+ * MyFeatureViewModel - ViewModel for [describe feature]
+ * [Brief description of what this ViewModel manages]
+ * License: Apache 2.0
+ */
+
+package io.codenode.grapheditor.viewmodel
+
+import androidx.lifecycle.ViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
+
+/**
+ * State data class for [Feature Name].
+ * Contains all UI state for the feature.
+ *
+ * @param fieldOne Description of first field
+ * @param fieldTwo Description of second field
+ * @param isExpanded Whether the panel/section is expanded
+ */
+data class MyFeatureState(
+    val fieldOne: String = "",
+    val fieldTwo: Int = 0,
+    val isExpanded: Boolean = false
+) : BaseState {
+    /**
+     * Computed property: validation result based on current state.
+     */
+    val isValid: Boolean
+        get() = fieldOne.isNotBlank() && fieldTwo > 0
+}
+
+/**
+ * ViewModel for [Feature Name].
+ * Manages state and business logic for [describe functionality].
+ *
+ * @param dependency Any injected dependencies (repositories, services)
+ */
+class MyFeatureViewModel(
+    private val dependency: SomeDependency
+) : ViewModel() {
+
+    private val _state = MutableStateFlow(MyFeatureState())
+    val state: StateFlow<MyFeatureState> = _state.asStateFlow()
+
+    // ========== Actions ==========
+
+    /**
+     * Updates fieldOne.
+     */
+    fun setFieldOne(value: String) {
+        _state.update { it.copy(fieldOne = value) }
+    }
+
+    /**
+     * Updates fieldTwo with validation.
+     */
+    fun setFieldTwo(value: Int) {
+        _state.update { it.copy(fieldTwo = value.coerceAtLeast(0)) }
+    }
+
+    /**
+     * Toggles expanded state.
+     */
+    fun toggleExpanded() {
+        _state.update { it.copy(isExpanded = !it.isExpanded) }
+    }
+
+    /**
+     * Performs the main action of this feature.
+     * @return Result object or null if invalid state
+     */
+    fun performAction(): SomeResult? {
+        val currentState = _state.value
+        if (!currentState.isValid) return null
+
+        val result = dependency.doSomething(currentState.fieldOne, currentState.fieldTwo)
+        reset()
+        return result
+    }
+
+    /**
+     * Resets state to defaults, preserving UI state like expansion.
+     */
+    fun reset() {
+        _state.update { MyFeatureState(isExpanded = it.isExpanded) }
+    }
+}
+```
+
+### Step 2: Create the Test File
+
+Create `graphEditor/src/jvmTest/kotlin/viewmodel/MyFeatureViewModelTest.kt`:
+
+```kotlin
+/*
+ * MyFeatureViewModelTest - Unit tests for MyFeatureViewModel
+ * Verifies state transitions and business logic without Compose UI dependencies
+ * License: Apache 2.0
+ */
+
+package io.codenode.grapheditor.viewmodel
+
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.test.runTest
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertNull
+import kotlin.test.assertTrue
+
+/**
+ * Fake dependency for testing - implements the interface without side effects
+ */
+class FakeSomeDependency : SomeDependency {
+    val actions = mutableListOf<Pair<String, Int>>()
+
+    override fun doSomething(field1: String, field2: Int): SomeResult {
+        actions.add(field1 to field2)
+        return SomeResult(/* ... */)
+    }
+}
+
+class MyFeatureViewModelTest {
+
+    private fun createViewModel(
+        dependency: SomeDependency = FakeSomeDependency()
+    ): MyFeatureViewModel {
+        return MyFeatureViewModel(dependency)
+    }
+
+    @Test
+    fun `initial state has default values`() = runTest {
+        val viewModel = createViewModel()
+        val state = viewModel.state.first()
+
+        assertEquals("", state.fieldOne)
+        assertEquals(0, state.fieldTwo)
+        assertFalse(state.isExpanded)
+        assertFalse(state.isValid)
+    }
+
+    @Test
+    fun `setFieldOne updates state`() = runTest {
+        val viewModel = createViewModel()
+
+        viewModel.setFieldOne("test value")
+
+        assertEquals("test value", viewModel.state.first().fieldOne)
+    }
+
+    @Test
+    fun `setFieldTwo coerces negative values to zero`() = runTest {
+        val viewModel = createViewModel()
+
+        viewModel.setFieldTwo(-5)
+
+        assertEquals(0, viewModel.state.first().fieldTwo)
+    }
+
+    @Test
+    fun `toggleExpanded flips expansion state`() = runTest {
+        val viewModel = createViewModel()
+
+        assertFalse(viewModel.state.first().isExpanded)
+
+        viewModel.toggleExpanded()
+        assertTrue(viewModel.state.first().isExpanded)
+
+        viewModel.toggleExpanded()
+        assertFalse(viewModel.state.first().isExpanded)
+    }
+
+    @Test
+    fun `isValid returns true when fieldOne is not blank and fieldTwo is positive`() = runTest {
+        val viewModel = createViewModel()
+
+        viewModel.setFieldOne("valid")
+        viewModel.setFieldTwo(5)
+
+        assertTrue(viewModel.state.first().isValid)
+    }
+
+    @Test
+    fun `performAction returns null when state is invalid`() = runTest {
+        val dependency = FakeSomeDependency()
+        val viewModel = createViewModel(dependency)
+
+        val result = viewModel.performAction()
+
+        assertNull(result)
+        assertTrue(dependency.actions.isEmpty())
+    }
+
+    @Test
+    fun `performAction calls dependency and resets state when valid`() = runTest {
+        val dependency = FakeSomeDependency()
+        val viewModel = createViewModel(dependency)
+
+        viewModel.setFieldOne("test")
+        viewModel.setFieldTwo(42)
+        viewModel.toggleExpanded()
+
+        val result = viewModel.performAction()
+
+        // Verify action was called
+        assertEquals(1, dependency.actions.size)
+        assertEquals("test" to 42, dependency.actions[0])
+
+        // Verify state was reset but expansion preserved
+        val state = viewModel.state.first()
+        assertEquals("", state.fieldOne)
+        assertEquals(0, state.fieldTwo)
+        assertTrue(state.isExpanded)
+    }
+
+    @Test
+    fun `reset clears form but preserves expansion`() = runTest {
+        val viewModel = createViewModel()
+
+        viewModel.setFieldOne("test")
+        viewModel.setFieldTwo(10)
+        viewModel.toggleExpanded()
+
+        viewModel.reset()
+
+        val state = viewModel.state.first()
+        assertEquals("", state.fieldOne)
+        assertEquals(0, state.fieldTwo)
+        assertTrue(state.isExpanded) // Preserved
+    }
+}
+```
+
+### Step 3: Update the Composable
+
+Modify the existing composable or create new one to use the ViewModel:
+
+```kotlin
+@Composable
+fun MyFeaturePanel(
+    viewModel: MyFeatureViewModel,
+    onActionComplete: (SomeResult) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val state by viewModel.state.collectAsState()
+
+    Column(modifier = modifier) {
+        // Collapsible header
+        Row(
+            modifier = Modifier.clickable { viewModel.toggleExpanded() }
+        ) {
+            Text(if (state.isExpanded) "▼" else "▶")
+            Text("My Feature")
+        }
+
+        if (state.isExpanded) {
+            OutlinedTextField(
+                value = state.fieldOne,
+                onValueChange = { viewModel.setFieldOne(it) },
+                label = { Text("Field One") }
+            )
+
+            // Number input for fieldTwo...
+
+            Button(
+                onClick = {
+                    viewModel.performAction()?.let { onActionComplete(it) }
+                },
+                enabled = state.isValid
+            ) {
+                Text("Perform Action")
+            }
+        }
+    }
+}
+```
+
+### Step 4: Wire Up in Main.kt
+
+Add the ViewModel creation and pass it to the composable:
+
+```kotlin
+// In GraphEditorApp or appropriate parent composable
+
+// Create ViewModel with dependencies
+val myFeatureViewModel = remember {
+    MyFeatureViewModel(someDependency)
+}
+
+// Use in UI
+MyFeaturePanel(
+    viewModel = myFeatureViewModel,
+    onActionComplete = { result ->
+        // Handle the result, e.g., refresh state, show notification
+    }
+)
+```
+
+### Step 5: Run Tests
+
+```bash
+# Run the new tests
+./gradlew :graphEditor:jvmTest --tests "io.codenode.grapheditor.viewmodel.MyFeatureViewModelTest"
+
+# Verify all tests still pass
+./gradlew :graphEditor:jvmTest
+```
+
+### Checklist for New ViewModel
+
+- [ ] State data class implements `BaseState`
+- [ ] State uses `val` properties only (immutable)
+- [ ] State has computed properties for derived values
+- [ ] ViewModel exposes `StateFlow<State>` (not MutableStateFlow)
+- [ ] Actions are public methods with clear names
+- [ ] Actions use `_state.update { it.copy(...) }` pattern
+- [ ] Test file created with fake dependencies
+- [ ] Tests cover: initial state, all actions, validation, edge cases
+- [ ] Composable uses `collectAsState()` to observe state
+- [ ] Composable has no business logic (only rendering and action calls)
+- [ ] ViewModel does not import or reference other ViewModels directly

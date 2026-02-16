@@ -118,18 +118,18 @@
 
 ### Tests for User Story 2
 
-- [ ] T040 [P] [US2] Create `NodeGeneratorViewModelTest.kt` with state transition tests at `graphEditor/src/jvmTest/kotlin/viewmodel/NodeGeneratorViewModelTest.kt`
-- [ ] T041 [P] [US2] Create `NodePaletteViewModelTest.kt` with search and category expansion tests at `graphEditor/src/jvmTest/kotlin/viewmodel/NodePaletteViewModelTest.kt`
-- [ ] T042 [P] [US2] Create `IPPaletteViewModelTest.kt` with selection tests at `graphEditor/src/jvmTest/kotlin/viewmodel/IPPaletteViewModelTest.kt`
-- [ ] T043 [P] [US2] Create `PropertiesPanelViewModelTest.kt` with editing and validation tests at `graphEditor/src/jvmTest/kotlin/viewmodel/PropertiesPanelViewModelTest.kt`
-- [ ] T044 [P] [US2] Create `CanvasInteractionViewModelTest.kt` with drag, connection, and selection tests at `graphEditor/src/jvmTest/kotlin/viewmodel/CanvasInteractionViewModelTest.kt`
-- [ ] T045 [P] [US2] Create `GraphEditorViewModelTest.kt` with file and edit action tests at `graphEditor/src/jvmTest/kotlin/viewmodel/GraphEditorViewModelTest.kt`
+- [x] T040 [P] [US2] Create `NodeGeneratorViewModelTest.kt` with state transition tests at `graphEditor/src/jvmTest/kotlin/viewmodel/NodeGeneratorViewModelTest.kt`
+- [x] T041 [P] [US2] Create `NodePaletteViewModelTest.kt` with search and category expansion tests at `graphEditor/src/jvmTest/kotlin/viewmodel/NodePaletteViewModelTest.kt`
+- [x] T042 [P] [US2] Create `IPPaletteViewModelTest.kt` with selection tests at `graphEditor/src/jvmTest/kotlin/viewmodel/IPPaletteViewModelTest.kt`
+- [x] T043 [P] [US2] Create `PropertiesPanelViewModelTest.kt` with editing and validation tests at `graphEditor/src/jvmTest/kotlin/viewmodel/PropertiesPanelViewModelTest.kt`
+- [x] T044 [P] [US2] Create `CanvasInteractionViewModelTest.kt` with drag, connection, and selection tests at `graphEditor/src/jvmTest/kotlin/viewmodel/CanvasInteractionViewModelTest.kt`
+- [x] T045 [P] [US2] Create `GraphEditorViewModelTest.kt` with file and edit action tests at `graphEditor/src/jvmTest/kotlin/viewmodel/GraphEditorViewModelTest.kt`
 
 ### Implementation for User Story 2
 
-- [ ] T046 [US2] Verify all ViewModel tests pass without any `androidx.compose` imports in test files
-- [ ] T047 [US2] Add test for undo/redo through GraphEditorViewModel at `graphEditor/src/jvmTest/kotlin/viewmodel/GraphEditorViewModelTest.kt`
-- [ ] T048 [US2] Add test for node creation flow through NodeGeneratorViewModel at `graphEditor/src/jvmTest/kotlin/viewmodel/NodeGeneratorViewModelTest.kt`
+- [x] T046 [US2] Verify all ViewModel tests pass without any `androidx.compose` imports in test files
+- [x] T047 [US2] Add test for undo/redo through GraphEditorViewModel at `graphEditor/src/jvmTest/kotlin/viewmodel/GraphEditorViewModelTest.kt`
+- [x] T048 [US2] Add test for node creation flow through NodeGeneratorViewModel at `graphEditor/src/jvmTest/kotlin/viewmodel/NodeGeneratorViewModelTest.kt`
 
 **Checkpoint**: ✅ User Story 2 complete - all ViewModels testable without Compose
 
@@ -143,10 +143,10 @@
 
 ### Implementation for User Story 3
 
-- [ ] T049 [US3] Document ViewModel creation pattern in `graphEditor/README.md` or code comments
-- [ ] T050 [US3] Verify ViewModels communicate through SharedStateProvider, not direct references
-- [ ] T051 [US3] Add interface documentation for ViewModel state and action contracts in `graphEditor/src/jvmMain/kotlin/viewmodel/SharedStateProvider.kt`
-- [ ] T052 [US3] Create example/template for adding a new ViewModel in quickstart.md at `specs/017-viewmodel-pattern/quickstart.md`
+- [x] T049 [US3] Document ViewModel creation pattern in `graphEditor/README.md` or code comments
+- [x] T050 [US3] Verify ViewModels communicate through SharedStateProvider, not direct references
+- [x] T051 [US3] Add interface documentation for ViewModel state and action contracts in `graphEditor/src/jvmMain/kotlin/viewmodel/SharedStateProvider.kt`
+- [x] T052 [US3] Create example/template for adding a new ViewModel in quickstart.md at `specs/017-viewmodel-pattern/quickstart.md`
 
 **Checkpoint**: ✅ User Story 3 complete - modular architecture documented and verified
 
