@@ -156,12 +156,12 @@
 
 **Purpose**: Final validation and cleanup
 
-- [ ] T053 [P] Verify all existing automated tests pass (SC-002)
-- [ ] T054 [P] Verify all existing editor features work identically (SC-003) - manual testing
-- [ ] T055 Code review: confirm no business logic in composable functions (SC-005)
-- [ ] T056 Verify all ViewModel classes follow `*ViewModel` naming convention (SC-006)
-- [ ] T057 Verify 100% of scattered `remember { mutableStateOf() }` for business state moved to ViewModels (SC-001)
-- [ ] T058 Run quickstart.md validation checklist at `specs/017-viewmodel-pattern/quickstart.md`
+- [x] T053 [P] Verify all existing automated tests pass (SC-002)
+- [x] T054 [P] Verify all existing editor features work identically (SC-003) - manual testing
+- [x] T055 Code review: confirm no business logic in composable functions (SC-005)
+- [x] T056 Verify all ViewModel classes follow `*ViewModel` naming convention (SC-006)
+- [x] T057 Verify 100% of scattered `remember { mutableStateOf() }` for business state moved to ViewModels (SC-001)
+- [x] T058 Run quickstart.md validation checklist at `specs/017-viewmodel-pattern/quickstart.md`
 
 **Checkpoint**: ✅ All success criteria validated
 
