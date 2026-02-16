@@ -24,9 +24,9 @@
 
 **Purpose**: Create ProcessResult types that all multi-output runtimes depend on
 
-- [ ] T001 Create ProcessResult.kt file at fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/ProcessResult.kt
-- [ ] T002 [P] Implement ProcessResult2<U, V> data class with nullable fields, companion object (of, first, second, both), and destructuring in ProcessResult.kt
-- [ ] T003 [P] Implement ProcessResult3<U, V, W> data class with nullable fields, companion object (of, all), and destructuring in ProcessResult.kt
+- [x] T001 Create ProcessResult.kt file at fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/ProcessResult.kt
+- [x] T002 [P] Implement ProcessResult2<U, V> data class with nullable fields, companion object (of, first, second, both), and destructuring in ProcessResult.kt
+- [x] T003 [P] Implement ProcessResult3<U, V, W> data class with nullable fields, companion object (of, all), and destructuring in ProcessResult.kt
 
 ---
 
@@ -36,16 +36,16 @@
 
 **⚠️ CRITICAL**: No runtime class can be implemented until these type aliases exist
 
-- [ ] T004 Add In2Out1ProcessBlock<A, B, R> type alias in fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/ContinuousTypes.kt
-- [ ] T005 [P] Add In3Out1ProcessBlock<A, B, C, R> type alias in ContinuousTypes.kt
-- [ ] T006 [P] Add In1Out2ProcessBlock<A, U, V> type alias returning ProcessResult2 in ContinuousTypes.kt
-- [ ] T007 [P] Add In1Out3ProcessBlock<A, U, V, W> type alias returning ProcessResult3 in ContinuousTypes.kt
-- [ ] T008 [P] Add In2Out2ProcessBlock<A, B, U, V> type alias in ContinuousTypes.kt
-- [ ] T009 [P] Add In2Out3ProcessBlock<A, B, U, V, W> type alias in ContinuousTypes.kt
-- [ ] T010 [P] Add In3Out2ProcessBlock<A, B, C, U, V> type alias in ContinuousTypes.kt
-- [ ] T011 [P] Add In3Out3ProcessBlock<A, B, C, U, V, W> type alias in ContinuousTypes.kt
-- [ ] T012 [P] Add In2SinkBlock<A, B> and In3SinkBlock<A, B, C> type aliases in ContinuousTypes.kt
-- [ ] T013 [P] Add Out2GeneratorBlock<U, V> and Out3GeneratorBlock<U, V, W> type aliases in ContinuousTypes.kt
+- [x] T004 Add In2Out1ProcessBlock<A, B, R> type alias in fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/ContinuousTypes.kt
+- [x] T005 [P] Add In3Out1ProcessBlock<A, B, C, R> type alias in ContinuousTypes.kt
+- [x] T006 [P] Add In1Out2ProcessBlock<A, U, V> type alias returning ProcessResult2 in ContinuousTypes.kt
+- [x] T007 [P] Add In1Out3ProcessBlock<A, U, V, W> type alias returning ProcessResult3 in ContinuousTypes.kt
+- [x] T008 [P] Add In2Out2ProcessBlock<A, B, U, V> type alias in ContinuousTypes.kt
+- [x] T009 [P] Add In2Out3ProcessBlock<A, B, U, V, W> type alias in ContinuousTypes.kt
+- [x] T010 [P] Add In3Out2ProcessBlock<A, B, C, U, V> type alias in ContinuousTypes.kt
+- [x] T011 [P] Add In3Out3ProcessBlock<A, B, C, U, V, W> type alias in ContinuousTypes.kt
+- [x] T012 [P] Add In2SinkBlock<A, B> and In3SinkBlock<A, B, C> type aliases in ContinuousTypes.kt
+- [x] T013 [P] Add Out2GeneratorBlock<U, V> and Out3GeneratorBlock<U, V, W> type aliases in ContinuousTypes.kt
 
 **Checkpoint**: ProcessResult types and all type aliases ready - runtime implementation can begin
 
@@ -59,18 +59,18 @@
 
 ### Tests for User Story 1
 
-- [ ] T014 [P] [US1] Create TypedNodeRuntimeTest.kt at fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/runtime/TypedNodeRuntimeTest.kt
-- [ ] T015 [P] [US1] Write test: In2Out1Runtime receives from both inputs and produces output in TypedNodeRuntimeTest.kt
-- [ ] T016 [P] [US1] Write test: In2Out1Runtime processes multiple tuples continuously in TypedNodeRuntimeTest.kt
-- [ ] T017 [P] [US1] Write test: In3Out1Runtime receives from three inputs and produces output in TypedNodeRuntimeTest.kt
+- [x] T014 [P] [US1] Create TypedNodeRuntimeTest.kt at fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/runtime/TypedNodeRuntimeTest.kt
+- [x] T015 [P] [US1] Write test: In2Out1Runtime receives from both inputs and produces output in TypedNodeRuntimeTest.kt
+- [x] T016 [P] [US1] Write test: In2Out1Runtime processes multiple tuples continuously in TypedNodeRuntimeTest.kt
+- [x] T017 [P] [US1] Write test: In3Out1Runtime receives from three inputs and produces output in TypedNodeRuntimeTest.kt
 
 ### Implementation for User Story 1
 
-- [ ] T018 [US1] Create In2Out1Runtime<A, B, R> class in fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/In2Out1Runtime.kt with inputChannel2, synchronous receive loop, continuous processing
-- [ ] T019 [P] [US1] Create In3Out1Runtime<A, B, C, R> class in fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/In3Out1Runtime.kt with inputChannel2, inputChannel3, synchronous receive
-- [ ] T020 [US1] Add createIn2Out1Processor<A, B, R> factory method to CodeNodeFactory in fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/CodeNodeFactory.kt
-- [ ] T021 [US1] Add createIn3Out1Processor<A, B, C, R> factory method to CodeNodeFactory
-- [ ] T022 [US1] Verify all US1 tests pass: ./gradlew test --tests "*TypedNodeRuntimeTest*"
+- [x] T018 [US1] Create In2Out1Runtime<A, B, R> class in fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/In2Out1Runtime.kt with inputChannel2, synchronous receive loop, continuous processing
+- [x] T019 [P] [US1] Create In3Out1Runtime<A, B, C, R> class in fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/In3Out1Runtime.kt with inputChannel2, inputChannel3, synchronous receive
+- [x] T020 [US1] Add createIn2Out1Processor<A, B, R> factory method to CodeNodeFactory in fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/CodeNodeFactory.kt
+- [x] T021 [US1] Add createIn3Out1Processor<A, B, C, R> factory method to CodeNodeFactory
+- [x] T022 [US1] Verify all US1 tests pass: ./gradlew test --tests "*TypedNodeRuntimeTest*"
 
 **Checkpoint**: Multi-input single-output processors work with continuous mode
 

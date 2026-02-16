@@ -706,4 +706,117 @@ object CodeNodeFactory {
 
         return FilterRuntime(codeNode, predicate)
     }
+
+    // ========== Multi-Input Processor Factory Methods ==========
+
+    /**
+     * Creates a continuous processor node with 2 inputs and 1 output.
+     *
+     * The processor runs continuously until stopped, receiving values from
+     * both input channels, applying the process function, and sending results
+     * to the output channel. Uses synchronous receive pattern (waits for both inputs).
+     *
+     * @param A Type of first input
+     * @param B Type of second input
+     * @param R Type of output
+     * @param name Human-readable name
+     * @param position Canvas position
+     * @param description Optional documentation
+     * @param process Processing function that combines both inputs
+     * @return In2Out1Runtime configured for continuous processing
+     *
+     * @sample
+     * ```kotlin
+     * val adder = CodeNodeFactory.createIn2Out1Processor<Int, Int, Int>(
+     *     name = "Adder"
+     * ) { a, b -> a + b }
+     *
+     * adder.inputChannel = channel1
+     * adder.inputChannel2 = channel2
+     * adder.outputChannel = outputChannel
+     * adder.start(scope) { }
+     * ```
+     */
+    inline fun <reified A : Any, reified B : Any, reified R : Any> createIn2Out1Processor(
+        name: String,
+        position: Node.Position = Node.Position.ORIGIN,
+        description: String? = null,
+        noinline process: io.codenode.fbpdsl.runtime.In2Out1ProcessBlock<A, B, R>
+    ): io.codenode.fbpdsl.runtime.In2Out1Runtime<A, B, R> {
+        val nodeId = NodeIdGenerator.generateId("codenode")
+
+        val codeNode = CodeNode(
+            id = nodeId,
+            name = name,
+            codeNodeType = CodeNodeType.TRANSFORMER,
+            description = description,
+            position = position,
+            inputPorts = listOf(
+                PortFactory.input<A>("input1", nodeId, required = true),
+                PortFactory.input<B>("input2", nodeId, required = true)
+            ),
+            outputPorts = listOf(
+                PortFactory.output<R>("output", nodeId)
+            )
+        )
+
+        return io.codenode.fbpdsl.runtime.In2Out1Runtime(codeNode, process)
+    }
+
+    /**
+     * Creates a continuous processor node with 3 inputs and 1 output.
+     *
+     * The processor runs continuously until stopped, receiving values from
+     * all three input channels, applying the process function, and sending results
+     * to the output channel. Uses synchronous receive pattern (waits for all inputs).
+     *
+     * @param A Type of first input
+     * @param B Type of second input
+     * @param C Type of third input
+     * @param R Type of output
+     * @param name Human-readable name
+     * @param position Canvas position
+     * @param description Optional documentation
+     * @param process Processing function that combines all three inputs
+     * @return In3Out1Runtime configured for continuous processing
+     *
+     * @sample
+     * ```kotlin
+     * val tripleAdder = CodeNodeFactory.createIn3Out1Processor<Int, Int, Int, Int>(
+     *     name = "TripleAdder"
+     * ) { a, b, c -> a + b + c }
+     *
+     * tripleAdder.inputChannel = channel1
+     * tripleAdder.inputChannel2 = channel2
+     * tripleAdder.inputChannel3 = channel3
+     * tripleAdder.outputChannel = outputChannel
+     * tripleAdder.start(scope) { }
+     * ```
+     */
+    inline fun <reified A : Any, reified B : Any, reified C : Any, reified R : Any> createIn3Out1Processor(
+        name: String,
+        position: Node.Position = Node.Position.ORIGIN,
+        description: String? = null,
+        noinline process: io.codenode.fbpdsl.runtime.In3Out1ProcessBlock<A, B, C, R>
+    ): io.codenode.fbpdsl.runtime.In3Out1Runtime<A, B, C, R> {
+        val nodeId = NodeIdGenerator.generateId("codenode")
+
+        val codeNode = CodeNode(
+            id = nodeId,
+            name = name,
+            codeNodeType = CodeNodeType.TRANSFORMER,
+            description = description,
+            position = position,
+            inputPorts = listOf(
+                PortFactory.input<A>("input1", nodeId, required = true),
+                PortFactory.input<B>("input2", nodeId, required = true),
+                PortFactory.input<C>("input3", nodeId, required = true)
+            ),
+            outputPorts = listOf(
+                PortFactory.output<R>("output", nodeId)
+            )
+        )
+
+        return io.codenode.fbpdsl.runtime.In3Out1Runtime(codeNode, process)
+    }
 }

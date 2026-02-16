@@ -812,7 +812,7 @@ class ContinuousFactoryTest {
 
         // Verify processing logic works
         assertNotNull(node.processingLogic, "ProcessingLogic should be set")
-        val result = node.processingLogic?.process(emptyMap())
+        val result = node.processingLogic?.invoke(emptyMap())
         assertNotNull(result, "Result should not be null")
         assertEquals(1, result?.size, "Should have one output")
         assertTrue(result?.containsKey("output") == true, "Should have 'output' key")
@@ -843,7 +843,7 @@ class ContinuousFactoryTest {
         // Verify processing logic works
         assertNotNull(node.processingLogic, "ProcessingLogic should be set")
         val inputPacket = io.codenode.fbpdsl.model.InformationPacketFactory.create("test input")
-        val result = node.processingLogic?.process(mapOf("input" to inputPacket))
+        val result = node.processingLogic?.invoke(mapOf("input" to inputPacket))
         assertEquals("test input", receivedValue, "Sink should have received the value")
         assertTrue(result?.isEmpty() == true, "Sink should return empty map")
     }
@@ -873,7 +873,7 @@ class ContinuousFactoryTest {
 
         // Execute processing logic
         val inputPacket = io.codenode.fbpdsl.model.InformationPacketFactory.create(5)
-        val result = node.processingLogic?.process(mapOf("input" to inputPacket))
+        val result = node.processingLogic?.invoke(mapOf("input" to inputPacket))
 
         // Verify result
         assertNotNull(result, "Result should not be null")
