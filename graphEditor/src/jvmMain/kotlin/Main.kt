@@ -24,6 +24,9 @@ import io.codenode.grapheditor.state.GraphState
 import io.codenode.grapheditor.state.SelectableElement
 import io.codenode.grapheditor.state.rememberUndoRedoManager
 import io.codenode.grapheditor.state.AddNodeCommand
+import io.codenode.grapheditor.viewmodel.SharedStateProvider
+import io.codenode.grapheditor.viewmodel.LocalSharedState
+import androidx.compose.runtime.CompositionLocalProvider
 import io.codenode.grapheditor.state.MoveNodeCommand
 import io.codenode.grapheditor.state.AddConnectionCommand
 import io.codenode.grapheditor.state.RemoveNodeCommand
@@ -312,7 +315,19 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
     val isInsideGraphNode = !navigationContext.isAtRoot
     val currentGraphNodeName = graphState.getCurrentGraphNodeName()
 
-    MaterialTheme {
+    // Create SharedStateProvider for ViewModel pattern
+    val sharedState = remember(graphState, undoRedoManager, propertyChangeTracker, ipTypeRegistry, customNodeRepository) {
+        SharedStateProvider(
+            graphState = graphState,
+            undoRedoManager = undoRedoManager,
+            propertyChangeTracker = propertyChangeTracker,
+            ipTypeRegistry = ipTypeRegistry,
+            customNodeRepository = customNodeRepository
+        )
+    }
+
+    CompositionLocalProvider(LocalSharedState provides sharedState) {
+        MaterialTheme {
         Column(modifier = modifier.fillMaxSize()) {
             // Top toolbar
             TopToolbar(
@@ -900,6 +915,7 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                 },
                 onDismiss = { showFlowGraphPropertiesDialog = false }
             )
+        }
         }
     }
 }
