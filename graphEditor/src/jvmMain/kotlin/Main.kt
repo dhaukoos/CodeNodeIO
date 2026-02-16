@@ -29,6 +29,7 @@ import io.codenode.grapheditor.viewmodel.LocalSharedState
 import io.codenode.grapheditor.viewmodel.NodeGeneratorViewModel
 import io.codenode.grapheditor.viewmodel.NodePaletteViewModel
 import io.codenode.grapheditor.viewmodel.IPPaletteViewModel
+import io.codenode.grapheditor.viewmodel.PropertiesPanelViewModel
 import androidx.compose.runtime.CompositionLocalProvider
 import io.codenode.grapheditor.state.MoveNodeCommand
 import io.codenode.grapheditor.state.AddConnectionCommand
@@ -42,7 +43,7 @@ import io.codenode.grapheditor.ui.NodePalette
 import io.codenode.grapheditor.ui.NodeGeneratorPanel
 import io.codenode.grapheditor.ui.GraphEditorWithToggle
 import io.codenode.grapheditor.ui.ViewMode
-import io.codenode.grapheditor.ui.CompactPropertiesPanel
+import io.codenode.grapheditor.ui.CompactPropertiesPanelWithViewModel
 import io.codenode.grapheditor.ui.PropertiesPanelState
 import io.codenode.grapheditor.repository.FileCustomNodeRepository
 import io.codenode.grapheditor.state.rememberPropertyChangeTracker
@@ -336,6 +337,32 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
     }
     val compilationService = remember { CompilationService() }
     val moduleSaveService = remember { ModuleSaveService() }
+
+    // PropertiesPanelViewModel for the Properties Panel
+    val propertiesPanelViewModel = remember {
+        PropertiesPanelViewModel(
+            onNodeNameChanged = { newName ->
+                graphState.selectedNodeId?.let { nodeId ->
+                    graphState.updateNodeName(nodeId, newName)
+                    statusMessage = "Renamed node to: $newName"
+                }
+            },
+            onPropertyChanged = { key, value ->
+                graphState.selectedNodeId?.let { nodeId ->
+                    val node = graphState.flowGraph.findNode(nodeId)
+                    val oldValue = node?.configuration?.get(key) ?: ""
+                    propertyChangeTracker.trackChange(nodeId, key, oldValue, value)
+                    statusMessage = "Updated property: $key"
+                }
+            },
+            onPortNameChanged = { portId, newName ->
+                graphState.selectedNodeId?.let { nodeId ->
+                    graphState.updatePortName(nodeId, portId, newName)
+                    statusMessage = "Renamed port to: $newName"
+                }
+            }
+        )
+    }
 
     // Derive button states from selection - these update automatically when selection changes
     val selectionState = graphState.selectionState  // Read selection state to ensure reactivity
@@ -772,7 +799,8 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                         }
                     } else null
 
-                    CompactPropertiesPanel(
+                    CompactPropertiesPanelWithViewModel(
+                        viewModel = propertiesPanelViewModel,
                         selectedNode = selectedNode,
                         selectedConnection = selectedConnection,
                         flowGraph = graphState.flowGraph,
@@ -786,26 +814,7 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                             matchingNodeType?.let { nodeType ->
                                 PropertiesPanelState.derivePropertyDefinitions(nodeType)
                             } ?: emptyList()
-                        } ?: emptyList(),
-                        onNodeNameChanged = { newName ->
-                            selectedNode?.let { node ->
-                                graphState.updateNodeName(node.id, newName)
-                                statusMessage = "Renamed node to: $newName"
-                            }
-                        },
-                        onPropertyChanged = { key, value ->
-                            selectedNode?.let { node ->
-                                val oldValue = node.configuration[key] ?: ""
-                                propertyChangeTracker.trackChange(node.id, key, oldValue, value)
-                                statusMessage = "Updated property: $key"
-                            }
-                        },
-                        onPortNameChanged = { portId, newName ->
-                            selectedNode?.let { node ->
-                                graphState.updatePortName(node.id, portId, newName)
-                                statusMessage = "Renamed port to: $newName"
-                            }
-                        }
+                        } ?: emptyList()
                     )
                 }
 

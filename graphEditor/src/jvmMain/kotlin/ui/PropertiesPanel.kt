@@ -26,6 +26,8 @@ import io.codenode.fbpdsl.model.CodeNodeType
 import io.codenode.fbpdsl.model.Connection
 import io.codenode.fbpdsl.model.FlowGraph
 import io.codenode.fbpdsl.model.NodeTypeDefinition
+import io.codenode.grapheditor.viewmodel.PropertiesPanelViewModel
+import io.codenode.grapheditor.viewmodel.PropertiesPanelViewModelState
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.contentOrNull
@@ -888,6 +890,86 @@ private fun ConnectionInfoRow(
             text = value,
             fontSize = 11.sp,
             fontWeight = FontWeight.Medium
+        )
+    }
+}
+
+/**
+ * ViewModel-based Compact Properties Panel for integration with main editor.
+ * Uses PropertiesPanelViewModel for state management.
+ *
+ * This composable is purely for UI rendering - all business logic and state
+ * management is delegated to the PropertiesPanelViewModel.
+ *
+ * @param viewModel The ViewModel managing state and business logic
+ * @param selectedNode The currently selected node (for property definitions)
+ * @param selectedConnection The currently selected connection (for connection display)
+ * @param flowGraph The flow graph (for connection lookup)
+ * @param propertyDefinitions Property definitions for the selected node type
+ * @param modifier Modifier for the panel
+ */
+@Composable
+fun CompactPropertiesPanelWithViewModel(
+    viewModel: PropertiesPanelViewModel,
+    selectedNode: CodeNode?,
+    selectedConnection: Connection? = null,
+    flowGraph: FlowGraph? = null,
+    propertyDefinitions: List<PropertyDefinition> = emptyList(),
+    modifier: Modifier = Modifier
+) {
+    val vmState by viewModel.state.collectAsState()
+
+    // Sync selection state with ViewModel
+    LaunchedEffect(selectedNode, selectedConnection) {
+        when {
+            selectedConnection != null -> viewModel.selectConnection(selectedConnection)
+            selectedNode != null -> viewModel.selectNode(selectedNode)
+            else -> viewModel.clearSelection()
+        }
+    }
+
+    // Show connection properties if a connection is selected
+    if (selectedConnection != null && flowGraph != null) {
+        ConnectionPropertiesPanel(
+            connection = selectedConnection,
+            flowGraph = flowGraph,
+            modifier = modifier.width(280.dp)
+        )
+    } else {
+        // Bridge ViewModel state to legacy PropertiesPanelState for UI rendering
+        val legacyState = remember(vmState, selectedNode, propertyDefinitions) {
+            if (selectedNode != null) {
+                PropertiesPanelState(
+                    selectedNode = selectedNode,
+                    nodeName = vmState.nodeName.ifEmpty { selectedNode.name },
+                    properties = vmState.properties.ifEmpty { selectedNode.configuration },
+                    propertyDefinitions = propertyDefinitions,
+                    originalNodeName = vmState.originalNodeName,
+                    originalProperties = vmState.originalProperties,
+                    validationErrors = vmState.validationErrors,
+                    onNodeNameChanged = { name -> viewModel.updateNodeName(name) },
+                    onPropertyChanged = { key, value -> viewModel.updateProperty(key, value) },
+                    onPortNameChanged = { portId, newName -> viewModel.updatePortName(portId, newName) }
+                )
+            } else {
+                PropertiesPanelState()
+            }
+        }
+
+        PropertiesPanel(
+            state = legacyState,
+            onStateChange = { newState ->
+                // Sync changes back to ViewModel
+                if (newState.nodeName != legacyState.nodeName) {
+                    viewModel.updateNodeName(newState.nodeName)
+                }
+                newState.properties.forEach { (key, value) ->
+                    if (value != legacyState.properties[key]) {
+                        viewModel.updateProperty(key, value)
+                    }
+                }
+            },
+            modifier = modifier.width(280.dp)
         )
     }
 }

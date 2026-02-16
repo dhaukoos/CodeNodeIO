@@ -81,10 +81,10 @@
 
 #### PropertiesPanelViewModel
 
-- [ ] T022 [P] [US1] Create `PropertiesPanelViewModelState` data class with selectedNode, selectedConnection, editingPropertyKey, pendingChanges, validationErrors fields at `graphEditor/src/jvmMain/kotlin/viewmodel/PropertiesPanelViewModel.kt`
-- [ ] T023 [US1] Create `PropertiesPanelViewModel` class with StateFlow at `graphEditor/src/jvmMain/kotlin/viewmodel/PropertiesPanelViewModel.kt`
-- [ ] T024 [US1] Implement startEditing(), updatePendingChange(), commitChanges(), cancelEditing(), updateNodeName(), updatePortName() actions
-- [ ] T025 [US1] Refactor `PropertiesPanel.kt` to use `PropertiesPanelViewModel` at `graphEditor/src/jvmMain/kotlin/ui/PropertiesPanel.kt`
+- [x] T022 [P] [US1] Create `PropertiesPanelViewModelState` data class with selectedNode, selectedConnection, editingPropertyKey, pendingChanges, validationErrors fields at `graphEditor/src/jvmMain/kotlin/viewmodel/PropertiesPanelViewModel.kt`
+- [x] T023 [US1] Create `PropertiesPanelViewModel` class with StateFlow at `graphEditor/src/jvmMain/kotlin/viewmodel/PropertiesPanelViewModel.kt`
+- [x] T024 [US1] Implement startEditing(), updatePendingChange(), commitChanges(), cancelEditing(), updateNodeName(), updatePortName() actions
+- [x] T025 [US1] Refactor `PropertiesPanel.kt` to use `PropertiesPanelViewModel` at `graphEditor/src/jvmMain/kotlin/ui/PropertiesPanel.kt`
 
 #### CanvasInteractionViewModel
 
