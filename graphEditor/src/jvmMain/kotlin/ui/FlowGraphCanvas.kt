@@ -31,6 +31,10 @@ import io.codenode.grapheditor.state.SelectableElement
 import io.codenode.grapheditor.ui.GraphNodeRenderer.drawGraphNode
 import io.codenode.grapheditor.rendering.PortShape
 import io.codenode.grapheditor.rendering.renderPort
+import io.codenode.grapheditor.viewmodel.CanvasInteractionViewModel
+import io.codenode.grapheditor.viewmodel.CanvasInteractionState
+import io.codenode.grapheditor.viewmodel.InteractionMode
+import io.codenode.grapheditor.viewmodel.HoveredPortInfo
 
 /**
  * Main canvas component for rendering and interacting with flow graphs
@@ -1435,4 +1439,109 @@ private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawBoundaryConnect
             }
         }
     }
+}
+
+/**
+ * ViewModel-integrated wrapper for FlowGraphCanvas.
+ * Uses CanvasInteractionViewModel for business state while keeping transient gesture state local.
+ *
+ * This composable bridges the ViewModel pattern with the existing FlowGraphCanvas implementation.
+ * Business state (dragging node ID, pending connection, selection box) comes from the ViewModel.
+ * Transient gesture state (drag offset, shift pressed) remains local to this composable.
+ *
+ * @param viewModel The CanvasInteractionViewModel managing interaction state
+ * @param flowGraph The flow graph to display
+ * @param selectedNodeId ID of the currently selected node (if any)
+ * @param selectedConnectionIds Set of selected connection IDs
+ * @param multiSelectedNodeIds Set of node IDs in multi-selection
+ * @param connectionColors Map of connection IDs to their display colors
+ * @param boundaryConnectionColors Map of boundary port IDs to their display colors
+ * @param scale Current zoom scale
+ * @param panOffset Current pan offset
+ * @param onScaleChanged Callback when zoom scale changes
+ * @param onPanOffsetChanged Callback when pan offset changes
+ * @param onNodeSelected Callback when a node is selected
+ * @param onConnectionSelected Callback when a connection is selected
+ * @param onElementShiftClicked Callback when any element is Shift-clicked
+ * @param onEmptyCanvasClicked Callback when empty canvas is clicked
+ * @param onRectangularSelectionFinish Callback when rectangular selection finishes with bounds
+ * @param onGraphNodeExpandClicked Callback when GraphNode expand icon is clicked
+ * @param onCanvasSizeChanged Callback when canvas size changes
+ * @param displayNodes Optional list of nodes to display
+ * @param displayConnections Optional list of connections to display
+ * @param currentGraphNode The GraphNode currently being viewed (null if at root)
+ * @param modifier Modifier for the canvas
+ */
+@Composable
+fun FlowGraphCanvasWithViewModel(
+    viewModel: CanvasInteractionViewModel,
+    flowGraph: FlowGraph,
+    selectedNodeId: String? = null,
+    selectedConnectionIds: Set<String> = emptySet(),
+    multiSelectedNodeIds: Set<String> = emptySet(),
+    connectionColors: Map<String, Color> = emptyMap(),
+    boundaryConnectionColors: Map<String, Color> = emptyMap(),
+    scale: Float = 1f,
+    panOffset: Offset = Offset.Zero,
+    onScaleChanged: (Float) -> Unit = {},
+    onPanOffsetChanged: (Offset) -> Unit = {},
+    onNodeSelected: (String?) -> Unit = {},
+    onConnectionSelected: (String?) -> Unit = {},
+    onElementShiftClicked: (SelectableElement) -> Unit = {},
+    onEmptyCanvasClicked: () -> Unit = {},
+    onRectangularSelectionFinish: (Rect) -> Unit = {},
+    onGraphNodeExpandClicked: (graphNodeId: String) -> Unit = {},
+    onCanvasSizeChanged: (androidx.compose.ui.geometry.Size) -> Unit = {},
+    displayNodes: List<Node>? = null,
+    displayConnections: List<Connection>? = null,
+    currentGraphNode: GraphNode? = null,
+    modifier: Modifier = Modifier
+) {
+    val state by viewModel.state.collectAsState()
+
+    // Bridge to the existing FlowGraphCanvas with ViewModel state
+    FlowGraphCanvas(
+        flowGraph = flowGraph,
+        selectedNodeId = selectedNodeId,
+        selectedConnectionIds = selectedConnectionIds,
+        multiSelectedNodeIds = multiSelectedNodeIds,
+        connectionColors = connectionColors,
+        boundaryConnectionColors = boundaryConnectionColors,
+        scale = scale,
+        panOffset = panOffset,
+        onScaleChanged = onScaleChanged,
+        onPanOffsetChanged = onPanOffsetChanged,
+        onNodeSelected = onNodeSelected,
+        onConnectionSelected = onConnectionSelected,
+        onElementShiftClicked = onElementShiftClicked,
+        onEmptyCanvasClicked = onEmptyCanvasClicked,
+        onConnectionRightClick = { connectionId, position ->
+            viewModel.showConnectionContextMenu(connectionId, position)
+        },
+        onNodeMoved = { nodeId, newX, newY ->
+            viewModel.endNodeDrag(newX, newY)
+        },
+        onConnectionCreated = { connection ->
+            // Connection creation is handled through the ViewModel's callback
+        },
+        selectionBoxBounds = state.selectionBoxBounds,
+        onRectangularSelectionStart = { position ->
+            viewModel.startRectangularSelection(position)
+        },
+        onRectangularSelectionUpdate = { position ->
+            viewModel.updateRectangularSelection(position)
+        },
+        onRectangularSelectionFinish = {
+            state.selectionBoxBounds?.let { bounds ->
+                onRectangularSelectionFinish(bounds)
+            }
+            viewModel.finishRectangularSelection()
+        },
+        onGraphNodeExpandClicked = onGraphNodeExpandClicked,
+        onCanvasSizeChanged = onCanvasSizeChanged,
+        displayNodes = displayNodes,
+        displayConnections = displayConnections,
+        currentGraphNode = currentGraphNode,
+        modifier = modifier
+    )
 }

@@ -88,13 +88,13 @@
 
 #### CanvasInteractionViewModel
 
-- [ ] T026 [P] [US1] Create `CanvasInteractionState` data class with draggingNodeId, pendingConnection, selectionBoxBounds, hoveredNodeId, hoveredPort, connectionContextMenu, interactionMode fields at `graphEditor/src/jvmMain/kotlin/viewmodel/CanvasInteractionViewModel.kt`
-- [ ] T027 [US1] Create `CanvasInteractionViewModel` class with StateFlow at `graphEditor/src/jvmMain/kotlin/viewmodel/CanvasInteractionViewModel.kt`
-- [ ] T028 [US1] Implement drag actions: startNodeDrag(), updateNodeDrag(), endNodeDrag()
-- [ ] T029 [US1] Implement connection actions: startConnectionCreation(), updateConnectionEndpoint(), completeConnection(), cancelConnection()
-- [ ] T030 [US1] Implement selection actions: startRectangularSelection(), updateRectangularSelection(), finishRectangularSelection()
-- [ ] T031 [US1] Implement hover/menu actions: showConnectionContextMenu(), hideConnectionContextMenu(), setHoveredNode(), setHoveredPort()
-- [ ] T032 [US1] Refactor `FlowGraphCanvas.kt` to use `CanvasInteractionViewModel` - move business state, keep transient gesture state at `graphEditor/src/jvmMain/kotlin/ui/FlowGraphCanvas.kt`
+- [x] T026 [P] [US1] Create `CanvasInteractionState` data class with draggingNodeId, pendingConnection, selectionBoxBounds, hoveredNodeId, hoveredPort, connectionContextMenu, interactionMode fields at `graphEditor/src/jvmMain/kotlin/viewmodel/CanvasInteractionViewModel.kt`
+- [x] T027 [US1] Create `CanvasInteractionViewModel` class with StateFlow at `graphEditor/src/jvmMain/kotlin/viewmodel/CanvasInteractionViewModel.kt`
+- [x] T028 [US1] Implement drag actions: startNodeDrag(), updateNodeDrag(), endNodeDrag()
+- [x] T029 [US1] Implement connection actions: startConnectionCreation(), updateConnectionEndpoint(), completeConnection(), cancelConnection()
+- [x] T030 [US1] Implement selection actions: startRectangularSelection(), updateRectangularSelection(), finishRectangularSelection()
+- [x] T031 [US1] Implement hover/menu actions: showConnectionContextMenu(), hideConnectionContextMenu(), setHoveredNode(), setHoveredPort()
+- [x] T032 [US1] Refactor `FlowGraphCanvas.kt` to use `CanvasInteractionViewModel` - move business state, keep transient gesture state at `graphEditor/src/jvmMain/kotlin/ui/FlowGraphCanvas.kt`
 
 #### GraphEditorViewModel (Orchestration - Last)
 

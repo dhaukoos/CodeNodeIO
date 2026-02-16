@@ -30,6 +30,7 @@ import io.codenode.grapheditor.viewmodel.NodeGeneratorViewModel
 import io.codenode.grapheditor.viewmodel.NodePaletteViewModel
 import io.codenode.grapheditor.viewmodel.IPPaletteViewModel
 import io.codenode.grapheditor.viewmodel.PropertiesPanelViewModel
+import io.codenode.grapheditor.viewmodel.CanvasInteractionViewModel
 import androidx.compose.runtime.CompositionLocalProvider
 import io.codenode.grapheditor.state.MoveNodeCommand
 import io.codenode.grapheditor.state.AddConnectionCommand
@@ -39,6 +40,7 @@ import io.codenode.grapheditor.state.UngroupNodeCommand
 import io.codenode.grapheditor.ui.CompactCanvasControls
 import io.codenode.grapheditor.ui.ConnectionErrorDisplay
 import io.codenode.grapheditor.ui.FlowGraphCanvas
+import io.codenode.grapheditor.ui.FlowGraphCanvasWithViewModel
 import io.codenode.grapheditor.ui.NodePalette
 import io.codenode.grapheditor.ui.NodeGeneratorPanel
 import io.codenode.grapheditor.ui.GraphEditorWithToggle
@@ -360,6 +362,20 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                     graphState.updatePortName(nodeId, portId, newName)
                     statusMessage = "Renamed port to: $newName"
                 }
+            }
+        )
+    }
+
+    // CanvasInteractionViewModel for canvas interactions
+    val canvasInteractionViewModel = remember {
+        CanvasInteractionViewModel(
+            onNodeMoved = { nodeId, newX, newY ->
+                graphState.updateNodePosition(nodeId, newX, newY)
+                statusMessage = "Moved node"
+            },
+            onConnectionCreated = { connection ->
+                graphState.addConnection(connection)
+                statusMessage = "Created connection"
             }
         )
     }
