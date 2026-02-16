@@ -27,6 +27,7 @@ import io.codenode.grapheditor.state.AddNodeCommand
 import io.codenode.grapheditor.viewmodel.SharedStateProvider
 import io.codenode.grapheditor.viewmodel.LocalSharedState
 import io.codenode.grapheditor.viewmodel.NodeGeneratorViewModel
+import io.codenode.grapheditor.viewmodel.NodePaletteViewModel
 import androidx.compose.runtime.CompositionLocalProvider
 import io.codenode.grapheditor.state.MoveNodeCommand
 import io.codenode.grapheditor.state.AddConnectionCommand
@@ -286,10 +287,25 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
         NodeGeneratorViewModel(customNodeRepository)
     }
 
+    // NodePaletteViewModel for the Node Palette
+    val nodePaletteViewModel = remember(customNodeRepository) {
+        NodePaletteViewModel(
+            customNodeRepository = customNodeRepository,
+            onCustomNodesChanged = {
+                customNodes = customNodeRepository.getAll()
+            }
+        )
+    }
+
     // Load custom nodes on startup
     LaunchedEffect(Unit) {
         customNodeRepository.load()
         customNodes = customNodeRepository.getAll()
+    }
+
+    // Update NodePaletteViewModel with deletable node names when custom nodes change
+    LaunchedEffect(customNodes) {
+        nodePaletteViewModel.updateDeletableNodeNames(customNodes.map { it.name }.toSet())
     }
 
     // Combine built-in node types with custom nodes
@@ -470,16 +486,9 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
 
                         // Node Palette
                         NodePalette(
-                        nodeTypes = nodeTypes,
-                        deletableNodeNames = customNodes.map { it.name }.toSet(),
-                        onNodeDeleted = { nodeName ->
-                            // Find and remove the custom node with this name
-                            customNodes.find { it.name == nodeName }?.let { nodeToDelete ->
-                                customNodeRepository.remove(nodeToDelete.id)
-                                customNodes = customNodeRepository.getAll()
-                            }
-                        },
-                        onNodeSelected = { nodeType ->
+                            viewModel = nodePaletteViewModel,
+                            nodeTypes = nodeTypes,
+                            onNodeSelected = { nodeType ->
                             // Clear IP type selection when working with nodes
                             selectedIPType = null
                             // Create a new node from the selected type

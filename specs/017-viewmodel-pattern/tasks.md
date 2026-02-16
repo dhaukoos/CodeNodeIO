@@ -67,10 +67,10 @@
 
 #### NodePaletteViewModel
 
-- [ ] T014 [P] [US1] Create `NodePaletteState` data class with searchQuery, expandedCategories, deletableNodeNames fields at `graphEditor/src/jvmMain/kotlin/viewmodel/NodePaletteViewModel.kt`
-- [ ] T015 [US1] Create `NodePaletteViewModel` class with StateFlow<NodePaletteState> at `graphEditor/src/jvmMain/kotlin/viewmodel/NodePaletteViewModel.kt`
-- [ ] T016 [US1] Implement setSearchQuery(), toggleCategory(), deleteCustomNode() actions in `NodePaletteViewModel`
-- [ ] T017 [US1] Refactor `NodePalette.kt` to use `NodePaletteViewModel` at `graphEditor/src/jvmMain/kotlin/ui/NodePalette.kt`
+- [x] T014 [P] [US1] Create `NodePaletteState` data class with searchQuery, expandedCategories, deletableNodeNames fields at `graphEditor/src/jvmMain/kotlin/viewmodel/NodePaletteViewModel.kt`
+- [x] T015 [US1] Create `NodePaletteViewModel` class with StateFlow<NodePaletteState> at `graphEditor/src/jvmMain/kotlin/viewmodel/NodePaletteViewModel.kt`
+- [x] T016 [US1] Implement setSearchQuery(), toggleCategory(), deleteCustomNode() actions in `NodePaletteViewModel`
+- [x] T017 [US1] Refactor `NodePalette.kt` to use `NodePaletteViewModel` at `graphEditor/src/jvmMain/kotlin/ui/NodePalette.kt`
 
 #### IPPaletteViewModel
 

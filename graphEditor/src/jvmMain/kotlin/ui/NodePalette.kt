@@ -21,33 +21,61 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.codenode.fbpdsl.model.NodeTypeDefinition
+import io.codenode.grapheditor.viewmodel.NodePaletteViewModel
+import io.codenode.grapheditor.viewmodel.NodePaletteState
 
 /**
- * Node palette component for browsing and selecting node types
+ * Node palette component for browsing and selecting node types.
+ * Uses NodePaletteViewModel for state management.
  *
+ * This composable is purely for UI rendering - all business logic and state
+ * management is delegated to the NodePaletteViewModel.
+ *
+ * @param viewModel The ViewModel managing state and business logic
  * @param nodeTypes List of available node type definitions
  * @param onNodeSelected Callback when a node type is selected for placement
- * @param deletableNodeNames Set of node names that can be deleted (custom nodes)
- * @param onNodeDeleted Callback when a deletable node's delete button is clicked
  * @param modifier Modifier for the palette
  */
 @Composable
 fun NodePalette(
+    viewModel: NodePaletteViewModel,
     nodeTypes: List<NodeTypeDefinition>,
     onNodeSelected: (NodeTypeDefinition) -> Unit = {},
-    deletableNodeNames: Set<String> = emptySet(),
-    onNodeDeleted: (String) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
-    var searchQuery by remember { mutableStateOf("") }
-    var expandedCategories by remember { mutableStateOf(setOf<NodeTypeDefinition.NodeCategory>()) }
+    val state by viewModel.state.collectAsState()
 
-    // Group node types by category
+    NodePaletteContent(
+        state = state,
+        nodeTypes = nodeTypes,
+        onSearchQueryChange = { viewModel.setSearchQuery(it) },
+        onCategoryToggle = { viewModel.toggleCategory(it) },
+        onNodeSelected = onNodeSelected,
+        onNodeDeleted = { viewModel.deleteCustomNode(it) },
+        modifier = modifier
+    )
+}
+
+/**
+ * Stateless content composable for the Node Palette.
+ * Pure rendering function with no business logic.
+ */
+@Composable
+private fun NodePaletteContent(
+    state: NodePaletteState,
+    nodeTypes: List<NodeTypeDefinition>,
+    onSearchQueryChange: (String) -> Unit,
+    onCategoryToggle: (NodeTypeDefinition.NodeCategory) -> Unit,
+    onNodeSelected: (NodeTypeDefinition) -> Unit,
+    onNodeDeleted: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    // Group node types by category with search filter applied
     val groupedNodes = nodeTypes
         .filter { nodeType ->
-            if (searchQuery.isBlank()) return@filter true
-            nodeType.name.contains(searchQuery, ignoreCase = true) ||
-            nodeType.description?.contains(searchQuery, ignoreCase = true) == true
+            if (state.searchQuery.isBlank()) return@filter true
+            nodeType.name.contains(state.searchQuery, ignoreCase = true) ||
+            nodeType.description?.contains(state.searchQuery, ignoreCase = true) == true
         }
         .groupBy { it.category }
         .toSortedMap()
@@ -71,8 +99,8 @@ fun NodePalette(
 
         // Search box
         OutlinedTextField(
-            value = searchQuery,
-            onValueChange = { searchQuery = it },
+            value = state.searchQuery,
+            onValueChange = onSearchQueryChange,
             placeholder = { Text("Search nodes...") },
             singleLine = true,
             modifier = Modifier
@@ -93,23 +121,17 @@ fun NodePalette(
                 item {
                     CategoryHeader(
                         category = category,
-                        isExpanded = category in expandedCategories,
-                        onToggle = {
-                            expandedCategories = if (category in expandedCategories) {
-                                expandedCategories - category
-                            } else {
-                                expandedCategories + category
-                            }
-                        }
+                        isExpanded = category in state.expandedCategories,
+                        onToggle = { onCategoryToggle(category) }
                     )
                 }
 
-                if (category in expandedCategories) {
+                if (category in state.expandedCategories) {
                     items(nodes) { nodeType ->
                         NodeTypeItem(
                             nodeType = nodeType,
                             onClick = { onNodeSelected(nodeType) },
-                            isDeletable = nodeType.name in deletableNodeNames,
+                            isDeletable = nodeType.name in state.deletableNodeNames,
                             onDelete = { onNodeDeleted(nodeType.name) }
                         )
                     }
@@ -273,4 +295,3 @@ private fun PortBadge(
         )
     }
 }
-
