@@ -84,18 +84,18 @@
 
 ### Tests for User Story 2
 
-- [ ] T023 [P] [US2] Write test: In2Out1Runtime.stop() cancels processing and closes output channel in TypedNodeRuntimeTest.kt
-- [ ] T024 [P] [US2] Write test: In2Out1Runtime.pause() suspends processing until resume() in TypedNodeRuntimeTest.kt
-- [ ] T025 [P] [US2] Write test: runtime handles ClosedReceiveChannelException gracefully in TypedNodeRuntimeTest.kt
-- [ ] T026 [P] [US2] Write test: runtime handles ClosedSendChannelException gracefully in TypedNodeRuntimeTest.kt
+- [x] T023 [P] [US2] Write test: In2Out1Runtime.stop() cancels processing and closes output channel in TypedNodeRuntimeTest.kt
+- [x] T024 [P] [US2] Write test: In2Out1Runtime.pause() suspends processing until resume() in TypedNodeRuntimeTest.kt
+- [x] T025 [P] [US2] Write test: runtime handles ClosedReceiveChannelException gracefully in TypedNodeRuntimeTest.kt
+- [x] T026 [P] [US2] Write test: runtime handles ClosedSendChannelException gracefully in TypedNodeRuntimeTest.kt
 
 ### Implementation for User Story 2
 
-- [ ] T027 [US2] Add pause state check in In2Out1Runtime processing loop (while PAUSED, delay and recheck)
-- [ ] T028 [US2] Add pause state check in In3Out1Runtime processing loop
-- [ ] T029 [US2] Add ClosedReceiveChannelException handling with graceful shutdown in In2Out1Runtime
-- [ ] T030 [US2] Add ClosedReceiveChannelException handling in In3Out1Runtime
-- [ ] T031 [US2] Verify all US2 tests pass: ./gradlew test --tests "*TypedNodeRuntimeTest*"
+- [x] T027 [US2] Add pause state check in In2Out1Runtime processing loop (while PAUSED, delay and recheck)
+- [x] T028 [US2] Add pause state check in In3Out1Runtime processing loop
+- [x] T029 [US2] Add ClosedReceiveChannelException handling with graceful shutdown in In2Out1Runtime
+- [x] T030 [US2] Add ClosedReceiveChannelException handling in In3Out1Runtime
+- [x] T031 [US2] Verify all US2 tests pass: ./gradlew test --tests "*TypedNodeRuntimeTest*"
 
 **Checkpoint**: Lifecycle control works on multi-input processors
 
