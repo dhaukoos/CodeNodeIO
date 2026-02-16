@@ -16,6 +16,8 @@ Auto-generated from all feature plans. Last updated: 2026-01-13
 - N/A (in-memory FlowGraph models) (011-stopwatch-refactor)
 - Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + kotlinx-coroutines 1.8.0, kotlinx-serialization 1.6.0, KotlinPoet (code generation) (012-channel-connections)
 - N/A (in-memory FlowGraph models, generated code) (012-channel-connections)
+- Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + Compose Desktop 1.7.3, kotlinx-serialization 1.6.0 (016-node-generator)
+- JSON file via kotlinx-serialization for CustomNodeRepository persistence (016-node-generator)
 
 - Kotlin 1.9+, Go 1.21+ (001-ide-plugin-platform)
 
@@ -35,9 +37,9 @@ tests/
 Kotlin 1.9+, Go 1.21+: Follow standard conventions
 
 ## Recent Changes
+- 016-node-generator: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + Compose Desktop 1.7.3, kotlinx-serialization 1.6.0
 - 014-continuous-mode-default: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + kotlinx-coroutines 1.8.0, kotlinx-serialization 1.6.0
 - 013-node-control-extraction: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + kotlinx-coroutines 1.8.0, kotlinx-serialization 1.6.0
-- 012-channel-connections: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + kotlinx-coroutines 1.8.0, kotlinx-serialization 1.6.0, KotlinPoet (code generation)
 
 
 <!-- MANUAL ADDITIONS START -->
