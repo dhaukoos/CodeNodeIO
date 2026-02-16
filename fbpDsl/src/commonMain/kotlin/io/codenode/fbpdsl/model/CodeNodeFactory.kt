@@ -1041,4 +1041,292 @@ object CodeNodeFactory {
 
         return io.codenode.fbpdsl.runtime.Out3GeneratorRuntime(codeNode, channelCapacity, generate)
     }
+
+    // ========== Multi-Output Processor Factory Methods ==========
+
+    /**
+     * Creates a continuous processor node with 1 input and 2 outputs.
+     *
+     * The processor runs continuously until stopped, receiving values from
+     * the input channel, applying the process function that returns ProcessResult2,
+     * and sending non-null values to respective output channels (selective output).
+     *
+     * @param A Type of input
+     * @param U Type of first output
+     * @param V Type of second output
+     * @param name Human-readable name
+     * @param channelCapacity Buffer capacity for output channels (default: BUFFERED = 64)
+     * @param position Canvas position
+     * @param description Optional documentation
+     * @param process Processing function that produces ProcessResult2
+     * @return In1Out2Runtime configured for continuous processing
+     */
+    inline fun <reified A : Any, reified U : Any, reified V : Any> createIn1Out2Processor(
+        name: String,
+        channelCapacity: Int = Channel.BUFFERED,
+        position: Node.Position = Node.Position.ORIGIN,
+        description: String? = null,
+        noinline process: io.codenode.fbpdsl.runtime.In1Out2ProcessBlock<A, U, V>
+    ): io.codenode.fbpdsl.runtime.In1Out2Runtime<A, U, V> {
+        val nodeId = NodeIdGenerator.generateId("codenode")
+
+        val codeNode = CodeNode(
+            id = nodeId,
+            name = name,
+            codeNodeType = CodeNodeType.TRANSFORMER,
+            description = description,
+            position = position,
+            inputPorts = listOf(
+                PortFactory.input<A>("input", nodeId, required = true)
+            ),
+            outputPorts = listOf(
+                PortFactory.output<U>("output1", nodeId),
+                PortFactory.output<V>("output2", nodeId)
+            )
+        )
+
+        return io.codenode.fbpdsl.runtime.In1Out2Runtime(codeNode, channelCapacity, process)
+    }
+
+    /**
+     * Creates a continuous processor node with 1 input and 3 outputs.
+     *
+     * The processor runs continuously until stopped, receiving values from
+     * the input channel, applying the process function that returns ProcessResult3,
+     * and sending non-null values to respective output channels (selective output).
+     *
+     * @param A Type of input
+     * @param U Type of first output
+     * @param V Type of second output
+     * @param W Type of third output
+     * @param name Human-readable name
+     * @param channelCapacity Buffer capacity for output channels (default: BUFFERED = 64)
+     * @param position Canvas position
+     * @param description Optional documentation
+     * @param process Processing function that produces ProcessResult3
+     * @return In1Out3Runtime configured for continuous processing
+     */
+    inline fun <reified A : Any, reified U : Any, reified V : Any, reified W : Any> createIn1Out3Processor(
+        name: String,
+        channelCapacity: Int = Channel.BUFFERED,
+        position: Node.Position = Node.Position.ORIGIN,
+        description: String? = null,
+        noinline process: io.codenode.fbpdsl.runtime.In1Out3ProcessBlock<A, U, V, W>
+    ): io.codenode.fbpdsl.runtime.In1Out3Runtime<A, U, V, W> {
+        val nodeId = NodeIdGenerator.generateId("codenode")
+
+        val codeNode = CodeNode(
+            id = nodeId,
+            name = name,
+            codeNodeType = CodeNodeType.TRANSFORMER,
+            description = description,
+            position = position,
+            inputPorts = listOf(
+                PortFactory.input<A>("input", nodeId, required = true)
+            ),
+            outputPorts = listOf(
+                PortFactory.output<U>("output1", nodeId),
+                PortFactory.output<V>("output2", nodeId),
+                PortFactory.output<W>("output3", nodeId)
+            )
+        )
+
+        return io.codenode.fbpdsl.runtime.In1Out3Runtime(codeNode, channelCapacity, process)
+    }
+
+    /**
+     * Creates a continuous processor node with 2 inputs and 2 outputs.
+     *
+     * The processor runs continuously until stopped, receiving values from
+     * both input channels (synchronous receive), applying the process function
+     * that returns ProcessResult2, and sending non-null values to respective
+     * output channels (selective output).
+     *
+     * @param A Type of first input
+     * @param B Type of second input
+     * @param U Type of first output
+     * @param V Type of second output
+     * @param name Human-readable name
+     * @param channelCapacity Buffer capacity for output channels (default: BUFFERED = 64)
+     * @param position Canvas position
+     * @param description Optional documentation
+     * @param process Processing function that produces ProcessResult2
+     * @return In2Out2Runtime configured for continuous processing
+     */
+    inline fun <reified A : Any, reified B : Any, reified U : Any, reified V : Any> createIn2Out2Processor(
+        name: String,
+        channelCapacity: Int = Channel.BUFFERED,
+        position: Node.Position = Node.Position.ORIGIN,
+        description: String? = null,
+        noinline process: io.codenode.fbpdsl.runtime.In2Out2ProcessBlock<A, B, U, V>
+    ): io.codenode.fbpdsl.runtime.In2Out2Runtime<A, B, U, V> {
+        val nodeId = NodeIdGenerator.generateId("codenode")
+
+        val codeNode = CodeNode(
+            id = nodeId,
+            name = name,
+            codeNodeType = CodeNodeType.TRANSFORMER,
+            description = description,
+            position = position,
+            inputPorts = listOf(
+                PortFactory.input<A>("input1", nodeId, required = true),
+                PortFactory.input<B>("input2", nodeId, required = true)
+            ),
+            outputPorts = listOf(
+                PortFactory.output<U>("output1", nodeId),
+                PortFactory.output<V>("output2", nodeId)
+            )
+        )
+
+        return io.codenode.fbpdsl.runtime.In2Out2Runtime(codeNode, channelCapacity, process)
+    }
+
+    /**
+     * Creates a continuous processor node with 2 inputs and 3 outputs.
+     *
+     * The processor runs continuously until stopped, receiving values from
+     * both input channels (synchronous receive), applying the process function
+     * that returns ProcessResult3, and sending non-null values to respective
+     * output channels (selective output).
+     *
+     * @param A Type of first input
+     * @param B Type of second input
+     * @param U Type of first output
+     * @param V Type of second output
+     * @param W Type of third output
+     * @param name Human-readable name
+     * @param channelCapacity Buffer capacity for output channels (default: BUFFERED = 64)
+     * @param position Canvas position
+     * @param description Optional documentation
+     * @param process Processing function that produces ProcessResult3
+     * @return In2Out3Runtime configured for continuous processing
+     */
+    inline fun <reified A : Any, reified B : Any, reified U : Any, reified V : Any, reified W : Any> createIn2Out3Processor(
+        name: String,
+        channelCapacity: Int = Channel.BUFFERED,
+        position: Node.Position = Node.Position.ORIGIN,
+        description: String? = null,
+        noinline process: io.codenode.fbpdsl.runtime.In2Out3ProcessBlock<A, B, U, V, W>
+    ): io.codenode.fbpdsl.runtime.In2Out3Runtime<A, B, U, V, W> {
+        val nodeId = NodeIdGenerator.generateId("codenode")
+
+        val codeNode = CodeNode(
+            id = nodeId,
+            name = name,
+            codeNodeType = CodeNodeType.TRANSFORMER,
+            description = description,
+            position = position,
+            inputPorts = listOf(
+                PortFactory.input<A>("input1", nodeId, required = true),
+                PortFactory.input<B>("input2", nodeId, required = true)
+            ),
+            outputPorts = listOf(
+                PortFactory.output<U>("output1", nodeId),
+                PortFactory.output<V>("output2", nodeId),
+                PortFactory.output<W>("output3", nodeId)
+            )
+        )
+
+        return io.codenode.fbpdsl.runtime.In2Out3Runtime(codeNode, channelCapacity, process)
+    }
+
+    /**
+     * Creates a continuous processor node with 3 inputs and 2 outputs.
+     *
+     * The processor runs continuously until stopped, receiving values from
+     * all three input channels (synchronous receive), applying the process function
+     * that returns ProcessResult2, and sending non-null values to respective
+     * output channels (selective output).
+     *
+     * @param A Type of first input
+     * @param B Type of second input
+     * @param C Type of third input
+     * @param U Type of first output
+     * @param V Type of second output
+     * @param name Human-readable name
+     * @param channelCapacity Buffer capacity for output channels (default: BUFFERED = 64)
+     * @param position Canvas position
+     * @param description Optional documentation
+     * @param process Processing function that produces ProcessResult2
+     * @return In3Out2Runtime configured for continuous processing
+     */
+    inline fun <reified A : Any, reified B : Any, reified C : Any, reified U : Any, reified V : Any> createIn3Out2Processor(
+        name: String,
+        channelCapacity: Int = Channel.BUFFERED,
+        position: Node.Position = Node.Position.ORIGIN,
+        description: String? = null,
+        noinline process: io.codenode.fbpdsl.runtime.In3Out2ProcessBlock<A, B, C, U, V>
+    ): io.codenode.fbpdsl.runtime.In3Out2Runtime<A, B, C, U, V> {
+        val nodeId = NodeIdGenerator.generateId("codenode")
+
+        val codeNode = CodeNode(
+            id = nodeId,
+            name = name,
+            codeNodeType = CodeNodeType.TRANSFORMER,
+            description = description,
+            position = position,
+            inputPorts = listOf(
+                PortFactory.input<A>("input1", nodeId, required = true),
+                PortFactory.input<B>("input2", nodeId, required = true),
+                PortFactory.input<C>("input3", nodeId, required = true)
+            ),
+            outputPorts = listOf(
+                PortFactory.output<U>("output1", nodeId),
+                PortFactory.output<V>("output2", nodeId)
+            )
+        )
+
+        return io.codenode.fbpdsl.runtime.In3Out2Runtime(codeNode, channelCapacity, process)
+    }
+
+    /**
+     * Creates a continuous processor node with 3 inputs and 3 outputs.
+     *
+     * The processor runs continuously until stopped, receiving values from
+     * all three input channels (synchronous receive), applying the process function
+     * that returns ProcessResult3, and sending non-null values to respective
+     * output channels (selective output).
+     *
+     * @param A Type of first input
+     * @param B Type of second input
+     * @param C Type of third input
+     * @param U Type of first output
+     * @param V Type of second output
+     * @param W Type of third output
+     * @param name Human-readable name
+     * @param channelCapacity Buffer capacity for output channels (default: BUFFERED = 64)
+     * @param position Canvas position
+     * @param description Optional documentation
+     * @param process Processing function that produces ProcessResult3
+     * @return In3Out3Runtime configured for continuous processing
+     */
+    inline fun <reified A : Any, reified B : Any, reified C : Any, reified U : Any, reified V : Any, reified W : Any> createIn3Out3Processor(
+        name: String,
+        channelCapacity: Int = Channel.BUFFERED,
+        position: Node.Position = Node.Position.ORIGIN,
+        description: String? = null,
+        noinline process: io.codenode.fbpdsl.runtime.In3Out3ProcessBlock<A, B, C, U, V, W>
+    ): io.codenode.fbpdsl.runtime.In3Out3Runtime<A, B, C, U, V, W> {
+        val nodeId = NodeIdGenerator.generateId("codenode")
+
+        val codeNode = CodeNode(
+            id = nodeId,
+            name = name,
+            codeNodeType = CodeNodeType.TRANSFORMER,
+            description = description,
+            position = position,
+            inputPorts = listOf(
+                PortFactory.input<A>("input1", nodeId, required = true),
+                PortFactory.input<B>("input2", nodeId, required = true),
+                PortFactory.input<C>("input3", nodeId, required = true)
+            ),
+            outputPorts = listOf(
+                PortFactory.output<U>("output1", nodeId),
+                PortFactory.output<V>("output2", nodeId),
+                PortFactory.output<W>("output3", nodeId)
+            )
+        )
+
+        return io.codenode.fbpdsl.runtime.In3Out3Runtime(codeNode, channelCapacity, process)
+    }
 }

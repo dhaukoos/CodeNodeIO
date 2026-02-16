@@ -451,4 +451,156 @@ class TypedNodeRuntimeTest {
 
         generator.stop()
     }
+
+    // ========== User Story 4: ProcessResult for Multi-Output Nodes ==========
+
+    @Test
+    fun `In1Out2Runtime sends ProcessResult2 to two outputs`() = runTest {
+        // Given: A processor that splits an integer into two outputs
+        val processor = CodeNodeFactory.createIn1Out2Processor<Int, Int, String>(
+            name = "Splitter"
+        ) { value -> ProcessResult2(value * 2, "value=$value") }
+
+        val input = Channel<Int>(Channel.BUFFERED)
+
+        processor.inputChannel = input
+        val output1 = processor.outputChannel1!!
+        val output2 = processor.outputChannel2!!
+
+        // When: Start and send values
+        processor.start(this) { }
+
+        input.send(5)
+        advanceUntilIdle()
+
+        input.send(10)
+        advanceUntilIdle()
+
+        // Then: Both outputs should have values
+        assertEquals(10, output1.receive())
+        assertEquals("value=5", output2.receive())
+        assertEquals(20, output1.receive())
+        assertEquals("value=10", output2.receive())
+
+        processor.stop()
+    }
+
+    @Test
+    fun `In1Out2Runtime skips sending null values (selective output)`() = runTest {
+        // Given: A processor that conditionally outputs to channels
+        val processor = CodeNodeFactory.createIn1Out2Processor<Int, Int, String>(
+            name = "SelectiveSplitter"
+        ) { value ->
+            if (value % 2 == 0) {
+                ProcessResult2.first(value) // Only send to first output
+            } else {
+                ProcessResult2.second("odd=$value") // Only send to second output
+            }
+        }
+
+        val input = Channel<Int>(Channel.BUFFERED)
+
+        processor.inputChannel = input
+        val output1 = processor.outputChannel1!!
+        val output2 = processor.outputChannel2!!
+
+        // When: Start and send values
+        processor.start(this) { }
+
+        input.send(2) // Even - goes to output1
+        input.send(3) // Odd - goes to output2
+        input.send(4) // Even - goes to output1
+        advanceUntilIdle()
+
+        // Then: Values should be routed correctly
+        assertEquals(2, output1.receive())
+        assertEquals("odd=3", output2.receive())
+        assertEquals(4, output1.receive())
+
+        processor.stop()
+    }
+
+    @Test
+    fun `In1Out3Runtime sends ProcessResult3 to three outputs`() = runTest {
+        // Given: A processor that splits input to three outputs
+        val processor = CodeNodeFactory.createIn1Out3Processor<Int, Int, String, Boolean>(
+            name = "TripleSplitter"
+        ) { value -> ProcessResult3(value, "v=$value", value > 0) }
+
+        val input = Channel<Int>(Channel.BUFFERED)
+
+        processor.inputChannel = input
+        val output1 = processor.outputChannel1!!
+        val output2 = processor.outputChannel2!!
+        val output3 = processor.outputChannel3!!
+
+        // When: Start and send values
+        processor.start(this) { }
+
+        input.send(5)
+        advanceUntilIdle()
+
+        // Then: All three outputs should have values
+        assertEquals(5, output1.receive())
+        assertEquals("v=5", output2.receive())
+        assertEquals(true, output3.receive())
+
+        processor.stop()
+    }
+
+    @Test
+    fun `In2Out2Runtime combines multi-input with multi-output`() = runTest {
+        // Given: A processor with 2 inputs and 2 outputs
+        val processor = CodeNodeFactory.createIn2Out2Processor<Int, Int, Int, String>(
+            name = "DualProcessor"
+        ) { a, b -> ProcessResult2(a + b, "sum=${a + b}") }
+
+        val input1 = Channel<Int>(Channel.BUFFERED)
+        val input2 = Channel<Int>(Channel.BUFFERED)
+
+        processor.inputChannel = input1
+        processor.inputChannel2 = input2
+        val output1 = processor.outputChannel1!!
+        val output2 = processor.outputChannel2!!
+
+        // When: Start and send values
+        processor.start(this) { }
+
+        input1.send(3)
+        input2.send(7)
+        advanceUntilIdle()
+
+        // Then: Both outputs should have processed values
+        assertEquals(10, output1.receive())
+        assertEquals("sum=10", output2.receive())
+
+        processor.stop()
+    }
+
+    @Test
+    fun `ProcessResult2 destructuring works correctly`() = runTest {
+        // Given: A ProcessResult2 value
+        val result = ProcessResult2(42, "hello")
+
+        // When: Destructure it
+        val (out1, out2) = result
+
+        // Then: Values should match
+        assertEquals(42, out1)
+        assertEquals("hello", out2)
+    }
+
+    @Test
+    fun `ProcessResult3 destructuring works correctly`() = runTest {
+        // Given: A ProcessResult3 value
+        val result = ProcessResult3(1, "two", true)
+
+        // When: Destructure it
+        val (out1, out2, out3) = result
+
+        // Then: Values should match
+        assertEquals(1, out1)
+        assertEquals("two", out2)
+        assertEquals(true, out3)
+    }
 }

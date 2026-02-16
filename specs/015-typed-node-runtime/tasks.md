@@ -136,25 +136,25 @@
 
 ### Tests for User Story 4
 
-- [ ] T043 [P] [US4] Write test: In1Out2Runtime sends ProcessResult2 to two outputs in TypedNodeRuntimeTest.kt
-- [ ] T044 [P] [US4] Write test: In1Out2Runtime skips sending null values (selective output) in TypedNodeRuntimeTest.kt
-- [ ] T045 [P] [US4] Write test: In1Out3Runtime sends ProcessResult3 to three outputs in TypedNodeRuntimeTest.kt
-- [ ] T046 [P] [US4] Write test: In2Out2Runtime combines multi-input with multi-output in TypedNodeRuntimeTest.kt
-- [ ] T047 [P] [US4] Write test: ProcessResult2 destructuring works correctly in TypedNodeRuntimeTest.kt
-- [ ] T048 [P] [US4] Write test: ProcessResult3 destructuring works correctly in TypedNodeRuntimeTest.kt
+- [x] T043 [P] [US4] Write test: In1Out2Runtime sends ProcessResult2 to two outputs in TypedNodeRuntimeTest.kt
+- [x] T044 [P] [US4] Write test: In1Out2Runtime skips sending null values (selective output) in TypedNodeRuntimeTest.kt
+- [x] T045 [P] [US4] Write test: In1Out3Runtime sends ProcessResult3 to three outputs in TypedNodeRuntimeTest.kt
+- [x] T046 [P] [US4] Write test: In2Out2Runtime combines multi-input with multi-output in TypedNodeRuntimeTest.kt
+- [x] T047 [P] [US4] Write test: ProcessResult2 destructuring works correctly in TypedNodeRuntimeTest.kt
+- [x] T048 [P] [US4] Write test: ProcessResult3 destructuring works correctly in TypedNodeRuntimeTest.kt
 
 ### Implementation for User Story 4
 
-- [ ] T049 [US4] Create In1Out2Runtime<A, U, V> class in fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/In1Out2Runtime.kt with outputChannel1, outputChannel2, selective send
-- [ ] T050 [P] [US4] Create In1Out3Runtime<A, U, V, W> class in fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/In1Out3Runtime.kt
-- [ ] T051 [P] [US4] Create In2Out2Runtime<A, B, U, V> class in fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/In2Out2Runtime.kt
-- [ ] T052 [P] [US4] Create In2Out3Runtime<A, B, U, V, W> class in fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/In2Out3Runtime.kt
-- [ ] T053 [P] [US4] Create In3Out2Runtime<A, B, C, U, V> class in fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/In3Out2Runtime.kt
-- [ ] T054 [P] [US4] Create In3Out3Runtime<A, B, C, U, V, W> class in fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/In3Out3Runtime.kt
-- [ ] T055 [US4] Add createIn1Out2Processor<A, U, V> and createIn1Out3Processor<A, U, V, W> factory methods to CodeNodeFactory
-- [ ] T056 [US4] Add createIn2Out2Processor and createIn2Out3Processor factory methods to CodeNodeFactory
-- [ ] T057 [US4] Add createIn3Out2Processor and createIn3Out3Processor factory methods to CodeNodeFactory
-- [ ] T058 [US4] Verify all US4 tests pass: ./gradlew test --tests "*TypedNodeRuntimeTest*"
+- [x] T049 [US4] Create In1Out2Runtime<A, U, V> class in fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/In1Out2Runtime.kt with outputChannel1, outputChannel2, selective send
+- [x] T050 [P] [US4] Create In1Out3Runtime<A, U, V, W> class in fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/In1Out3Runtime.kt
+- [x] T051 [P] [US4] Create In2Out2Runtime<A, B, U, V> class in fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/In2Out2Runtime.kt
+- [x] T052 [P] [US4] Create In2Out3Runtime<A, B, U, V, W> class in fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/In2Out3Runtime.kt
+- [x] T053 [P] [US4] Create In3Out2Runtime<A, B, C, U, V> class in fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/In3Out2Runtime.kt
+- [x] T054 [P] [US4] Create In3Out3Runtime<A, B, C, U, V, W> class in fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/In3Out3Runtime.kt
+- [x] T055 [US4] Add createIn1Out2Processor<A, U, V> and createIn1Out3Processor<A, U, V, W> factory methods to CodeNodeFactory
+- [x] T056 [US4] Add createIn2Out2Processor and createIn2Out3Processor factory methods to CodeNodeFactory
+- [x] T057 [US4] Add createIn3Out2Processor and createIn3Out3Processor factory methods to CodeNodeFactory
+- [x] T058 [US4] Verify all US4 tests pass: ./gradlew test --tests "*TypedNodeRuntimeTest*"
 
 **Checkpoint**: All multi-output configurations work with ProcessResult selective sending
 
