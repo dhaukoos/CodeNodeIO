@@ -31,6 +31,8 @@ import io.codenode.grapheditor.viewmodel.NodePaletteViewModel
 import io.codenode.grapheditor.viewmodel.IPPaletteViewModel
 import io.codenode.grapheditor.viewmodel.PropertiesPanelViewModel
 import io.codenode.grapheditor.viewmodel.CanvasInteractionViewModel
+import io.codenode.grapheditor.viewmodel.GraphEditorViewModel
+import io.codenode.grapheditor.viewmodel.EditorDialog
 import androidx.compose.runtime.CompositionLocalProvider
 import io.codenode.grapheditor.state.MoveNodeCommand
 import io.codenode.grapheditor.state.AddConnectionCommand
@@ -380,6 +382,46 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
         )
     }
 
+    // GraphEditorViewModel for orchestration-level state
+    val graphEditorViewModel = remember {
+        GraphEditorViewModel(
+            onCreateNewGraph = {
+                val newGraph = flowGraph(
+                    name = "New Graph",
+                    version = "1.0.0"
+                ) {}
+                graphState.setGraph(newGraph, markDirty = false)
+                graphState.navigateToRoot()
+            },
+            onOpenGraph = { /* Dialog will handle this */ },
+            onSaveGraph = { /* Dialog will handle this */ },
+            onUndo = {
+                undoRedoManager.undo(graphState)
+            },
+            onRedo = {
+                undoRedoManager.redo(graphState)
+            },
+            onGroupSelectedNodes = {
+                val selectedIds = graphState.selectionState.selectedNodeIds.toSet()
+                if (selectedIds.size >= 2) {
+                    val command = GroupNodesCommand(selectedIds)
+                    undoRedoManager.execute(command, graphState)
+                }
+            },
+            onUngroupSelectedNode = {
+                val selectedId = graphState.selectionState.selectedNodeIds.firstOrNull()
+                if (selectedId != null) {
+                    val command = UngroupNodeCommand(selectedId)
+                    undoRedoManager.execute(command, graphState)
+                }
+            },
+            onNavigateBack = {
+                graphState.navigateOut()
+            },
+            onCompile = { /* Dialog will handle this */ }
+        )
+    }
+
     // Derive button states from selection - these update automatically when selection changes
     val selectionState = graphState.selectionState  // Read selection state to ensure reactivity
     val canGroup = selectionState.selectedNodeIds.size >= 2
@@ -390,6 +432,28 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
     val navigationContext = graphState.navigationContext
     val isInsideGraphNode = !navigationContext.isAtRoot
     val currentGraphNodeName = graphState.getCurrentGraphNodeName()
+
+    // Update GraphEditorViewModel state based on derived values
+    LaunchedEffect(canGroup, canUngroup) {
+        graphEditorViewModel.updateGroupingState(canGroup, canUngroup)
+    }
+
+    LaunchedEffect(isInsideGraphNode, currentGraphNodeName) {
+        graphEditorViewModel.updateNavigationState(isInsideGraphNode, currentGraphNodeName)
+    }
+
+    LaunchedEffect(undoRedoManager.canUndo, undoRedoManager.canRedo) {
+        graphEditorViewModel.updateUndoRedoState(
+            canUndo = undoRedoManager.canUndo,
+            canRedo = undoRedoManager.canRedo,
+            undoDescription = undoRedoManager.getUndoDescription(),
+            redoDescription = undoRedoManager.getRedoDescription()
+        )
+    }
+
+    LaunchedEffect(graphState.flowGraph.name) {
+        graphEditorViewModel.updateFlowGraphName(graphState.flowGraph.name)
+    }
 
     // Create SharedStateProvider for ViewModel pattern
     val sharedState = remember(graphState, undoRedoManager, propertyChangeTracker, ipTypeRegistry, customNodeRepository) {

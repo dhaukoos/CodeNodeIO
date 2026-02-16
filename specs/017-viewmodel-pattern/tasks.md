@@ -98,13 +98,13 @@
 
 #### GraphEditorViewModel (Orchestration - Last)
 
-- [ ] T033 [P] [US1] Create `GraphEditorState` data class with dialog flags, statusMessage, canGroup, canUngroup, isInsideGraphNode at `graphEditor/src/jvmMain/kotlin/viewmodel/GraphEditorViewModel.kt`
-- [ ] T034 [US1] Create `GraphEditorViewModel` class with StateFlow at `graphEditor/src/jvmMain/kotlin/viewmodel/GraphEditorViewModel.kt`
-- [ ] T035 [US1] Implement file actions: createNewGraph(), openGraph(), saveGraph()
-- [ ] T036 [US1] Implement edit actions: undo(), redo(), groupSelectedNodes(), ungroupSelectedNode()
-- [ ] T037 [US1] Implement navigation actions: navigateBack(), compile()
-- [ ] T038 [US1] Implement dialog actions: showDialog(), hideDialog(), setStatusMessage()
-- [ ] T039 [US1] Refactor `Main.kt` to use `GraphEditorViewModel` - reduce to layout and orchestration only at `graphEditor/src/jvmMain/kotlin/Main.kt`
+- [x] T033 [P] [US1] Create `GraphEditorState` data class with dialog flags, statusMessage, canGroup, canUngroup, isInsideGraphNode at `graphEditor/src/jvmMain/kotlin/viewmodel/GraphEditorViewModel.kt`
+- [x] T034 [US1] Create `GraphEditorViewModel` class with StateFlow at `graphEditor/src/jvmMain/kotlin/viewmodel/GraphEditorViewModel.kt`
+- [x] T035 [US1] Implement file actions: createNewGraph(), openGraph(), saveGraph()
+- [x] T036 [US1] Implement edit actions: undo(), redo(), groupSelectedNodes(), ungroupSelectedNode()
+- [x] T037 [US1] Implement navigation actions: navigateBack(), compile()
+- [x] T038 [US1] Implement dialog actions: showDialog(), hideDialog(), setStatusMessage()
+- [x] T039 [US1] Refactor `Main.kt` to use `GraphEditorViewModel` - reduce to layout and orchestration only at `graphEditor/src/jvmMain/kotlin/Main.kt`
 
 **Checkpoint**: ✅ User Story 1 complete - all UI components have dedicated ViewModels
 
