@@ -24,8 +24,8 @@
 
 **Purpose**: Project initialization and repository structure
 
-- [ ] T001 Create repository directory structure at `graphEditor/src/jvmMain/kotlin/repository/`
-- [ ] T002 Verify kotlinx-serialization dependency in `graphEditor/build.gradle.kts`
+- [x] T001 Create repository directory structure at `graphEditor/src/jvmMain/kotlin/repository/`
+- [x] T002 Verify kotlinx-serialization dependency in `graphEditor/build.gradle.kts`
 
 ---
 
@@ -35,12 +35,12 @@
 
 **Critical**: These components are shared by all user stories
 
-- [ ] T003 Create `NodeGeneratorState` data class in `graphEditor/src/jvmMain/kotlin/state/NodeGeneratorState.kt` with name, inputCount, outputCount fields, computed `isValid` and `genericType` properties, and helper methods `reset()`, `withName()`, `withInputCount()`, `withOutputCount()`
-- [ ] T004 [P] Create `CustomNodeDefinition` serializable data class in `graphEditor/src/jvmMain/kotlin/repository/CustomNodeDefinition.kt` with id, name, inputCount, outputCount, genericType, createdAt fields, `create()` factory method, and `toNodeTypeDefinition()` converter
-- [ ] T005 Create `CustomNodeRepository` interface in `graphEditor/src/jvmMain/kotlin/repository/CustomNodeRepository.kt` with `getAll()`, `add()`, `load()`, `save()` methods
-- [ ] T006 Create `FileCustomNodeRepository` implementation in `graphEditor/src/jvmMain/kotlin/repository/FileCustomNodeRepository.kt` with JSON serialization to `~/.codenode/custom-nodes.json`
+- [x] T003 Create `NodeGeneratorState` data class in `graphEditor/src/jvmMain/kotlin/state/NodeGeneratorState.kt` with name, inputCount, outputCount fields, computed `isValid` and `genericType` properties, and helper methods `reset()`, `withName()`, `withInputCount()`, `withOutputCount()`
+- [x] T004 [P] Create `CustomNodeDefinition` serializable data class in `graphEditor/src/jvmMain/kotlin/repository/CustomNodeDefinition.kt` with id, name, inputCount, outputCount, genericType, createdAt fields, `create()` factory method, and `toNodeTypeDefinition()` converter
+- [x] T005 Create `CustomNodeRepository` interface in `graphEditor/src/jvmMain/kotlin/repository/CustomNodeRepository.kt` with `getAll()`, `add()`, `load()`, `save()` methods
+- [x] T006 Create `FileCustomNodeRepository` implementation in `graphEditor/src/jvmMain/kotlin/repository/FileCustomNodeRepository.kt` with JSON serialization to `~/.codenode/custom-nodes.json`
 
-**Checkpoint**: Foundation ready - user story implementation can now begin
+**Checkpoint**: ✅ Foundation ready - user story implementation can now begin
 
 ---
 
@@ -52,18 +52,18 @@
 
 ### Tests for User Story 1
 
-- [ ] T007 [P] [US1] Create validation tests in `graphEditor/src/jvmTest/kotlin/state/NodeGeneratorStateTest.kt` testing: name validation (blank, whitespace), input/output range coercion, isValid computed property for all 16 combinations including 0/0 rejection
-- [ ] T008 [P] [US1] Create CustomNodeDefinition tests in `graphEditor/src/jvmTest/kotlin/repository/CustomNodeDefinitionTest.kt` testing: create() factory method generates unique IDs, toNodeTypeDefinition() returns correct NodeTypeDefinition
+- [x] T007 [P] [US1] Create validation tests in `graphEditor/src/jvmTest/kotlin/state/NodeGeneratorStateTest.kt` testing: name validation (blank, whitespace), input/output range coercion, isValid computed property for all 16 combinations including 0/0 rejection
+- [x] T008 [P] [US1] Create CustomNodeDefinition tests in `graphEditor/src/jvmTest/kotlin/repository/CustomNodeDefinitionTest.kt` testing: create() factory method generates unique IDs, toNodeTypeDefinition() returns correct NodeTypeDefinition
 
 ### Implementation for User Story 1
 
-- [ ] T009 [US1] Create `NodeGeneratorPanel` composable in `graphEditor/src/jvmMain/kotlin/ui/NodeGeneratorPanel.kt` with: header "Node Generator", OutlinedTextField for name, dropdowns for inputCount (0-3) and outputCount (0-3), Create and Cancel buttons
-- [ ] T010 [US1] Implement Create button disabled logic when `!state.isValid` (name blank OR both inputs and outputs are 0) in `graphEditor/src/jvmMain/kotlin/ui/NodeGeneratorPanel.kt`
-- [ ] T011 [US1] Wire NodeGeneratorPanel to Main.kt: add state `var nodeGeneratorState by remember { mutableStateOf(NodeGeneratorState()) }`, place panel above NodePalette in left column
-- [ ] T012 [US1] Implement onCreateNode callback: create CustomNodeDefinition via factory, add to customNodes state, trigger palette refresh in `graphEditor/src/jvmMain/kotlin/Main.kt`
-- [ ] T013 [US1] Update NodePalette integration: combine `createSampleNodeTypes()` with `customNodes.map { it.toNodeTypeDefinition() }` for allNodeTypes in `graphEditor/src/jvmMain/kotlin/Main.kt`
+- [x] T009 [US1] Create `NodeGeneratorPanel` composable in `graphEditor/src/jvmMain/kotlin/ui/NodeGeneratorPanel.kt` with: header "Node Generator", OutlinedTextField for name, dropdowns for inputCount (0-3) and outputCount (0-3), Create and Cancel buttons
+- [x] T010 [US1] Implement Create button disabled logic when `!state.isValid` (name blank OR both inputs and outputs are 0) in `graphEditor/src/jvmMain/kotlin/ui/NodeGeneratorPanel.kt`
+- [x] T011 [US1] Wire NodeGeneratorPanel to Main.kt: add state `var nodeGeneratorState by remember { mutableStateOf(NodeGeneratorState()) }`, place panel above NodePalette in left column
+- [x] T012 [US1] Implement onCreateNode callback: create CustomNodeDefinition via factory, add to customNodes state, trigger palette refresh in `graphEditor/src/jvmMain/kotlin/Main.kt`
+- [x] T013 [US1] Update NodePalette integration: combine `createSampleNodeTypes()` with `customNodes.map { it.toNodeTypeDefinition() }` for allNodeTypes in `graphEditor/src/jvmMain/kotlin/Main.kt`
 
-**Checkpoint**: User Story 1 complete - users can create custom nodes and see them in palette
+**Checkpoint**: ✅ User Story 1 complete - users can create custom nodes and see them in palette
 
 ---
 
@@ -75,10 +75,10 @@
 
 ### Implementation for User Story 2
 
-- [ ] T014 [US2] Implement Cancel button onClick in `NodeGeneratorPanel.kt` to call `onStateChange(state.reset())` to reset form to defaults
-- [ ] T015 [US2] Verify form reset after Create by calling `onStateChange(state.reset())` after successful node creation in `NodeGeneratorPanel.kt`
+- [x] T014 [US2] Implement Cancel button onClick in `NodeGeneratorPanel.kt` to call `onStateChange(state.reset())` to reset form to defaults
+- [x] T015 [US2] Verify form reset after Create by calling `onStateChange(state.reset())` after successful node creation in `NodeGeneratorPanel.kt`
 
-**Checkpoint**: User Story 2 complete - Cancel functionality works
+**Checkpoint**: ✅ User Story 2 complete - Cancel functionality works
 
 ---
 
@@ -90,10 +90,10 @@
 
 ### Implementation for User Story 3
 
-- [ ] T016 [US3] Verify GenericNodeTypeFactory.createGenericNodeType() integration in `CustomNodeDefinition.toNodeTypeDefinition()` produces correct port counts in `graphEditor/src/jvmMain/kotlin/repository/CustomNodeDefinition.kt`
+- [x] T016 [US3] Verify GenericNodeTypeFactory.createGenericNodeType() integration in `CustomNodeDefinition.toNodeTypeDefinition()` produces correct port counts in `graphEditor/src/jvmMain/kotlin/repository/CustomNodeDefinition.kt`
 - [ ] T017 [US3] Test drag-and-drop from palette to canvas for custom nodes - verify node instance has correct input/output ports (manual verification or integration test)
 
-**Checkpoint**: User Story 3 complete - nodes work correctly on canvas
+**Checkpoint**: User Story 3 in progress - T017 requires manual verification
 
 ---
 
@@ -109,12 +109,12 @@
 
 ### Implementation for User Story 4
 
-- [ ] T019 [US4] Initialize FileCustomNodeRepository in Main.kt with `remember { FileCustomNodeRepository() }`
-- [ ] T020 [US4] Call `customNodeRepository.load()` on startup via `LaunchedEffect(Unit)` in `graphEditor/src/jvmMain/kotlin/Main.kt`
-- [ ] T021 [US4] Wire onCreateNode to call `customNodeRepository.add(node)` for persistence in `graphEditor/src/jvmMain/kotlin/Main.kt`
-- [ ] T022 [US4] Implement directory creation in FileCustomNodeRepository.save() with `file.parentFile?.mkdirs()` in `graphEditor/src/jvmMain/kotlin/repository/FileCustomNodeRepository.kt`
+- [x] T019 [US4] Initialize FileCustomNodeRepository in Main.kt with `remember { FileCustomNodeRepository() }`
+- [x] T020 [US4] Call `customNodeRepository.load()` on startup via `LaunchedEffect(Unit)` in `graphEditor/src/jvmMain/kotlin/Main.kt`
+- [x] T021 [US4] Wire onCreateNode to call `customNodeRepository.add(node)` for persistence in `graphEditor/src/jvmMain/kotlin/Main.kt`
+- [x] T022 [US4] Implement directory creation in FileCustomNodeRepository.save() with `file.parentFile?.mkdirs()` in `graphEditor/src/jvmMain/kotlin/repository/FileCustomNodeRepository.kt`
 
-**Checkpoint**: User Story 4 complete - persistence works across restarts
+**Checkpoint**: User Story 4 implementation complete - T018 (persistence tests) remaining
 
 ---
 
@@ -205,3 +205,24 @@ Task: "Create CustomNodeDefinition tests in graphEditor/src/jvmTest/kotlin/repos
 - Verify tests fail before implementing
 - Commit after each task or logical group
 - Stop at any checkpoint to validate story independently
+
+---
+
+## Progress Summary
+
+**Commit fcd30bc** (2026-02-16): T001-T022 implemented (except T017, T018)
+
+| Phase | Status | Tasks |
+|-------|--------|-------|
+| Phase 1: Setup | ✅ Complete | T001-T002 |
+| Phase 2: Foundational | ✅ Complete | T003-T006 |
+| Phase 3: US1 (MVP) | ✅ Complete | T007-T013 |
+| Phase 4: US2 (Cancel) | ✅ Complete | T014-T015 |
+| Phase 5: US3 (Canvas) | 🔄 In Progress | T016 ✅, T017 pending |
+| Phase 6: US4 (Persist) | 🔄 In Progress | T019-T022 ✅, T018 pending |
+| Phase 7: Polish | ⏳ Not Started | T023-T026 |
+
+**UI Enhancements implemented:**
+- Collapsible panel header with expand/collapse arrow (▶/▼)
+- Horizontal layout for Inputs/Outputs dropdowns (label left, dropdown right)
+- Panel starts collapsed by default
