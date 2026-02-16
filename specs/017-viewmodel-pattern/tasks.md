@@ -25,11 +25,11 @@
 
 **Purpose**: Add ViewModel dependency and create package structure
 
-- [ ] T001 Add `lifecycle-viewmodel-compose:2.10.0-alpha06` dependency to `graphEditor/build.gradle.kts`
-- [ ] T002 Create `viewmodel/` package directory at `graphEditor/src/jvmMain/kotlin/viewmodel/`
-- [ ] T003 [P] Create `viewmodel/` test package directory at `graphEditor/src/jvmTest/kotlin/viewmodel/`
-- [ ] T004 [P] Create `SharedStateProvider.kt` data class with GraphState, UndoRedoManager, PropertyChangeTracker, IPTypeRegistry, CustomNodeRepository fields at `graphEditor/src/jvmMain/kotlin/viewmodel/SharedStateProvider.kt`
-- [ ] T005 Create `LocalSharedState` CompositionLocal in `graphEditor/src/jvmMain/kotlin/viewmodel/SharedStateProvider.kt`
+- [x] T001 Add `lifecycle-viewmodel-compose:2.10.0-alpha06` dependency to `graphEditor/build.gradle.kts`
+- [x] T002 Create `viewmodel/` package directory at `graphEditor/src/jvmMain/kotlin/viewmodel/`
+- [x] T003 [P] Create `viewmodel/` test package directory at `graphEditor/src/jvmTest/kotlin/viewmodel/`
+- [x] T004 [P] Create `SharedStateProvider.kt` data class with GraphState, UndoRedoManager, PropertyChangeTracker, IPTypeRegistry, CustomNodeRepository fields at `graphEditor/src/jvmMain/kotlin/viewmodel/SharedStateProvider.kt`
+- [x] T005 Create `LocalSharedState` CompositionLocal in `graphEditor/src/jvmMain/kotlin/viewmodel/SharedStateProvider.kt`
 
 **Checkpoint**: ✅ Foundation ready - ViewModel infrastructure in place
 
@@ -41,9 +41,9 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T006 Create `BaseState.kt` marker interface for ViewModel state data classes at `graphEditor/src/jvmMain/kotlin/viewmodel/BaseState.kt`
-- [ ] T007 Wrap existing state classes in `CompositionLocalProvider(LocalSharedState provides sharedState)` in Main.kt at `graphEditor/src/jvmMain/kotlin/Main.kt`
-- [ ] T008 Verify existing tests still pass after CompositionLocal integration
+- [x] T006 Create `BaseState.kt` marker interface for ViewModel state data classes at `graphEditor/src/jvmMain/kotlin/viewmodel/BaseState.kt`
+- [x] T007 Wrap existing state classes in `CompositionLocalProvider(LocalSharedState provides sharedState)` in Main.kt at `graphEditor/src/jvmMain/kotlin/Main.kt`
+- [x] T008 Verify existing tests still pass after CompositionLocal integration
 
 **Checkpoint**: ✅ Foundation complete - user story implementation can now begin
 
