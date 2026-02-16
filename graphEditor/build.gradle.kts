@@ -50,6 +50,7 @@ kotlin {
         val jvmTest by getting {
             dependencies {
                 implementation(libs.junit5.all)
+                implementation(libs.coroutines.test)
             }
         }
     }
