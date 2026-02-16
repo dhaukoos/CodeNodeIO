@@ -453,6 +453,14 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                         // Node Palette
                         NodePalette(
                         nodeTypes = nodeTypes,
+                        deletableNodeNames = customNodes.map { it.name }.toSet(),
+                        onNodeDeleted = { nodeName ->
+                            // Find and remove the custom node with this name
+                            customNodes.find { it.name == nodeName }?.let { nodeToDelete ->
+                                customNodeRepository.remove(nodeToDelete.id)
+                                customNodes = customNodeRepository.getAll()
+                            }
+                        },
                         onNodeSelected = { nodeType ->
                             // Clear IP type selection when working with nodes
                             selectedIPType = null

@@ -27,12 +27,16 @@ import io.codenode.fbpdsl.model.NodeTypeDefinition
  *
  * @param nodeTypes List of available node type definitions
  * @param onNodeSelected Callback when a node type is selected for placement
+ * @param deletableNodeNames Set of node names that can be deleted (custom nodes)
+ * @param onNodeDeleted Callback when a deletable node's delete button is clicked
  * @param modifier Modifier for the palette
  */
 @Composable
 fun NodePalette(
     nodeTypes: List<NodeTypeDefinition>,
     onNodeSelected: (NodeTypeDefinition) -> Unit = {},
+    deletableNodeNames: Set<String> = emptySet(),
+    onNodeDeleted: (String) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     var searchQuery by remember { mutableStateOf("") }
@@ -104,7 +108,9 @@ fun NodePalette(
                     items(nodes) { nodeType ->
                         NodeTypeItem(
                             nodeType = nodeType,
-                            onClick = { onNodeSelected(nodeType) }
+                            onClick = { onNodeSelected(nodeType) },
+                            isDeletable = nodeType.name in deletableNodeNames,
+                            onDelete = { onNodeDeleted(nodeType.name) }
                         )
                     }
                 }
@@ -146,11 +152,18 @@ private fun CategoryHeader(
 
 /**
  * Individual node type item in the palette
+ *
+ * @param nodeType The node type definition to display
+ * @param onClick Callback when the item is clicked
+ * @param isDeletable Whether this node can be deleted (shows X button)
+ * @param onDelete Callback when the delete button is clicked
  */
 @Composable
 private fun NodeTypeItem(
     nodeType: NodeTypeDefinition,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    isDeletable: Boolean = false,
+    onDelete: () -> Unit = {}
 ) {
     Card(
         modifier = Modifier
@@ -161,59 +174,81 @@ private fun NodeTypeItem(
         backgroundColor = Color.White,
         elevation = 1.dp
     ) {
-        Column(
-            modifier = Modifier
-                .padding(12.dp)
-                .fillMaxWidth()
-        ) {
-            Text(
-                text = nodeType.name,
-                fontSize = 13.sp,
-                fontWeight = FontWeight.Medium,
-                color = Color(0xFF212121),
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-
-            nodeType.description?.let { desc ->
-                Text(
-                    text = desc,
-                    fontSize = 11.sp,
-                    color = Color(0xFF757575),
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.padding(top = 4.dp)
-                )
-            }
-
-            // Show port count summary
-            Row(
+        Box(modifier = Modifier.fillMaxWidth()) {
+            Column(
                 modifier = Modifier
-                    .padding(top = 8.dp)
-                    .fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    .padding(12.dp)
+                    .fillMaxWidth()
             ) {
-                val inputPorts = nodeType.getInputPortTemplates()
-                if (inputPorts.isNotEmpty()) {
-                    PortBadge(
-                        count = inputPorts.size,
-                        label = "in",
-                        color = Color(0xFF4CAF50)
+                Text(
+                    text = nodeType.name,
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = Color(0xFF212121),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.padding(end = if (isDeletable) 24.dp else 0.dp)
+                )
+
+                nodeType.description?.let { desc ->
+                    Text(
+                        text = desc,
+                        fontSize = 11.sp,
+                        color = Color(0xFF757575),
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.padding(top = 4.dp)
                     )
                 }
 
-                val outputPorts = nodeType.getOutputPortTemplates()
-                if (outputPorts.isNotEmpty()) {
-                    PortBadge(
-                        count = outputPorts.size,
-                        label = "out",
-                        color = Color(0xFF2196F3)
+                // Show port count summary
+                Row(
+                    modifier = Modifier
+                        .padding(top = 8.dp)
+                        .fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    val inputPorts = nodeType.getInputPortTemplates()
+                    if (inputPorts.isNotEmpty()) {
+                        PortBadge(
+                            count = inputPorts.size,
+                            label = "in",
+                            color = Color(0xFF4CAF50)
+                        )
+                    }
+
+                    val outputPorts = nodeType.getOutputPortTemplates()
+                    if (outputPorts.isNotEmpty()) {
+                        PortBadge(
+                            count = outputPorts.size,
+                            label = "out",
+                            color = Color(0xFF2196F3)
+                        )
+                    }
+                }
+            }
+
+            // Delete button in upper right corner (only for deletable/custom nodes)
+            if (isDeletable) {
+                Surface(
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(4.dp)
+                        .clickable(onClick = onDelete),
+                    shape = RoundedCornerShape(2.dp),
+                    color = Color(0xFFFFEBEE)
+                ) {
+                    Text(
+                        text = "×",
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFFE53935),
+                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
                     )
                 }
             }
         }
     }
-
 }
 
 /**

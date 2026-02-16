@@ -185,4 +185,50 @@ class CustomNodeRepositoryTest {
         assertEquals(1, nodes.size)
         assertEquals("FromFile", nodes[0].name)
     }
+
+    @Test
+    fun `remove deletes node by id and persists`() {
+        val node1 = CustomNodeDefinition.create("Node1", 1, 1)
+        val node2 = CustomNodeDefinition.create("Node2", 2, 2)
+        repository.add(node1)
+        repository.add(node2)
+
+        // Remove node1 by ID
+        val removed = repository.remove(node1.id)
+
+        assertTrue(removed)
+        assertEquals(1, repository.getAll().size)
+        assertEquals("Node2", repository.getAll()[0].name)
+
+        // Verify persistence
+        val newRepo = FileCustomNodeRepository(testFilePath)
+        newRepo.load()
+        assertEquals(1, newRepo.getAll().size)
+        assertEquals("Node2", newRepo.getAll()[0].name)
+    }
+
+    @Test
+    fun `remove returns false for non-existent id`() {
+        repository.add(CustomNodeDefinition.create("Node1", 1, 1))
+
+        val removed = repository.remove("non_existent_id")
+
+        kotlin.test.assertFalse(removed)
+        assertEquals(1, repository.getAll().size)
+    }
+
+    @Test
+    fun `remove all nodes leaves empty list`() {
+        val node = CustomNodeDefinition.create("Node1", 1, 1)
+        repository.add(node)
+
+        repository.remove(node.id)
+
+        assertTrue(repository.getAll().isEmpty())
+
+        // Verify persistence
+        val newRepo = FileCustomNodeRepository(testFilePath)
+        newRepo.load()
+        assertTrue(newRepo.getAll().isEmpty())
+    }
 }

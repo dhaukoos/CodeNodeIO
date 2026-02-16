@@ -33,4 +33,12 @@ interface CustomNodeRepository {
      * Called after each add() operation.
      */
     fun save()
+
+    /**
+     * Removes a custom node definition by its ID and persists the change.
+     *
+     * @param id The ID of the custom node to remove
+     * @return true if a node was removed, false if no node with that ID exists
+     */
+    fun remove(id: String): Boolean
 }

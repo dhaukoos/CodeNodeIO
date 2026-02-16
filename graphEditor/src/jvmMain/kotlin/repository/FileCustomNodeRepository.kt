@@ -60,4 +60,12 @@ class FileCustomNodeRepository(
             throw e
         }
     }
+
+    override fun remove(id: String): Boolean {
+        val removed = nodes.removeAll { it.id == id }
+        if (removed) {
+            save()
+        }
+        return removed
+    }
 }
