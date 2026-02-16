@@ -10,7 +10,6 @@ import io.codenode.fbpdsl.model.ExecutionState
 import io.codenode.stopwatch.generated.StopWatchFlow
 import io.codenode.stopwatch.usecases.DisplayReceiverComponent
 import io.codenode.stopwatch.usecases.TimerEmitterComponent
-import io.codenode.stopwatch.usecases.TimerOutput
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.first
@@ -30,22 +29,21 @@ import kotlin.test.assertTrue
 class ChannelIntegrationTest {
 
     /**
-     * T019: Verify TimerEmitter and DisplayReceiver work with channels.
+     * T019: Verify TimerEmitter and DisplayReceiver work with typed channels.
      *
-     * Given: TimerEmitter and DisplayReceiver connected via a Channel
+     * Given: TimerEmitter and DisplayReceiver connected via typed Channels
      * When: Timer ticks occur
      * Then: DisplayReceiver receives and processes the timer outputs
      */
     @Test
     fun timerEmitter_sends_to_displayReceiver_via_channel() = runTest {
-        // Given - create components and channel (use buffered to avoid blocking)
+        // Given - create components (Out2Generator creates its own channels)
         val timerEmitter = TimerEmitterComponent(speedAttenuation = 50L)
         val displayReceiver = DisplayReceiverComponent()
-        val channel = Channel<TimerOutput>(capacity = 2)
 
-        // Wire up the channel connection
-        timerEmitter.outputChannel = channel
-        displayReceiver.inputChannel = channel
+        // Wire up the channel connections (generator creates channels, we wire to sink)
+        displayReceiver.inputChannel = timerEmitter.outputChannel1
+        displayReceiver.inputChannel2 = timerEmitter.outputChannel2
 
         // Start the receiver first (to be ready for data) - use backgroundScope
         backgroundScope.launch {
@@ -65,10 +63,9 @@ class ChannelIntegrationTest {
         val seconds = displayReceiver.displayedSecondsFlow.first()
         assertTrue(seconds >= 1, "DisplayReceiver should have received at least 1 tick, got $seconds")
 
-        // Cleanup - stop components first, then close channel
+        // Cleanup - stop components (generator closes its channels)
         timerEmitter.stop()
         displayReceiver.stop()
-        channel.close()
     }
 
     /**
@@ -81,15 +78,11 @@ class ChannelIntegrationTest {
     @Test
     fun buffered_channel_data_consumed_before_close() = runTest {
         // Given - buffered channel with capacity
-        val channel = Channel<TimerOutput>(capacity = 5)
-        val receivedData = mutableListOf<TimerOutput>()
+        val channel = Channel<Int>(capacity = 5)
+        val receivedData = mutableListOf<Int>()
 
         // Pre-populate channel with buffered data
-        val testData = listOf(
-            TimerOutput(1, 0),
-            TimerOutput(2, 0),
-            TimerOutput(3, 0)
-        )
+        val testData = listOf(1, 2, 3)
         testData.forEach { channel.send(it) }
 
         // Close channel (no more sends allowed, but buffered data remains)
@@ -112,16 +105,18 @@ class ChannelIntegrationTest {
     /**
      * Verify DisplayReceiver handles channel closure gracefully.
      *
-     * Given: DisplayReceiver connected to a channel
-     * When: Channel is closed while receiver is running
+     * Given: DisplayReceiver connected to channels
+     * When: Channels are closed while receiver is running
      * Then: Receiver should exit gracefully without exceptions
      */
     @Test
     fun displayReceiver_handles_channel_closure_gracefully() = runTest {
         // Given
         val displayReceiver = DisplayReceiverComponent()
-        val channel = Channel<TimerOutput>(Channel.RENDEZVOUS)
-        displayReceiver.inputChannel = channel
+        val secondsChannel = Channel<Int>(Channel.RENDEZVOUS)
+        val minutesChannel = Channel<Int>(Channel.RENDEZVOUS)
+        displayReceiver.inputChannel = secondsChannel
+        displayReceiver.inputChannel2 = minutesChannel
 
         // Start receiver
         val receiverJob = launch {
@@ -130,8 +125,9 @@ class ChannelIntegrationTest {
 
         advanceUntilIdle()
 
-        // When - close channel
-        channel.close()
+        // When - close channels
+        secondsChannel.close()
+        minutesChannel.close()
         advanceUntilIdle()
 
         // Then - receiver job should complete gracefully (no exception thrown)
@@ -145,7 +141,7 @@ class ChannelIntegrationTest {
     /**
      * Verify TimerEmitter handles channel closure gracefully.
      *
-     * Given: TimerEmitter connected to a closed channel
+     * Given: TimerEmitter with its internal channels closed
      * When: Timer tries to send
      * Then: Emitter should handle ClosedSendChannelException and exit loop
      */
@@ -153,11 +149,10 @@ class ChannelIntegrationTest {
     fun timerEmitter_handles_channel_closure_gracefully() = runTest {
         // Given
         val timerEmitter = TimerEmitterComponent(speedAttenuation = 50L)
-        val channel = Channel<TimerOutput>(Channel.RENDEZVOUS)
-        timerEmitter.outputChannel = channel
 
-        // Close channel before starting
-        channel.close()
+        // Close channels before starting (generator creates channels in init)
+        timerEmitter.outputChannel1?.close()
+        timerEmitter.outputChannel2?.close()
 
         // When - start emitter
         timerEmitter.executionState = ExecutionState.RUNNING
@@ -179,9 +174,9 @@ class ChannelIntegrationTest {
     /**
      * T023: Full end-to-end StopWatchFlow test.
      *
-     * Given: StopWatchFlow with TimerEmitter and DisplayReceiver wired via Channel
+     * Given: StopWatchFlow with TimerEmitter and DisplayReceiver wired via typed Channels
      * When: Flow is started and timer ticks occur
-     * Then: Data flows from emitter through channel to receiver, and shutdown is graceful
+     * Then: Data flows from emitter through channels to receiver, and shutdown is graceful
      */
     @Test
     fun stopWatchFlow_end_to_end_channel_flow() = runTest {
@@ -199,13 +194,15 @@ class ChannelIntegrationTest {
         advanceTimeBy(50)
 
         // Verify wiring is correct - channels should be assigned
-        assertTrue(flow.timerEmitter.outputChannel != null, "Timer outputChannel should be wired")
+        assertTrue(flow.timerEmitter.outputChannel1 != null, "Timer outputChannel1 should be wired")
+        assertTrue(flow.timerEmitter.outputChannel2 != null, "Timer outputChannel2 should be wired")
         assertTrue(flow.displayReceiver.inputChannel != null, "Display inputChannel should be wired")
+        assertTrue(flow.displayReceiver.inputChannel2 != null, "Display inputChannel2 should be wired")
 
         // Let some time pass for data flow
         advanceTimeBy(2100) // ~2 ticks at 1000ms
 
-        // Then - verify data flowed through the channel
+        // Then - verify data flowed through the channels
         val seconds = flow.displayReceiver.displayedSecondsFlow.first()
         assertTrue(seconds >= 1, "DisplayReceiver should have received timer ticks, got $seconds")
 
@@ -226,12 +223,12 @@ class ChannelIntegrationTest {
     @Test
     fun rendezvous_channel_provides_backpressure() = runTest {
         // Given
-        val channel = Channel<TimerOutput>(Channel.RENDEZVOUS)
+        val channel = Channel<Int>(Channel.RENDEZVOUS)
         var sendCompleted = false
 
         // When - send without receiver
         val senderJob = launch {
-            channel.send(TimerOutput(1, 0))
+            channel.send(1)
             sendCompleted = true
         }
 

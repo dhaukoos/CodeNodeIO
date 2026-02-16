@@ -10,7 +10,7 @@ import io.codenode.fbpdsl.model.CodeNode
 import io.codenode.fbpdsl.model.CodeNodeFactory
 import io.codenode.fbpdsl.model.InformationPacket
 import io.codenode.fbpdsl.model.ProcessingLogic
-import io.codenode.fbpdsl.runtime.SinkRuntime
+import io.codenode.fbpdsl.runtime.In2SinkRuntime
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -20,15 +20,16 @@ import kotlinx.coroutines.flow.asStateFlow
 /**
  * DisplayReceiver UseCase - Sink node that receives time values for UI rendering.
  *
- * This component uses CodeNodeFactory.createContinuousSink to create a
- * SinkRuntime that manages the receive loop lifecycle.
+ * This component uses CodeNodeFactory.createIn2Sink to create an
+ * In2SinkRuntime that manages the receive loop lifecycle with two typed input channels.
  *
  * Features:
- * - Receives elapsed time from TimerEmitter via channel
+ * - Receives elapsed seconds from inputChannel (first input)
+ * - Receives elapsed minutes from inputChannel2 (second input)
  * - Exposes StateFlows for UI observation
  * - Handles channel closure gracefully
  *
- * Type: SINK (1 input: TimerOutput, 0 outputs)
+ * Type: SINK (2 inputs: Int for seconds, Int for minutes, 0 outputs)
  */
 class DisplayReceiverComponent : ProcessingLogic {
 
@@ -40,16 +41,17 @@ class DisplayReceiverComponent : ProcessingLogic {
     val displayedMinutesFlow: StateFlow<Int> = _displayedMinutes.asStateFlow()
 
     /**
-     * SinkRuntime created via factory method.
-     * Manages the receive loop lifecycle with proper channel handling.
+     * In2SinkRuntime created via factory method.
+     * Manages the receive loop lifecycle with proper dual-channel handling.
+     * inputChannel: seconds (Int), inputChannel2: minutes (Int)
      */
-    private val sinkRuntime: SinkRuntime<TimerOutput> = CodeNodeFactory.createContinuousSink(
+    private val sinkRuntime: In2SinkRuntime<Int, Int> = CodeNodeFactory.createIn2Sink(
         name = "DisplayReceiver",
-        description = "Receives timer values and exposes them for UI rendering"
-    ) { timerOutput ->
+        description = "Receives timer values on two typed channels and exposes them for UI rendering"
+    ) { seconds, minutes ->
         // Update state flows for UI observation
-        _displayedSeconds.value = timerOutput.elapsedSeconds
-        _displayedMinutes.value = timerOutput.elapsedMinutes
+        _displayedSeconds.value = seconds
+        _displayedMinutes.value = minutes
     }
 
     /**
@@ -59,13 +61,23 @@ class DisplayReceiverComponent : ProcessingLogic {
         get() = sinkRuntime.codeNode
 
     /**
-     * Input channel for FBP point-to-point semantics with backpressure.
+     * First input channel (seconds) for FBP point-to-point semantics with backpressure.
      * Must be assigned before start() is called.
      */
-    var inputChannel: ReceiveChannel<TimerOutput>?
+    var inputChannel: ReceiveChannel<Int>?
         get() = sinkRuntime.inputChannel
         set(value) {
             sinkRuntime.inputChannel = value
+        }
+
+    /**
+     * Second input channel (minutes) for FBP point-to-point semantics with backpressure.
+     * Must be assigned before start() is called.
+     */
+    var inputChannel2: ReceiveChannel<Int>?
+        get() = sinkRuntime.inputChannel2
+        set(value) {
+            sinkRuntime.inputChannel2 = value
         }
 
     /**
