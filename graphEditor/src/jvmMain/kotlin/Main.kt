@@ -33,10 +33,13 @@ import io.codenode.grapheditor.ui.CompactCanvasControls
 import io.codenode.grapheditor.ui.ConnectionErrorDisplay
 import io.codenode.grapheditor.ui.FlowGraphCanvas
 import io.codenode.grapheditor.ui.NodePalette
+import io.codenode.grapheditor.ui.NodeGeneratorPanel
 import io.codenode.grapheditor.ui.GraphEditorWithToggle
 import io.codenode.grapheditor.ui.ViewMode
 import io.codenode.grapheditor.ui.CompactPropertiesPanel
 import io.codenode.grapheditor.ui.PropertiesPanelState
+import io.codenode.grapheditor.state.NodeGeneratorState
+import io.codenode.grapheditor.repository.FileCustomNodeRepository
 import io.codenode.grapheditor.state.rememberPropertyChangeTracker
 import io.codenode.grapheditor.serialization.FlowKtParser
 import io.codenode.grapheditor.save.ModuleSaveService
@@ -270,7 +273,23 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
     val graphState = remember { GraphState(initialGraph) }
     val undoRedoManager = rememberUndoRedoManager()
     val propertyChangeTracker = rememberPropertyChangeTracker(undoRedoManager, graphState)
-    val nodeTypes = remember { createSampleNodeTypes() }
+
+    // Custom node repository and state
+    val customNodeRepository = remember { FileCustomNodeRepository() }
+    var customNodes by remember { mutableStateOf(emptyList<io.codenode.grapheditor.repository.CustomNodeDefinition>()) }
+    var nodeGeneratorState by remember { mutableStateOf(NodeGeneratorState()) }
+
+    // Load custom nodes on startup
+    LaunchedEffect(Unit) {
+        customNodeRepository.load()
+        customNodes = customNodeRepository.getAll()
+    }
+
+    // Combine built-in node types with custom nodes
+    val builtInNodeTypes = remember { createSampleNodeTypes() }
+    val nodeTypes = remember(customNodes) {
+        builtInNodeTypes + customNodes.map { it.toNodeTypeDefinition() }
+    }
     val ipTypeRegistry = remember { IPTypeRegistry.withDefaults() }
     val ipTypes = remember { ipTypeRegistry.getAllTypes() }
     var selectedIPType by remember { mutableStateOf<InformationPacketType?>(null) }
@@ -417,10 +436,22 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                         }
                     }
             ) {
-                // Layout: NodePalette on left, Canvas on right
+                // Layout: NodeGeneratorPanel + NodePalette on left, Canvas on right
                 Row(modifier = Modifier.fillMaxSize()) {
-                    // Node Palette
-                    NodePalette(
+                    // Left column: Node Generator Panel above Node Palette
+                    Column(modifier = Modifier.fillMaxHeight()) {
+                        // Node Generator Panel
+                        NodeGeneratorPanel(
+                            state = nodeGeneratorState,
+                            onStateChange = { nodeGeneratorState = it },
+                            onCreateNode = { node ->
+                                customNodeRepository.add(node)
+                                customNodes = customNodeRepository.getAll()
+                            }
+                        )
+
+                        // Node Palette
+                        NodePalette(
                         nodeTypes = nodeTypes,
                         onNodeSelected = { nodeType ->
                             // Clear IP type selection when working with nodes
@@ -472,7 +503,8 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                             undoRedoManager.execute(command, graphState)
                             statusMessage = "Added ${nodeType.name} node"
                         }
-                    )
+                        )
+                    }
 
                     // IP Palette
                     IPPalette(
