@@ -596,9 +596,12 @@ private fun PropertiesContent(
         Divider(modifier = Modifier.padding(vertical = 4.dp))
         Spacer(modifier = Modifier.height(4.dp))
 
-        // Configuration properties section header (exclude internal properties)
+        // Configuration properties section (exclude internal properties starting with _)
         val configProperties = state.properties.filterKeys { !it.startsWith("_") }
-        if (configProperties.isNotEmpty() || state.propertyDefinitions.isNotEmpty()) {
+        val filteredDefinitions = state.propertyDefinitions.filter { !it.name.startsWith("_") }
+
+        // Show header only if there are visible properties
+        if (configProperties.isNotEmpty() || filteredDefinitions.isNotEmpty()) {
             Text(
                 text = "Configuration",
                 fontSize = 11.sp,
@@ -609,8 +612,8 @@ private fun PropertiesContent(
         }
 
         // If we have property definitions, use them for ordering and types
-        if (state.propertyDefinitions.isNotEmpty()) {
-            state.propertyDefinitions.forEach { def ->
+        if (filteredDefinitions.isNotEmpty()) {
+            filteredDefinitions.forEach { def ->
                 PropertyEditorRow(
                     definition = def,
                     value = state.properties[def.name] ?: "",
@@ -619,7 +622,7 @@ private fun PropertiesContent(
                 )
                 Spacer(modifier = Modifier.height(8.dp))
             }
-        } else {
+        } else if (configProperties.isNotEmpty()) {
             // No definitions - show non-internal properties as text fields
             configProperties.forEach { (key, value) ->
                 PropertyEditorRow(
