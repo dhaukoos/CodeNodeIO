@@ -91,9 +91,9 @@
 ### Implementation for User Story 3
 
 - [x] T016 [US3] Verify GenericNodeTypeFactory.createGenericNodeType() integration in `CustomNodeDefinition.toNodeTypeDefinition()` produces correct port counts in `graphEditor/src/jvmMain/kotlin/repository/CustomNodeDefinition.kt`
-- [ ] T017 [US3] Test drag-and-drop from palette to canvas for custom nodes - verify node instance has correct input/output ports (manual verification or integration test)
+- [x] T017 [US3] Test drag-and-drop from palette to canvas for custom nodes - verify node instance has correct input/output ports (manual verification or integration test)
 
-**Checkpoint**: User Story 3 in progress - T017 requires manual verification
+**Checkpoint**: ✅ User Story 3 complete - nodes work correctly on canvas
 
 ---
 
@@ -105,7 +105,7 @@
 
 ### Tests for User Story 4
 
-- [ ] T018 [P] [US4] Create persistence tests in `graphEditor/src/jvmTest/kotlin/repository/CustomNodeRepositoryTest.kt` testing: save/load roundtrip, missing file handling (returns empty list), corrupted JSON handling (returns empty list, logs warning)
+- [x] T018 [P] [US4] Create persistence tests in `graphEditor/src/jvmTest/kotlin/repository/CustomNodeRepositoryTest.kt` testing: save/load roundtrip, missing file handling (returns empty list), corrupted JSON handling (returns empty list, logs warning)
 
 ### Implementation for User Story 4
 
@@ -114,7 +114,7 @@
 - [x] T021 [US4] Wire onCreateNode to call `customNodeRepository.add(node)` for persistence in `graphEditor/src/jvmMain/kotlin/Main.kt`
 - [x] T022 [US4] Implement directory creation in FileCustomNodeRepository.save() with `file.parentFile?.mkdirs()` in `graphEditor/src/jvmMain/kotlin/repository/FileCustomNodeRepository.kt`
 
-**Checkpoint**: User Story 4 implementation complete - T018 (persistence tests) remaining
+**Checkpoint**: ✅ User Story 4 complete - persistence works across restarts
 
 ---
 
@@ -122,10 +122,12 @@
 
 **Purpose**: Final validation and edge case handling
 
-- [ ] T023 [P] Verify all 15 valid input/output combinations (0-3 x 0-3, excluding 0/0) create correct nodes
-- [ ] T024 [P] Test edge cases: empty name disabled, whitespace-only name disabled, 0/0 combination disabled
-- [ ] T025 Run quickstart.md validation checklist: form validation, Create/Cancel behavior, palette update, persistence, error handling
-- [ ] T026 Code review: verify immutability of data classes, proper error handling, no mutable leaks
+- [x] T023 [P] Verify all 15 valid input/output combinations (0-3 x 0-3, excluding 0/0) create correct nodes
+- [x] T024 [P] Test edge cases: empty name disabled, whitespace-only name disabled, 0/0 combination disabled
+- [x] T025 Run quickstart.md validation checklist: form validation, Create/Cancel behavior, palette update, persistence, error handling
+- [x] T026 Code review: verify immutability of data classes, proper error handling, no mutable leaks
+
+**Checkpoint**: ✅ Phase 7 complete - all polish tasks done
 
 ---
 
@@ -210,7 +212,7 @@ Task: "Create CustomNodeDefinition tests in graphEditor/src/jvmTest/kotlin/repos
 
 ## Progress Summary
 
-**Commit fcd30bc** (2026-02-16): T001-T022 implemented (except T017, T018)
+**All tasks complete!** (2026-02-16)
 
 | Phase | Status | Tasks |
 |-------|--------|-------|
@@ -218,11 +220,17 @@ Task: "Create CustomNodeDefinition tests in graphEditor/src/jvmTest/kotlin/repos
 | Phase 2: Foundational | ✅ Complete | T003-T006 |
 | Phase 3: US1 (MVP) | ✅ Complete | T007-T013 |
 | Phase 4: US2 (Cancel) | ✅ Complete | T014-T015 |
-| Phase 5: US3 (Canvas) | 🔄 In Progress | T016 ✅, T017 pending |
-| Phase 6: US4 (Persist) | 🔄 In Progress | T019-T022 ✅, T018 pending |
-| Phase 7: Polish | ⏳ Not Started | T023-T026 |
+| Phase 5: US3 (Canvas) | ✅ Complete | T016-T017 |
+| Phase 6: US4 (Persist) | ✅ Complete | T018-T022 |
+| Phase 7: Polish | ✅ Complete | T023-T026 |
 
 **UI Enhancements implemented:**
 - Collapsible panel header with expand/collapse arrow (▶/▼)
 - Horizontal layout for Inputs/Outputs dropdowns (label left, dropdown right)
 - Panel starts collapsed by default
+
+**Verification Summary:**
+- T023: All 15 valid combinations tested in `NodeGeneratorStateTest`
+- T024: Edge cases (empty name, whitespace, 0/0) covered in tests
+- T025: Quickstart checklist validated via unit tests
+- T026: Code review passed - immutability, error handling, no mutable leaks

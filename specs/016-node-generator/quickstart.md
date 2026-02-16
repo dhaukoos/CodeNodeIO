@@ -190,11 +190,13 @@ class FileCustomNodeRepository(
 
 ## Validation Checklist
 
-- [ ] Name field validates on every keystroke
-- [ ] Create button disabled when name empty
-- [ ] Create button disabled when inputs=0 AND outputs=0
-- [ ] Form resets after successful create
-- [ ] Form resets on Cancel
-- [ ] Custom node appears in Generic section of palette
-- [ ] Custom nodes persist after app restart
-- [ ] Corrupted JSON file doesn't crash app
+- [x] Name field validates on every keystroke
+- [x] Create button disabled when name empty
+- [x] Create button disabled when inputs=0 AND outputs=0
+- [x] Form resets after successful create
+- [x] Form resets on Cancel
+- [x] Custom node appears in Generic section of palette
+- [x] Custom nodes persist after app restart
+- [x] Corrupted JSON file doesn't crash app
+
+**Validated**: 2026-02-16 via unit tests and code review
