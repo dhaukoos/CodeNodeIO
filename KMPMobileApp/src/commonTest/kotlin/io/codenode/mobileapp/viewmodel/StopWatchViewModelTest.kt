@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 /**
  * Unit tests for StopWatchViewModel.
@@ -111,5 +112,69 @@ class StopWatchViewModelTest {
         controller.setElapsedMinutes(1)
         assertEquals(0, viewModel.elapsedSeconds.first())
         assertEquals(1, viewModel.elapsedMinutes.first())
+    }
+
+    // ========================================
+    // Action Delegation Tests (T013, T014, T015)
+    // ========================================
+
+    @Test
+    fun `start delegates to controller`() = runTest {
+        val controller = FakeStopWatchController()
+        val viewModel = StopWatchViewModel(controller)
+
+        // Verify not called initially
+        assertEquals(false, controller.startCalled)
+
+        // Call start through ViewModel
+        viewModel.start()
+
+        // Verify delegation
+        assertTrue(controller.startCalled)
+        assertEquals(ExecutionState.RUNNING, viewModel.executionState.first())
+    }
+
+    @Test
+    fun `stop delegates to controller`() = runTest {
+        val controller = FakeStopWatchController()
+        val viewModel = StopWatchViewModel(controller)
+
+        // Start first
+        viewModel.start()
+        assertEquals(ExecutionState.RUNNING, viewModel.executionState.first())
+
+        // Verify stop not called yet
+        assertEquals(false, controller.stopCalled)
+
+        // Call stop through ViewModel
+        viewModel.stop()
+
+        // Verify delegation
+        assertTrue(controller.stopCalled)
+        assertEquals(ExecutionState.IDLE, viewModel.executionState.first())
+    }
+
+    @Test
+    fun `reset delegates to controller`() = runTest {
+        val controller = FakeStopWatchController()
+        val viewModel = StopWatchViewModel(controller)
+
+        // Set some elapsed time
+        controller.setElapsedSeconds(30)
+        controller.setElapsedMinutes(5)
+        assertEquals(30, viewModel.elapsedSeconds.first())
+        assertEquals(5, viewModel.elapsedMinutes.first())
+
+        // Verify reset not called yet
+        assertEquals(false, controller.resetCalled)
+
+        // Call reset through ViewModel
+        viewModel.reset()
+
+        // Verify delegation
+        assertTrue(controller.resetCalled)
+        assertEquals(0, viewModel.elapsedSeconds.first())
+        assertEquals(0, viewModel.elapsedMinutes.first())
+        assertEquals(ExecutionState.IDLE, viewModel.executionState.first())
     }
 }

@@ -66,15 +66,15 @@
 
 ### Tests for User Story 2
 
-- [ ] T013 [P] [US2] Add test for `start()` delegates to controller in `StopWatchViewModelTest.kt`
-- [ ] T014 [P] [US2] Add test for `stop()` delegates to controller in `StopWatchViewModelTest.kt`
-- [ ] T015 [P] [US2] Add test for `reset()` delegates to controller in `StopWatchViewModelTest.kt`
+- [x] T013 [P] [US2] Add test for `start()` delegates to controller in `StopWatchViewModelTest.kt`
+- [x] T014 [P] [US2] Add test for `stop()` delegates to controller in `StopWatchViewModelTest.kt`
+- [x] T015 [P] [US2] Add test for `reset()` delegates to controller in `StopWatchViewModelTest.kt`
 
 ### Implementation for User Story 2
 
-- [ ] T016 [US2] Implement `start()` method delegating to `controller.start()` in `StopWatchViewModel`
-- [ ] T017 [US2] Implement `stop()` method delegating to `controller.stop()` in `StopWatchViewModel`
-- [ ] T018 [US2] Implement `reset()` method delegating to `controller.reset()` in `StopWatchViewModel`
+- [x] T016 [US2] Implement `start()` method delegating to `controller.start()` in `StopWatchViewModel`
+- [x] T017 [US2] Implement `stop()` method delegating to `controller.stop()` in `StopWatchViewModel`
+- [x] T018 [US2] Implement `reset()` method delegating to `controller.reset()` in `StopWatchViewModel`
 
 **Checkpoint**: ✅ User Story 2 complete - All actions delegate to controller correctly
 
