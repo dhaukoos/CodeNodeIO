@@ -25,9 +25,9 @@
 
 **Purpose**: Add ViewModel dependency and create package structure
 
-- [ ] T001 Add `lifecycle-viewmodel-compose:2.8.0` dependency to `KMPMobileApp/build.gradle.kts` commonMain.dependencies
-- [ ] T002 Add `kotlinx-coroutines-test:1.8.0` dependency to `KMPMobileApp/build.gradle.kts` commonTest.dependencies
-- [ ] T003 Create `viewmodel/` package directory at `KMPMobileApp/src/commonMain/kotlin/io/codenode/mobileapp/viewmodel/`
+- [x] T001 Add `lifecycle-viewmodel-compose:2.8.0` dependency to `KMPMobileApp/build.gradle.kts` commonMain.dependencies
+- [x] T002 Add `kotlinx-coroutines-test:1.8.0` dependency to `KMPMobileApp/build.gradle.kts` commonTest.dependencies
+- [x] T003 Create `viewmodel/` package directory at `KMPMobileApp/src/commonMain/kotlin/io/codenode/mobileapp/viewmodel/`
 
 **Checkpoint**: ✅ Foundation ready - ViewModel infrastructure in place
 
@@ -41,18 +41,18 @@
 
 ### Tests for User Story 1
 
-- [ ] T004 [P] [US1] Create `FakeStopWatchController` test double in `KMPMobileApp/src/commonTest/kotlin/io/codenode/mobileapp/viewmodel/FakeStopWatchController.kt`
-- [ ] T005 [P] [US1] Create `StopWatchViewModelTest.kt` with initial state test at `KMPMobileApp/src/commonTest/kotlin/io/codenode/mobileapp/viewmodel/StopWatchViewModelTest.kt`
+- [x] T004 [P] [US1] Create `FakeStopWatchController` test double in `KMPMobileApp/src/commonTest/kotlin/io/codenode/mobileapp/viewmodel/FakeStopWatchController.kt`
+- [x] T005 [P] [US1] Create `StopWatchViewModelTest.kt` with initial state test at `KMPMobileApp/src/commonTest/kotlin/io/codenode/mobileapp/viewmodel/StopWatchViewModelTest.kt`
 
 ### Implementation for User Story 1
 
-- [ ] T006 [US1] Create `StopWatchViewModel` class extending ViewModel with StateFlow delegation at `KMPMobileApp/src/commonMain/kotlin/io/codenode/mobileapp/viewmodel/StopWatchViewModel.kt`
-- [ ] T007 [US1] Add `elapsedSeconds: StateFlow<Int>` property delegated from controller in `StopWatchViewModel`
-- [ ] T008 [US1] Add `elapsedMinutes: StateFlow<Int>` property delegated from controller in `StopWatchViewModel`
-- [ ] T009 [US1] Add `executionState: StateFlow<ExecutionState>` property delegated from controller in `StopWatchViewModel`
-- [ ] T010 [US1] Add test verifying `elapsedSeconds` is exposed correctly in `StopWatchViewModelTest.kt`
-- [ ] T011 [US1] Add test verifying `elapsedMinutes` is exposed correctly in `StopWatchViewModelTest.kt`
-- [ ] T012 [US1] Add test verifying `executionState` is exposed correctly in `StopWatchViewModelTest.kt`
+- [x] T006 [US1] Create `StopWatchViewModel` class extending ViewModel with StateFlow delegation at `KMPMobileApp/src/commonMain/kotlin/io/codenode/mobileapp/viewmodel/StopWatchViewModel.kt`
+- [x] T007 [US1] Add `elapsedSeconds: StateFlow<Int>` property delegated from controller in `StopWatchViewModel`
+- [x] T008 [US1] Add `elapsedMinutes: StateFlow<Int>` property delegated from controller in `StopWatchViewModel`
+- [x] T009 [US1] Add `executionState: StateFlow<ExecutionState>` property delegated from controller in `StopWatchViewModel`
+- [x] T010 [US1] Add test verifying `elapsedSeconds` is exposed correctly in `StopWatchViewModelTest.kt`
+- [x] T011 [US1] Add test verifying `elapsedMinutes` is exposed correctly in `StopWatchViewModelTest.kt`
+- [x] T012 [US1] Add test verifying `executionState` is exposed correctly in `StopWatchViewModelTest.kt`
 
 **Checkpoint**: ✅ User Story 1 complete - ViewModel exposes state, tests pass without Compose
 

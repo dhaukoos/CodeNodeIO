@@ -57,12 +57,15 @@ kotlin {
             // FBP DSL and generated StopWatch module (KMP - works on all platforms)
             implementation(project(":fbpDsl"))
             implementation(project(":StopWatch"))
+            // JetBrains Multiplatform ViewModel
+            implementation("org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose:2.8.0")
         }
 
         commonTest.dependencies {
             implementation(kotlin("test"))
             implementation(project(":fbpDsl"))
             implementation(project(":StopWatch"))
+            implementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.0")
         }
 
         androidMain.dependencies {
