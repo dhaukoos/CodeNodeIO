@@ -177,4 +177,64 @@ class StopWatchViewModelTest {
         assertEquals(0, viewModel.elapsedMinutes.first())
         assertEquals(ExecutionState.IDLE, viewModel.executionState.first())
     }
+
+    // ========================================
+    // Edge Case Tests (T027, T028)
+    // ========================================
+
+    @Test
+    fun `rapid start stop reset sequence works correctly`() = runTest {
+        val controller = FakeStopWatchController()
+        val viewModel = StopWatchViewModel(controller)
+
+        // Rapid sequence: start -> stop -> start -> reset -> start
+        viewModel.start()
+        assertEquals(ExecutionState.RUNNING, viewModel.executionState.first())
+        assertTrue(controller.startCalled)
+
+        viewModel.stop()
+        assertEquals(ExecutionState.IDLE, viewModel.executionState.first())
+        assertTrue(controller.stopCalled)
+
+        // Reset flags for next sequence
+        controller.resetFlags()
+
+        viewModel.start()
+        assertEquals(ExecutionState.RUNNING, viewModel.executionState.first())
+        assertTrue(controller.startCalled)
+
+        // Simulate some elapsed time
+        controller.setElapsedSeconds(10)
+        controller.setElapsedMinutes(1)
+
+        viewModel.reset()
+        assertEquals(ExecutionState.IDLE, viewModel.executionState.first())
+        assertEquals(0, viewModel.elapsedSeconds.first())
+        assertEquals(0, viewModel.elapsedMinutes.first())
+        assertTrue(controller.resetCalled)
+
+        // Start again after reset
+        controller.resetFlags()
+        viewModel.start()
+        assertEquals(ExecutionState.RUNNING, viewModel.executionState.first())
+        assertTrue(controller.startCalled)
+    }
+
+    @Test
+    fun `late subscription receives current state`() = runTest {
+        val controller = FakeStopWatchController()
+
+        // Set state before creating ViewModel (simulating late subscription)
+        controller.setElapsedSeconds(45)
+        controller.setElapsedMinutes(3)
+        controller.setExecutionState(ExecutionState.RUNNING)
+
+        // Create ViewModel after state is already set (late subscription)
+        val viewModel = StopWatchViewModel(controller)
+
+        // Verify late subscriber gets current state immediately
+        assertEquals(45, viewModel.elapsedSeconds.first())
+        assertEquals(3, viewModel.elapsedMinutes.first())
+        assertEquals(ExecutionState.RUNNING, viewModel.executionState.first())
+    }
 }

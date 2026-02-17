@@ -288,12 +288,12 @@ Run the following commands to verify the implementation:
 
 ## Validation Checklist
 
-- [ ] StopWatchViewModel created in `viewmodel/` package
-- [ ] ViewModel extends JetBrains ViewModel class
-- [ ] State exposed as StateFlow (not MutableStateFlow)
-- [ ] Actions delegate to StopWatchController
-- [ ] StopWatch composable uses collectAsState()
-- [ ] StopWatch composable has no direct controller access
-- [ ] Unit tests pass without Compose UI dependencies
-- [ ] App runs identically to before refactoring
-- [ ] Works on Android, iOS simulator, and Desktop
+- [x] StopWatchViewModel created in `viewmodel/` package
+- [x] ViewModel extends JetBrains ViewModel class
+- [x] State exposed as StateFlow (not MutableStateFlow)
+- [x] Actions delegate to StopWatchController
+- [x] StopWatch composable uses collectAsState()
+- [x] StopWatch composable has no direct controller access
+- [x] Unit tests pass without Compose UI dependencies
+- [x] App runs identically to before refactoring
+- [x] Works on Android, iOS simulator, and Desktop

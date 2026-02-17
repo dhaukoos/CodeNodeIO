@@ -105,11 +105,11 @@
 
 **Purpose**: Final validation and documentation
 
-- [ ] T027 [P] Add test for rapid start/stop/reset sequence (edge case) in `StopWatchViewModelTest.kt`
-- [ ] T028 [P] Add test for late subscription scenario (edge case) in `StopWatchViewModelTest.kt`
-- [ ] T029 Verify all tests pass without Compose UI imports (SC-002)
-- [ ] T030 Verify existing functionality works identically (SC-003) - manual testing
-- [ ] T031 Run quickstart.md validation checklist at `specs/018-stopwatch-viewmodel/quickstart.md`
+- [x] T027 [P] Add test for rapid start/stop/reset sequence (edge case) in `StopWatchViewModelTest.kt`
+- [x] T028 [P] Add test for late subscription scenario (edge case) in `StopWatchViewModelTest.kt`
+- [x] T029 Verify all tests pass without Compose UI imports (SC-002)
+- [x] T030 Verify existing functionality works identically (SC-003) - manual testing
+- [x] T031 Run quickstart.md validation checklist at `specs/018-stopwatch-viewmodel/quickstart.md`
 
 **Checkpoint**: ✅ All success criteria validated
 
