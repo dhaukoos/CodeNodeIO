@@ -1,7 +1,7 @@
 /*
  * Main composable entry point for KMPMobileApp
  * Shared UI code for Android and iOS
- * Uses the StopWatch.flow virtual circuit via generated StopWatchController
+ * Uses ViewModel pattern to bridge FlowGraph with Compose UI
  */
 package io.codenode.mobileapp
 
@@ -17,6 +17,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import io.codenode.mobileapp.viewmodel.StopWatchControllerAdapter
+import io.codenode.mobileapp.viewmodel.StopWatchViewModel
 import io.codenode.stopwatch.generated.StopWatchController
 import io.codenode.stopwatch.stopWatchFlowGraph
 
@@ -38,12 +40,15 @@ fun App() {
 
 /**
  * Main content composable displaying a greeting and stopwatch.
- * Creates the StopWatchController from the StopWatch module's FlowGraph.
+ * Creates the StopWatchViewModel from the StopWatch module's FlowGraph.
  */
 @Composable
 fun MainContent() {
-    // Create Controller from StopWatch module's flow graph - remember to survive recomposition
+    // Create Controller from StopWatch module's flow graph
     val controller = remember { StopWatchController(stopWatchFlowGraph) }
+
+    // Create ViewModel wrapping the controller via adapter
+    val viewModel = remember { StopWatchViewModel(StopWatchControllerAdapter(controller)) }
 
     Column(
         modifier = Modifier
@@ -62,7 +67,7 @@ fun MainContent() {
             modifier = Modifier.padding(top = 8.dp)
         )
         StopWatch(
-            controller = controller,
+            viewModel = viewModel,
             modifier = Modifier.padding(top = 32.dp),
             minSize = 400.dp
         )

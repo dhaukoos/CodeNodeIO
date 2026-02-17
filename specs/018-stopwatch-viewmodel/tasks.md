@@ -88,14 +88,14 @@
 
 ### Implementation for User Story 3
 
-- [ ] T019 [US3] Update `StopWatch.kt` composable to accept `StopWatchViewModel` parameter at `KMPMobileApp/src/commonMain/kotlin/io/codenode/mobileapp/StopWatch.kt`
-- [ ] T020 [US3] Replace direct controller state access with `viewModel.elapsedSeconds.collectAsState()` in `StopWatch.kt`
-- [ ] T021 [US3] Replace direct controller state access with `viewModel.elapsedMinutes.collectAsState()` in `StopWatch.kt`
-- [ ] T022 [US3] Replace direct controller state access with `viewModel.executionState.collectAsState()` in `StopWatch.kt`
-- [ ] T023 [US3] Replace controller action calls with ViewModel actions (start, stop, reset) in `StopWatch.kt`
-- [ ] T024 [US3] Update `App.kt` to create StopWatchViewModel and pass to StopWatch composable at `KMPMobileApp/src/commonMain/kotlin/io/codenode/mobileapp/App.kt`
-- [ ] T025 [US3] Verify tests pass on JVM: `./gradlew :KMPMobileApp:test`
-- [ ] T026 [US3] Verify Android build succeeds: `./gradlew :KMPMobileApp:assembleDebug`
+- [x] T019 [US3] Update `StopWatch.kt` composable to accept `StopWatchViewModel` parameter at `KMPMobileApp/src/commonMain/kotlin/io/codenode/mobileapp/StopWatch.kt`
+- [x] T020 [US3] Replace direct controller state access with `viewModel.elapsedSeconds.collectAsState()` in `StopWatch.kt`
+- [x] T021 [US3] Replace direct controller state access with `viewModel.elapsedMinutes.collectAsState()` in `StopWatch.kt`
+- [x] T022 [US3] Replace direct controller state access with `viewModel.executionState.collectAsState()` in `StopWatch.kt`
+- [x] T023 [US3] Replace controller action calls with ViewModel actions (start, stop, reset) in `StopWatch.kt`
+- [x] T024 [US3] Update `App.kt` to create StopWatchViewModel and pass to StopWatch composable at `KMPMobileApp/src/commonMain/kotlin/io/codenode/mobileapp/App.kt`
+- [x] T025 [US3] Verify tests pass on JVM: `./gradlew :KMPMobileApp:test`
+- [x] T026 [US3] Verify Android build succeeds: `./gradlew :KMPMobileApp:assembleDebug`
 
 **Checkpoint**: ✅ User Story 3 complete - ViewModel works on all platforms
 

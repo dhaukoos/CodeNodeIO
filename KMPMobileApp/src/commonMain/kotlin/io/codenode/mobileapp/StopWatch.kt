@@ -1,6 +1,6 @@
 /*
- * StopWatch - Stopwatch composable using generated StopWatchController
- * Uses the StopWatch.flow virtual circuit via generated StopWatchController.
+ * StopWatch - Stopwatch composable using StopWatchViewModel
+ * Uses ViewModel pattern to bridge FlowGraph domain logic with Compose UI.
  * Works on all KMP platforms (Android, iOS, Desktop).
  * License: Apache 2.0
  */
@@ -24,7 +24,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.codenode.fbpdsl.model.ExecutionState
-import io.codenode.stopwatch.generated.StopWatchController
+import io.codenode.mobileapp.viewmodel.StopWatchViewModel
 
 /**
  * Data class to hold elapsed time components for the stopwatch.
@@ -35,32 +35,31 @@ data class StopWatchTime(
 )
 
 /**
- * StopWatch composable using the generated StopWatchController.
+ * StopWatch composable using ViewModel pattern.
  *
  * This composable demonstrates the integration between:
  * - UI composable (StopWatchFace)
- * - Generated controller (StopWatchController from StopWatch.flow)
- * - FBP model (FlowGraph, ExecutionState)
+ * - ViewModel (StopWatchViewModel)
+ * - FlowGraph domain logic (via StopWatchController)
  *
- * The controller manages:
- * - Execution state (IDLE, RUNNING, PAUSED)
- * - Elapsed time tracking (seconds, minutes)
- * - State transitions (start, stop, pause, reset)
+ * The ViewModel manages:
+ * - State observation via StateFlow (elapsedSeconds, elapsedMinutes, executionState)
+ * - Action delegation (start, stop, reset)
  *
- * @param controller The StopWatchController instance to use
+ * @param viewModel The StopWatchViewModel instance
  * @param modifier Modifier for the composable
  * @param minSize Minimum size for the clock face
  */
 @Composable
 fun StopWatch(
-    controller: StopWatchController,
+    viewModel: StopWatchViewModel,
     modifier: Modifier = Modifier,
     minSize: Dp = 200.dp
 ) {
-    // Collect state from controller's StateFlow properties
-    val executionState by controller.executionState.collectAsState()
-    val elapsedSeconds by controller.elapsedSeconds.collectAsState()
-    val elapsedMinutes by controller.elapsedMinutes.collectAsState()
+    // Collect state from ViewModel's StateFlow properties
+    val executionState by viewModel.executionState.collectAsState()
+    val elapsedSeconds by viewModel.elapsedSeconds.collectAsState()
+    val elapsedMinutes by viewModel.elapsedMinutes.collectAsState()
 
     // Derive isRunning from executionState
     val isRunning = executionState == ExecutionState.RUNNING
@@ -88,16 +87,16 @@ fun StopWatch(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Control buttons - delegate to controller
+        // Control buttons - delegate to ViewModel
         Row(
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Button(
                 onClick = {
                     if (isRunning) {
-                        controller.stop()
+                        viewModel.stop()
                     } else {
-                        controller.start()
+                        viewModel.start()
                     }
                 },
                 colors = ButtonDefaults.buttonColors(
@@ -109,7 +108,7 @@ fun StopWatch(
 
             Button(
                 onClick = {
-                    controller.reset()
+                    viewModel.reset()
                 },
                 enabled = !isRunning && (elapsedSeconds > 0 || elapsedMinutes > 0)
             ) {
