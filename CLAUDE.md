@@ -20,6 +20,8 @@ Auto-generated from all feature plans. Last updated: 2026-01-13
 - JSON file via kotlinx-serialization for CustomNodeRepository persistence (016-node-generator)
 - Kotlin 2.1.21 (Kotlin Multiplatform) + Compose Desktop 1.7.3, kotlinx-coroutines 1.8.0 (017-viewmodel-pattern)
 - FileCustomNodeRepository (JSON persistence for custom nodes) (017-viewmodel-pattern)
+- Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + Compose Multiplatform 1.7.3, kotlinx-coroutines 1.8.0, JetBrains lifecycle-viewmodel-compose 2.8.0 (018-stopwatch-viewmodel)
+- N/A (in-memory FlowGraph state) (018-stopwatch-viewmodel)
 
 - Kotlin 1.9+, Go 1.21+ (001-ide-plugin-platform)
 
@@ -39,9 +41,9 @@ tests/
 Kotlin 1.9+, Go 1.21+: Follow standard conventions
 
 ## Recent Changes
+- 018-stopwatch-viewmodel: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + Compose Multiplatform 1.7.3, kotlinx-coroutines 1.8.0, JetBrains lifecycle-viewmodel-compose 2.8.0
 - 017-viewmodel-pattern: Added Kotlin 2.1.21 (Kotlin Multiplatform) + Compose Desktop 1.7.3, kotlinx-coroutines 1.8.0
 - 016-node-generator: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + Compose Desktop 1.7.3, kotlinx-serialization 1.6.0
-- 014-continuous-mode-default: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + kotlinx-coroutines 1.8.0, kotlinx-serialization 1.6.0
 
 
 <!-- MANUAL ADDITIONS START -->
