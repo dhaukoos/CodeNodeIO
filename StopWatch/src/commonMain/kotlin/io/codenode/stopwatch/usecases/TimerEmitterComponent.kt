@@ -12,6 +12,7 @@ import io.codenode.fbpdsl.model.ExecutionState
 import io.codenode.fbpdsl.model.InformationPacket
 import io.codenode.fbpdsl.model.InformationPacketFactory
 import io.codenode.fbpdsl.model.ProcessingLogic
+import io.codenode.fbpdsl.runtime.Out2GeneratorBlock
 import io.codenode.fbpdsl.runtime.Out2GeneratorRuntime
 import io.codenode.fbpdsl.runtime.ProcessResult2
 import kotlinx.coroutines.CoroutineScope
@@ -55,6 +56,40 @@ class TimerEmitterComponent(
     private val _elapsedMinutes = MutableStateFlow(initialMinutes)
     val elapsedMinutesFlow: StateFlow<Int> = _elapsedMinutes.asStateFlow()
 
+    fun incrementer(oldSeconds: Int, oldMinutes: Int ): ProcessResult2<Int, Int> {
+        // Increment seconds with rollover logic
+        var newSeconds = oldSeconds + 1
+        var newMinutes = oldMinutes
+
+        if (newSeconds >= 60) {
+            newSeconds = 0
+            newMinutes += 1
+        }
+        // Return both output channels for downstream nodes
+        return ProcessResult2.both(newSeconds, newMinutes)
+    }
+
+    val generator: Out2GeneratorBlock<Int, Int>  = { emit ->
+        // Continuous timer loop - runs until stopped
+        while (currentCoroutineContext().isActive && executionState == ExecutionState.RUNNING) {
+            // Delay for tick interval
+            if (speedAttenuation > 0) {
+                delay(speedAttenuation)
+                // Check state again after delay (may have changed during delay)
+                if (executionState != ExecutionState.RUNNING) break
+            }
+
+            val result = incrementer(_elapsedSeconds.value, _elapsedMinutes.value)
+
+            // Update state flows for UI observation
+            _elapsedSeconds.value = result.out1!!
+            _elapsedMinutes.value = result.out2!!
+
+            // Emit to both output channels for downstream nodes
+            emit(result)
+        }
+    }
+
     /**
      * Out2GeneratorRuntime created via factory method.
      * Manages the timer loop lifecycle with proper dual-channel handling.
@@ -62,33 +97,9 @@ class TimerEmitterComponent(
      */
     private val generatorRuntime: Out2GeneratorRuntime<Int, Int> = CodeNodeFactory.createOut2Generator(
         name = "TimerEmitter",
-        description = "Emits elapsed time at regular intervals on two typed channels"
-    ) { emit ->
-        // Continuous timer loop - runs until stopped
-        while (currentCoroutineContext().isActive && executionState == ExecutionState.RUNNING) {
-            // Delay for tick interval
-            delay(speedAttenuation)
-
-            // Check state again after delay (may have changed during delay)
-            if (executionState != ExecutionState.RUNNING) break
-
-            // Increment seconds with rollover logic
-            var newSeconds = _elapsedSeconds.value + 1
-            var newMinutes = _elapsedMinutes.value
-
-            if (newSeconds >= 60) {
-                newSeconds = 0
-                newMinutes += 1
-            }
-
-            // Update state flows for UI observation
-            _elapsedSeconds.value = newSeconds
-            _elapsedMinutes.value = newMinutes
-
-            // Emit to both output channels for downstream nodes
-            emit(ProcessResult2.both(newSeconds, newMinutes))
-        }
-    }
+        description = "Emits elapsed time at regular intervals on two typed channels",
+        generate = generator
+    )
 
     /**
      * CodeNode reference - delegates to generatorRuntime.

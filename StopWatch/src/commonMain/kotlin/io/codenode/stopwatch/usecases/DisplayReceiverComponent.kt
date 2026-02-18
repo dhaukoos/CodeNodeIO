@@ -8,14 +8,19 @@ package io.codenode.stopwatch.usecases
 
 import io.codenode.fbpdsl.model.CodeNode
 import io.codenode.fbpdsl.model.CodeNodeFactory
+import io.codenode.fbpdsl.model.ExecutionState
 import io.codenode.fbpdsl.model.InformationPacket
 import io.codenode.fbpdsl.model.ProcessingLogic
+import io.codenode.fbpdsl.runtime.In2SinkBlock
 import io.codenode.fbpdsl.runtime.In2SinkRuntime
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.ReceiveChannel
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.isActive
 
 /**
  * DisplayReceiver UseCase - Sink node that receives time values for UI rendering.
@@ -31,7 +36,9 @@ import kotlinx.coroutines.flow.asStateFlow
  *
  * Type: SINK (2 inputs: Int for seconds, Int for minutes, 0 outputs)
  */
-class DisplayReceiverComponent : ProcessingLogic {
+class DisplayReceiverComponent (
+    private val speedAttenuation: Long = 1000L,
+) : ProcessingLogic {
 
     // Observable state flows for displayed time - declared first for closure capture
     private val _displayedSeconds = MutableStateFlow(0)
@@ -40,6 +47,29 @@ class DisplayReceiverComponent : ProcessingLogic {
     private val _displayedMinutes = MutableStateFlow(0)
     val displayedMinutesFlow: StateFlow<Int> = _displayedMinutes.asStateFlow()
 
+
+
+    val consumer : In2SinkBlock<Int, Int> = { seconds, minutes ->
+        // Update state flows for UI observation
+        _displayedSeconds.value = seconds
+        _displayedMinutes.value = minutes
+
+//        // Continuous timer loop - runs until stopped
+//        while (currentCoroutineContext().isActive && executionState == ExecutionState.RUNNING) {
+//            // Delay for tick interval
+//            if (speedAttenuation > 0) {
+//                delay(speedAttenuation)
+//                // Check state again after delay (may have changed during delay)
+//                if (executionState != ExecutionState.RUNNING) break
+//            }
+//
+//            // Update state flows for UI observation
+//            _displayedSeconds.value = seconds
+//            _displayedMinutes.value = minutes
+//
+//        }
+    }
+
     /**
      * In2SinkRuntime created via factory method.
      * Manages the receive loop lifecycle with proper dual-channel handling.
@@ -47,12 +77,24 @@ class DisplayReceiverComponent : ProcessingLogic {
      */
     private val sinkRuntime: In2SinkRuntime<Int, Int> = CodeNodeFactory.createIn2Sink(
         name = "DisplayReceiver",
-        description = "Receives timer values on two typed channels and exposes them for UI rendering"
-    ) { seconds, minutes ->
-        // Update state flows for UI observation
-        _displayedSeconds.value = seconds
-        _displayedMinutes.value = minutes
-    }
+        description = "Receives timer values on two typed channels and exposes them for UI rendering",
+        consume = consumer
+    )
+//    { seconds, minutes ->
+//        // Update state flows for UI observation
+//        _displayedSeconds.value = seconds
+//        _displayedMinutes.value = minutes
+//    }
+
+
+    /**
+     * Execution state - delegated to sinkRuntime.
+     */
+    var executionState: ExecutionState
+        get() = sinkRuntime.executionState
+        set(value) {
+            sinkRuntime.executionState = value
+        }
 
     /**
      * CodeNode reference - delegates to sinkRuntime.
