@@ -6,6 +6,7 @@
 
 package io.codenode.fbpdsl.model
 
+import io.codenode.fbpdsl.runtime.RuntimeRegistry
 import kotlinx.datetime.Clock
 
 /**
@@ -22,6 +23,7 @@ import kotlinx.datetime.Clock
  * @property flowGraph The flow graph being controlled
  * @property name Human-readable name for this controller
  * @property createdAt Timestamp of creation (epoch milliseconds)
+ * @property registry Optional RuntimeRegistry for propagating state to running NodeRuntime instances
  *
  * @sample
  * ```kotlin
@@ -46,7 +48,8 @@ data class RootControlNode(
     val id: String,
     val flowGraph: FlowGraph,
     val name: String,
-    val createdAt: Long
+    val createdAt: Long,
+    val registry: RuntimeRegistry? = null
 ) {
     companion object {
         /**
@@ -54,14 +57,20 @@ data class RootControlNode(
          *
          * @param flowGraph The FlowGraph to control
          * @param name Human-readable name (default: "Controller")
+         * @param registry Optional RuntimeRegistry for runtime state propagation
          * @return New RootControlNode instance
          */
-        fun createFor(flowGraph: FlowGraph, name: String = "Controller"): RootControlNode {
+        fun createFor(
+            flowGraph: FlowGraph,
+            name: String = "Controller",
+            registry: RuntimeRegistry? = null
+        ): RootControlNode {
             return RootControlNode(
                 id = "controller_${Clock.System.now().toEpochMilliseconds()}_${(0..999999).random()}",
                 flowGraph = flowGraph,
                 name = name,
-                createdAt = Clock.System.now().toEpochMilliseconds()
+                createdAt = Clock.System.now().toEpochMilliseconds(),
+                registry = registry
             )
         }
     }
@@ -81,22 +90,42 @@ data class RootControlNode(
      * Transitions all root nodes to PAUSED state.
      *
      * State propagates to all descendants (respecting independentControl).
+     * Also calls pause() on all registered runtimes via the registry.
      *
      * @return Updated FlowGraph with all applicable nodes in PAUSED state
      */
     fun pauseAll(): FlowGraph {
-        return setAllRootNodesState(ExecutionState.PAUSED)
+        val updatedGraph = setAllRootNodesState(ExecutionState.PAUSED)
+        registry?.pauseAll()
+        return updatedGraph
+    }
+
+    /**
+     * Transitions all root nodes back to RUNNING state from PAUSED.
+     *
+     * State propagates to all descendants (respecting independentControl).
+     * Also calls resume() on all registered runtimes via the registry.
+     *
+     * @return Updated FlowGraph with all applicable nodes in RUNNING state
+     */
+    fun resumeAll(): FlowGraph {
+        val updatedGraph = setAllRootNodesState(ExecutionState.RUNNING)
+        registry?.resumeAll()
+        return updatedGraph
     }
 
     /**
      * Transitions all root nodes to IDLE state.
      *
      * State propagates to all descendants (respecting independentControl).
+     * Also calls stop() on all registered runtimes via the registry.
      *
      * @return Updated FlowGraph with all applicable nodes in IDLE state
      */
     fun stopAll(): FlowGraph {
-        return setAllRootNodesState(ExecutionState.IDLE)
+        val updatedGraph = setAllRootNodesState(ExecutionState.IDLE)
+        registry?.stopAll()
+        return updatedGraph
     }
 
     /**

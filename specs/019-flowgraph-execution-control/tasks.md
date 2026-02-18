@@ -49,14 +49,14 @@
 
 ### Implementation for User Story 3
 
-- [ ] T007 [US3] Add registry property to RootControlNode.createFor() factory method in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/RootControlNode.kt`
-- [ ] T008 [US3] Modify RootControlNode.pauseAll() to call registry?.pauseAll() in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/RootControlNode.kt`
-- [ ] T009 [US3] Add resumeAll() method to RootControlNode that updates model state and calls registry?.resumeAll() in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/RootControlNode.kt`
-- [ ] T010 [US3] Modify RootControlNode.stopAll() to call registry?.stopAll() in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/RootControlNode.kt`
-- [ ] T011 [US3] Add registry property to NodeRuntime base class in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/NodeRuntime.kt`
-- [ ] T012 [US3] Modify NodeRuntime.start() to register with registry in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/NodeRuntime.kt`
-- [ ] T013 [US3] Modify NodeRuntime.stop() to unregister from registry in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/NodeRuntime.kt`
-- [ ] T014 [US3] Add integration tests for runtime registration flow in `fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/runtime/RuntimeRegistrationTest.kt`
+- [x] T007 [US3] Add registry property to RootControlNode.createFor() factory method in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/RootControlNode.kt`
+- [x] T008 [US3] Modify RootControlNode.pauseAll() to call registry?.pauseAll() in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/RootControlNode.kt`
+- [x] T009 [US3] Add resumeAll() method to RootControlNode that updates model state and calls registry?.resumeAll() in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/RootControlNode.kt`
+- [x] T010 [US3] Modify RootControlNode.stopAll() to call registry?.stopAll() in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/RootControlNode.kt`
+- [x] T011 [US3] Add registry property to NodeRuntime base class in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/NodeRuntime.kt`
+- [x] T012 [US3] Modify NodeRuntime.start() to register with registry in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/NodeRuntime.kt`
+- [x] T013 [US3] Modify NodeRuntime.stop() to unregister from registry in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/NodeRuntime.kt`
+- [x] T014 [US3] Add integration tests for runtime registration flow in `fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/runtime/RuntimeRegistrationTest.kt`
 
 **Checkpoint**: RuntimeRegistry integration complete - runtimes register/unregister on lifecycle events
 

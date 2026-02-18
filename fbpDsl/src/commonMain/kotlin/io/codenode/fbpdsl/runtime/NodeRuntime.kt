@@ -21,14 +21,17 @@ import kotlinx.coroutines.launch
  * - Execution state (IDLE, RUNNING, PAUSED, ERROR)
  * - Coroutine job for lifecycle control
  * - Input/output channels for continuous processing
+ * - Optional registry for centralized lifecycle management
  *
  * This separation keeps CodeNode as a pure serializable model.
  *
  * @param T The primary data type flowing through this node
  * @property codeNode The underlying CodeNode model (immutable definition)
+ * @property registry Optional RuntimeRegistry for automatic registration on start/stop
  */
 open class NodeRuntime<T : Any>(
-    val codeNode: CodeNode
+    val codeNode: CodeNode,
+    var registry: RuntimeRegistry? = null
 ) {
     /**
      * Current execution state of this node.
@@ -57,9 +60,10 @@ open class NodeRuntime<T : Any>(
      *
      * Manages the nodeControlJob lifecycle:
      * 1. Cancels any existing job (prevents duplicate jobs)
-     * 2. Sets executionState to RUNNING
-     * 3. Launches new job in provided scope
-     * 4. Executes processingBlock within the job
+     * 2. Registers with RuntimeRegistry (if provided)
+     * 3. Sets executionState to RUNNING
+     * 4. Launches new job in provided scope
+     * 5. Executes processingBlock within the job
      *
      * @param scope CoroutineScope to launch the processing job in
      * @param processingBlock Custom processing logic to execute in the job loop
@@ -67,6 +71,9 @@ open class NodeRuntime<T : Any>(
     open fun start(scope: CoroutineScope, processingBlock: suspend () -> Unit) {
         // Cancel existing job if running (prevents duplicate jobs)
         nodeControlJob?.cancel()
+
+        // Register with registry for centralized lifecycle control
+        registry?.register(this)
 
         // Transition to RUNNING state
         executionState = ExecutionState.RUNNING
@@ -86,11 +93,15 @@ open class NodeRuntime<T : Any>(
      * Stops the node's processing loop.
      *
      * Manages graceful shutdown:
-     * 1. Sets executionState to IDLE
-     * 2. Cancels the nodeControlJob
-     * 3. Sets nodeControlJob to null
+     * 1. Unregisters from RuntimeRegistry (if provided)
+     * 2. Sets executionState to IDLE
+     * 3. Cancels the nodeControlJob
+     * 4. Sets nodeControlJob to null
      */
     fun stop() {
+        // Unregister from registry before stopping
+        registry?.unregister(this)
+
         executionState = ExecutionState.IDLE
         nodeControlJob?.cancel()
         nodeControlJob = null
