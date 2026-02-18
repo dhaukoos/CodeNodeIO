@@ -11,6 +11,7 @@ import io.codenode.fbpdsl.model.ExecutionState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ClosedSendChannelException
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 /**
@@ -53,12 +54,23 @@ class GeneratorRuntime<T : Any>(
         // Transition to RUNNING state
         executionState = ExecutionState.RUNNING
 
+        // Register with registry for centralized lifecycle control
+        registry?.register(this)
+
         // Launch the generator job
         nodeControlJob = scope.launch {
             try {
                 // Create emit function that sends to output channel
+                // Includes pause check before each emit
                 val emit: suspend (T) -> Unit = { value ->
-                    outputChannel?.send(value)
+                    // Pause hook - wait while paused
+                    while (executionState == ExecutionState.PAUSED) {
+                        delay(10)
+                    }
+                    // Only send if still running (not stopped during pause)
+                    if (executionState == ExecutionState.RUNNING) {
+                        outputChannel?.send(value)
+                    }
                 }
 
                 // Run the generator block with emit function

@@ -70,23 +70,23 @@
 
 ### Implementation for User Story 4
 
-- [ ] T015 [P] [US4] Add pause hook to GeneratorRuntime processing loop in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/GeneratorRuntime.kt`
-- [ ] T016 [P] [US4] Add pause hook to SinkRuntime processing loop in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/SinkRuntime.kt`
-- [ ] T017 [P] [US4] Verify pause hook exists in TransformerRuntime in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/TransformerRuntime.kt`
-- [ ] T018 [P] [US4] Verify pause hook exists in FilterRuntime in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/FilterRuntime.kt`
-- [ ] T019 [P] [US4] Add pause hook to Out2GeneratorRuntime in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/Out2GeneratorRuntime.kt`
-- [ ] T020 [P] [US4] Add pause hook to Out3GeneratorRuntime in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/Out3GeneratorRuntime.kt`
-- [ ] T021 [P] [US4] Add pause hook to In2SinkRuntime in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/In2SinkRuntime.kt`
-- [ ] T022 [P] [US4] Add pause hook to In3SinkRuntime in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/In3SinkRuntime.kt`
-- [ ] T023 [P] [US4] Verify pause hook in In2Out1Runtime in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/In2Out1Runtime.kt`
-- [ ] T024 [P] [US4] Verify pause hook in In3Out1Runtime in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/In3Out1Runtime.kt`
-- [ ] T025 [P] [US4] Verify/add pause hook in In1Out2Runtime in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/In1Out2Runtime.kt`
-- [ ] T026 [P] [US4] Verify/add pause hook in In1Out3Runtime in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/In1Out3Runtime.kt`
-- [ ] T027 [P] [US4] Verify/add pause hook in In2Out2Runtime in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/In2Out2Runtime.kt`
-- [ ] T028 [P] [US4] Verify/add pause hook in In2Out3Runtime in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/In2Out3Runtime.kt`
-- [ ] T029 [P] [US4] Verify/add pause hook in In3Out2Runtime in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/In3Out2Runtime.kt`
-- [ ] T030 [P] [US4] Verify/add pause hook in In3Out3Runtime in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/In3Out3Runtime.kt`
-- [ ] T031 [US4] Add pause/resume behavior tests in `fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/runtime/PauseResumeTest.kt`
+- [x] T015 [P] [US4] Add pause hook to GeneratorRuntime processing loop in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/GeneratorRuntime.kt`
+- [x] T016 [P] [US4] Add pause hook to SinkRuntime processing loop in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/SinkRuntime.kt`
+- [x] T017 [P] [US4] Verify pause hook exists in TransformerRuntime in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/TransformerRuntime.kt`
+- [x] T018 [P] [US4] Verify pause hook exists in FilterRuntime in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/FilterRuntime.kt`
+- [x] T019 [P] [US4] Add pause hook to Out2GeneratorRuntime in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/Out2GeneratorRuntime.kt`
+- [x] T020 [P] [US4] Add pause hook to Out3GeneratorRuntime in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/Out3GeneratorRuntime.kt`
+- [x] T021 [P] [US4] Add pause hook to In2SinkRuntime in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/In2SinkRuntime.kt`
+- [x] T022 [P] [US4] Add pause hook to In3SinkRuntime in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/In3SinkRuntime.kt`
+- [x] T023 [P] [US4] Verify pause hook in In2Out1Runtime in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/In2Out1Runtime.kt`
+- [x] T024 [P] [US4] Verify pause hook in In3Out1Runtime in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/In3Out1Runtime.kt`
+- [x] T025 [P] [US4] Verify/add pause hook in In1Out2Runtime in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/In1Out2Runtime.kt`
+- [x] T026 [P] [US4] Verify/add pause hook in In1Out3Runtime in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/In1Out3Runtime.kt`
+- [x] T027 [P] [US4] Verify/add pause hook in In2Out2Runtime in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/In2Out2Runtime.kt`
+- [x] T028 [P] [US4] Verify/add pause hook in In2Out3Runtime in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/In2Out3Runtime.kt`
+- [x] T029 [P] [US4] Verify/add pause hook in In3Out2Runtime in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/In3Out2Runtime.kt`
+- [x] T030 [P] [US4] Verify/add pause hook in In3Out3Runtime in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/In3Out3Runtime.kt`
+- [x] T031 [US4] Add pause/resume behavior tests in `fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/runtime/PauseResumeTest.kt`
 
 **Checkpoint**: All runtime classes honor PAUSED state - processing loops wait when paused
 

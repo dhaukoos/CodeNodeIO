@@ -55,6 +55,9 @@ class In2SinkRuntime<A : Any, B : Any>(
         // Transition to RUNNING state
         executionState = ExecutionState.RUNNING
 
+        // Register with registry for centralized lifecycle control
+        registry?.register(this)
+
         // Launch the sink job
         nodeControlJob = scope.launch {
             try {

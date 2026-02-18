@@ -54,6 +54,9 @@ class TransformerRuntime<TIn : Any, TOut : Any>(
         // Transition to RUNNING state
         executionState = ExecutionState.RUNNING
 
+        // Register with registry for centralized lifecycle control
+        registry?.register(this)
+
         // Launch the transformer job
         nodeControlJob = scope.launch {
             try {
@@ -61,12 +64,17 @@ class TransformerRuntime<TIn : Any, TOut : Any>(
                 val inChannel = inputChannel ?: return@launch
                 val outChannel = transformerOutputChannel ?: return@launch
 
-                // Iterate over input channel
-                for (value in inChannel) {
+                // Transform loop with pause support
+                while (executionState != ExecutionState.IDLE) {
                     // Check pause state
                     while (executionState == ExecutionState.PAUSED) {
                         kotlinx.coroutines.delay(10)
                     }
+                    // Exit if stopped during pause
+                    if (executionState == ExecutionState.IDLE) break
+
+                    // Receive next value (suspends until available or channel closed)
+                    val value = inChannel.receiveCatching().getOrNull() ?: break
 
                     // Transform and send
                     val transformed = transform(value)

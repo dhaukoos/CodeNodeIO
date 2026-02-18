@@ -10,6 +10,7 @@ import io.codenode.fbpdsl.model.CodeNode
 import io.codenode.fbpdsl.model.ExecutionState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.ClosedReceiveChannelException
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 /**
@@ -47,6 +48,9 @@ class FilterRuntime<T : Any>(
         // Transition to RUNNING state
         executionState = ExecutionState.RUNNING
 
+        // Register with registry for centralized lifecycle control
+        registry?.register(this)
+
         // Launch the filter job
         nodeControlJob = scope.launch {
             try {
@@ -54,8 +58,18 @@ class FilterRuntime<T : Any>(
                 val inChannel = inputChannel ?: return@launch
                 val outChannel = outputChannel ?: return@launch
 
-                // Iterate over input channel
-                for (value in inChannel) {
+                // Filter loop with pause support
+                while (executionState != ExecutionState.IDLE) {
+                    // Pause hook - wait while paused
+                    while (executionState == ExecutionState.PAUSED) {
+                        delay(10)
+                    }
+                    // Exit if stopped during pause
+                    if (executionState == ExecutionState.IDLE) break
+
+                    // Receive next value (suspends until available or channel closed)
+                    val value = inChannel.receiveCatching().getOrNull() ?: break
+
                     // Apply predicate - only send if true
                     if (predicate(value)) {
                         outChannel.send(value)

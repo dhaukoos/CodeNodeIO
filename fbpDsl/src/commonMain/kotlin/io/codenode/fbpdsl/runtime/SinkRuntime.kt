@@ -10,6 +10,7 @@ import io.codenode.fbpdsl.model.CodeNode
 import io.codenode.fbpdsl.model.ExecutionState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.ClosedReceiveChannelException
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 /**
@@ -45,17 +46,28 @@ class SinkRuntime<T : Any>(
         // Transition to RUNNING state
         executionState = ExecutionState.RUNNING
 
+        // Register with registry for centralized lifecycle control
+        registry?.register(this)
+
         // Launch the sink job
         nodeControlJob = scope.launch {
             try {
                 // Get input channel - return early if not set
                 val channel = inputChannel ?: return@launch
 
-                // Iterate over channel using for-loop (handles closure gracefully)
-                for (value in channel) {
+                // Consume loop with pause support
+                while (executionState != ExecutionState.IDLE) {
+                    // Pause hook - wait while paused
+                    while (executionState == ExecutionState.PAUSED) {
+                        delay(10)
+                    }
+                    // Exit if stopped during pause
+                    if (executionState == ExecutionState.IDLE) break
+
+                    // Receive next value (suspends until available or channel closed)
+                    val value = channel.receiveCatching().getOrNull() ?: break
                     consume(value)
                 }
-                // For-loop exits normally when channel is closed
             } catch (e: ClosedReceiveChannelException) {
                 // Channel closed unexpectedly - graceful shutdown
             }

@@ -11,6 +11,7 @@ import io.codenode.fbpdsl.model.ExecutionState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ClosedSendChannelException
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 /**
@@ -76,6 +77,9 @@ class Out3GeneratorRuntime<U : Any, V : Any, W : Any>(
         // Transition to RUNNING state
         executionState = ExecutionState.RUNNING
 
+        // Register with registry for centralized lifecycle control
+        registry?.register(this)
+
         // Launch the generator job
         nodeControlJob = scope.launch {
             try {
@@ -85,11 +89,19 @@ class Out3GeneratorRuntime<U : Any, V : Any, W : Any>(
                 val out3 = outputChannel3 ?: return@launch
 
                 // Create emit function that distributes to output channels
+                // Includes pause check before each emit
                 val emit: suspend (ProcessResult3<U, V, W>) -> Unit = { result ->
-                    // Send non-null values to respective channels
-                    result.out1?.let { out1.send(it) }
-                    result.out2?.let { out2.send(it) }
-                    result.out3?.let { out3.send(it) }
+                    // Pause hook - wait while paused
+                    while (executionState == ExecutionState.PAUSED) {
+                        delay(10)
+                    }
+                    // Only send if still running (not stopped during pause)
+                    if (executionState == ExecutionState.RUNNING) {
+                        // Send non-null values to respective channels
+                        result.out1?.let { out1.send(it) }
+                        result.out2?.let { out2.send(it) }
+                        result.out3?.let { out3.send(it) }
+                    }
                 }
 
                 // Run the generator block with emit function
@@ -101,7 +113,6 @@ class Out3GeneratorRuntime<U : Any, V : Any, W : Any>(
                 outputChannel1?.close()
                 outputChannel2?.close()
                 outputChannel3?.close()
-                executionState = ExecutionState.IDLE
             }
         }
     }
