@@ -11,6 +11,7 @@ import io.codenode.fbpdsl.model.FlowGraph
 import io.codenode.fbpdsl.model.FlowExecutionStatus
 import io.codenode.fbpdsl.model.ExecutionState
 import io.codenode.fbpdsl.model.ControlConfig
+import io.codenode.fbpdsl.runtime.RuntimeRegistry
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
@@ -39,9 +40,16 @@ class StopWatchController(
     private var flowGraph: FlowGraph
 ) {
 
+    /**
+     * RuntimeRegistry for centralized lifecycle management.
+     * Tracks all active NodeRuntime instances and propagates pause/resume/stop commands.
+     */
+    private val registry = RuntimeRegistry()
+
     private var controller: RootControlNode = RootControlNode.createFor(
         flowGraph = flowGraph,
-        name = "StopWatchController"
+        name = "StopWatchController",
+        registry = registry
     )
 
     private val flow = StopWatchFlow()
@@ -87,15 +95,19 @@ class StopWatchController(
      * @return Updated FlowGraph with all nodes running
      */
     fun start(): FlowGraph {
-        // Update FlowGraph state model
+        // Update FlowGraph state model via RootControlNode
         flowGraph = controller.startAll()
-        controller = RootControlNode.createFor(flowGraph, "StopWatchController")
+        controller = RootControlNode.createFor(flowGraph, "StopWatchController", registry)
         _executionState.value = ExecutionState.RUNNING
 
         // Cancel any existing scope and create a new one
         flowScope?.cancel()
         val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
         flowScope = scope
+
+        // Wire registry to flow components for centralized lifecycle control
+        flow.timerEmitter.registry = registry
+        flow.displayReceiver.registry = registry
 
         // Set the timer emitter to RUNNING and start the flow
         flow.timerEmitter.executionState = ExecutionState.RUNNING
@@ -115,9 +127,26 @@ class StopWatchController(
      * @return Updated FlowGraph with all nodes paused
      */
     fun pause(): FlowGraph {
+        // Pause via RootControlNode - this updates model state AND calls registry.pauseAll()
         flowGraph = controller.pauseAll()
-        controller = RootControlNode.createFor(flowGraph, "StopWatchController")
+        controller = RootControlNode.createFor(flowGraph, "StopWatchController", registry)
         _executionState.value = ExecutionState.PAUSED
+        return flowGraph
+    }
+
+    /**
+     * Resumes all nodes in the flow from paused state.
+     *
+     * Transitions all nodes back to RUNNING state.
+     * State propagates to descendants respecting independentControl flags.
+     *
+     * @return Updated FlowGraph with all nodes running
+     */
+    fun resume(): FlowGraph {
+        // Resume via RootControlNode - this updates model state AND calls registry.resumeAll()
+        flowGraph = controller.resumeAll()
+        controller = RootControlNode.createFor(flowGraph, "StopWatchController", registry)
+        _executionState.value = ExecutionState.RUNNING
         return flowGraph
     }
 
@@ -130,16 +159,17 @@ class StopWatchController(
      * @return Updated FlowGraph with all nodes stopped
      */
     fun stop(): FlowGraph {
-        // Stop the actual flow execution
-        flow.timerEmitter.executionState = ExecutionState.IDLE
+        // Stop via RootControlNode - this updates model state AND calls registry.stopAll()
+        // which stops all registered runtimes
+        flowGraph = controller.stopAll()
+        controller = RootControlNode.createFor(flowGraph, "StopWatchController", registry)
+        _executionState.value = ExecutionState.IDLE
+
+        // Stop the actual flow execution and cancel scope
         flow.stop()
         flowScope?.cancel()
         flowScope = null
 
-        // Update FlowGraph state model
-        flowGraph = controller.stopAll()
-        controller = RootControlNode.createFor(flowGraph, "StopWatchController")
-        _executionState.value = ExecutionState.IDLE
         return flowGraph
     }
 

@@ -51,4 +51,18 @@ interface StopWatchControllerInterface {
      * @return Updated FlowGraph
      */
     fun reset(): FlowGraph
+
+    /**
+     * Pauses the stopwatch.
+     * Transitions to PAUSED state and halts timer updates.
+     * @return Updated FlowGraph
+     */
+    fun pause(): FlowGraph
+
+    /**
+     * Resumes the stopwatch from paused state.
+     * Transitions back to RUNNING state and continues timer updates.
+     * @return Updated FlowGraph
+     */
+    fun resume(): FlowGraph
 }

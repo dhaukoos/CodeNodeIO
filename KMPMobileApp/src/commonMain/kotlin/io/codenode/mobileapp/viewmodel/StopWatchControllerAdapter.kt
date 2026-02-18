@@ -38,4 +38,8 @@ class StopWatchControllerAdapter(
     override fun stop(): FlowGraph = controller.stop()
 
     override fun reset(): FlowGraph = controller.reset()
+
+    override fun pause(): FlowGraph = controller.pause()
+
+    override fun resume(): FlowGraph = controller.resume()
 }

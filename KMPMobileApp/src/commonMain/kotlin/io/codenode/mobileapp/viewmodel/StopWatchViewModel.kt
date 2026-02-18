@@ -70,4 +70,22 @@ class StopWatchViewModel(
      * @return Updated FlowGraph
      */
     fun reset(): FlowGraph = controller.reset()
+
+    /**
+     * Pauses the stopwatch.
+     * Delegates to controller.pause() which transitions the FlowGraph to PAUSED state.
+     * Timer display freezes at current value.
+     *
+     * @return Updated FlowGraph
+     */
+    fun pause(): FlowGraph = controller.pause()
+
+    /**
+     * Resumes the stopwatch from paused state.
+     * Delegates to controller.resume() which transitions the FlowGraph back to RUNNING state.
+     * Timer continues from where it was paused.
+     *
+     * @return Updated FlowGraph
+     */
+    fun resume(): FlowGraph = controller.resume()
 }

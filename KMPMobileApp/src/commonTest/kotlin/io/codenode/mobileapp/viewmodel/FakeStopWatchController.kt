@@ -36,6 +36,10 @@ class FakeStopWatchController : StopWatchControllerInterface {
         private set
     var resetCalled = false
         private set
+    var pauseCalled = false
+        private set
+    var resumeCalled = false
+        private set
 
     // Minimal FlowGraph for test returns
     private val emptyFlowGraph = FlowGraph(
@@ -76,6 +80,26 @@ class FakeStopWatchController : StopWatchControllerInterface {
         return emptyFlowGraph
     }
 
+    /**
+     * Simulates pausing the stopwatch.
+     * Sets pauseCalled flag and transitions to PAUSED state.
+     */
+    override fun pause(): FlowGraph {
+        pauseCalled = true
+        _executionState.value = ExecutionState.PAUSED
+        return emptyFlowGraph
+    }
+
+    /**
+     * Simulates resuming the stopwatch from paused state.
+     * Sets resumeCalled flag and transitions to RUNNING state.
+     */
+    override fun resume(): FlowGraph {
+        resumeCalled = true
+        _executionState.value = ExecutionState.RUNNING
+        return emptyFlowGraph
+    }
+
     // Test helper methods for controlling state
 
     /**
@@ -106,5 +130,7 @@ class FakeStopWatchController : StopWatchControllerInterface {
         startCalled = false
         stopCalled = false
         resetCalled = false
+        pauseCalled = false
+        resumeCalled = false
     }
 }

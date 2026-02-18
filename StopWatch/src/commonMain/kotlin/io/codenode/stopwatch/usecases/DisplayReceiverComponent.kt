@@ -13,6 +13,7 @@ import io.codenode.fbpdsl.model.InformationPacket
 import io.codenode.fbpdsl.model.ProcessingLogic
 import io.codenode.fbpdsl.runtime.In2SinkBlock
 import io.codenode.fbpdsl.runtime.In2SinkRuntime
+import io.codenode.fbpdsl.runtime.RuntimeRegistry
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.currentCoroutineContext
@@ -94,6 +95,16 @@ class DisplayReceiverComponent (
         get() = sinkRuntime.executionState
         set(value) {
             sinkRuntime.executionState = value
+        }
+
+    /**
+     * RuntimeRegistry for centralized lifecycle control.
+     * Delegated to underlying sinkRuntime.
+     */
+    var registry: RuntimeRegistry?
+        get() = sinkRuntime.registry
+        set(value) {
+            sinkRuntime.registry = value
         }
 
     /**

@@ -100,17 +100,17 @@
 
 ### Implementation for User Story 2
 
-- [ ] T032 [US2] Add pause() method to StopWatchControllerInterface in `KMPMobileApp/src/commonMain/kotlin/io/codenode/mobileapp/viewmodel/StopWatchControllerInterface.kt`
-- [ ] T033 [US2] Add resume() method to StopWatchControllerInterface in `KMPMobileApp/src/commonMain/kotlin/io/codenode/mobileapp/viewmodel/StopWatchControllerInterface.kt`
-- [ ] T034 [US2] Update StopWatchController to own RuntimeRegistry in `StopWatch/src/commonMain/kotlin/io/codenode/stopwatch/generated/StopWatchController.kt`
-- [ ] T035 [US2] Update StopWatchController.start() to use RootControlNode.startAll() in `StopWatch/src/commonMain/kotlin/io/codenode/stopwatch/generated/StopWatchController.kt`
-- [ ] T036 [US2] Implement StopWatchController.pause() using RootControlNode.pauseAll() in `StopWatch/src/commonMain/kotlin/io/codenode/stopwatch/generated/StopWatchController.kt`
-- [ ] T037 [US2] Implement StopWatchController.resume() using RootControlNode.resumeAll() in `StopWatch/src/commonMain/kotlin/io/codenode/stopwatch/generated/StopWatchController.kt`
-- [ ] T038 [US2] Update StopWatchController.stop() to use RootControlNode.stopAll() in `StopWatch/src/commonMain/kotlin/io/codenode/stopwatch/generated/StopWatchController.kt`
-- [ ] T039 [US2] Update StopWatchControllerAdapter to implement pause/resume in `KMPMobileApp/src/commonMain/kotlin/io/codenode/mobileapp/viewmodel/StopWatchControllerAdapter.kt`
-- [ ] T040 [US2] Add pause() method to StopWatchViewModel in `KMPMobileApp/src/commonMain/kotlin/io/codenode/mobileapp/viewmodel/StopWatchViewModel.kt`
-- [ ] T041 [US2] Add resume() method to StopWatchViewModel in `KMPMobileApp/src/commonMain/kotlin/io/codenode/mobileapp/viewmodel/StopWatchViewModel.kt`
-- [ ] T042 [US2] Add unit tests for ViewModel pause/resume in `KMPMobileApp/src/commonTest/kotlin/io/codenode/mobileapp/viewmodel/StopWatchViewModelTest.kt`
+- [x] T032 [US2] Add pause() method to StopWatchControllerInterface in `KMPMobileApp/src/commonMain/kotlin/io/codenode/mobileapp/viewmodel/StopWatchControllerInterface.kt`
+- [x] T033 [US2] Add resume() method to StopWatchControllerInterface in `KMPMobileApp/src/commonMain/kotlin/io/codenode/mobileapp/viewmodel/StopWatchControllerInterface.kt`
+- [x] T034 [US2] Update StopWatchController to own RuntimeRegistry in `StopWatch/src/commonMain/kotlin/io/codenode/stopwatch/generated/StopWatchController.kt`
+- [x] T035 [US2] Update StopWatchController.start() to use RootControlNode.startAll() in `StopWatch/src/commonMain/kotlin/io/codenode/stopwatch/generated/StopWatchController.kt`
+- [x] T036 [US2] Implement StopWatchController.pause() using RootControlNode.pauseAll() in `StopWatch/src/commonMain/kotlin/io/codenode/stopwatch/generated/StopWatchController.kt`
+- [x] T037 [US2] Implement StopWatchController.resume() using RootControlNode.resumeAll() in `StopWatch/src/commonMain/kotlin/io/codenode/stopwatch/generated/StopWatchController.kt`
+- [x] T038 [US2] Update StopWatchController.stop() to use RootControlNode.stopAll() in `StopWatch/src/commonMain/kotlin/io/codenode/stopwatch/generated/StopWatchController.kt`
+- [x] T039 [US2] Update StopWatchControllerAdapter to implement pause/resume in `KMPMobileApp/src/commonMain/kotlin/io/codenode/mobileapp/viewmodel/StopWatchControllerAdapter.kt`
+- [x] T040 [US2] Add pause() method to StopWatchViewModel in `KMPMobileApp/src/commonMain/kotlin/io/codenode/mobileapp/viewmodel/StopWatchViewModel.kt`
+- [x] T041 [US2] Add resume() method to StopWatchViewModel in `KMPMobileApp/src/commonMain/kotlin/io/codenode/mobileapp/viewmodel/StopWatchViewModel.kt`
+- [x] T042 [US2] Add unit tests for ViewModel pause/resume in `KMPMobileApp/src/commonTest/kotlin/io/codenode/mobileapp/viewmodel/StopWatchViewModelTest.kt`
 
 **Checkpoint**: All execution control routes through RootControlNode
 

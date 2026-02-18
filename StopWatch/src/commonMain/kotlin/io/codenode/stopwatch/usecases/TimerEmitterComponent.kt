@@ -15,6 +15,7 @@ import io.codenode.fbpdsl.model.ProcessingLogic
 import io.codenode.fbpdsl.runtime.Out2GeneratorBlock
 import io.codenode.fbpdsl.runtime.Out2GeneratorRuntime
 import io.codenode.fbpdsl.runtime.ProcessResult2
+import io.codenode.fbpdsl.runtime.RuntimeRegistry
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.currentCoroutineContext
@@ -130,6 +131,16 @@ class TimerEmitterComponent(
         get() = generatorRuntime.executionState
         set(value) {
             generatorRuntime.executionState = value
+        }
+
+    /**
+     * RuntimeRegistry for centralized lifecycle control.
+     * Delegated to underlying generatorRuntime.
+     */
+    var registry: RuntimeRegistry?
+        get() = generatorRuntime.registry
+        set(value) {
+            generatorRuntime.registry = value
         }
 
     /**

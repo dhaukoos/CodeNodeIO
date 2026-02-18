@@ -179,6 +179,95 @@ class StopWatchViewModelTest {
     }
 
     // ========================================
+    // Pause/Resume Action Tests (T042)
+    // ========================================
+
+    @Test
+    fun `pause delegates to controller`() = runTest {
+        val controller = FakeStopWatchController()
+        val viewModel = StopWatchViewModel(controller)
+
+        // Start first
+        viewModel.start()
+        assertEquals(ExecutionState.RUNNING, viewModel.executionState.first())
+
+        // Verify pause not called yet
+        assertEquals(false, controller.pauseCalled)
+
+        // Call pause through ViewModel
+        viewModel.pause()
+
+        // Verify delegation
+        assertTrue(controller.pauseCalled)
+        assertEquals(ExecutionState.PAUSED, viewModel.executionState.first())
+    }
+
+    @Test
+    fun `resume delegates to controller`() = runTest {
+        val controller = FakeStopWatchController()
+        val viewModel = StopWatchViewModel(controller)
+
+        // Start and pause first
+        viewModel.start()
+        viewModel.pause()
+        assertEquals(ExecutionState.PAUSED, viewModel.executionState.first())
+
+        // Verify resume not called yet
+        assertEquals(false, controller.resumeCalled)
+
+        // Call resume through ViewModel
+        viewModel.resume()
+
+        // Verify delegation
+        assertTrue(controller.resumeCalled)
+        assertEquals(ExecutionState.RUNNING, viewModel.executionState.first())
+    }
+
+    @Test
+    fun `pause preserves elapsed time`() = runTest {
+        val controller = FakeStopWatchController()
+        val viewModel = StopWatchViewModel(controller)
+
+        // Set elapsed time
+        controller.setElapsedSeconds(45)
+        controller.setElapsedMinutes(3)
+        viewModel.start()
+
+        // Verify initial state
+        assertEquals(45, viewModel.elapsedSeconds.first())
+        assertEquals(3, viewModel.elapsedMinutes.first())
+
+        // Pause should not affect elapsed time
+        viewModel.pause()
+        assertEquals(45, viewModel.elapsedSeconds.first())
+        assertEquals(3, viewModel.elapsedMinutes.first())
+        assertEquals(ExecutionState.PAUSED, viewModel.executionState.first())
+    }
+
+    @Test
+    fun `resume continues from paused state`() = runTest {
+        val controller = FakeStopWatchController()
+        val viewModel = StopWatchViewModel(controller)
+
+        // Set elapsed time, start, and pause
+        controller.setElapsedSeconds(30)
+        controller.setElapsedMinutes(2)
+        viewModel.start()
+        viewModel.pause()
+
+        // Verify paused
+        assertEquals(ExecutionState.PAUSED, viewModel.executionState.first())
+        assertEquals(30, viewModel.elapsedSeconds.first())
+        assertEquals(2, viewModel.elapsedMinutes.first())
+
+        // Resume should restore running state without affecting time
+        viewModel.resume()
+        assertEquals(ExecutionState.RUNNING, viewModel.executionState.first())
+        assertEquals(30, viewModel.elapsedSeconds.first())
+        assertEquals(2, viewModel.elapsedMinutes.first())
+    }
+
+    // ========================================
     // Edge Case Tests (T027, T028)
     // ========================================
 
