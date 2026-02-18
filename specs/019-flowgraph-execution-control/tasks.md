@@ -159,15 +159,15 @@
 
 **Purpose**: Integration verification and final validation
 
-- [ ] T056 Run all fbpDsl tests with `./gradlew :fbpDsl:jvmTest`
-- [ ] T057 Run StopWatch tests with `./gradlew :StopWatch:jvmTest`
-- [ ] T058 Run KMPMobileApp tests with `./gradlew :KMPMobileApp:testDebugUnitTest`
-- [ ] T059 Build Android app with `./gradlew :KMPMobileApp:assembleDebug`
-- [ ] T060 Manual verification: Start → Pause → verify frozen → Resume → verify continues
-- [ ] T061 Manual verification: Start → Pause → Reset → verify returns to 00:00
-- [ ] T062 Manual verification: Stop/Start cycle works correctly (addresses original bug)
-- [ ] T063 Update quickstart.md validation checklist in `specs/019-flowgraph-execution-control/quickstart.md`
-- [ ] T064 Code review for thread-safety in RuntimeRegistry usage
+- [x] T056 Run all fbpDsl tests with `./gradlew :fbpDsl:jvmTest`
+- [x] T057 Run StopWatch tests with `./gradlew :StopWatch:jvmTest`
+- [x] T058 Run KMPMobileApp tests with `./gradlew :KMPMobileApp:testDebugUnitTest`
+- [x] T059 Build Android app with `./gradlew :KMPMobileApp:assembleDebug`
+- [x] T060 Manual verification: Start → Pause → verify frozen → Resume → verify continues
+- [x] T061 Manual verification: Start → Pause → Reset → verify returns to 00:00
+- [x] T062 Manual verification: Stop/Start cycle works correctly (addresses original bug)
+- [x] T063 Update quickstart.md validation checklist in `specs/019-flowgraph-execution-control/quickstart.md`
+- [x] T064 Code review for thread-safety in RuntimeRegistry usage
 
 ---
 

@@ -36,56 +36,81 @@ Create `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/RuntimeRegistry.
 ```kotlin
 package io.codenode.fbpdsl.runtime
 
-import java.util.concurrent.ConcurrentHashMap
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.runBlocking
 
 /**
  * Registry that tracks active NodeRuntime instances for a flow.
  * Enables centralized pause/resume control through RootControlNode.
+ * Thread-safe using Mutex for KMP compatibility.
  */
 class RuntimeRegistry {
 
-    private val runtimes = ConcurrentHashMap<String, NodeRuntime<*>>()
+    private val runtimes = mutableMapOf<String, NodeRuntime<*>>()
+    private val mutex = Mutex()
 
     /**
      * Register a runtime when it starts.
      */
     fun register(runtime: NodeRuntime<*>) {
-        runtimes[runtime.codeNode.id] = runtime
+        runBlocking {
+            mutex.withLock {
+                runtimes[runtime.codeNode.id] = runtime
+            }
+        }
     }
 
     /**
      * Unregister a runtime when it stops.
      */
     fun unregister(runtime: NodeRuntime<*>) {
-        runtimes.remove(runtime.codeNode.id)
+        runBlocking {
+            mutex.withLock {
+                runtimes.remove(runtime.codeNode.id)
+            }
+        }
     }
 
     /**
      * Pause all registered runtimes.
+     * Respects independentControl flag - skips runtimes with independentControl=true.
      */
     fun pauseAll() {
-        runtimes.values.forEach { it.pause() }
+        val runtimesCopy = runBlocking { mutex.withLock { runtimes.values.toList() } }
+        runtimesCopy.forEach { runtime ->
+            if (!runtime.codeNode.controlConfig.independentControl) {
+                runtime.pause()
+            }
+        }
     }
 
     /**
      * Resume all registered runtimes.
+     * Respects independentControl flag - skips runtimes with independentControl=true.
      */
     fun resumeAll() {
-        runtimes.values.forEach { it.resume() }
+        val runtimesCopy = runBlocking { mutex.withLock { runtimes.values.toList() } }
+        runtimesCopy.forEach { runtime ->
+            if (!runtime.codeNode.controlConfig.independentControl) {
+                runtime.resume()
+            }
+        }
     }
 
     /**
      * Stop all registered runtimes and clear registry.
      */
     fun stopAll() {
-        runtimes.values.forEach { it.stop() }
-        runtimes.clear()
+        val runtimesCopy = runBlocking { mutex.withLock { runtimes.values.toList() } }
+        runtimesCopy.forEach { it.stop() }
+        runBlocking { mutex.withLock { runtimes.clear() } }
     }
 
     /**
      * Number of registered runtimes.
      */
-    val count: Int get() = runtimes.size
+    val count: Int get() = runBlocking { mutex.withLock { runtimes.size } }
 }
 ```
 
@@ -253,21 +278,33 @@ Run the following commands to verify the implementation:
 
 ## Validation Checklist
 
-- [ ] RuntimeRegistry created in fbpDsl/runtime/
-- [ ] RuntimeRegistry has register, unregister, pauseAll, resumeAll, stopAll methods
-- [ ] RuntimeRegistry is thread-safe (uses ConcurrentHashMap)
-- [ ] RootControlNode updated with resumeAll() method
-- [ ] RootControlNode accepts optional RuntimeRegistry parameter
-- [ ] All *Runtime classes have pause hook in processing loop
-- [ ] GeneratorRuntime has pause hook
-- [ ] SinkRuntime has pause hook
-- [ ] Out2GeneratorRuntime has pause hook
-- [ ] In2SinkRuntime has pause hook
-- [ ] StopWatchController uses RootControlNode with registry
-- [ ] StopWatchController has pause() and resume() methods
-- [ ] StopWatchViewModel has pause() and resume() methods
-- [ ] StopWatch composable has Pause/Resume button
-- [ ] Pause/Resume button visibility based on executionState
-- [ ] Unit tests pass for RuntimeRegistry
-- [ ] Integration tests pass for pause/resume flow
-- [ ] App runs identically to before with new pause/resume feature
+- [x] RuntimeRegistry created in fbpDsl/runtime/
+- [x] RuntimeRegistry has register, unregister, pauseAll, resumeAll, stopAll methods
+- [x] RuntimeRegistry is thread-safe (uses Mutex for KMP compatibility)
+- [x] RuntimeRegistry respects independentControl flag in pauseAll/resumeAll
+- [x] RootControlNode updated with resumeAll() method
+- [x] RootControlNode accepts optional RuntimeRegistry parameter
+- [x] All *Runtime classes have pause hook in processing loop
+- [x] GeneratorRuntime has pause hook
+- [x] SinkRuntime has pause hook
+- [x] TransformerRuntime has pause hook
+- [x] FilterRuntime has pause hook
+- [x] Out2GeneratorRuntime has pause hook
+- [x] Out3GeneratorRuntime has pause hook
+- [x] In2SinkRuntime has pause hook
+- [x] In3SinkRuntime has pause hook
+- [x] All InXOutYRuntime classes have pause hook
+- [x] StopWatchController uses RootControlNode with registry
+- [x] StopWatchController has pause() and resume() methods
+- [x] StopWatchViewModel has pause() and resume() methods
+- [x] StopWatch composable has Pause/Resume buttons
+- [x] Button visibility based on executionState (Start when IDLE, Stop/Pause when RUNNING, Resume/Stop when PAUSED)
+- [x] Reset button enabled when IDLE or PAUSED with elapsed time
+- [x] Unit tests pass for RuntimeRegistry (RuntimeRegistryTest.kt)
+- [x] Unit tests pass for pause/resume behavior (PauseResumeTest.kt)
+- [x] Unit tests pass for independentControl (IndependentControlTest.kt)
+- [x] Integration tests pass for StopWatch (StopWatchViewModelTest.kt)
+- [x] Android app builds successfully (assembleDebug)
+- [x] All fbpDsl tests pass (./gradlew :fbpDsl:jvmTest)
+- [x] All StopWatch tests pass (./gradlew :StopWatch:jvmTest)
+- [x] All KMPMobileApp tests pass (./gradlew :KMPMobileApp:testDebugUnitTest)
