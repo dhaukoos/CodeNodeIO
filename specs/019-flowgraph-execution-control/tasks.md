@@ -19,9 +19,9 @@
 
 **Purpose**: Branch creation and project verification
 
-- [ ] T001 Verify project compiles with `./gradlew build`
-- [ ] T002 [P] Review existing RootControlNode implementation in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/RootControlNode.kt`
-- [ ] T003 [P] Review existing NodeRuntime pause/resume methods in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/NodeRuntime.kt`
+- [x] T001 Verify project compiles with `./gradlew build`
+- [x] T002 [P] Review existing RootControlNode implementation in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/RootControlNode.kt`
+- [x] T003 [P] Review existing NodeRuntime pause/resume methods in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/NodeRuntime.kt`
 
 ---
 
@@ -31,9 +31,9 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T004 Create RuntimeRegistry class in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/RuntimeRegistry.kt` with register, unregister, pauseAll, resumeAll, stopAll methods
-- [ ] T005 Add RuntimeRegistry unit tests in `fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/runtime/RuntimeRegistryTest.kt`
-- [ ] T006 Verify RuntimeRegistry thread-safety with concurrent register/unregister test
+- [x] T004 Create RuntimeRegistry class in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/RuntimeRegistry.kt` with register, unregister, pauseAll, resumeAll, stopAll methods
+- [x] T005 Add RuntimeRegistry unit tests in `fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/runtime/RuntimeRegistryTest.kt`
+- [x] T006 Verify RuntimeRegistry thread-safety with concurrent register/unregister test
 
 **Checkpoint**: Foundation ready - user story implementation can now begin
 
