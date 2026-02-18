@@ -145,11 +145,11 @@
 
 ### Implementation for User Story 5
 
-- [ ] T051 [US5] Verify CodeNode has independentControl property in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/CodeNode.kt`
-- [ ] T052 [US5] Update RuntimeRegistry.pauseAll() to respect independentControl flag in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/RuntimeRegistry.kt`
-- [ ] T053 [US5] Update RuntimeRegistry.resumeAll() to respect independentControl flag in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/RuntimeRegistry.kt`
-- [ ] T054 [US5] Add tests for independentControl=true behavior in `fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/runtime/IndependentControlTest.kt`
-- [ ] T055 [US5] Add tests for nested GraphNode state propagation in `fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/runtime/IndependentControlTest.kt`
+- [x] T051 [US5] Verify CodeNode has independentControl property in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/CodeNode.kt`
+- [x] T052 [US5] Update RuntimeRegistry.pauseAll() to respect independentControl flag in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/RuntimeRegistry.kt`
+- [x] T053 [US5] Update RuntimeRegistry.resumeAll() to respect independentControl flag in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/RuntimeRegistry.kt`
+- [x] T054 [US5] Add tests for independentControl=true behavior in `fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/runtime/IndependentControlTest.kt`
+- [x] T055 [US5] Add tests for nested GraphNode state propagation in `fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/runtime/IndependentControlTest.kt`
 
 **Checkpoint**: State inheritance respects independentControl flag
 
