@@ -41,19 +41,17 @@ class ChannelIntegrationTest {
         val timerEmitter = TimerEmitterComponent(speedAttenuation = 50L)
         val displayReceiver = DisplayReceiverComponent()
 
-        // Wire up the channel connections (generator creates channels, we wire to sink)
+        // Start the emitter - start() recreates output channels synchronously
+        timerEmitter.executionState = ExecutionState.RUNNING
+        timerEmitter.start(backgroundScope)
+
+        // Wire up after start so we get the fresh channels
         displayReceiver.inputChannel = timerEmitter.outputChannel1
         displayReceiver.inputChannel2 = timerEmitter.outputChannel2
 
-        // Start the receiver first (to be ready for data) - use backgroundScope
+        // Start the receiver
         backgroundScope.launch {
             displayReceiver.start(this)
-        }
-
-        // Start the emitter - use backgroundScope
-        timerEmitter.executionState = ExecutionState.RUNNING
-        backgroundScope.launch {
-            timerEmitter.start(this)
         }
 
         // When - let a few ticks occur

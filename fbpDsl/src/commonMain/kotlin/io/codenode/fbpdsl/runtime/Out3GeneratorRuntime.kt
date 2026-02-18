@@ -74,6 +74,11 @@ class Out3GeneratorRuntime<U : Any, V : Any, W : Any>(
         // Cancel existing job if running
         nodeControlJob?.cancel()
 
+        // Recreate output channels (previous ones may have been closed on stop)
+        outputChannel1 = Channel(channelCapacity)
+        outputChannel2 = Channel(channelCapacity)
+        outputChannel3 = Channel(channelCapacity)
+
         // Transition to RUNNING state
         executionState = ExecutionState.RUNNING
 

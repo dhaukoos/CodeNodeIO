@@ -37,8 +37,10 @@ class StopWatchFlow {
      * @param scope The coroutine scope to run in
      */
     suspend fun start(scope: CoroutineScope) {
-        wireConnections()
+        // Start generator first so it recreates its output channels
         timerEmitter.start(scope)
+        // Wire connections after channels are recreated
+        wireConnections()
         displayReceiver.start(scope)
     }
 

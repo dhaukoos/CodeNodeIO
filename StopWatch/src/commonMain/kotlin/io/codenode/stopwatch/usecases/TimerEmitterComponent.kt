@@ -72,12 +72,20 @@ class TimerEmitterComponent(
 
     val generator: Out2GeneratorBlock<Int, Int>  = { emit ->
         // Continuous timer loop - runs until stopped
-        while (currentCoroutineContext().isActive && executionState == ExecutionState.RUNNING) {
+        while (currentCoroutineContext().isActive && executionState != ExecutionState.IDLE) {
+            // Pause hook - wait while paused
+            while (executionState == ExecutionState.PAUSED) {
+                delay(10)
+            }
+            // Exit if stopped during pause
+            if (executionState == ExecutionState.IDLE) break
+
             // Delay for tick interval
             if (speedAttenuation > 0) {
                 delay(speedAttenuation)
                 // Check state again after delay (may have changed during delay)
-                if (executionState != ExecutionState.RUNNING) break
+                if (executionState == ExecutionState.IDLE) break
+                if (executionState == ExecutionState.PAUSED) continue
             }
 
             val result = incrementer(_elapsedSeconds.value, _elapsedMinutes.value)
