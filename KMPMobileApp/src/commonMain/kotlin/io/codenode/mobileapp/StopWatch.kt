@@ -61,8 +61,10 @@ fun StopWatch(
     val elapsedSeconds by viewModel.elapsedSeconds.collectAsState()
     val elapsedMinutes by viewModel.elapsedMinutes.collectAsState()
 
-    // Derive isRunning from executionState
+    // Derive state flags from executionState
     val isRunning = executionState == ExecutionState.RUNNING
+    val isPaused = executionState == ExecutionState.PAUSED
+    val isIdle = executionState == ExecutionState.IDLE
 
     Column(
         modifier = modifier,
@@ -91,26 +93,70 @@ fun StopWatch(
         Row(
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Button(
-                onClick = {
-                    if (isRunning) {
-                        viewModel.stop()
-                    } else {
-                        viewModel.start()
-                    }
-                },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = if (isRunning) Color.Red else Color.Green
-                )
-            ) {
-                Text(if (isRunning) "Stop" else "Start")
+            // Start button - visible when IDLE or after stop
+            if (isIdle) {
+                Button(
+                    onClick = { viewModel.start() },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color.Green
+                    )
+                ) {
+                    Text("Start")
+                }
             }
 
+            // Stop button - visible when RUNNING
+            if (isRunning) {
+                Button(
+                    onClick = { viewModel.stop() },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color.Red
+                    )
+                ) {
+                    Text("Stop")
+                }
+            }
+
+            // Pause button - visible when RUNNING
+            if (isRunning) {
+                Button(
+                    onClick = { viewModel.pause() },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFFFFA500) // Orange
+                    )
+                ) {
+                    Text("Pause")
+                }
+            }
+
+            // Resume button - visible when PAUSED
+            if (isPaused) {
+                Button(
+                    onClick = { viewModel.resume() },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color.Green
+                    )
+                ) {
+                    Text("Resume")
+                }
+            }
+
+            // Stop button also visible when PAUSED (to fully stop from paused state)
+            if (isPaused) {
+                Button(
+                    onClick = { viewModel.stop() },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color.Red
+                    )
+                ) {
+                    Text("Stop")
+                }
+            }
+
+            // Reset button - enabled when IDLE or PAUSED with elapsed time
             Button(
-                onClick = {
-                    viewModel.reset()
-                },
-                enabled = !isRunning && (elapsedSeconds > 0 || elapsedMinutes > 0)
+                onClick = { viewModel.reset() },
+                enabled = (isIdle || isPaused) && (elapsedSeconds > 0 || elapsedMinutes > 0)
             ) {
                 Text("Reset")
             }

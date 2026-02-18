@@ -6,11 +6,15 @@
 
 package io.codenode.fbpdsl.runtime
 
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.runBlocking
+
 /**
  * Registry that tracks active NodeRuntime instances for a flow.
  *
  * Enables centralized pause/resume control through RootControlNode.
- * Thread-safe using a synchronized map for concurrent access from coroutines.
+ * Thread-safe using a Mutex for concurrent access from coroutines.
  *
  * Usage:
  * ```kotlin
@@ -33,9 +37,8 @@ package io.codenode.fbpdsl.runtime
 class RuntimeRegistry {
 
     // Thread-safe map for concurrent access from coroutines
-    // Using synchronizedMap for KMP compatibility (no ConcurrentHashMap in common)
     private val runtimes = mutableMapOf<String, NodeRuntime<*>>()
-    private val lock = Any()
+    private val mutex = Mutex()
 
     /**
      * Register a runtime when it starts.
@@ -43,8 +46,10 @@ class RuntimeRegistry {
      * @param runtime The NodeRuntime to register
      */
     fun register(runtime: NodeRuntime<*>) {
-        synchronized(lock) {
-            runtimes[runtime.codeNode.id] = runtime
+        runBlocking {
+            mutex.withLock {
+                runtimes[runtime.codeNode.id] = runtime
+            }
         }
     }
 
@@ -54,8 +59,10 @@ class RuntimeRegistry {
      * @param runtime The NodeRuntime to unregister
      */
     fun unregister(runtime: NodeRuntime<*>) {
-        synchronized(lock) {
-            runtimes.remove(runtime.codeNode.id)
+        runBlocking {
+            mutex.withLock {
+                runtimes.remove(runtime.codeNode.id)
+            }
         }
     }
 
@@ -67,7 +74,9 @@ class RuntimeRegistry {
      * will be skipped (they manage their own state).
      */
     fun pauseAll() {
-        val runtimesCopy = synchronized(lock) { runtimes.values.toList() }
+        val runtimesCopy = runBlocking {
+            mutex.withLock { runtimes.values.toList() }
+        }
         runtimesCopy.forEach { runtime ->
             // Respect independentControl flag
             if (!runtime.codeNode.controlConfig.independentControl) {
@@ -84,7 +93,9 @@ class RuntimeRegistry {
      * will be skipped (they manage their own state).
      */
     fun resumeAll() {
-        val runtimesCopy = synchronized(lock) { runtimes.values.toList() }
+        val runtimesCopy = runBlocking {
+            mutex.withLock { runtimes.values.toList() }
+        }
         runtimesCopy.forEach { runtime ->
             // Respect independentControl flag
             if (!runtime.codeNode.controlConfig.independentControl) {
@@ -99,10 +110,14 @@ class RuntimeRegistry {
      * Calls stop() on each registered runtime, then clears all registrations.
      */
     fun stopAll() {
-        val runtimesCopy = synchronized(lock) { runtimes.values.toList() }
+        val runtimesCopy = runBlocking {
+            mutex.withLock { runtimes.values.toList() }
+        }
         runtimesCopy.forEach { it.stop() }
-        synchronized(lock) {
-            runtimes.clear()
+        runBlocking {
+            mutex.withLock {
+                runtimes.clear()
+            }
         }
     }
 
@@ -110,7 +125,9 @@ class RuntimeRegistry {
      * Number of registered runtimes.
      */
     val count: Int
-        get() = synchronized(lock) { runtimes.size }
+        get() = runBlocking {
+            mutex.withLock { runtimes.size }
+        }
 
     /**
      * Check if a runtime is registered by its codeNode ID.
@@ -119,7 +136,9 @@ class RuntimeRegistry {
      * @return true if a runtime with this ID is registered
      */
     fun isRegistered(nodeId: String): Boolean {
-        return synchronized(lock) { runtimes.containsKey(nodeId) }
+        return runBlocking {
+            mutex.withLock { runtimes.containsKey(nodeId) }
+        }
     }
 
     /**
@@ -129,7 +148,9 @@ class RuntimeRegistry {
      * @return The NodeRuntime if found, null otherwise
      */
     fun get(nodeId: String): NodeRuntime<*>? {
-        return synchronized(lock) { runtimes[nodeId] }
+        return runBlocking {
+            mutex.withLock { runtimes[nodeId] }
+        }
     }
 
     /**
@@ -139,8 +160,10 @@ class RuntimeRegistry {
      * when runtimes have already been stopped externally.
      */
     fun clear() {
-        synchronized(lock) {
-            runtimes.clear()
+        runBlocking {
+            mutex.withLock {
+                runtimes.clear()
+            }
         }
     }
 }

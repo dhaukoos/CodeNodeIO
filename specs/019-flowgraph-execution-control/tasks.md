@@ -124,12 +124,12 @@
 
 ### Implementation for User Story 1
 
-- [ ] T043 [US1] Add Pause button to StopWatch composable (visible when RUNNING) in `KMPMobileApp/src/commonMain/kotlin/io/codenode/mobileapp/StopWatch.kt`
-- [ ] T044 [US1] Add Resume button to StopWatch composable (visible when PAUSED) in `KMPMobileApp/src/commonMain/kotlin/io/codenode/mobileapp/StopWatch.kt`
-- [ ] T045 [US1] Wire Pause button onClick to viewModel.pause() in `KMPMobileApp/src/commonMain/kotlin/io/codenode/mobileapp/StopWatch.kt`
-- [ ] T046 [US1] Wire Resume button onClick to viewModel.resume() in `KMPMobileApp/src/commonMain/kotlin/io/codenode/mobileapp/StopWatch.kt`
-- [ ] T047 [US1] Update Start/Stop button enabled state based on executionState in `KMPMobileApp/src/commonMain/kotlin/io/codenode/mobileapp/StopWatch.kt`
-- [ ] T048 [US1] Update Reset button enabled state (disabled when RUNNING) in `KMPMobileApp/src/commonMain/kotlin/io/codenode/mobileapp/StopWatch.kt`
+- [x] T043 [US1] Add Pause button to StopWatch composable (visible when RUNNING) in `KMPMobileApp/src/commonMain/kotlin/io/codenode/mobileapp/StopWatch.kt`
+- [x] T044 [US1] Add Resume button to StopWatch composable (visible when PAUSED) in `KMPMobileApp/src/commonMain/kotlin/io/codenode/mobileapp/StopWatch.kt`
+- [x] T045 [US1] Wire Pause button onClick to viewModel.pause() in `KMPMobileApp/src/commonMain/kotlin/io/codenode/mobileapp/StopWatch.kt`
+- [x] T046 [US1] Wire Resume button onClick to viewModel.resume() in `KMPMobileApp/src/commonMain/kotlin/io/codenode/mobileapp/StopWatch.kt`
+- [x] T047 [US1] Update Start/Stop button enabled state based on executionState in `KMPMobileApp/src/commonMain/kotlin/io/codenode/mobileapp/StopWatch.kt`
+- [x] T048 [US1] Update Reset button enabled state (disabled when RUNNING) in `KMPMobileApp/src/commonMain/kotlin/io/codenode/mobileapp/StopWatch.kt`
 - [ ] T049 [US1] Verify pause freezes analog clock hands display
 - [ ] T050 [US1] Verify resume continues analog clock from paused position
 
