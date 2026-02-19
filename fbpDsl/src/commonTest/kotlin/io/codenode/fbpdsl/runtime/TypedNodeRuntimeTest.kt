@@ -31,9 +31,9 @@ class TypedNodeRuntimeTest {
         val input2 = Channel<Int>(Channel.BUFFERED)
         val output = Channel<Int>(Channel.BUFFERED)
 
-        processor.inputChannel = input1
+        processor.inputChannel1 = input1
         processor.inputChannel2 = input2
-        processor.processorOutputChannel = output
+        processor.outputChannel = output
 
         // When: Start and send values
         processor.start(this) { }
@@ -59,9 +59,9 @@ class TypedNodeRuntimeTest {
         val input2 = Channel<String>(Channel.BUFFERED)
         val output = Channel<String>(Channel.BUFFERED)
 
-        processor.inputChannel = input1
+        processor.inputChannel1 = input1
         processor.inputChannel2 = input2
-        processor.processorOutputChannel = output
+        processor.outputChannel = output
 
         // When: Start and send multiple tuples
         processor.start(this) { }
@@ -98,10 +98,10 @@ class TypedNodeRuntimeTest {
         val input3 = Channel<Int>(Channel.BUFFERED)
         val output = Channel<Int>(Channel.BUFFERED)
 
-        processor.inputChannel = input1
+        processor.inputChannel1 = input1
         processor.inputChannel2 = input2
         processor.inputChannel3 = input3
-        processor.processorOutputChannel = output
+        processor.outputChannel = output
 
         // When: Start and send values
         processor.start(this) { }
@@ -130,9 +130,9 @@ class TypedNodeRuntimeTest {
         val input2 = Channel<Int>(Channel.BUFFERED)
         val output = Channel<Int>(Channel.BUFFERED)
 
-        processor.inputChannel = input1
+        processor.inputChannel1 = input1
         processor.inputChannel2 = input2
-        processor.processorOutputChannel = output
+        processor.outputChannel = output
 
         processor.start(this) { }
         advanceUntilIdle()
@@ -157,9 +157,9 @@ class TypedNodeRuntimeTest {
         val input2 = Channel<Int>(Channel.BUFFERED)
         val output = Channel<Int>(Channel.BUFFERED)
 
-        processor.inputChannel = input1
+        processor.inputChannel1 = input1
         processor.inputChannel2 = input2
-        processor.processorOutputChannel = output
+        processor.outputChannel = output
 
         processor.start(this) { }
 
@@ -199,9 +199,9 @@ class TypedNodeRuntimeTest {
         val input2 = Channel<Int>(Channel.BUFFERED)
         val output = Channel<Int>(Channel.BUFFERED)
 
-        processor.inputChannel = input1
+        processor.inputChannel1 = input1
         processor.inputChannel2 = input2
-        processor.processorOutputChannel = output
+        processor.outputChannel = output
 
         processor.start(this) { }
         advanceUntilIdle()
@@ -225,9 +225,9 @@ class TypedNodeRuntimeTest {
         val input2 = Channel<Int>(Channel.BUFFERED)
         val output = Channel<Int>(Channel.BUFFERED)
 
-        processor.inputChannel = input1
+        processor.inputChannel1 = input1
         processor.inputChannel2 = input2
-        processor.processorOutputChannel = output
+        processor.outputChannel = output
 
         processor.start(this) { }
 
@@ -253,10 +253,10 @@ class TypedNodeRuntimeTest {
         val input3 = Channel<Int>(Channel.BUFFERED)
         val output = Channel<Int>(Channel.BUFFERED)
 
-        processor.inputChannel = input1
+        processor.inputChannel1 = input1
         processor.inputChannel2 = input2
         processor.inputChannel3 = input3
-        processor.processorOutputChannel = output
+        processor.outputChannel = output
 
         processor.start(this) { }
         advanceUntilIdle()
@@ -282,10 +282,10 @@ class TypedNodeRuntimeTest {
         val input3 = Channel<Int>(Channel.BUFFERED)
         val output = Channel<Int>(Channel.BUFFERED)
 
-        processor.inputChannel = input1
+        processor.inputChannel1 = input1
         processor.inputChannel2 = input2
         processor.inputChannel3 = input3
-        processor.processorOutputChannel = output
+        processor.outputChannel = output
 
         processor.start(this) { }
 
@@ -329,7 +329,7 @@ class TypedNodeRuntimeTest {
         val input1 = Channel<Int>(Channel.BUFFERED)
         val input2 = Channel<String>(Channel.BUFFERED)
 
-        sink.inputChannel = input1
+        sink.inputChannel1 = input1
         sink.inputChannel2 = input2
 
         // When: Start and send multiple pairs
@@ -368,7 +368,7 @@ class TypedNodeRuntimeTest {
         val input2 = Channel<Int>(Channel.BUFFERED)
         val input3 = Channel<Int>(Channel.BUFFERED)
 
-        sink.inputChannel = input1
+        sink.inputChannel1 = input1
         sink.inputChannel2 = input2
         sink.inputChannel3 = input3
 
@@ -558,7 +558,7 @@ class TypedNodeRuntimeTest {
         val input1 = Channel<Int>(Channel.BUFFERED)
         val input2 = Channel<Int>(Channel.BUFFERED)
 
-        processor.inputChannel = input1
+        processor.inputChannel1 = input1
         processor.inputChannel2 = input2
         val output1 = processor.outputChannel1!!
         val output2 = processor.outputChannel2!!

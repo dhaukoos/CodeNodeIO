@@ -100,19 +100,19 @@
 
 ### Implementation for User Story 4
 
-- [ ] T023 [P] [US4] Update RuntimeRegistry: replace all `NodeRuntime<*>` with `NodeRuntime` in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/RuntimeRegistry.kt`
-- [ ] T024 [P] [US4] Update NodeRuntimeTest: remove channel-related tests, update `NodeRuntime<*>` references to `NodeRuntime` in `fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/runtime/NodeRuntimeTest.kt`
-- [ ] T025 [P] [US4] Update ContinuousFactoryTest: rename `.inputChannel =` to `.inputChannel1 =` for multi-input runtimes only (single-input keeps `.inputChannel`), rename `.transformerOutputChannel` to `.outputChannel` in `fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/runtime/ContinuousFactoryTest.kt`
-- [ ] T026 [P] [US4] Update TypedNodeRuntimeTest: rename `.inputChannel =` to `.inputChannel1 =` for multi-input runtimes only, rename `.processorOutputChannel` to `.outputChannel` in `fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/runtime/TypedNodeRuntimeTest.kt`
-- [ ] T027 [P] [US4] Update PauseResumeTest: rename `.inputChannel =` to `.inputChannel1 =` for multi-input runtimes only, rename `.transformerOutputChannel` to `.outputChannel` in `fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/runtime/PauseResumeTest.kt`
-- [ ] T028 [P] [US4] Update IndependentControlTest: rename `.inputChannel =` to `.inputChannel1 =` for multi-input runtimes only in `fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/runtime/IndependentControlTest.kt`
-- [ ] T029 [P] [US4] Update RuntimeRegistryTest: replace all `NodeRuntime<*>` with `NodeRuntime` in `fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/runtime/RuntimeRegistryTest.kt`
-- [ ] T030 [P] [US4] Update RuntimeRegistrationTest: replace all `NodeRuntime<*>` with `NodeRuntime` in `fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/runtime/RuntimeRegistrationTest.kt`
-- [ ] T031 [P] [US4] Update DisplayReceiverComponent: no input rename needed (single-input keeps `inputChannel`), verify delegation still works in `StopWatch/src/commonMain/kotlin/io/codenode/stopwatch/usecases/DisplayReceiverComponent.kt`
-- [ ] T032 [P] [US4] Update StopWatchFlow: no input rename needed (single-input keeps `.inputChannel`), verify wiring still works in `StopWatch/src/commonMain/kotlin/io/codenode/stopwatch/generated/StopWatchFlow.kt`
-- [ ] T033 [P] [US4] Update ChannelIntegrationTest: no input rename needed (single-input keeps `.inputChannel`), verify assertions still work in `StopWatch/src/commonTest/kotlin/io/codenode/stopwatch/ChannelIntegrationTest.kt`
-- [ ] T034 [US4] Verify fbpDsl tests pass via `./gradlew :fbpDsl:jvmTest`
-- [ ] T035 [US4] Verify StopWatch tests pass via `./gradlew :StopWatch:jvmTest`
+- [x] T023 [P] [US4] Update RuntimeRegistry: replace all `NodeRuntime<*>` with `NodeRuntime` in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/RuntimeRegistry.kt`
+- [x] T024 [P] [US4] Update NodeRuntimeTest: remove channel-related tests, update `NodeRuntime<*>` references to `NodeRuntime` in `fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/runtime/NodeRuntimeTest.kt`
+- [x] T025 [P] [US4] Update ContinuousFactoryTest: rename `.inputChannel =` to `.inputChannel1 =` for multi-input runtimes only (single-input keeps `.inputChannel`), rename `.transformerOutputChannel` to `.outputChannel` in `fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/runtime/ContinuousFactoryTest.kt`
+- [x] T026 [P] [US4] Update TypedNodeRuntimeTest: rename `.inputChannel =` to `.inputChannel1 =` for multi-input runtimes only, rename `.processorOutputChannel` to `.outputChannel` in `fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/runtime/TypedNodeRuntimeTest.kt`
+- [x] T027 [P] [US4] Update PauseResumeTest: rename `.inputChannel =` to `.inputChannel1 =` for multi-input runtimes only, rename `.transformerOutputChannel` to `.outputChannel` in `fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/runtime/PauseResumeTest.kt`
+- [x] T028 [P] [US4] Update IndependentControlTest: rename `.inputChannel =` to `.inputChannel1 =` for multi-input runtimes only in `fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/runtime/IndependentControlTest.kt`
+- [x] T029 [P] [US4] Update RuntimeRegistryTest: replace all `NodeRuntime<*>` with `NodeRuntime` in `fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/runtime/RuntimeRegistryTest.kt`
+- [x] T030 [P] [US4] Update RuntimeRegistrationTest: replace all `NodeRuntime<*>` with `NodeRuntime` in `fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/runtime/RuntimeRegistrationTest.kt`
+- [x] T031 [P] [US4] Update DisplayReceiverComponent: no input rename needed (single-input keeps `inputChannel`), verify delegation still works in `StopWatch/src/commonMain/kotlin/io/codenode/stopwatch/usecases/DisplayReceiverComponent.kt`
+- [x] T032 [P] [US4] Update StopWatchFlow: no input rename needed (single-input keeps `.inputChannel`), verify wiring still works in `StopWatch/src/commonMain/kotlin/io/codenode/stopwatch/generated/StopWatchFlow.kt`
+- [x] T033 [P] [US4] Update ChannelIntegrationTest: no input rename needed (single-input keeps `.inputChannel`), verify assertions still work in `StopWatch/src/commonTest/kotlin/io/codenode/stopwatch/ChannelIntegrationTest.kt`
+- [x] T034 [US4] Verify fbpDsl tests pass via `./gradlew :fbpDsl:jvmTest`
+- [x] T035 [US4] Verify StopWatch tests pass via `./gradlew :StopWatch:jvmTest`
 
 **Checkpoint**: Full codebase compiles and all tests pass. Refactoring is complete.
 

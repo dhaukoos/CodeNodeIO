@@ -87,7 +87,7 @@ class PauseResumeTest {
             codeNode = createTestCodeNode("transformer1", CodeNodeType.TRANSFORMER)
         ) { it }
         transformer.inputChannel = inputChannel
-        transformer.transformerOutputChannel = outputChannel
+        transformer.outputChannel = outputChannel
 
         transformer.start(this) { }
         advanceUntilIdle()
@@ -160,7 +160,7 @@ class PauseResumeTest {
         val sink = In2SinkRuntime<Int, String>(
             codeNode = createTestCodeNode("sink2in", CodeNodeType.SINK)
         ) { _, _ -> }
-        sink.inputChannel = inputChannel1
+        sink.inputChannel1 = inputChannel1
         sink.inputChannel2 = inputChannel2
 
         sink.start(this) { }

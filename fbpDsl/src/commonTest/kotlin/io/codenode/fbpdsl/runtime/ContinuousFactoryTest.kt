@@ -548,7 +548,7 @@ class ContinuousFactoryTest {
         val inputChannel = Channel<Int>(Channel.BUFFERED)
         val outputChannel = Channel<Int>(Channel.BUFFERED)
         transformer.inputChannel = inputChannel
-        transformer.transformerOutputChannel = outputChannel
+        transformer.outputChannel = outputChannel
 
         // Collect outputs in background
         val collectJob = launch {
@@ -596,7 +596,7 @@ class ContinuousFactoryTest {
         val inputChannel = Channel<Int>(Channel.BUFFERED)
         val outputChannel = Channel<Int>(Channel.BUFFERED)
         transformer.inputChannel = inputChannel
-        transformer.transformerOutputChannel = outputChannel
+        transformer.outputChannel = outputChannel
 
         // Collect outputs
         val collectJob = launch {
@@ -672,7 +672,7 @@ class ContinuousFactoryTest {
 
         generator.outputChannel = channel1
         transformer.inputChannel = channel1
-        transformer.transformerOutputChannel = channel2
+        transformer.outputChannel = channel2
         sink.inputChannel = channel2
 
         // Start all nodes (sink first, then transformer, then generator)

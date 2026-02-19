@@ -86,9 +86,9 @@ class DisplayReceiverComponent : ProcessingLogic {
         get() = sinkRuntime.codeNode
 
     var inputChannel: ReceiveChannel<Int>?
-        get() = sinkRuntime.inputChannel
+        get() = sinkRuntime.inputChannel1
         set(value) {
-            sinkRuntime.inputChannel = value
+            sinkRuntime.inputChannel1 = value
         }
 
     var inputChannel2: ReceiveChannel<Int>?

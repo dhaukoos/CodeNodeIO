@@ -38,7 +38,7 @@ class RuntimeRegistryTest {
     private fun createTestRuntime(
         id: String,
         independentControl: Boolean = false
-    ): NodeRuntime<String> {
+    ): NodeRuntime {
         return NodeRuntime(createTestCodeNode(id, independentControl))
     }
 

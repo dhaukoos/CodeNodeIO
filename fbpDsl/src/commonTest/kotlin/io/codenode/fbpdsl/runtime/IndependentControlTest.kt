@@ -370,7 +370,7 @@ class IndependentControlTest {
             codeNode = createCodeNode("independent-transformer", CodeNodeType.TRANSFORMER, independentControl = true)
         ) { value -> "Value: $value" }
         transformer.inputChannel = Channel(Channel.BUFFERED)
-        transformer.transformerOutputChannel = Channel(Channel.BUFFERED)
+        transformer.outputChannel = Channel(Channel.BUFFERED)
         transformer.registry = registry
 
         // Start

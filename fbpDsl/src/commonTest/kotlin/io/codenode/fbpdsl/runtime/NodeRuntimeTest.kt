@@ -29,7 +29,7 @@ class NodeRuntimeTest {
 
     private fun createTestRuntime(
         executionState: ExecutionState = ExecutionState.IDLE
-    ): NodeRuntime<String> {
+    ): NodeRuntime {
         val codeNode = CodeNode(
             id = "test-node",
             name = "TestNode",
@@ -37,7 +37,7 @@ class NodeRuntimeTest {
             position = Node.Position(0.0, 0.0),
             executionState = executionState
         )
-        return NodeRuntime<String>(codeNode).also {
+        return NodeRuntime(codeNode).also {
             it.executionState = executionState
         }
     }

@@ -37,7 +37,7 @@ import kotlinx.coroutines.runBlocking
 class RuntimeRegistry {
 
     // Thread-safe map for concurrent access from coroutines
-    private val runtimes = mutableMapOf<String, NodeRuntime<*>>()
+    private val runtimes = mutableMapOf<String, NodeRuntime>()
     private val mutex = Mutex()
 
     /**
@@ -45,7 +45,7 @@ class RuntimeRegistry {
      *
      * @param runtime The NodeRuntime to register
      */
-    fun register(runtime: NodeRuntime<*>) {
+    fun register(runtime: NodeRuntime) {
         runBlocking {
             mutex.withLock {
                 runtimes[runtime.codeNode.id] = runtime
@@ -58,7 +58,7 @@ class RuntimeRegistry {
      *
      * @param runtime The NodeRuntime to unregister
      */
-    fun unregister(runtime: NodeRuntime<*>) {
+    fun unregister(runtime: NodeRuntime) {
         runBlocking {
             mutex.withLock {
                 runtimes.remove(runtime.codeNode.id)
@@ -147,7 +147,7 @@ class RuntimeRegistry {
      * @param nodeId The codeNode.id to look up
      * @return The NodeRuntime if found, null otherwise
      */
-    fun get(nodeId: String): NodeRuntime<*>? {
+    fun get(nodeId: String): NodeRuntime? {
         return runBlocking {
             mutex.withLock { runtimes[nodeId] }
         }

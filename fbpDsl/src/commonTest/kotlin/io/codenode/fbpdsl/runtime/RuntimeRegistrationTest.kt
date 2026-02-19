@@ -42,7 +42,7 @@ class RuntimeRegistrationTest {
         id: String,
         registry: RuntimeRegistry? = null,
         independentControl: Boolean = false
-    ): NodeRuntime<String> {
+    ): NodeRuntime {
         return NodeRuntime(createTestCodeNode(id, independentControl), registry)
     }
 
