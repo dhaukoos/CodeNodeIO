@@ -201,8 +201,7 @@ fun register(runtime: NodeRuntime) { ... }
 | `fbpDsl/.../runtime/In2Out1Runtime.kt`, `In3Out1Runtime.kt` | Modify | Inherit `NodeRuntime`, rename `inputChannel` → `inputChannel1`, rename `processorOutputChannel` → `outputChannel` |
 | `fbpDsl/.../runtime/In2Out2Runtime.kt`, `In2Out3Runtime.kt`, `In3Out2Runtime.kt`, `In3Out3Runtime.kt` | Modify | Inherit `NodeRuntime`, rename `inputChannel` → `inputChannel1` (multi-input) |
 | `fbpDsl/.../runtime/RuntimeRegistry.kt` | Modify | `NodeRuntime<*>` → `NodeRuntime` |
-| `fbpDsl/.../model/CodeNodeFactory.kt` | Modify | Remove `NodeRuntime<*>` type annotations |
 | Test files (7 files) | Modify | Update multi-input `inputChannel` → `inputChannel1`, `transformerOutputChannel` → `outputChannel`, `processorOutputChannel` → `outputChannel`, `NodeRuntime<*>` → `NodeRuntime` |
-| `StopWatch/.../DisplayReceiverComponent.kt` | Modify | No input rename needed (single-input keeps `inputChannel`) |
-| `StopWatch/.../StopWatchFlow.kt` | Modify | No input rename needed (single-input keeps `inputChannel`) |
-| `StopWatch/.../ChannelIntegrationTest.kt` | Modify | No input rename needed (single-input keeps `inputChannel`) |
+| `StopWatch/.../DisplayReceiverComponent.kt` | Modify | Update internal delegation to `sinkRuntime.inputChannel1` (component keeps external `inputChannel` name) |
+| `StopWatch/.../StopWatchFlow.kt` | Verify | No changes needed (uses component's external `inputChannel` property) |
+| `StopWatch/.../ChannelIntegrationTest.kt` | Verify | No changes needed (uses component's external `inputChannel` property) |

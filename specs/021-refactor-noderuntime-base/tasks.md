@@ -122,11 +122,11 @@
 
 **Purpose**: Final validation and documentation
 
-- [ ] T036 Run full test suite across all modules via `./gradlew :fbpDsl:jvmTest :StopWatch:jvmTest`
-- [ ] T037 Verify SC-001: NodeRuntime has zero generic type parameters
-- [ ] T038 Verify SC-002: NodeRuntime has zero channel properties
-- [ ] T039 Verify SC-005: Channel naming follows convention (single-input: `inputChannel`, multi-input: `inputChannel1`; single-output: `outputChannel`, multi-output: `outputChannel1`)
-- [ ] T040 Update quickstart.md with final code examples reflecting actual implementation in `specs/021-refactor-noderuntime-base/quickstart.md`
+- [x] T036 Run full test suite across all modules via `./gradlew :fbpDsl:jvmTest :StopWatch:jvmTest`
+- [x] T037 Verify SC-001: NodeRuntime has zero generic type parameters
+- [x] T038 Verify SC-002: NodeRuntime has zero channel properties
+- [x] T039 Verify SC-005: Channel naming follows convention (single-input: `inputChannel`, multi-input: `inputChannel1`; single-output: `outputChannel`, multi-output: `outputChannel1`)
+- [x] T040 Update quickstart.md with final code examples reflecting actual implementation in `specs/021-refactor-noderuntime-base/quickstart.md`
 
 ---
 
