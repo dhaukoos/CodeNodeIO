@@ -40,7 +40,12 @@ class In3Out3Runtime<A : Any, B : Any, C : Any, U : Any, V : Any, W : Any>(
     codeNode: CodeNode,
     private val channelCapacity: Int = Channel.BUFFERED,
     private val process: In3Out3ProcessBlock<A, B, C, U, V, W>
-) : NodeRuntime<A>(codeNode) {
+) : NodeRuntime(codeNode) {
+
+    /**
+     * First input channel for receiving data.
+     */
+    var inputChannel1: ReceiveChannel<A>? = null
 
     /**
      * Second input channel for receiving data.
@@ -100,7 +105,7 @@ class In3Out3Runtime<A : Any, B : Any, C : Any, U : Any, V : Any, W : Any>(
         nodeControlJob = scope.launch {
             try {
                 // Get channels - return early if not set
-                val inChannel1 = inputChannel ?: return@launch
+                val inChannel1 = inputChannel1 ?: return@launch
                 val inChannel2 = inputChannel2 ?: return@launch
                 val inChannel3 = inputChannel3 ?: return@launch
                 val out1 = outputChannel1 ?: return@launch

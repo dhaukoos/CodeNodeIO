@@ -10,6 +10,7 @@ import io.codenode.fbpdsl.model.CodeNode
 import io.codenode.fbpdsl.model.ExecutionState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.ClosedReceiveChannelException
+import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -28,7 +29,12 @@ import kotlinx.coroutines.launch
 class SinkRuntime<T : Any>(
     codeNode: CodeNode,
     private val consume: ContinuousSinkBlock<T>
-) : NodeRuntime<T>(codeNode) {
+) : NodeRuntime(codeNode) {
+
+    /**
+     * Input channel for receiving data.
+     */
+    var inputChannel: ReceiveChannel<T>? = null
 
     /**
      * Starts the sink's continuous consumption loop.

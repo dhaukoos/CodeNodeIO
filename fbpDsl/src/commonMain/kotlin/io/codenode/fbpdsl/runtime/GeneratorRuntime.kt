@@ -11,6 +11,7 @@ import io.codenode.fbpdsl.model.ExecutionState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ClosedSendChannelException
+import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -31,7 +32,12 @@ class GeneratorRuntime<T : Any>(
     codeNode: CodeNode,
     private val channelCapacity: Int = Channel.BUFFERED,
     private val generate: ContinuousGeneratorBlock<T>
-) : NodeRuntime<T>(codeNode) {
+) : NodeRuntime(codeNode) {
+
+    /**
+     * Output channel for emitting generated data.
+     */
+    var outputChannel: SendChannel<T>? = null
 
     init {
         // Create output channel with specified capacity

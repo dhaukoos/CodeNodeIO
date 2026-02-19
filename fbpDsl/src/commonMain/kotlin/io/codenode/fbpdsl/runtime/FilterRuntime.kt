@@ -10,6 +10,8 @@ import io.codenode.fbpdsl.model.CodeNode
 import io.codenode.fbpdsl.model.ExecutionState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.ClosedReceiveChannelException
+import kotlinx.coroutines.channels.ReceiveChannel
+import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -30,7 +32,17 @@ import kotlinx.coroutines.launch
 class FilterRuntime<T : Any>(
     codeNode: CodeNode,
     private val predicate: ContinuousFilterPredicate<T>
-) : NodeRuntime<T>(codeNode) {
+) : NodeRuntime(codeNode) {
+
+    /**
+     * Input channel for receiving data.
+     */
+    var inputChannel: ReceiveChannel<T>? = null
+
+    /**
+     * Output channel for emitting filtered data.
+     */
+    var outputChannel: SendChannel<T>? = null
 
     /**
      * Starts the filter's continuous processing loop.

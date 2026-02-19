@@ -34,7 +34,7 @@ class Out3GeneratorRuntime<U : Any, V : Any, W : Any>(
     codeNode: CodeNode,
     private val channelCapacity: Int = Channel.BUFFERED,
     private val generate: Out3GeneratorBlock<U, V, W>
-) : NodeRuntime<U>(codeNode) {
+) : NodeRuntime(codeNode) {
 
     /**
      * First output channel for sending/receiving data.

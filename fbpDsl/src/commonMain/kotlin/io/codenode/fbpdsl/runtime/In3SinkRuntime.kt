@@ -33,7 +33,12 @@ import kotlinx.coroutines.launch
 class In3SinkRuntime<A : Any, B : Any, C : Any>(
     codeNode: CodeNode,
     private val consume: In3SinkBlock<A, B, C>
-) : NodeRuntime<A>(codeNode) {
+) : NodeRuntime(codeNode) {
+
+    /**
+     * First input channel for receiving data.
+     */
+    var inputChannel1: ReceiveChannel<A>? = null
 
     /**
      * Second input channel for receiving data.
@@ -68,7 +73,7 @@ class In3SinkRuntime<A : Any, B : Any, C : Any>(
         nodeControlJob = scope.launch {
             try {
                 // Get channels - return early if not set
-                val inChannel1 = inputChannel ?: return@launch
+                val inChannel1 = inputChannel1 ?: return@launch
                 val inChannel2 = inputChannel2 ?: return@launch
                 val inChannel3 = inputChannel3 ?: return@launch
 

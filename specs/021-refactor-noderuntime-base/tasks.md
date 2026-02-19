@@ -26,7 +26,7 @@
 
 **Purpose**: Verify current state and establish baseline
 
-- [ ] T001 Run all existing tests to establish passing baseline via `./gradlew :fbpDsl:jvmTest :StopWatch:jvmTest`
+- [x] T001 Run all existing tests to establish passing baseline via `./gradlew :fbpDsl:jvmTest :StopWatch:jvmTest`
 
 ---
 
@@ -40,11 +40,11 @@
 
 ### Implementation for User Story 1
 
-- [ ] T002 [US1] Remove generic type parameter `<T: Any>` from class signature in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/NodeRuntime.kt`
-- [ ] T003 [US1] Remove `inputChannel: ReceiveChannel<T>?` property from `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/NodeRuntime.kt`
-- [ ] T004 [US1] Remove `outputChannel: SendChannel<T>?` property from `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/NodeRuntime.kt`
-- [ ] T005 [US1] Remove `outputChannel?.close()` from the `finally` block in `start()` method in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/NodeRuntime.kt`
-- [ ] T006 [US1] Remove unused imports (`ReceiveChannel`, `SendChannel`) from `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/NodeRuntime.kt`
+- [x] T002 [US1] Remove generic type parameter `<T: Any>` from class signature in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/NodeRuntime.kt`
+- [x] T003 [US1] Remove `inputChannel: ReceiveChannel<T>?` property from `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/NodeRuntime.kt`
+- [x] T004 [US1] Remove `outputChannel: SendChannel<T>?` property from `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/NodeRuntime.kt`
+- [x] T005 [US1] Remove `outputChannel?.close()` from the `finally` block in `start()` method in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/NodeRuntime.kt`
+- [x] T006 [US1] Remove unused imports (`ReceiveChannel`, `SendChannel`) from `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/NodeRuntime.kt`
 
 **Checkpoint**: NodeRuntime is now a non-generic lifecycle manager. Compilation is expected to fail until subclasses are updated.
 
@@ -58,10 +58,10 @@
 
 ### Implementation for User Story 2
 
-- [ ] T007 [P] [US2] Update GeneratorRuntime: change `NodeRuntime<T>(codeNode)` to `NodeRuntime(codeNode)`, define own `outputChannel: SendChannel<T>?` property in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/GeneratorRuntime.kt`
-- [ ] T008 [P] [US2] Update SinkRuntime: change `NodeRuntime<T>(codeNode)` to `NodeRuntime(codeNode)`, add own `inputChannel: ReceiveChannel<T>?` property (same name, single-input) in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/SinkRuntime.kt`
-- [ ] T009 [P] [US2] Update TransformerRuntime: change `NodeRuntime<TIn>(codeNode)` to `NodeRuntime(codeNode)`, add own `inputChannel: ReceiveChannel<TIn>?` property (same name, single-input), rename `transformerOutputChannel` to `outputChannel` in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/TransformerRuntime.kt`
-- [ ] T010 [P] [US2] Update FilterRuntime: change `NodeRuntime<T>(codeNode)` to `NodeRuntime(codeNode)`, add own `inputChannel: ReceiveChannel<T>?` and `outputChannel: SendChannel<T>?` properties (same names, single-input/output) in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/FilterRuntime.kt`
+- [x] T007 [P] [US2] Update GeneratorRuntime: change `NodeRuntime<T>(codeNode)` to `NodeRuntime(codeNode)`, define own `outputChannel: SendChannel<T>?` property in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/GeneratorRuntime.kt`
+- [x] T008 [P] [US2] Update SinkRuntime: change `NodeRuntime<T>(codeNode)` to `NodeRuntime(codeNode)`, add own `inputChannel: ReceiveChannel<T>?` property (same name, single-input) in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/SinkRuntime.kt`
+- [x] T009 [P] [US2] Update TransformerRuntime: change `NodeRuntime<TIn>(codeNode)` to `NodeRuntime(codeNode)`, add own `inputChannel: ReceiveChannel<TIn>?` property (same name, single-input), rename `transformerOutputChannel` to `outputChannel` in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/TransformerRuntime.kt`
+- [x] T010 [P] [US2] Update FilterRuntime: change `NodeRuntime<T>(codeNode)` to `NodeRuntime(codeNode)`, add own `inputChannel: ReceiveChannel<T>?` and `outputChannel: SendChannel<T>?` properties (same names, single-input/output) in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/FilterRuntime.kt`
 
 **Checkpoint**: All 4 single-type runtime subclasses compile with updated inheritance and own channel properties.
 
@@ -75,18 +75,18 @@
 
 ### Implementation for User Story 3
 
-- [ ] T011 [P] [US3] Update Out2GeneratorRuntime: change `NodeRuntime<U>(codeNode)` to `NodeRuntime(codeNode)` in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/Out2GeneratorRuntime.kt`
-- [ ] T012 [P] [US3] Update Out3GeneratorRuntime: change `NodeRuntime<U>(codeNode)` to `NodeRuntime(codeNode)` in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/Out3GeneratorRuntime.kt`
-- [ ] T013 [P] [US3] Update In2SinkRuntime: change `NodeRuntime<A>(codeNode)` to `NodeRuntime(codeNode)`, add `inputChannel1: ReceiveChannel<A>?` property, update internal `inputChannel` references to `inputChannel1` in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/In2SinkRuntime.kt`
-- [ ] T014 [P] [US3] Update In3SinkRuntime: change `NodeRuntime<A>(codeNode)` to `NodeRuntime(codeNode)`, add `inputChannel1: ReceiveChannel<A>?` property, update internal `inputChannel` references to `inputChannel1` in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/In3SinkRuntime.kt`
-- [ ] T015 [P] [US3] Update In1Out2Runtime: change `NodeRuntime<A>(codeNode)` to `NodeRuntime(codeNode)`, add own `inputChannel: ReceiveChannel<A>?` property (same name, single-input) in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/In1Out2Runtime.kt`
-- [ ] T016 [P] [US3] Update In1Out3Runtime: change `NodeRuntime<A>(codeNode)` to `NodeRuntime(codeNode)`, add own `inputChannel: ReceiveChannel<A>?` property (same name, single-input) in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/In1Out3Runtime.kt`
-- [ ] T017 [P] [US3] Update In2Out1Runtime: change `NodeRuntime<A>(codeNode)` to `NodeRuntime(codeNode)`, add `inputChannel1: ReceiveChannel<A>?` property, update internal `inputChannel` references to `inputChannel1`, rename `processorOutputChannel` to `outputChannel` in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/In2Out1Runtime.kt`
-- [ ] T018 [P] [US3] Update In2Out2Runtime: change `NodeRuntime<A>(codeNode)` to `NodeRuntime(codeNode)`, add `inputChannel1: ReceiveChannel<A>?` property, update internal `inputChannel` references to `inputChannel1` in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/In2Out2Runtime.kt`
-- [ ] T019 [P] [US3] Update In2Out3Runtime: change `NodeRuntime<A>(codeNode)` to `NodeRuntime(codeNode)`, add `inputChannel1: ReceiveChannel<A>?` property, update internal `inputChannel` references to `inputChannel1` in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/In2Out3Runtime.kt`
-- [ ] T020 [P] [US3] Update In3Out1Runtime: change `NodeRuntime<A>(codeNode)` to `NodeRuntime(codeNode)`, add `inputChannel1: ReceiveChannel<A>?` property, update internal `inputChannel` references to `inputChannel1`, rename `processorOutputChannel` to `outputChannel` in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/In3Out1Runtime.kt`
-- [ ] T021 [P] [US3] Update In3Out2Runtime: change `NodeRuntime<A>(codeNode)` to `NodeRuntime(codeNode)`, add `inputChannel1: ReceiveChannel<A>?` property, update internal `inputChannel` references to `inputChannel1` in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/In3Out2Runtime.kt`
-- [ ] T022 [P] [US3] Update In3Out3Runtime: change `NodeRuntime<A>(codeNode)` to `NodeRuntime(codeNode)`, add `inputChannel1: ReceiveChannel<A>?` property, update internal `inputChannel` references to `inputChannel1` in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/In3Out3Runtime.kt`
+- [x] T011 [P] [US3] Update Out2GeneratorRuntime: change `NodeRuntime<U>(codeNode)` to `NodeRuntime(codeNode)` in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/Out2GeneratorRuntime.kt`
+- [x] T012 [P] [US3] Update Out3GeneratorRuntime: change `NodeRuntime<U>(codeNode)` to `NodeRuntime(codeNode)` in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/Out3GeneratorRuntime.kt`
+- [x] T013 [P] [US3] Update In2SinkRuntime: change `NodeRuntime<A>(codeNode)` to `NodeRuntime(codeNode)`, add `inputChannel1: ReceiveChannel<A>?` property, update internal `inputChannel` references to `inputChannel1` in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/In2SinkRuntime.kt`
+- [x] T014 [P] [US3] Update In3SinkRuntime: change `NodeRuntime<A>(codeNode)` to `NodeRuntime(codeNode)`, add `inputChannel1: ReceiveChannel<A>?` property, update internal `inputChannel` references to `inputChannel1` in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/In3SinkRuntime.kt`
+- [x] T015 [P] [US3] Update In1Out2Runtime: change `NodeRuntime<A>(codeNode)` to `NodeRuntime(codeNode)`, add own `inputChannel: ReceiveChannel<A>?` property (same name, single-input) in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/In1Out2Runtime.kt`
+- [x] T016 [P] [US3] Update In1Out3Runtime: change `NodeRuntime<A>(codeNode)` to `NodeRuntime(codeNode)`, add own `inputChannel: ReceiveChannel<A>?` property (same name, single-input) in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/In1Out3Runtime.kt`
+- [x] T017 [P] [US3] Update In2Out1Runtime: change `NodeRuntime<A>(codeNode)` to `NodeRuntime(codeNode)`, add `inputChannel1: ReceiveChannel<A>?` property, update internal `inputChannel` references to `inputChannel1`, rename `processorOutputChannel` to `outputChannel` in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/In2Out1Runtime.kt`
+- [x] T018 [P] [US3] Update In2Out2Runtime: change `NodeRuntime<A>(codeNode)` to `NodeRuntime(codeNode)`, add `inputChannel1: ReceiveChannel<A>?` property, update internal `inputChannel` references to `inputChannel1` in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/In2Out2Runtime.kt`
+- [x] T019 [P] [US3] Update In2Out3Runtime: change `NodeRuntime<A>(codeNode)` to `NodeRuntime(codeNode)`, add `inputChannel1: ReceiveChannel<A>?` property, update internal `inputChannel` references to `inputChannel1` in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/In2Out3Runtime.kt`
+- [x] T020 [P] [US3] Update In3Out1Runtime: change `NodeRuntime<A>(codeNode)` to `NodeRuntime(codeNode)`, add `inputChannel1: ReceiveChannel<A>?` property, update internal `inputChannel` references to `inputChannel1`, rename `processorOutputChannel` to `outputChannel` in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/In3Out1Runtime.kt`
+- [x] T021 [P] [US3] Update In3Out2Runtime: change `NodeRuntime<A>(codeNode)` to `NodeRuntime(codeNode)`, add `inputChannel1: ReceiveChannel<A>?` property, update internal `inputChannel` references to `inputChannel1` in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/In3Out2Runtime.kt`
+- [x] T022 [P] [US3] Update In3Out3Runtime: change `NodeRuntime<A>(codeNode)` to `NodeRuntime(codeNode)`, add `inputChannel1: ReceiveChannel<A>?` property, update internal `inputChannel` references to `inputChannel1` in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/In3Out3Runtime.kt`
 
 **Checkpoint**: All 16 runtime subclasses compile with non-generic NodeRuntime inheritance and own channel properties.
 

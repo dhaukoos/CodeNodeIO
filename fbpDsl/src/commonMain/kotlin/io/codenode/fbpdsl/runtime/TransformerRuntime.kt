@@ -10,6 +10,8 @@ import io.codenode.fbpdsl.model.CodeNode
 import io.codenode.fbpdsl.model.ExecutionState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.ClosedReceiveChannelException
+import kotlinx.coroutines.channels.ReceiveChannel
+import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.launch
 
 /**
@@ -30,13 +32,17 @@ import kotlinx.coroutines.launch
 class TransformerRuntime<TIn : Any, TOut : Any>(
     codeNode: CodeNode,
     private val transform: ContinuousTransformBlock<TIn, TOut>
-) : NodeRuntime<TIn>(codeNode) {
+) : NodeRuntime(codeNode) {
+
+    /**
+     * Input channel for receiving data.
+     */
+    var inputChannel: ReceiveChannel<TIn>? = null
 
     /**
      * Output channel for emitting transformed data.
-     * Separate from base class since types differ.
      */
-    var transformerOutputChannel: kotlinx.coroutines.channels.SendChannel<TOut>? = null
+    var outputChannel: SendChannel<TOut>? = null
 
     /**
      * Starts the transformer's continuous processing loop.
@@ -62,7 +68,7 @@ class TransformerRuntime<TIn : Any, TOut : Any>(
             try {
                 // Get input channel - return early if not set
                 val inChannel = inputChannel ?: return@launch
-                val outChannel = transformerOutputChannel ?: return@launch
+                val outChannel = outputChannel ?: return@launch
 
                 // Transform loop with pause support
                 while (executionState != ExecutionState.IDLE) {
@@ -84,7 +90,7 @@ class TransformerRuntime<TIn : Any, TOut : Any>(
                 // Input channel closed - graceful shutdown
             } finally {
                 // Close output channel when loop exits
-                transformerOutputChannel?.close()
+                outputChannel?.close()
             }
         }
     }

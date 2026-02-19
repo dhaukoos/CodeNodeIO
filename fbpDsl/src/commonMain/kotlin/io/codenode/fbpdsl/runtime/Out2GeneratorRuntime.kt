@@ -37,7 +37,7 @@ class Out2GeneratorRuntime<U : Any, V : Any>(
     codeNode: CodeNode,
     private val channelCapacity: Int = Channel.BUFFERED,
     private val generate: Out2GeneratorBlock<U, V>? = null
-) : NodeRuntime<U>(codeNode) {
+) : NodeRuntime(codeNode) {
 
     /**
      * First output channel for sending/receiving data.

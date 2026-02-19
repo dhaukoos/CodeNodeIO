@@ -10,26 +10,25 @@ import io.codenode.fbpdsl.model.CodeNode
 import io.codenode.fbpdsl.model.ExecutionState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.channels.ReceiveChannel
-import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.launch
 
 /**
  * Runtime execution wrapper for a CodeNode.
  *
- * Owns all runtime state including:
+ * Provides lifecycle management only:
  * - Execution state (IDLE, RUNNING, PAUSED, ERROR)
  * - Coroutine job for lifecycle control
- * - Input/output channels for continuous processing
  * - Optional registry for centralized lifecycle management
+ *
+ * Subclasses own their typed channel properties and manage channel lifecycle
+ * in their overridden start() methods.
  *
  * This separation keeps CodeNode as a pure serializable model.
  *
- * @param T The primary data type flowing through this node
  * @property codeNode The underlying CodeNode model (immutable definition)
  * @property registry Optional RuntimeRegistry for automatic registration on start/stop
  */
-open class NodeRuntime<T : Any>(
+open class NodeRuntime(
     val codeNode: CodeNode,
     var registry: RuntimeRegistry? = null
 ) {
@@ -44,16 +43,6 @@ open class NodeRuntime<T : Any>(
      * Tracks the active coroutine when the node is running.
      */
     var nodeControlJob: Job? = null
-
-    /**
-     * Input channel for receiving data (sink/transformer nodes).
-     */
-    var inputChannel: ReceiveChannel<T>? = null
-
-    /**
-     * Output channel for emitting data (generator/transformer nodes).
-     */
-    var outputChannel: SendChannel<T>? = null
 
     /**
      * Starts the node's processing loop.
@@ -80,12 +69,7 @@ open class NodeRuntime<T : Any>(
 
         // Launch the processing job
         nodeControlJob = scope.launch {
-            try {
-                processingBlock()
-            } finally {
-                // Close output channel when loop exits
-                outputChannel?.close()
-            }
+            processingBlock()
         }
     }
 

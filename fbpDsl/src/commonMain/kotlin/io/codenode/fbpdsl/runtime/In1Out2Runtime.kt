@@ -12,6 +12,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ClosedReceiveChannelException
 import kotlinx.coroutines.channels.ClosedSendChannelException
+import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -36,7 +37,12 @@ class In1Out2Runtime<A : Any, U : Any, V : Any>(
     codeNode: CodeNode,
     private val channelCapacity: Int = Channel.BUFFERED,
     private val process: In1Out2ProcessBlock<A, U, V>
-) : NodeRuntime<A>(codeNode) {
+) : NodeRuntime(codeNode) {
+
+    /**
+     * Input channel for receiving data.
+     */
+    var inputChannel: ReceiveChannel<A>? = null
 
     /**
      * First output channel for sending data.

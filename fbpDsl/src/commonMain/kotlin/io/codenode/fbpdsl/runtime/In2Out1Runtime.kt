@@ -35,7 +35,12 @@ import kotlinx.coroutines.launch
 class In2Out1Runtime<A : Any, B : Any, R : Any>(
     codeNode: CodeNode,
     private val process: In2Out1ProcessBlock<A, B, R>
-) : NodeRuntime<A>(codeNode) {
+) : NodeRuntime(codeNode) {
+
+    /**
+     * First input channel for receiving data.
+     */
+    var inputChannel1: ReceiveChannel<A>? = null
 
     /**
      * Second input channel for receiving data.
@@ -44,9 +49,8 @@ class In2Out1Runtime<A : Any, B : Any, R : Any>(
 
     /**
      * Output channel for sending processed results.
-     * Separate from base class since output type R differs from input type A.
      */
-    var processorOutputChannel: SendChannel<R>? = null
+    var outputChannel: SendChannel<R>? = null
 
     /**
      * Starts the processor's continuous processing loop.
@@ -71,9 +75,9 @@ class In2Out1Runtime<A : Any, B : Any, R : Any>(
         nodeControlJob = scope.launch {
             try {
                 // Get channels - return early if not set
-                val inChannel1 = inputChannel ?: return@launch
+                val inChannel1 = inputChannel1 ?: return@launch
                 val inChannel2 = inputChannel2 ?: return@launch
-                val outChannel = processorOutputChannel ?: return@launch
+                val outChannel = outputChannel ?: return@launch
 
                 // Continuous processing loop
                 while (executionState != ExecutionState.IDLE) {
@@ -100,7 +104,7 @@ class In2Out1Runtime<A : Any, B : Any, R : Any>(
             } finally {
                 // Transition to IDLE and close output
                 executionState = ExecutionState.IDLE
-                processorOutputChannel?.close()
+                outputChannel?.close()
             }
         }
     }

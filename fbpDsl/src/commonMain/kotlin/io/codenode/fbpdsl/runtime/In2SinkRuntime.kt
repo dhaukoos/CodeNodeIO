@@ -32,7 +32,12 @@ import kotlinx.coroutines.launch
 class In2SinkRuntime<A : Any, B : Any>(
     codeNode: CodeNode,
     private val consume: In2SinkBlock<A, B>
-) : NodeRuntime<A>(codeNode) {
+) : NodeRuntime(codeNode) {
+
+    /**
+     * First input channel for receiving data.
+     */
+    var inputChannel1: ReceiveChannel<A>? = null
 
     /**
      * Second input channel for receiving data.
@@ -62,7 +67,7 @@ class In2SinkRuntime<A : Any, B : Any>(
         nodeControlJob = scope.launch {
             try {
                 // Get channels - return early if not set
-                val inChannel1 = inputChannel ?: return@launch
+                val inChannel1 = inputChannel1 ?: return@launch
                 val inChannel2 = inputChannel2 ?: return@launch
 
                 // Continuous consumption loop
