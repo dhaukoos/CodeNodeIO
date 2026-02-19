@@ -16,12 +16,9 @@ import io.codenode.fbpdsl.runtime.In2SinkRuntime
 import io.codenode.fbpdsl.runtime.RuntimeRegistry
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.ReceiveChannel
-import kotlinx.coroutines.currentCoroutineContext
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.isActive
 
 /**
  * DisplayReceiver UseCase - Sink node that receives time values for UI rendering.
@@ -37,38 +34,22 @@ import kotlinx.coroutines.isActive
  *
  * Type: SINK (2 inputs: Int for seconds, Int for minutes, 0 outputs)
  */
-class DisplayReceiverComponent (
-    private val speedAttenuation: Long = 1000L,
-) : ProcessingLogic {
+class DisplayReceiverComponent : ProcessingLogic {
 
-    // Observable state flows for displayed time - declared first for closure capture
+    // Observable state flows for displayed time
     private val _displayedSeconds = MutableStateFlow(0)
     val displayedSecondsFlow: StateFlow<Int> = _displayedSeconds.asStateFlow()
 
     private val _displayedMinutes = MutableStateFlow(0)
     val displayedMinutesFlow: StateFlow<Int> = _displayedMinutes.asStateFlow()
 
-
-
-    val consumer : In2SinkBlock<Int, Int> = { seconds, minutes ->
-        // Update state flows for UI observation
+    /**
+     * Consumer function - business logic for processing received timer values.
+     * Updates StateFlows for UI observation.
+     */
+    val consumer: In2SinkBlock<Int, Int> = { seconds, minutes ->
         _displayedSeconds.value = seconds
         _displayedMinutes.value = minutes
-
-//        // Continuous timer loop - runs until stopped
-//        while (currentCoroutineContext().isActive && executionState == ExecutionState.RUNNING) {
-//            // Delay for tick interval
-//            if (speedAttenuation > 0) {
-//                delay(speedAttenuation)
-//                // Check state again after delay (may have changed during delay)
-//                if (executionState != ExecutionState.RUNNING) break
-//            }
-//
-//            // Update state flows for UI observation
-//            _displayedSeconds.value = seconds
-//            _displayedMinutes.value = minutes
-//
-//        }
     }
 
     /**
@@ -81,12 +62,6 @@ class DisplayReceiverComponent (
         description = "Receives timer values on two typed channels and exposes them for UI rendering",
         consume = consumer
     )
-//    { seconds, minutes ->
-//        // Update state flows for UI observation
-//        _displayedSeconds.value = seconds
-//        _displayedMinutes.value = minutes
-//    }
-
 
     /**
      * Execution state - delegated to sinkRuntime.
@@ -107,38 +82,22 @@ class DisplayReceiverComponent (
             sinkRuntime.registry = value
         }
 
-    /**
-     * CodeNode reference - delegates to sinkRuntime.
-     */
     val codeNode: CodeNode
         get() = sinkRuntime.codeNode
 
-    /**
-     * First input channel (seconds) for FBP point-to-point semantics with backpressure.
-     * Must be assigned before start() is called.
-     */
     var inputChannel: ReceiveChannel<Int>?
         get() = sinkRuntime.inputChannel
         set(value) {
             sinkRuntime.inputChannel = value
         }
 
-    /**
-     * Second input channel (minutes) for FBP point-to-point semantics with backpressure.
-     * Must be assigned before start() is called.
-     */
     var inputChannel2: ReceiveChannel<Int>?
         get() = sinkRuntime.inputChannel2
         set(value) {
             sinkRuntime.inputChannel2 = value
         }
 
-    /**
-     * ProcessingLogic implementation - processes incoming time values.
-     * For continuous operation, use start() instead.
-     */
     override suspend fun invoke(inputs: Map<String, InformationPacket<*>>): Map<String, InformationPacket<*>> {
-        // Extract seconds and minutes from inputs
         inputs["seconds"]?.let { packet ->
             @Suppress("UNCHECKED_CAST")
             (packet as? InformationPacket<Int>)?.payload?.let { receiveSeconds(it) }
@@ -147,47 +106,21 @@ class DisplayReceiverComponent (
             @Suppress("UNCHECKED_CAST")
             (packet as? InformationPacket<Int>)?.payload?.let { receiveMinutes(it) }
         }
-
-        // Sink has no outputs
         return emptyMap()
     }
 
-    /**
-     * Starts collecting from the input channel.
-     * Delegates to SinkRuntime.start().
-     *
-     * @param scope CoroutineScope to run collection in
-     */
     suspend fun start(scope: CoroutineScope) {
-        sinkRuntime.start(scope) {
-            // Processing block is ignored - sink uses its own block
-        }
+        sinkRuntime.start(scope) {}
     }
 
-    /**
-     * Stops collecting from input channel.
-     * Delegates to SinkRuntime.stop().
-     */
     fun stop() {
         sinkRuntime.stop()
     }
 
-    /**
-     * Receives a seconds value from the timer.
-     * Used by ProcessingLogic interface for single-invocation mode.
-     *
-     * @param seconds The elapsed seconds value
-     */
     fun receiveSeconds(seconds: Int) {
         _displayedSeconds.value = seconds
     }
 
-    /**
-     * Receives a minutes value from the timer.
-     * Used by ProcessingLogic interface for single-invocation mode.
-     *
-     * @param minutes The elapsed minutes value
-     */
     fun receiveMinutes(minutes: Int) {
         _displayedMinutes.value = minutes
     }

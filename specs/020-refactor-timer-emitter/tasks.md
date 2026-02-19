@@ -95,9 +95,9 @@
 
 ### Implementation for User Story 3
 
-- [ ] T021 [US3] Remove commented-out code blocks (lines 58-71, 84-88) from DisplayReceiverComponent in `StopWatch/src/commonMain/kotlin/io/codenode/stopwatch/usecases/DisplayReceiverComponent.kt`
-- [ ] T022 [US3] Verify DisplayReceiverComponent contains only consumer function, StateFlow declarations, and thin delegation in `StopWatch/src/commonMain/kotlin/io/codenode/stopwatch/usecases/DisplayReceiverComponent.kt`
-- [ ] T023 [US3] Verify all StopWatch tests still pass after cleanup via `./gradlew :StopWatch:jvmTest`
+- [X] T021 [US3] Remove commented-out code blocks (lines 58-71, 84-88) from DisplayReceiverComponent in `StopWatch/src/commonMain/kotlin/io/codenode/stopwatch/usecases/DisplayReceiverComponent.kt` — Also removed unused `speedAttenuation` param and unused imports (`currentCoroutineContext`, `delay`, `isActive`)
+- [X] T022 [US3] Verify DisplayReceiverComponent contains only consumer function, StateFlow declarations, and thin delegation in `StopWatch/src/commonMain/kotlin/io/codenode/stopwatch/usecases/DisplayReceiverComponent.kt` — **Result: 6 lines of business logic**
+- [X] T023 [US3] Verify all StopWatch tests still pass after cleanup via `./gradlew :StopWatch:jvmTest`
 
 **Checkpoint**: Both components follow the clean separation pattern. All tests pass.
 
@@ -107,11 +107,11 @@
 
 **Purpose**: Final validation, documentation, and cross-module verification
 
-- [ ] T024 Run full test suite across all modules via `./gradlew :fbpDsl:jvmTest :StopWatch:jvmTest`
-- [ ] T025 Verify StopWatch app behavior (start, pause, resume, reset) matches pre-refactoring behavior (SC-003)
-- [ ] T026 Update quickstart.md with final code examples reflecting actual implementation in `specs/020-refactor-timer-emitter/quickstart.md`
-- [ ] T027 Verify SC-001: TimerEmitterComponent business logic is under 20 lines
-- [ ] T028 Verify SC-004: A new timed generator can be created with only a tick function and interval (demonstrated by TimedGeneratorTest)
+- [X] T024 Run full test suite across all modules via `./gradlew :fbpDsl:jvmTest :StopWatch:jvmTest`
+- [X] T025 Verify StopWatch app behavior (start, pause, resume, reset) matches pre-refactoring behavior (SC-003)
+- [X] T026 Update quickstart.md with final code examples reflecting actual implementation in `specs/020-refactor-timer-emitter/quickstart.md`
+- [X] T027 Verify SC-001: TimerEmitterComponent business logic is under 20 lines — **14 lines**
+- [X] T028 Verify SC-004: A new timed generator can be created with only a tick function and interval (demonstrated by TimedGeneratorTest)
 
 ---
 

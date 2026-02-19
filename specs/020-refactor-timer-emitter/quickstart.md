@@ -9,9 +9,9 @@ This refactoring separates common CodeNode runtime lifecycle concerns from uniqu
 
 ## Before & After
 
-### Before: TimerEmitterComponent (current)
+### Before: TimerEmitterComponent (pre-refactoring)
 
-The component implements its own execution loop with manual pause/resume/stop handling:
+The component implemented its own execution loop with manual pause/resume/stop handling:
 
 ```kotlin
 class TimerEmitterComponent(
@@ -25,7 +25,7 @@ class TimerEmitterComponent(
     private val _elapsedMinutes = MutableStateFlow(initialMinutes)
     val elapsedMinutesFlow: StateFlow<Int> = _elapsedMinutes.asStateFlow()
 
-    // Business logic mixed with lifecycle management
+    // Business logic mixed with lifecycle management (~27 lines)
     val generator: Out2GeneratorBlock<Int, Int> = { emit ->
         while (currentCoroutineContext().isActive && executionState != ExecutionState.IDLE) {
             while (executionState == ExecutionState.PAUSED) { delay(10) }
@@ -42,21 +42,22 @@ class TimerEmitterComponent(
         }
     }
 
+    private val generatorRuntime = CodeNodeFactory.createOut2Generator(
+        name = "TimerEmitter",
+        generate = generator
+    )
+
     // ~70 lines of property delegation, lifecycle forwarding...
-    var executionState: ExecutionState
-        get() = generatorRuntime.executionState
-        set(value) { generatorRuntime.executionState = value }
-    // ... etc
 }
 ```
 
 ### After: TimerEmitterComponent (refactored)
 
-The component provides only its unique business logic. The runtime handles the execution loop:
+The component provides only its unique business logic (14 lines). The runtime handles the execution loop:
 
 ```kotlin
 class TimerEmitterComponent(
-    speedAttenuation: Long = 1000L,
+    private val speedAttenuation: Long = 1000L,
     initialSeconds: Int = 0,
     initialMinutes: Int = 0
 ) : ProcessingLogic {
@@ -67,22 +68,16 @@ class TimerEmitterComponent(
     val elapsedMinutesFlow: StateFlow<Int> = _elapsedMinutes.asStateFlow()
 
     // Pure business logic - no lifecycle concerns
-    fun incrementer(oldSeconds: Int, oldMinutes: Int): ProcessResult2<Int, Int> {
-        var newSeconds = oldSeconds + 1
-        var newMinutes = oldMinutes
+    private val tick: Out2TickBlock<Int, Int> = {
+        var newSeconds = _elapsedSeconds.value + 1
+        var newMinutes = _elapsedMinutes.value
         if (newSeconds >= 60) {
             newSeconds = 0
             newMinutes += 1
         }
-        return ProcessResult2.both(newSeconds, newMinutes)
-    }
-
-    // Tick function - called once per interval by the runtime
-    private val tick: Out2TickBlock<Int, Int> = {
-        val result = incrementer(_elapsedSeconds.value, _elapsedMinutes.value)
-        _elapsedSeconds.value = result.out1!!
-        _elapsedMinutes.value = result.out2!!
-        result
+        _elapsedSeconds.value = newSeconds
+        _elapsedMinutes.value = newMinutes
+        ProcessResult2.both(newSeconds, newMinutes)
     }
 
     // Runtime handles loop, pause, resume, channels, registry
@@ -132,22 +127,51 @@ inline fun <reified U : Any, reified V : Any> createTimedOut2Generator(
 ): Out2GeneratorRuntime<U, V>
 ```
 
-### Runtime Behavior (Internal to Out2GeneratorRuntime)
+### Runtime Behavior
 
-When started in timed tick mode, the runtime runs:
+The factory wraps the tick function in a timed generate block and delegates to `createOut2Generator`:
 
 ```kotlin
-// Internal loop in Out2GeneratorRuntime.start()
-while (currentCoroutineContext().isActive && executionState != ExecutionState.IDLE) {
-    while (executionState == ExecutionState.PAUSED) { delay(10) }
-    if (executionState == ExecutionState.IDLE) break
-    delay(tickIntervalMs)
-    if (executionState == ExecutionState.IDLE) break
-    if (executionState == ExecutionState.PAUSED) continue
-    val result = tickBlock()
-    result.out1?.let { out1.send(it) }
-    result.out2?.let { out2.send(it) }
+// Inside createTimedOut2Generator factory
+val timedGenerate: Out2GeneratorBlock<U, V> = { emit ->
+    while (currentCoroutineContext().isActive) {
+        delay(tickIntervalMs)
+        emit(tick())
+    }
 }
+return createOut2Generator(name, generate = timedGenerate, ...)
+```
+
+The runtime's `start()` method provides the emit lambda with built-in pause checking:
+
+```kotlin
+// Inside Out2GeneratorRuntime.start()
+val emit: suspend (ProcessResult2<U, V>) -> Unit = { result ->
+    while (executionState == ExecutionState.PAUSED) { delay(10) }
+    if (executionState == ExecutionState.RUNNING) {
+        result.out1?.let { out1.send(it) }
+        result.out2?.let { out2.send(it) }
+    }
+}
+gen(emit)  // Runs the timed generate block
+```
+
+### Virtual Time Testing Note
+
+Due to a KMP limitation, `delay()` in lambdas compiled from `commonMain` does not correctly interact with `StandardTestDispatcher`'s virtual time. For testing timed generators with virtual time:
+
+```kotlin
+// Use createOut2Generator with a test-defined loop instead of createTimedOut2Generator
+val generator = CodeNodeFactory.createOut2Generator<Int, Int>(
+    name = "TestTicker",
+    generate = { emit ->  // Lambda at test call site - delay works with virtual time
+        while (currentCoroutineContext().isActive) {
+            delay(100)
+            counter++
+            emit(ProcessResult2.both(counter, counter * 10))
+        }
+    }
+)
 ```
 
 ## Files Changed
@@ -155,8 +179,10 @@ while (currentCoroutineContext().isActive && executionState != ExecutionState.ID
 | File | Change Type | Description |
 | ---- | ----------- | ----------- |
 | `fbpDsl/.../runtime/ContinuousTypes.kt` | Add | New `Out2TickBlock` type alias |
-| `fbpDsl/.../runtime/Out2GeneratorRuntime.kt` | Modify | Add timed tick mode to `start()` |
+| `fbpDsl/.../runtime/Out2GeneratorRuntime.kt` | Modify | Make `generate` nullable for factory delegation |
 | `fbpDsl/.../model/CodeNodeFactory.kt` | Add | New `createTimedOut2Generator` factory method |
-| `StopWatch/.../usecases/TimerEmitterComponent.kt` | Refactor | Replace generator block with tick function |
-| `StopWatch/.../usecases/DisplayReceiverComponent.kt` | Clean up | Remove commented-out code |
-| `StopWatch/...Test/...` | Update | Adjust test setup for new API |
+| `fbpDsl/.../runtime/TimedGeneratorTest.kt` | Add | 7 tests for timed generator behavior |
+| `StopWatch/.../usecases/TimerEmitterComponent.kt` | Refactor | Replace generator block with tick function (14 lines business logic) |
+| `StopWatch/.../usecases/DisplayReceiverComponent.kt` | Clean up | Remove commented-out code, unused param/imports (6 lines business logic) |
+| `StopWatch/.../usecases/TimerEmitterComponentTest.kt` | Update | Remove manual executionState setup, adjust pause assertion |
+| `StopWatch/.../ChannelIntegrationTest.kt` | Update | Remove manual executionState setup |
