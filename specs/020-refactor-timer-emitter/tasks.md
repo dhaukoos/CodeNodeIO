@@ -72,16 +72,16 @@
 
 > **NOTE: Existing tests serve as regression suite. Update setup to match new API.**
 
-- [ ] T014 [US1] Update TimerEmitterComponentTest to use refactored component API (tick-based, no manual executionState setup before start) in `StopWatch/src/commonTest/kotlin/io/codenode/stopwatch/TimerEmitterComponentTest.kt`
-- [ ] T015 [US1] Update ChannelIntegrationTest if any wiring changes are needed for refactored component in `StopWatch/src/commonTest/kotlin/io/codenode/stopwatch/ChannelIntegrationTest.kt`
+- [X] T014 [US1] Update TimerEmitterComponentTest to use refactored component API (tick-based, no manual executionState setup before start) in `StopWatch/src/commonTest/kotlin/io/codenode/stopwatch/usecases/TimerEmitterComponentTest.kt`
+- [X] T015 [US1] Update ChannelIntegrationTest if any wiring changes are needed for refactored component in `StopWatch/src/commonTest/kotlin/io/codenode/stopwatch/ChannelIntegrationTest.kt`
 
 ### Implementation for User Story 1
 
-- [ ] T016 [US1] Refactor TimerEmitterComponent: replace generator block with Out2TickBlock tick function containing only incrementer + StateFlow updates in `StopWatch/src/commonMain/kotlin/io/codenode/stopwatch/usecases/TimerEmitterComponent.kt`
-- [ ] T017 [US1] Refactor TimerEmitterComponent: replace createOut2Generator with createTimedOut2Generator factory call in `StopWatch/src/commonMain/kotlin/io/codenode/stopwatch/usecases/TimerEmitterComponent.kt`
-- [ ] T018 [US1] Refactor TimerEmitterComponent: remove unused imports (ExecutionState, currentCoroutineContext, isActive, delay) in `StopWatch/src/commonMain/kotlin/io/codenode/stopwatch/usecases/TimerEmitterComponent.kt`
-- [ ] T019 [US1] Verify all StopWatch tests pass via `./gradlew :StopWatch:jvmTest`
-- [ ] T020 [US1] Verify refactored TimerEmitterComponent has fewer than 20 lines of business logic (SC-001) in `StopWatch/src/commonMain/kotlin/io/codenode/stopwatch/usecases/TimerEmitterComponent.kt`
+- [X] T016 [US1] Refactor TimerEmitterComponent: replace generator block with Out2TickBlock tick function containing only incrementer + StateFlow updates in `StopWatch/src/commonMain/kotlin/io/codenode/stopwatch/usecases/TimerEmitterComponent.kt`
+- [X] T017 [US1] Refactor TimerEmitterComponent: replace createOut2Generator with createTimedOut2Generator factory call in `StopWatch/src/commonMain/kotlin/io/codenode/stopwatch/usecases/TimerEmitterComponent.kt`
+- [X] T018 [US1] Refactor TimerEmitterComponent: remove unused imports (ExecutionState, currentCoroutineContext, isActive, delay) in `StopWatch/src/commonMain/kotlin/io/codenode/stopwatch/usecases/TimerEmitterComponent.kt`
+- [X] T019 [US1] Verify all StopWatch tests pass via `./gradlew :StopWatch:jvmTest`
+- [X] T020 [US1] Verify refactored TimerEmitterComponent has fewer than 20 lines of business logic (SC-001) in `StopWatch/src/commonMain/kotlin/io/codenode/stopwatch/usecases/TimerEmitterComponent.kt` — **Result: 14 lines**
 
 **Checkpoint**: TimerEmitterComponent is refactored. All StopWatch tests pass. Component contains only business logic.
 

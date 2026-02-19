@@ -6,7 +6,6 @@
 
 package io.codenode.stopwatch
 
-import io.codenode.fbpdsl.model.ExecutionState
 import io.codenode.stopwatch.generated.StopWatchFlow
 import io.codenode.stopwatch.usecases.DisplayReceiverComponent
 import io.codenode.stopwatch.usecases.TimerEmitterComponent
@@ -41,8 +40,7 @@ class ChannelIntegrationTest {
         val timerEmitter = TimerEmitterComponent(speedAttenuation = 50L)
         val displayReceiver = DisplayReceiverComponent()
 
-        // Start the emitter - start() recreates output channels synchronously
-        timerEmitter.executionState = ExecutionState.RUNNING
+        // Start the emitter - start() transitions to RUNNING and recreates output channels
         timerEmitter.start(backgroundScope)
 
         // Wire up after start so we get the fresh channels
@@ -152,8 +150,7 @@ class ChannelIntegrationTest {
         timerEmitter.outputChannel1?.close()
         timerEmitter.outputChannel2?.close()
 
-        // When - start emitter
-        timerEmitter.executionState = ExecutionState.RUNNING
+        // When - start emitter (start() transitions to RUNNING)
         val emitterJob = launch {
             timerEmitter.start(this)
         }
@@ -181,8 +178,7 @@ class ChannelIntegrationTest {
         // Given - create the flow orchestrator
         val flow = StopWatchFlow()
 
-        // Start the flow in background
-        flow.timerEmitter.executionState = ExecutionState.RUNNING
+        // Start the flow in background (start() transitions to RUNNING)
         backgroundScope.launch {
             flow.start(this)
         }
