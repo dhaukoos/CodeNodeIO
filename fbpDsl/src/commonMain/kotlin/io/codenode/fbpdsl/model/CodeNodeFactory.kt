@@ -15,6 +15,9 @@ import io.codenode.fbpdsl.runtime.GeneratorRuntime
 import io.codenode.fbpdsl.runtime.SinkRuntime
 import io.codenode.fbpdsl.runtime.TransformerRuntime
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 
 /**
  * Factory for creating CodeNode instances with type-safe patterns
@@ -923,6 +926,52 @@ object CodeNodeFactory {
         )
 
         return io.codenode.fbpdsl.runtime.In3SinkRuntime(codeNode, consume)
+    }
+
+    // ========== Timed Generator Factory Methods ==========
+
+    /**
+     * Creates a timed 2-output generator node that calls a tick function at a regular interval.
+     *
+     * The runtime manages the execution loop (delay, pause/resume, stop).
+     * The tick function provides only the per-tick business logic.
+     *
+     * @param U Type of first output
+     * @param V Type of second output
+     * @param name Human-readable name
+     * @param tickIntervalMs Milliseconds between tick invocations
+     * @param channelCapacity Buffer capacity for output channels (default: BUFFERED = 64)
+     * @param position Canvas position
+     * @param description Optional documentation
+     * @param tick Function called once per interval, returns values to emit
+     * @return Out2GeneratorRuntime configured for timed tick mode
+     */
+    inline fun <reified U : Any, reified V : Any> createTimedOut2Generator(
+        name: String,
+        tickIntervalMs: Long,
+        channelCapacity: Int = Channel.BUFFERED,
+        position: Node.Position = Node.Position.ORIGIN,
+        description: String? = null,
+        noinline tick: io.codenode.fbpdsl.runtime.Out2TickBlock<U, V>
+    ): io.codenode.fbpdsl.runtime.Out2GeneratorRuntime<U, V> {
+        // Wrap tick in a generate block that manages the timed loop.
+        // Note: The generate lambda is compiled in this module. With real dispatchers
+        // (production), delay() works correctly. For virtual-time tests, callers
+        // should use createOut2Generator with a test-defined loop instead.
+        val timedGenerate: io.codenode.fbpdsl.runtime.Out2GeneratorBlock<U, V> = { emit ->
+            while (currentCoroutineContext().isActive) {
+                delay(tickIntervalMs)
+                emit(tick())
+            }
+        }
+
+        return createOut2Generator(
+            name = name,
+            channelCapacity = channelCapacity,
+            position = position,
+            description = description,
+            generate = timedGenerate
+        )
     }
 
     // ========== Multi-Output Generator Factory Methods ==========

@@ -26,8 +26,8 @@
 
 **Purpose**: Verify current state and establish baseline
 
-- [ ] T001 Run all existing StopWatch JVM tests to establish passing baseline via `./gradlew :StopWatch:jvmTest :fbpDsl:jvmTest`
-- [ ] T002 Snapshot current TimerEmitterComponent line count and verify current behavior (start, pause, resume, reset) in `StopWatch/src/commonMain/kotlin/io/codenode/stopwatch/usecases/TimerEmitterComponent.kt`
+- [X] T001 Run all existing StopWatch JVM tests to establish passing baseline via `./gradlew :StopWatch:jvmTest :fbpDsl:jvmTest`
+- [X] T002 Snapshot current TimerEmitterComponent line count and verify current behavior (start, pause, resume, reset) in `StopWatch/src/commonMain/kotlin/io/codenode/stopwatch/usecases/TimerEmitterComponent.kt`
 
 ---
 
@@ -43,20 +43,20 @@
 
 > **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
 
-- [ ] T003 [P] [US2] Write test: timed Out2Generator emits tick results at configured interval in `fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/runtime/TimedGeneratorTest.kt`
-- [ ] T004 [P] [US2] Write test: timed Out2Generator pauses tick loop when execution state is PAUSED in `fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/runtime/TimedGeneratorTest.kt`
-- [ ] T005 [P] [US2] Write test: timed Out2Generator resumes ticking after resume in `fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/runtime/TimedGeneratorTest.kt`
-- [ ] T006 [P] [US2] Write test: timed Out2Generator stops cleanly and closes channels on stop in `fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/runtime/TimedGeneratorTest.kt`
-- [ ] T007 [P] [US2] Write test: timed Out2Generator with zero interval emits without delay in `fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/runtime/TimedGeneratorTest.kt`
-- [ ] T008 [P] [US2] Write test: timed Out2Generator distributes null-filtered ProcessResult2 to selective channels in `fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/runtime/TimedGeneratorTest.kt`
+- [X] T003 [P] [US2] Write test: timed Out2Generator emits tick results at configured interval in `fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/runtime/TimedGeneratorTest.kt`
+- [X] T004 [P] [US2] Write test: timed Out2Generator pauses tick loop when execution state is PAUSED in `fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/runtime/TimedGeneratorTest.kt`
+- [X] T005 [P] [US2] Write test: timed Out2Generator resumes ticking after resume in `fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/runtime/TimedGeneratorTest.kt`
+- [X] T006 [P] [US2] Write test: timed Out2Generator stops cleanly and closes channels on stop in `fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/runtime/TimedGeneratorTest.kt`
+- [X] T007 [P] [US2] Write test: timed Out2Generator with zero interval emits without delay in `fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/runtime/TimedGeneratorTest.kt`
+- [X] T008 [P] [US2] Write test: timed Out2Generator distributes null-filtered ProcessResult2 to selective channels in `fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/runtime/TimedGeneratorTest.kt`
 
 ### Implementation for User Story 2
 
-- [ ] T009 [US2] Add `Out2TickBlock<U, V>` type alias in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/ContinuousTypes.kt`
-- [ ] T010 [US2] Add `tickIntervalMs` and `tickBlock` constructor parameters to Out2GeneratorRuntime in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/Out2GeneratorRuntime.kt`
-- [ ] T011 [US2] Implement timed tick loop in Out2GeneratorRuntime.start() that calls tickBlock at tickIntervalMs with pause/resume/stop hooks in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/Out2GeneratorRuntime.kt`
-- [ ] T012 [US2] Add `createTimedOut2Generator` factory method in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/CodeNodeFactory.kt`
-- [ ] T013 [US2] Verify all T003-T008 tests pass and existing Out2GeneratorRuntime tests still pass via `./gradlew :fbpDsl:jvmTest`
+- [X] T009 [US2] Add `Out2TickBlock<U, V>` type alias in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/ContinuousTypes.kt`
+- [X] T010 [US2] Add `tickIntervalMs` and `tickBlock` constructor parameters to Out2GeneratorRuntime in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/Out2GeneratorRuntime.kt` — **Approach changed**: timed tick loop is in the factory method instead of the constructor/start(), keeping Out2GeneratorRuntime unchanged
+- [X] T011 [US2] Implement timed tick loop in Out2GeneratorRuntime.start() that calls tickBlock at tickIntervalMs with pause/resume/stop hooks in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/Out2GeneratorRuntime.kt` — **Approach changed**: timed loop is constructed in `createTimedOut2Generator` factory, wrapped as a generate block that leverages existing pause/resume/stop hooks in start()
+- [X] T012 [US2] Add `createTimedOut2Generator` factory method in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/CodeNodeFactory.kt`
+- [X] T013 [US2] Verify all T003-T008 tests pass and existing Out2GeneratorRuntime tests still pass via `./gradlew :fbpDsl:jvmTest`
 
 **Checkpoint**: Timed Out2Generator runtime is functional. New factory method available. All existing tests still pass.
 

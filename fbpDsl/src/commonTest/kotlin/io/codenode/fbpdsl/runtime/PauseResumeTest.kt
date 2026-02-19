@@ -134,8 +134,9 @@ class PauseResumeTest {
     @Test
     fun out2GeneratorRuntime_pauseChangesState() = runTest {
         val generator = Out2GeneratorRuntime<Int, String>(
-            codeNode = createTestCodeNode("gen2out")
-        ) { emit -> }
+            codeNode = createTestCodeNode("gen2out"),
+            generate = { emit -> }
+        )
 
         generator.start(this) { }
         advanceUntilIdle()

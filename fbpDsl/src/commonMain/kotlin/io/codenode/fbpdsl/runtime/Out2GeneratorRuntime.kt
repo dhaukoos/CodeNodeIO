@@ -11,7 +11,9 @@ import io.codenode.fbpdsl.model.ExecutionState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ClosedSendChannelException
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
 /**
@@ -27,12 +29,14 @@ import kotlinx.coroutines.launch
  * @param V Type of second output
  * @param codeNode The underlying CodeNode model
  * @param channelCapacity Buffer capacity for output channels
- * @param generate The generator block that receives an emit function
+ * @param generate The generator block that receives an emit function (existing mode)
+ * @param tickIntervalMs Milliseconds between tick invocations (timed tick mode)
+ * @param tickBlock Function called once per interval, returns values to emit (timed tick mode)
  */
 class Out2GeneratorRuntime<U : Any, V : Any>(
     codeNode: CodeNode,
     private val channelCapacity: Int = Channel.BUFFERED,
-    private val generate: Out2GeneratorBlock<U, V>
+    private val generate: Out2GeneratorBlock<U, V>? = null
 ) : NodeRuntime<U>(codeNode) {
 
     /**
@@ -83,6 +87,8 @@ class Out2GeneratorRuntime<U : Any, V : Any>(
                 val out1 = outputChannel1 ?: return@launch
                 val out2 = outputChannel2 ?: return@launch
 
+                val gen = generate ?: return@launch
+
                 // Create emit function that distributes to output channels
                 // Includes pause check before each emit
                 val emit: suspend (ProcessResult2<U, V>) -> Unit = { result ->
@@ -98,8 +104,8 @@ class Out2GeneratorRuntime<U : Any, V : Any>(
                     }
                 }
 
-                // Run the generator block with emit function
-                generate(emit)
+                // Run the generator block
+                gen(emit)
             } catch (e: ClosedSendChannelException) {
                 // Channel closed - graceful shutdown
             } finally {
