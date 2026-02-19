@@ -24,6 +24,8 @@ Auto-generated from all feature plans. Last updated: 2026-01-13
 - N/A (in-memory FlowGraph state) (018-stopwatch-viewmodel)
 - Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + Compose Multiplatform 1.7.3, kotlinx-coroutines 1.8.0, lifecycle-viewmodel-compose 2.8.0 (019-flowgraph-execution-control)
 - Kotlin 2.1.21 (Kotlin Multiplatform) + kotlinx-coroutines 1.8.0, Compose Multiplatform 1.7.3, lifecycle-viewmodel-compose 2.8.0 (020-refactor-timer-emitter)
+- Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + kotlinx-coroutines 1.8.0 (channels, coroutine scopes) (021-refactor-noderuntime-base)
+- N/A (in-memory runtime state) (021-refactor-noderuntime-base)
 
 - Kotlin 1.9+, Go 1.21+ (001-ide-plugin-platform)
 
@@ -43,9 +45,9 @@ tests/
 Kotlin 1.9+, Go 1.21+: Follow standard conventions
 
 ## Recent Changes
+- 021-refactor-noderuntime-base: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + kotlinx-coroutines 1.8.0 (channels, coroutine scopes)
 - 020-refactor-timer-emitter: Added Kotlin 2.1.21 (Kotlin Multiplatform) + kotlinx-coroutines 1.8.0, Compose Multiplatform 1.7.3, lifecycle-viewmodel-compose 2.8.0
 - 019-flowgraph-execution-control: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + Compose Multiplatform 1.7.3, kotlinx-coroutines 1.8.0, lifecycle-viewmodel-compose 2.8.0
-- 018-stopwatch-viewmodel: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + Compose Multiplatform 1.7.3, kotlinx-coroutines 1.8.0, JetBrains lifecycle-viewmodel-compose 2.8.0
 
 
 <!-- MANUAL ADDITIONS START -->
