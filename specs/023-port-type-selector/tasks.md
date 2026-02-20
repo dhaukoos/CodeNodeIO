@@ -102,9 +102,9 @@ No setup tasks required.
 
 **Purpose**: Final validation across all user stories.
 
-- [ ] T010 Run quickstart.md validation scenarios - Verify all 3 workflows from quickstart.md: (1) Setting port types on a new node, (2) Changing types on an existing graph with propagation, (3) Persistence round-trip (save, close, reopen, verify). Document results.
+- [x] T010 Run quickstart.md validation scenarios - Verify all 3 workflows from quickstart.md: (1) Setting port types on a new node, (2) Changing types on an existing graph with propagation, (3) Persistence round-trip (save, close, reopen, verify). Document results.
 
-- [ ] T011 Full build verification and edge case review - Run `./gradlew :graphEditor:compileKotlinJvm` and `./gradlew :graphEditor:test`. Review edge cases from spec.md: non-Generic nodes, cyclic propagation (single pass), simultaneous name+type changes, deleted connections retaining port types.
+- [x] T011 Full build verification and edge case review - Run `./gradlew :graphEditor:compileKotlinJvm` and `./gradlew :graphEditor:test`. Review edge cases from spec.md: non-Generic nodes, cyclic propagation (single pass), simultaneous name+type changes, deleted connections retaining port types.
 
 ---
 

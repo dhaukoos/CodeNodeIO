@@ -54,7 +54,7 @@ class FlowKtParser {
     )
 
     private val connectionPattern = Regex(
-        """(\w+)\.output\s*\(\s*"([^"]+)"\s*\)\s*connect\s+(\w+)\.input\s*\(\s*"([^"]+)"\s*\)"""
+        """(\w+)\.output\s*\(\s*"([^"]+)"\s*\)\s*connect\s+(\w+)\.input\s*\(\s*"([^"]+)"\s*\)(?:\s*withType\s*"([^"]+)")?"""
     )
 
     private val processingLogicPattern = Regex(
@@ -359,6 +359,7 @@ class FlowKtParser {
             val sourcePortName = match.groupValues[2]
             val targetVar = match.groupValues[3]
             val targetPortName = match.groupValues[4]
+            val ipTypeId = match.groupValues.getOrNull(5)?.takeIf { it.isNotEmpty() }
 
             val sourceNodeId = nodeVarMap[sourceVar] ?: return@forEachIndexed
             val targetNodeId = nodeVarMap[targetVar] ?: return@forEachIndexed
@@ -369,7 +370,8 @@ class FlowKtParser {
                     sourceNodeId = sourceNodeId,
                     sourcePortId = "${sourceNodeId.removePrefix("node_")}_${sourcePortName}",
                     targetNodeId = targetNodeId,
-                    targetPortId = "${targetNodeId.removePrefix("node_")}_${targetPortName}"
+                    targetPortId = "${targetNodeId.removePrefix("node_")}_${targetPortName}",
+                    ipTypeId = ipTypeId
                 )
             )
         }
