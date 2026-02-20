@@ -99,17 +99,17 @@ No foundational tasks required.
 
 ### Implementation for User Story 3
 
-- [ ] T013 [US3] Remove `ProcessingLogic` fun interface from `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/CodeNode.kt` — Delete the `ProcessingLogic` fun interface definition (lines 43-51) and its KDoc. This interface contains the `suspend operator fun invoke(inputs: Map<String, InformationPacket<*>>): Map<String, InformationPacket<*>>` method.
+- [X] T013 [US3] Remove `ProcessingLogic` fun interface from `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/CodeNode.kt` — Delete the `ProcessingLogic` fun interface definition (lines 43-51) and its KDoc. This interface contains the `suspend operator fun invoke(inputs: Map<String, InformationPacket<*>>): Map<String, InformationPacket<*>>` method.
 
-- [ ] T014 [US3] Remove `processingLogic` property and helper methods from `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/CodeNode.kt` — Remove the `@Transient val processingLogic: ProcessingLogic? = null` property (line 159) from the CodeNode data class. Remove the helper methods: `hasProcessingLogic()` (line 321), `withProcessingLogic(logic: ProcessingLogic)` (lines 329-331), and `process(inputs)` (lines 340-345). Remove any imports related to InformationPacket if no longer used by remaining code.
+- [X] T014 [US3] Remove `processingLogic` property and helper methods from `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/CodeNode.kt` — Remove the `@Transient val processingLogic: ProcessingLogic? = null` property (line 159) from the CodeNode data class. Remove the helper methods: `hasProcessingLogic()` (line 321), `withProcessingLogic(logic: ProcessingLogic)` (lines 329-331), and `process(inputs)` (lines 340-345). Remove any imports related to InformationPacket if no longer used by remaining code.
 
-- [ ] T015 [US3] Remove `processingLogic` parameter from `create()` in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/CodeNodeFactory.kt` — Remove the `processingLogic: ProcessingLogic? = null` parameter from the `create()` factory method and the corresponding `processingLogic = processingLogic` assignment in the CodeNode constructor call.
+- [X] T015 [US3] Remove `processingLogic` parameter from `create()` in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/CodeNodeFactory.kt` — Remove the `processingLogic: ProcessingLogic? = null` parameter from the `create()` factory method and the corresponding `processingLogic = processingLogic` assignment in the CodeNode constructor call.
 
-- [ ] T016 [US3] Remove `_useCaseClass` property editor from `graphEditor/src/jvmMain/kotlin/ui/PropertiesPanel.kt` — Remove the _useCaseClass property editor in the Required Properties section (lines ~714-726) that shows "Use Case Class" with description "Fully qualified class implementing ProcessingLogic". This field is obsolete since _useCaseClass configuration is no longer used.
+- [X] T016 [US3] Remove `_useCaseClass` property editor from `graphEditor/src/jvmMain/kotlin/ui/PropertiesPanel.kt` — Remove the _useCaseClass property editor in the Required Properties section (lines ~714-726) that shows "Use Case Class" with description "Fully qualified class implementing ProcessingLogic". This field is obsolete since _useCaseClass configuration is no longer used.
 
-- [ ] T017 [US3] Scan for and remove any remaining `ProcessingLogic` references across the codebase — Search for `ProcessingLogic`, `processingLogic`, `_useCaseClass`, `withProcessingLogic`, `hasProcessingLogic` across all source files (excluding specs/ and docs/). Remove any remaining references found in imports, configuration handling, test fixtures, or generated code templates. Check modules: fbpDsl, kotlinCompiler, graphEditor, StopWatch.
+- [X] T017 [US3] Scan for and remove any remaining `ProcessingLogic` references across the codebase — Search for `ProcessingLogic`, `processingLogic`, `_useCaseClass`, `withProcessingLogic`, `hasProcessingLogic` across all source files (excluding specs/ and docs/). Remove any remaining references found in imports, configuration handling, test fixtures, or generated code templates. Check modules: fbpDsl, kotlinCompiler, graphEditor, StopWatch.
 
-- [ ] T018 [US3] Build verification for US3 — Run `./gradlew :fbpDsl:compileKotlinJvm :kotlinCompiler:compileKotlinJvm :graphEditor:compileKotlinJvm :StopWatch:compileKotlinJvm` and `./gradlew :fbpDsl:jvmTest :kotlinCompiler:jvmTest`. Verify all modules compile and all tests pass. Grep for `ProcessingLogic` in source files to confirm zero matches remain.
+- [X] T018 [US3] Build verification for US3 — Run `./gradlew :fbpDsl:compileKotlinJvm :kotlinCompiler:compileKotlinJvm :graphEditor:compileKotlinJvm :StopWatch:compileKotlinJvm` and `./gradlew :fbpDsl:jvmTest :kotlinCompiler:jvmTest`. Verify all modules compile and all tests pass. Grep for `ProcessingLogic` in source files to confirm zero matches remain.
 
 **Checkpoint**: ProcessingLogic completely removed from the codebase. All modules compile and tests pass.
 
@@ -119,9 +119,9 @@ No foundational tasks required.
 
 **Purpose**: Final validation across all user stories.
 
-- [ ] T019 Full cross-module build verification — Run `./gradlew :fbpDsl:compileKotlinJvm :graphEditor:compileKotlinJvm :kotlinCompiler:compileKotlinJvm :StopWatch:compileKotlinJvm` and `./gradlew :fbpDsl:jvmTest :kotlinCompiler:jvmTest`. Verify all modules compile and all tests pass.
+- [X] T019 Full cross-module build verification — Run `./gradlew :fbpDsl:compileKotlinJvm :graphEditor:compileKotlinJvm :kotlinCompiler:compileKotlinJvm :StopWatch:compileKotlinJvm` and `./gradlew :fbpDsl:jvmTest :kotlinCompiler:jvmTest`. Verify all modules compile and all tests pass.
 
-- [ ] T020 Verify completeness — Confirm: (1) ProcessingLogicStubGenerator generates tick stubs with correct type aliases for all 16 node configurations, (2) FlowGraphFactoryGenerator produces tick-stub-based factory code, (3) FlowKtGenerator does not emit processingLogic references, (4) Zero `ProcessingLogic` references remain in source files, (5) Zero `_useCaseClass` references remain in source files (excluding specs/).
+- [X] T020 Verify completeness — Confirm: (1) ProcessingLogicStubGenerator generates tick stubs with correct type aliases for all 16 node configurations, (2) FlowGraphFactoryGenerator produces tick-stub-based factory code, (3) FlowKtGenerator does not emit processingLogic references, (4) Zero `ProcessingLogic` references remain in source files, (5) Zero `_useCaseClass` references remain in source files (excluding specs/).
 
 ---
 

@@ -366,7 +366,7 @@ class ModuleSaveServiceTest {
         // Then
         assertTrue(result.success)
         val packageDir = File(result.moduleDir, "src/commonMain/kotlin/io/codenode/testmodule/usecases")
-        val stubFile = File(packageDir, "ProcessorComponent.kt")
+        val stubFile = File(packageDir, "ProcessorProcessLogic.kt")
         assertTrue(stubFile.exists(), "ProcessingLogic stub should be created for CodeNode")
     }
 
@@ -382,10 +382,10 @@ class ModuleSaveServiceTest {
         // Then
         assertTrue(result.success)
         val packageDir = File(result.moduleDir, "src/commonMain/kotlin/io/codenode/testmodule/usecases")
-        val stubFile = File(packageDir, "ProcessorComponent.kt")
+        val stubFile = File(packageDir, "ProcessorProcessLogic.kt")
         val content = stubFile.readText()
-        assertTrue(content.contains(": ProcessingLogic"), "Stub should implement ProcessingLogic")
-        assertTrue(content.contains("override suspend operator fun invoke"), "Stub should have invoke method")
+        assertTrue(content.contains("Tick"), "Stub should contain tick type alias reference")
+        assertTrue(content.contains("TODO"), "Stub should have TODO placeholder")
     }
 
     @Test
@@ -437,8 +437,8 @@ class ModuleSaveServiceTest {
         // Then
         assertTrue(result.success)
         val packageDir = File(result.moduleDir, "src/commonMain/kotlin/io/codenode/multinodetest/usecases")
-        val stub1 = File(packageDir, "FirstNodeComponent.kt")
-        val stub2 = File(packageDir, "SecondNodeComponent.kt")
+        val stub1 = File(packageDir, "FirstNodeProcessLogic.kt")
+        val stub2 = File(packageDir, "SecondNodeProcessLogic.kt")
         assertTrue(stub1.exists(), "Stub for FirstNode should be created")
         assertTrue(stub2.exists(), "Stub for SecondNode should be created")
     }
@@ -455,7 +455,7 @@ class ModuleSaveServiceTest {
 
         // Modify the stub file
         val packageDir = File(result1.moduleDir, "src/commonMain/kotlin/io/codenode/testmodule/usecases")
-        val stubFile = File(packageDir, "ProcessorComponent.kt")
+        val stubFile = File(packageDir, "ProcessorProcessLogic.kt")
         val userImplementation = "// USER IMPLEMENTATION - DO NOT OVERWRITE\n" + stubFile.readText()
         stubFile.writeText(userImplementation)
 
@@ -483,7 +483,7 @@ class ModuleSaveServiceTest {
 
         // User implements the ProcessingLogic
         val packageDir = File(result1.moduleDir, "src/commonMain/kotlin/io/codenode/incrementaltest/usecases")
-        val stubFile = File(packageDir, "ProcessorComponent.kt")
+        val stubFile = File(packageDir, "ProcessorProcessLogic.kt")
         val userImplementation = """
             package io.codenode.generated.incrementaltest
 
@@ -533,8 +533,8 @@ class ModuleSaveServiceTest {
 
         // User implements both files
         val packageDir = File(result1.moduleDir, "src/commonMain/kotlin/io/codenode/multinode/usecases")
-        val file1 = File(packageDir, "GeneratorComponent.kt")
-        val file2 = File(packageDir, "ProcessorComponent.kt")
+        val file1 = File(packageDir, "GeneratorProcessLogic.kt")
+        val file2 = File(packageDir, "ProcessorProcessLogic.kt")
 
         val impl1 = "// GENERATOR IMPL v1.0\n" + file1.readText()
         val impl2 = "// PROCESSOR IMPL v2.0\n" + file2.readText()
@@ -547,9 +547,9 @@ class ModuleSaveServiceTest {
         // Then
         assertTrue(result2.success)
         assertTrue(file1.readText().contains("GENERATOR IMPL v1.0"),
-            "GeneratorComponent should be preserved")
+            "GeneratorProcessLogic should be preserved")
         assertTrue(file2.readText().contains("PROCESSOR IMPL v2.0"),
-            "ProcessorComponent should be preserved")
+            "ProcessorProcessLogic should be preserved")
     }
 
     // ========== T046: Generate Stubs Only for NEW Nodes ==========
@@ -567,7 +567,7 @@ class ModuleSaveServiceTest {
 
         // User implements the first node
         val packageDir = File(result1.moduleDir, "src/commonMain/kotlin/io/codenode/expandingflow/usecases")
-        val existingStub = File(packageDir, "ExistingNodeComponent.kt")
+        val existingStub = File(packageDir, "ExistingNodeProcessLogic.kt")
         val userImpl = "// USER IMPLEMENTED\n" + existingStub.readText()
         existingStub.writeText(userImpl)
 
@@ -586,7 +586,7 @@ class ModuleSaveServiceTest {
             "Existing node implementation should be preserved")
 
         // New node gets a stub
-        val newStub = File(packageDir, "NewNodeComponent.kt")
+        val newStub = File(packageDir, "NewNodeProcessLogic.kt")
         assertTrue(newStub.exists(), "New node should get a stub file")
         assertTrue(newStub.readText().contains("TODO"),
             "New node stub should have TODO placeholder")
@@ -602,8 +602,8 @@ class ModuleSaveServiceTest {
         // First save
         val result1 = saveService.saveModule(flowGraph1, tempDir)
         assertTrue(result1.success)
-        assertTrue(result1.filesCreated.any { it.contains("FirstNodeComponent.kt") },
-            "First save should report FirstNodeComponent as created")
+        assertTrue(result1.filesCreated.any { it.contains("FirstNodeProcessLogic.kt") },
+            "First save should report FirstNodeProcessLogic as created")
 
         // Add second node
         val node2 = createTestCodeNode("node2", "SecondNode", CodeNodeType.SINK)
@@ -614,10 +614,10 @@ class ModuleSaveServiceTest {
 
         // Then - only new file should be in filesCreated
         assertTrue(result2.success)
-        assertFalse(result2.filesCreated.any { it.contains("FirstNodeComponent.kt") },
-            "Existing FirstNodeComponent should not be in filesCreated")
-        assertTrue(result2.filesCreated.any { it.contains("SecondNodeComponent.kt") },
-            "New SecondNodeComponent should be in filesCreated")
+        assertFalse(result2.filesCreated.any { it.contains("FirstNodeProcessLogic.kt") },
+            "Existing FirstNodeProcessLogic should not be in filesCreated")
+        assertTrue(result2.filesCreated.any { it.contains("SecondNodeProcessLogic.kt") },
+            "New SecondNodeProcessLogic should be in filesCreated")
     }
 
     // ========== T047: Warning When Node Removed (Orphaned ProcessingLogic) ==========
@@ -636,8 +636,8 @@ class ModuleSaveServiceTest {
 
         // User implements both
         val packageDir = File(result1.moduleDir, "src/commonMain/kotlin/io/codenode/shrinkingflow/usecases")
-        val keptFile = File(packageDir, "KeptNodeComponent.kt")
-        val removedFile = File(packageDir, "RemovedNodeComponent.kt")
+        val keptFile = File(packageDir, "KeptNodeProcessLogic.kt")
+        val removedFile = File(packageDir, "RemovedNodeProcessLogic.kt")
         keptFile.writeText("// User impl kept\n" + keptFile.readText())
         removedFile.writeText("// User impl removed\n" + removedFile.readText())
 
@@ -650,7 +650,7 @@ class ModuleSaveServiceTest {
         // Then
         assertTrue(result2.success, "Save should still succeed")
         assertTrue(result2.warnings.isNotEmpty(), "Should have warnings about orphaned file")
-        assertTrue(result2.warnings.any { it.contains("RemovedNodeComponent") },
+        assertTrue(result2.warnings.any { it.contains("RemovedNodeProcessLogic") },
             "Warning should mention the orphaned component")
     }
 
@@ -668,7 +668,7 @@ class ModuleSaveServiceTest {
 
         // Implement the file that will become orphaned
         val packageDir = File(result1.moduleDir, "src/commonMain/kotlin/io/codenode/safedelete/usecases")
-        val orphanedFile = File(packageDir, "ToRemoveComponent.kt")
+        val orphanedFile = File(packageDir, "ToRemoveProcessLogic.kt")
         orphanedFile.writeText("// IMPORTANT USER CODE - DO NOT DELETE\n" + orphanedFile.readText())
 
         // Remove node from flow

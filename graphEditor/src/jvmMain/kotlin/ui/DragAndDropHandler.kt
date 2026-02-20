@@ -267,8 +267,7 @@ fun createNodeFromType(nodeType: NodeTypeDefinition, position: Offset): CodeNode
         configuration = emptyMap(),
         parentNodeId = null,
         executionState = ExecutionState.IDLE,
-        coroutineHandle = null,
-        processingLogic = null // No processing logic yet - will be added later
+        coroutineHandle = null
     )
 }
 

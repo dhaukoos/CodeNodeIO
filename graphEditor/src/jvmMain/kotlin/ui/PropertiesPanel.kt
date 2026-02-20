@@ -710,20 +710,6 @@ private fun PropertiesContent(
                 modifier = Modifier.padding(vertical = 4.dp)
             )
 
-            // _useCaseClass - required for code generation
-            val useCaseClassValue = state.properties["_useCaseClass"] ?: ""
-            val useCaseClassError = if (useCaseClassValue.isBlank()) "Use Case Class is required" else null
-            PropertyEditorRow(
-                definition = PropertyDefinition(
-                    name = "Use Case Class",
-                    type = PropertyType.STRING,
-                    required = true,
-                    description = "Fully qualified class implementing ProcessingLogic"
-                ),
-                value = useCaseClassValue,
-                error = useCaseClassError,
-                onValueChange = { onPropertyChange("_useCaseClass", it) }
-            )
             Spacer(modifier = Modifier.height(8.dp))
 
             // _genericType - display as read-only info

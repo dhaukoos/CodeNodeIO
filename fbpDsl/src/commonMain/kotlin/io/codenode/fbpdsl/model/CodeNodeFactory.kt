@@ -31,7 +31,6 @@ object CodeNodeFactory {
      * @param position Canvas position
      * @param inputPorts List of input ports
      * @param outputPorts List of output ports
-     * @param processingLogic Optional processing logic lambda function
      * @param description Optional documentation
      * @param configuration Optional key-value configuration
      * @return New CodeNode instance
@@ -42,7 +41,6 @@ object CodeNodeFactory {
         position: Node.Position = Node.Position.ORIGIN,
         inputPorts: List<Port<*>> = emptyList(),
         outputPorts: List<Port<*>> = emptyList(),
-        processingLogic: ProcessingLogic? = null,
         description: String? = null,
         configuration: Map<String, String> = emptyMap()
     ): CodeNode {
@@ -54,8 +52,7 @@ object CodeNodeFactory {
             position = position,
             inputPorts = inputPorts,
             outputPorts = outputPorts,
-            configuration = configuration,
-            processingLogic = processingLogic
+            configuration = configuration
         )
     }
 

@@ -277,7 +277,7 @@ class ModuleSaveService {
 
         // Find all *Component.kt files in source directory
         val existingComponentFiles = sourceDir.listFiles()
-            ?.filter { it.isFile && it.name.endsWith("Component.kt") }
+            ?.filter { it.isFile && it.name.endsWith("ProcessLogic.kt") }
             ?.map { it.name }
             ?: emptyList()
 

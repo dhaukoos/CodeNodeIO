@@ -110,7 +110,7 @@ class CompilationValidator {
             val required = factoryGenerator.getRequiredComponents(flowGraph)
             return ComponentValidationResult(
                 isValid = false,
-                missingComponents = required
+                missingStubs = required
             )
         }
 
@@ -151,7 +151,7 @@ class CompilationValidator {
             fileName !in expectedFiles &&
                 fileName != flowKtFile &&
                 fileName != flowDefFile &&
-                fileName.endsWith("Component.kt") // Only flag Component files
+                fileName.endsWith("ProcessLogic.kt") // Only flag ProcessLogic stub files
         }
     }
 

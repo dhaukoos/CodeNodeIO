@@ -10,47 +10,6 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 
 /**
- * Processing logic interface for CodeNode execution
- *
- * Takes a map of input port names to InformationPackets and produces
- * a map of output port names to InformationPackets.
- *
- * This is a functional interface (SAM - Single Abstract Method) that supports:
- * - Lambda syntax: `ProcessingLogic { inputs -> ... }`
- * - Class implementations: `class MyUseCase : ProcessingLogic { ... }`
- * - Dependency injection, state management, and lifecycle hooks
- *
- * The suspend operator function supports asynchronous operations like
- * API calls, database queries, or file I/O.
- *
- * @sample
- * ```kotlin
- * // Lambda usage
- * val logic: ProcessingLogic = { inputs ->
- *     // Process and return outputs
- *     mapOf(...)
- * }
- *
- * // Class usage (UseCase pattern)
- * class TransformUseCase(private val apiClient: ApiClient) : ProcessingLogic {
- *     override suspend fun invoke(inputs: Map<String, InformationPacket<*>>): Map<String, InformationPacket<*>> {
- *         // Use injected dependencies
- *         return mapOf(...)
- *     }
- * }
- * ```
- */
-fun interface ProcessingLogic {
-    /**
-     * Processes input InformationPackets and produces output InformationPackets
-     *
-     * @param inputs Map of input port name to received InformationPacket
-     * @return Map of output port name to produced InformationPacket
-     */
-    suspend operator fun invoke(inputs: Map<String, InformationPacket<*>>): Map<String, InformationPacket<*>>
-}
-
-/**
  * Type classification for CodeNode instances
  */
 @Serializable
@@ -118,7 +77,6 @@ enum class CodeNodeType {
  * @property parentNodeId Optional reference to parent GraphNode
  * @property executionState Current state of the node's execution
  * @property coroutineHandle Optional runtime reference to controlling coroutine
- * @property processingLogic Lambda function that processes input IPs and produces output IPs
  * @property controlConfig Pause/resume/speed attenuation settings
  *
  * @sample
@@ -134,12 +92,7 @@ enum class CodeNodeType {
  *     ),
  *     outputPorts = listOf(
  *         PortFactory.output<DomainUser>("domainOutput", "node_123")
- *     ),
- *     processingLogic = { inputs ->
- *         val apiData = inputs["apiInput"]?.payload as? ApiUserData
- *         val domainUser = apiData?.let { DomainUser(it.name, it.email) }
- *         mapOf("domainOutput" to InformationPacketFactory.create(domainUser))
- *     }
+ *     )
  * )
  * ```
  */
@@ -156,7 +109,6 @@ data class CodeNode(
     override val parentNodeId: String? = null,
     override val executionState: ExecutionState = ExecutionState.IDLE,
     val coroutineHandle: String? = null,
-    @Transient val processingLogic: ProcessingLogic? = null,
     override val controlConfig: ControlConfig = ControlConfig()
 ) : Node() {
 
@@ -185,13 +137,6 @@ data class CodeNode(
         // Must have at least one input port OR one output port
         if (inputPorts.isEmpty() && outputPorts.isEmpty()) {
             errors.add("CodeNode must have at least one port (input or output)")
-        }
-
-        // Processing logic should be defined for execution (warning, not error)
-        // Note: This is a soft requirement - some nodes might be placeholders during design
-        if (processingLogic == null) {
-            // This is acceptable for initial development/design, but the node cannot execute
-            // errors.add("CodeNode '${name}' has no processing logic defined")
         }
 
         // Validate control config
@@ -313,34 +258,4 @@ data class CodeNode(
      */
     fun canAcceptPackets(): Boolean = executionState == ExecutionState.IDLE || executionState == ExecutionState.RUNNING
 
-    /**
-     * Checks if this CodeNode has processing logic defined
-     *
-     * @return true if processingLogic is not null
-     */
-    fun hasProcessingLogic(): Boolean = processingLogic != null
-
-    /**
-     * Creates a copy of this CodeNode with new processing logic
-     *
-     * @param logic The new processing logic function
-     * @return New CodeNode instance with updated processing logic
-     */
-    fun withProcessingLogic(logic: ProcessingLogic): CodeNode {
-        return copy(processingLogic = logic)
-    }
-
-    /**
-     * Executes the processing logic with the given inputs
-     *
-     * @param inputs Map of input port names to InformationPackets
-     * @return Map of output port names to InformationPackets
-     * @throws IllegalStateException if processingLogic is null
-     */
-    suspend fun process(inputs: Map<String, InformationPacket<*>>): Map<String, InformationPacket<*>> {
-        val logic = processingLogic ?: throw IllegalStateException(
-            "CodeNode '$name' has no processing logic defined. Cannot execute."
-        )
-        return logic(inputs)
-    }
 }

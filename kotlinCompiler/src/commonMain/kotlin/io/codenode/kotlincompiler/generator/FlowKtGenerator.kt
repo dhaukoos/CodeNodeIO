@@ -30,7 +30,7 @@ class FlowKtGenerator {
      *
      * @param flowGraph The flow graph to serialize
      * @param packageName The package name for the generated file
-     * @param usecasesPackage Optional package name for ProcessingLogic usecases (for separate package structure)
+     * @param usecasesPackage Optional package name for usecases (for separate package structure)
      * @return Generated Kotlin source code
      */
     fun generateFlowKt(flowGraph: FlowGraph, packageName: String, usecasesPackage: String? = null): String {

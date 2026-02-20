@@ -57,10 +57,6 @@ class FlowKtParser {
         """(\w+)\.output\s*\(\s*"([^"]+)"\s*\)\s*connect\s+(\w+)\.input\s*\(\s*"([^"]+)"\s*\)(?:\s*withType\s*"([^"]+)")?"""
     )
 
-    private val processingLogicPattern = Regex(
-        """processingLogic\s*<\s*(\w+)\s*>\s*\(\s*\)"""
-    )
-
     private val configPattern = Regex(
         """config\s*\(\s*"([^"]+)"\s*,\s*"([^"]+)"\s*\)"""
     )
@@ -236,14 +232,7 @@ class FlowKtParser {
             // Parse configuration
             val config = parseConfiguration(nodeBlockContent)
 
-            // Parse processingLogic reference
-            val processingLogicMatch = processingLogicPattern.find(nodeBlockContent)
-            val finalConfig = if (processingLogicMatch != null) {
-                val className = processingLogicMatch.groupValues[1]
-                config + ("_useCaseClass" to className)
-            } else {
-                config
-            }
+            val finalConfig = config
 
             val nodeId = "node_${nodeName.lowercase().replace(" ", "_")}"
             nodeVarMap[varName] = nodeId

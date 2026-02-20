@@ -72,7 +72,7 @@ class CompilationValidatorTest {
         name: String = "TestFlow",
         nodes: List<Node> = listOf(
             createTestCodeNode("timer", "TimerEmitter", CodeNodeType.GENERATOR, "TimerEmitterComponent"),
-            createTestCodeNode("display", "DisplayReceiver", CodeNodeType.SINK, "DisplayReceiverComponent")
+            createTestCodeNode("display", "DisplayReceiver", CodeNodeType.SINK, "DisplayReceiverProcessLogic")
         )
     ): FlowGraph {
         return FlowGraph(
@@ -118,7 +118,7 @@ class CompilationValidatorTest {
         setupModuleStructure(
             moduleDir,
             packageName,
-            componentFiles = listOf("TimerEmitterComponent.kt", "DisplayReceiverComponent.kt")
+            componentFiles = listOf("TimerEmitterProcessLogic.kt", "DisplayReceiverProcessLogic.kt")
         )
 
         val validator = CompilationValidator()
@@ -141,8 +141,8 @@ class CompilationValidatorTest {
         setupModuleStructure(
             moduleDir,
             packageName,
-            componentFiles = listOf("TimerEmitterComponent.kt")
-            // DisplayReceiverComponent.kt is missing
+            componentFiles = listOf("TimerEmitterProcessLogic.kt")
+            // DisplayReceiverProcessLogic.kt is missing
         )
 
         val validator = CompilationValidator()
@@ -152,8 +152,8 @@ class CompilationValidatorTest {
 
         // Then
         assertFalse(result.isValid, "Validation should fail when components are missing")
-        assertTrue(result.errors.any { it.contains("DisplayReceiverComponent") },
-            "Should report DisplayReceiverComponent as missing")
+        assertTrue(result.errors.any { it.contains("DisplayReceiverProcessLogic") },
+            "Should report DisplayReceiverProcessLogic as missing")
     }
 
     @Test
@@ -185,8 +185,8 @@ class CompilationValidatorTest {
         // Create directory without build.gradle.kts
         val packagePath = packageName.replace(".", "/")
         File(moduleDir, "src/commonMain/kotlin/$packagePath").mkdirs()
-        File(moduleDir, "src/commonMain/kotlin/$packagePath/TimerEmitterComponent.kt").writeText("// Stub")
-        File(moduleDir, "src/commonMain/kotlin/$packagePath/DisplayReceiverComponent.kt").writeText("// Stub")
+        File(moduleDir, "src/commonMain/kotlin/$packagePath/TimerEmitterProcessLogic.kt").writeText("// Stub")
+        File(moduleDir, "src/commonMain/kotlin/$packagePath/DisplayReceiverProcessLogic.kt").writeText("// Stub")
 
         val validator = CompilationValidator()
 
@@ -209,7 +209,7 @@ class CompilationValidatorTest {
         setupModuleStructure(
             moduleDir,
             packageName,
-            componentFiles = listOf("TimerEmitterComponent.kt", "DisplayReceiverComponent.kt")
+            componentFiles = listOf("TimerEmitterProcessLogic.kt", "DisplayReceiverProcessLogic.kt")
         )
 
         val validator = CompilationValidator()
@@ -231,7 +231,7 @@ class CompilationValidatorTest {
         setupModuleStructure(
             moduleDir,
             packageName,
-            componentFiles = listOf("TimerEmitterComponent.kt")
+            componentFiles = listOf("TimerEmitterProcessLogic.kt")
         )
 
         val validator = CompilationValidator()
@@ -255,7 +255,7 @@ class CompilationValidatorTest {
         setupModuleStructure(
             moduleDir,
             packageName,
-            componentFiles = listOf("TimerEmitterComponent.kt", "DisplayReceiverComponent.kt")
+            componentFiles = listOf("TimerEmitterProcessLogic.kt", "DisplayReceiverProcessLogic.kt")
         )
 
         val validator = CompilationValidator()
@@ -284,8 +284,8 @@ class CompilationValidatorTest {
             moduleDir,
             packageName,
             componentFiles = listOf(
-                "TimerEmitterComponent.kt",
-                "OldRemovedComponent.kt" // This node was removed
+                "TimerEmitterProcessLogic.kt",
+                "OldRemovedProcessLogic.kt" // This node was removed
             )
         )
 
@@ -297,7 +297,7 @@ class CompilationValidatorTest {
         val orphaned = validator.findOrphanedComponents(flowGraph, sourceDir)
 
         // Then
-        assertTrue(orphaned.contains("OldRemovedComponent.kt"),
+        assertTrue(orphaned.contains("OldRemovedProcessLogic.kt"),
             "Should detect orphaned component file")
     }
 
@@ -314,7 +314,7 @@ class CompilationValidatorTest {
         setupModuleStructure(
             moduleDir,
             packageName,
-            componentFiles = listOf("TimerEmitterComponent.kt", "OldComponent.kt")
+            componentFiles = listOf("TimerEmitterProcessLogic.kt", "OldProcessLogic.kt")
         )
 
         val validator = CompilationValidator()
@@ -324,7 +324,7 @@ class CompilationValidatorTest {
 
         // Then
         assertTrue(result.isValid, "Should be valid (orphaned files are warnings, not errors)")
-        assertTrue(result.warnings.any { it.contains("OldComponent") },
+        assertTrue(result.warnings.any { it.contains("OldProcessLogic") },
             "Should warn about orphaned component")
     }
 }
