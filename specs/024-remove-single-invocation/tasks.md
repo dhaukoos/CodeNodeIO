@@ -91,17 +91,17 @@ No setup tasks required.
 
 ### Implementation for User Story 3
 
-- [ ] T011 [P] [US3] Remove `createTransformer<TIn, TOut>` factory method from `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/CodeNodeFactory.kt` — Delete the entire method including KDoc and function body.
+- [x] T011 [P] [US3] Remove `createTransformer<TIn, TOut>` factory method from `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/CodeNodeFactory.kt` — Delete the entire method including KDoc and function body.
 
-- [ ] T012 [P] [US3] Remove `createFilter<T>` factory method from `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/CodeNodeFactory.kt` — Delete the entire method including KDoc and function body.
+- [x] T012 [P] [US3] Remove `createFilter<T>` factory method from `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/CodeNodeFactory.kt` — Delete the entire method including KDoc and function body.
 
-- [ ] T013 [P] [US3] Remove `createSplitter<T>` factory method from `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/CodeNodeFactory.kt` — Delete the entire method including KDoc and function body.
+- [x] T013 [P] [US3] Remove `createSplitter<T>` factory method from `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/CodeNodeFactory.kt` — Delete the entire method including KDoc and function body.
 
-- [ ] T014 [P] [US3] Remove `createMerger<T>` factory method from `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/CodeNodeFactory.kt` — Delete the entire method including KDoc and function body.
+- [x] T014 [P] [US3] Remove `createMerger<T>` factory method from `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/CodeNodeFactory.kt` — Delete the entire method including KDoc and function body.
 
-- [ ] T015 [P] [US3] Remove `createValidator<T>` factory method from `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/CodeNodeFactory.kt` — Delete the entire method including KDoc and function body.
+- [x] T015 [P] [US3] Remove `createValidator<T>` factory method from `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/CodeNodeFactory.kt` — Delete the entire method including KDoc and function body.
 
-- [ ] T016 [US3] Build verification for US3 — Run `./gradlew :fbpDsl:compileKotlinJvm :graphEditor:compileKotlinJvm :kotlinCompiler:compileKotlinJvm :StopWatch:compileKotlinJvm` and `./gradlew :fbpDsl:jvmTest`. Verify all modules compile and tests pass.
+- [x] T016 [US3] Build verification for US3 — Run `./gradlew :fbpDsl:compileKotlinJvm :graphEditor:compileKotlinJvm :kotlinCompiler:compileKotlinJvm :StopWatch:compileKotlinJvm` and `./gradlew :fbpDsl:jvmTest`. Verify all modules compile and tests pass.
 
 **Checkpoint**: All single-invocation factory methods removed. CodeNodeFactory now contains only `create()` (generic) and the continuous factory methods.
 
