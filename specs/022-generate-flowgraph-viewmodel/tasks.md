@@ -113,7 +113,7 @@
 
 ### Implementation for User Story 5
 
-- [ ] T033 [US5] Create specs/022-generate-flowgraph-viewmodel/undefined-inputs.md documenting: (1) port data types default to Any::class, (2) component StateFlow naming convention {portName}Flow is not enforced, (3) reset behavior is hardcoded, (4) no port filtering mechanism for excluding internal ports, (5) StateFlow initial values not derivable from FlowGraph. Include recommended convention or DSL extension for each gap.
+- [x] T033 [US5] Create specs/022-generate-flowgraph-viewmodel/undefined-inputs.md documenting: (1) port data types default to Any::class, (2) component StateFlow naming convention {portName}Flow is not enforced, (3) reset behavior is hardcoded, (4) no port filtering mechanism for excluding internal ports, (5) StateFlow initial values not derivable from FlowGraph. Include recommended convention or DSL extension for each gap.
 
 **Checkpoint**: Analysis document complete. All metadata gaps identified with mitigations.
 
