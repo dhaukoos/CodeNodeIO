@@ -74,9 +74,9 @@ No setup tasks required.
 
 ### Implementation for User Story 2
 
-- [ ] T006 [US2] Extend `updatePortType()` in `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/state/GraphState.kt` with propagation logic - After updating the port (from T001), find all connections where `sourcePortId == portId` or `targetPortId == portId`. For each connection: (a) copy connection with `ipTypeId = ipType.id`, (b) find the remote port (the other end), (c) copy remote port with `dataType = ipType.payloadType`, (d) copy remote node with updated port lists. Apply all updates to flowGraph in a single pass (non-recursive per D2 in plan.md). Follow the contract in `contracts/ui-interactions.md` Interaction 2.
+- [x] T006 [US2] Extend `updatePortType()` in `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/state/GraphState.kt` with propagation logic - After updating the port (from T001), find all connections where `sourcePortId == portId` or `targetPortId == portId`. For each connection: (a) copy connection with `ipTypeId = ipType.id`, (b) find the remote port (the other end), (c) copy remote port with `dataType = ipType.payloadType`, (d) copy remote node with updated port lists. Apply all updates to flowGraph in a single pass (non-recursive per D2 in plan.md). Follow the contract in `contracts/ui-interactions.md` Interaction 2.
 
-- [ ] T007 [US2] Verify US2 propagation - Run `./gradlew :graphEditor:compileKotlinJvm` and `./gradlew :graphEditor:test`. Manually verify: open graphEditor, create two connected Generic Nodes, change a port type, confirm connection color changes and remote port dropdown updates.
+- [x] T007 [US2] Verify US2 propagation - Run `./gradlew :graphEditor:compileKotlinJvm` and `./gradlew :graphEditor:test`. Manually verify: open graphEditor, create two connected Generic Nodes, change a port type, confirm connection color changes and remote port dropdown updates.
 
 **Checkpoint**: Port type changes now propagate through the full data path (source port -> connection -> target port).
 

@@ -352,12 +352,14 @@ class GraphState(initialGraph: FlowGraph = flowGraph(
     fun updatePortType(nodeId: String, portId: String, typeName: String, ipTypeRegistry: IPTypeRegistry) {
         val ipType = ipTypeRegistry.getByTypeName(typeName) ?: return
         val node = flowGraph.findNode(nodeId) as? CodeNode ?: return
+        val newDataType = ipType.payloadType as kotlin.reflect.KClass<Any>
 
+        // Step 1: Update the port on the owning node
         val updatedInputPorts = node.inputPorts.map { port ->
-            if (port.id == portId) (port as io.codenode.fbpdsl.model.Port<Any>).copy(dataType = ipType.payloadType as kotlin.reflect.KClass<Any>) else port
+            if (port.id == portId) (port as io.codenode.fbpdsl.model.Port<Any>).copy(dataType = newDataType) else port
         }
         val updatedOutputPorts = node.outputPorts.map { port ->
-            if (port.id == portId) (port as io.codenode.fbpdsl.model.Port<Any>).copy(dataType = ipType.payloadType as kotlin.reflect.KClass<Any>) else port
+            if (port.id == portId) (port as io.codenode.fbpdsl.model.Port<Any>).copy(dataType = newDataType) else port
         }
 
         val updatedNode = node.copy(
@@ -366,6 +368,39 @@ class GraphState(initialGraph: FlowGraph = flowGraph(
         )
 
         flowGraph = flowGraph.removeNode(nodeId).addNode(updatedNode)
+
+        // Step 2: Propagate to all attached connections and their remote ports
+        val attachedConnections = flowGraph.connections.filter {
+            it.sourcePortId == portId || it.targetPortId == portId
+        }
+
+        for (connection in attachedConnections) {
+            // Update connection ipTypeId
+            val updatedConnection = connection.copy(ipTypeId = ipType.id)
+            flowGraph = flowGraph.removeConnection(connection.id)
+            flowGraph = flowGraph.addConnection(updatedConnection)
+
+            // Find the remote port (the other end of the connection)
+            val remoteNodeId = if (connection.sourcePortId == portId) connection.targetNodeId else connection.sourceNodeId
+            val remotePortId = if (connection.sourcePortId == portId) connection.targetPortId else connection.sourcePortId
+
+            val remoteNode = flowGraph.findNode(remoteNodeId) as? CodeNode ?: continue
+
+            val updatedRemoteInputPorts = remoteNode.inputPorts.map { port ->
+                if (port.id == remotePortId) (port as io.codenode.fbpdsl.model.Port<Any>).copy(dataType = newDataType) else port
+            }
+            val updatedRemoteOutputPorts = remoteNode.outputPorts.map { port ->
+                if (port.id == remotePortId) (port as io.codenode.fbpdsl.model.Port<Any>).copy(dataType = newDataType) else port
+            }
+
+            val updatedRemoteNode = remoteNode.copy(
+                inputPorts = updatedRemoteInputPorts,
+                outputPorts = updatedRemoteOutputPorts
+            )
+
+            flowGraph = flowGraph.removeNode(remoteNodeId).addNode(updatedRemoteNode)
+        }
+
         isDirty = true
     }
 
