@@ -335,4 +335,60 @@ class ViewModelGeneratorTest {
         assertFalse(output.contains("elapsedMinutes"),
             "Controller should not contain old hardcoded elapsedMinutes property")
     }
+
+    // ========== generateControllerAdapterClass Tests ==========
+
+    @Test
+    fun generateControllerAdapterClass_single_sink_matches_expected_output() {
+        val generator = ModuleGenerator()
+        val flowGraph = createSingleSinkFlowGraph()
+        val packageName = "io.codenode.stopwatch.generated"
+
+        val output = generator.generateControllerAdapterClass(flowGraph, packageName)
+
+        val expected = buildString {
+            appendLine("package io.codenode.stopwatch.generated")
+            appendLine()
+            appendLine("import io.codenode.fbpdsl.model.ExecutionState")
+            appendLine("import io.codenode.fbpdsl.model.FlowGraph")
+            appendLine("import kotlinx.coroutines.flow.StateFlow")
+            appendLine()
+            appendLine("class StopWatchControllerAdapter(")
+            appendLine("    private val controller: StopWatchController")
+            appendLine(") : StopWatchControllerInterface {")
+            appendLine("    override val seconds: StateFlow<Int>")
+            appendLine("        get() = controller.seconds")
+            appendLine("    override val minutes: StateFlow<Int>")
+            appendLine("        get() = controller.minutes")
+            appendLine("    override val executionState: StateFlow<ExecutionState>")
+            appendLine("        get() = controller.executionState")
+            appendLine("    override fun start(): FlowGraph = controller.start()")
+            appendLine("    override fun stop(): FlowGraph = controller.stop()")
+            appendLine("    override fun reset(): FlowGraph = controller.reset()")
+            appendLine("    override fun pause(): FlowGraph = controller.pause()")
+            appendLine("    override fun resume(): FlowGraph = controller.resume()")
+            appendLine("}")
+        }
+
+        assertEquals(expected, output)
+    }
+
+    @Test
+    fun generateControllerAdapterClass_multi_sink_uses_prefixed_properties() {
+        val generator = ModuleGenerator()
+        val flowGraph = createMultiSinkFlowGraph()
+        val packageName = "io.codenode.generated"
+
+        val output = generator.generateControllerAdapterClass(flowGraph, packageName)
+
+        assertTrue(output.contains("class MultiSinkControllerAdapter("))
+        assertTrue(output.contains("    private val controller: MultiSinkController"))
+        assertTrue(output.contains(") : MultiSinkControllerInterface {"))
+        assertTrue(output.contains("    override val displayReceiverSeconds: StateFlow<Int>"))
+        assertTrue(output.contains("        get() = controller.displayReceiverSeconds"))
+        assertTrue(output.contains("    override val alertReceiverLevel: StateFlow<String>"))
+        assertTrue(output.contains("        get() = controller.alertReceiverLevel"))
+        assertTrue(output.contains("    override fun start(): FlowGraph = controller.start()"))
+        assertTrue(output.contains("    override fun resume(): FlowGraph = controller.resume()"))
+    }
 }

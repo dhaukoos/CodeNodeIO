@@ -81,9 +81,9 @@
 
 ### Implementation for User Story 3
 
-- [ ] T027 [US3] Implement `generateControllerAdapterClass(flowGraph, packageName)` method in kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/ModuleGenerator.kt — generates class implementing ControllerInterface, delegates StateFlow properties and lifecycle methods to Controller. See contracts/generator-api.md for exact output format.
-- [ ] T028 [US3] Add ControllerAdapter generation tests to kotlinCompiler/src/commonTest/kotlin/io/codenode/kotlincompiler/generator/ViewModelGeneratorTest.kt — (1) single-sink adapter matches expected output, (2) multi-sink adapter with prefixed properties
-- [ ] T029 [US3] Verify generator tests pass: `./gradlew :kotlinCompiler:jvmTest --tests "*ViewModelGeneratorTest*"`
+- [x] T027 [US3] Implement `generateControllerAdapterClass(flowGraph, packageName)` method in kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/ModuleGenerator.kt — generates class implementing ControllerInterface, delegates StateFlow properties and lifecycle methods to Controller. See contracts/generator-api.md for exact output format.
+- [x] T028 [US3] Add ControllerAdapter generation tests to kotlinCompiler/src/commonTest/kotlin/io/codenode/kotlincompiler/generator/ViewModelGeneratorTest.kt — (1) single-sink adapter matches expected output, (2) multi-sink adapter with prefixed properties
+- [x] T029 [US3] Verify generator tests pass: `./gradlew :kotlinCompiler:jvmTest --tests "*ViewModelGeneratorTest*"`
 
 **Checkpoint**: ControllerAdapter generation verified. Output matches hand-written adapter pattern.
 

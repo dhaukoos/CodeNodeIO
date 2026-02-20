@@ -917,6 +917,48 @@ class ModuleGenerator {
             appendLine("}")
         }
     }
+
+    /**
+     * Generates a ControllerAdapter from a FlowGraph.
+     *
+     * The adapter implements the ControllerInterface by delegating all
+     * StateFlow properties and lifecycle methods to the generated Controller.
+     *
+     * @param flowGraph The flow graph to generate adapter from
+     * @param packageName The package name for the generated class
+     * @return Generated Kotlin class source code
+     */
+    fun generateControllerAdapterClass(flowGraph: FlowGraph, packageName: String): String {
+        val namePrefix = flowGraph.name.pascalCase()
+        val adapterName = "${namePrefix}ControllerAdapter"
+        val controllerName = "${namePrefix}Controller"
+        val interfaceName = "${namePrefix}ControllerInterface"
+        val properties = collectSinkPortProperties(flowGraph)
+
+        return buildString {
+            appendLine("package $packageName")
+            appendLine()
+            appendLine("import io.codenode.fbpdsl.model.ExecutionState")
+            appendLine("import io.codenode.fbpdsl.model.FlowGraph")
+            appendLine("import kotlinx.coroutines.flow.StateFlow")
+            appendLine()
+            appendLine("class $adapterName(")
+            appendLine("    private val controller: $controllerName")
+            appendLine(") : $interfaceName {")
+            properties.forEach { prop ->
+                appendLine("    override val ${prop.propertyName}: StateFlow<${prop.kotlinType}>")
+                appendLine("        get() = controller.${prop.propertyName}")
+            }
+            appendLine("    override val executionState: StateFlow<ExecutionState>")
+            appendLine("        get() = controller.executionState")
+            appendLine("    override fun start(): FlowGraph = controller.start()")
+            appendLine("    override fun stop(): FlowGraph = controller.stop()")
+            appendLine("    override fun reset(): FlowGraph = controller.reset()")
+            appendLine("    override fun pause(): FlowGraph = controller.pause()")
+            appendLine("    override fun resume(): FlowGraph = controller.resume()")
+            appendLine("}")
+        }
+    }
 }
 
 /**
