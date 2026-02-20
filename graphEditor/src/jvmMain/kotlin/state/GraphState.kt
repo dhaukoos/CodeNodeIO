@@ -340,6 +340,36 @@ class GraphState(initialGraph: FlowGraph = flowGraph(
     }
 
     /**
+     * Updates a port's IP type on a node.
+     * Resolves the type from IPTypeRegistry by typeName, then copies the port with the new dataType.
+     *
+     * @param nodeId The ID of the node containing the port
+     * @param portId The ID of the port to update
+     * @param typeName The display name of the IP type (e.g., "Int", "String")
+     * @param ipTypeRegistry The registry to resolve the type from
+     */
+    @Suppress("UNCHECKED_CAST")
+    fun updatePortType(nodeId: String, portId: String, typeName: String, ipTypeRegistry: IPTypeRegistry) {
+        val ipType = ipTypeRegistry.getByTypeName(typeName) ?: return
+        val node = flowGraph.findNode(nodeId) as? CodeNode ?: return
+
+        val updatedInputPorts = node.inputPorts.map { port ->
+            if (port.id == portId) (port as io.codenode.fbpdsl.model.Port<Any>).copy(dataType = ipType.payloadType as kotlin.reflect.KClass<Any>) else port
+        }
+        val updatedOutputPorts = node.outputPorts.map { port ->
+            if (port.id == portId) (port as io.codenode.fbpdsl.model.Port<Any>).copy(dataType = ipType.payloadType as kotlin.reflect.KClass<Any>) else port
+        }
+
+        val updatedNode = node.copy(
+            inputPorts = updatedInputPorts,
+            outputPorts = updatedOutputPorts
+        )
+
+        flowGraph = flowGraph.removeNode(nodeId).addNode(updatedNode)
+        isDirty = true
+    }
+
+    /**
      * Updates a port's name on a node.
      *
      * @param nodeId The ID of the node containing the port

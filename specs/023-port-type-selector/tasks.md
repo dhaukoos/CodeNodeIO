@@ -52,15 +52,15 @@ No setup tasks required.
 
 ### Implementation for User Story 1
 
-- [ ] T001 [P] [US1] Add `updatePortType(nodeId, portId, typeName)` method to `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/state/GraphState.kt` - Resolve ipType from IPTypeRegistry.getByTypeName(), copy port with new dataType, copy node with updated port lists, replace in flowGraph, set isDirty. Follow the existing `updatePortName()` pattern (lines ~349-368). No propagation logic yet.
+- [x] T001 [P] [US1] Add `updatePortType(nodeId, portId, typeName)` method to `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/state/GraphState.kt` - Resolve ipType from IPTypeRegistry.getByTypeName(), copy port with new dataType, copy node with updated port lists, replace in flowGraph, set isDirty. Follow the existing `updatePortName()` pattern (lines ~349-368). No propagation logic yet.
 
-- [ ] T002 [P] [US1] Add `updatePortType(portId, typeName)` method and `onPortTypeChanged: ((String, String) -> Unit)?` callback to `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/viewmodel/PropertiesPanelViewModel.kt` - Follow the existing `updatePortName` / `onPortNameChanged` pattern. The method delegates to the injected callback.
+- [x] T002 [P] [US1] Add `updatePortType(portId, typeName)` method and `onPortTypeChanged: ((String, String) -> Unit)?` callback to `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/viewmodel/PropertiesPanelViewModel.kt` - Follow the existing `updatePortName` / `onPortNameChanged` pattern. The method delegates to the injected callback.
 
-- [ ] T003 [US1] Add IP type dropdown to port rows in `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/PropertiesPanel.kt` - In the port row composable (around lines 487-550), add a dropdown to the right of each port name TextField. Use the existing DropdownEditor pattern from PropertyEditors.kt (lines 189-247). Populate options from `IPTypeRegistry.getAllTypes()`. Display each option with a color swatch (small circle using IPColor) and typeName. Resolve the current selection from `port.dataType.simpleName`. On selection, call `viewModel.updatePortType(portId, typeName)`.
+- [x] T003 [US1] Add IP type dropdown to port rows in `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/PropertiesPanel.kt` - In the port row composable (around lines 487-550), add a dropdown to the right of each port name TextField. Use the existing DropdownEditor pattern from PropertyEditors.kt (lines 189-247). Populate options from `IPTypeRegistry.getAllTypes()`. Display each option with a color swatch (small circle using IPColor) and typeName. Resolve the current selection from `port.dataType.simpleName`. On selection, call `viewModel.updatePortType(portId, typeName)`.
 
-- [ ] T004 [US1] Wire `onPortTypeChanged` callback in `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/Main.kt` - Set `propertiesPanelViewModel.onPortTypeChanged` to call `graphState.updatePortType(nodeId, portId, typeName)`. Follow the existing `onPortNameChanged` wiring pattern. The nodeId must be resolved from the currently selected node.
+- [x] T004 [US1] Wire `onPortTypeChanged` callback in `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/Main.kt` - Set `propertiesPanelViewModel.onPortTypeChanged` to call `graphState.updatePortType(nodeId, portId, typeName)`. Follow the existing `onPortNameChanged` wiring pattern. The nodeId must be resolved from the currently selected node.
 
-- [ ] T005 [US1] Build verification for US1 - Run `./gradlew :graphEditor:compileKotlinJvm` to verify compilation. If build fails, fix issues. Verify no regressions in existing graphEditor tests with `./gradlew :graphEditor:test`.
+- [x] T005 [US1] Build verification for US1 - Run `./gradlew :graphEditor:compileKotlinJvm` to verify compilation. If build fails, fix issues. Verify no regressions in existing graphEditor tests with `./gradlew :graphEditor:test`.
 
 **Checkpoint**: At this point, the IP type dropdown should appear on port rows and selecting a type should update the port. Save/load should preserve selections (existing serialization handles this).
 

@@ -8,11 +8,14 @@ package io.codenode.grapheditor.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -26,8 +29,10 @@ import io.codenode.fbpdsl.model.CodeNodeType
 import io.codenode.fbpdsl.model.Connection
 import io.codenode.fbpdsl.model.FlowGraph
 import io.codenode.fbpdsl.model.NodeTypeDefinition
+import io.codenode.grapheditor.state.IPTypeRegistry
 import io.codenode.grapheditor.viewmodel.PropertiesPanelViewModel
 import io.codenode.grapheditor.viewmodel.PropertiesPanelViewModelState
+import io.codenode.fbpdsl.model.IPColor
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.contentOrNull
@@ -51,7 +56,8 @@ data class PropertiesPanelState(
     val validationErrors: Map<String, String> = emptyMap(),
     val onPropertyChanged: ((String, String) -> Unit)? = null,
     val onNodeNameChanged: ((String) -> Unit)? = null,
-    val onPortNameChanged: ((String, String) -> Unit)? = null  // (portId, newName)
+    val onPortNameChanged: ((String, String) -> Unit)? = null,  // (portId, newName)
+    val onPortTypeChanged: ((String, String) -> Unit)? = null  // (portId, typeName)
 ) {
     /** Whether this is a generic node type */
     val isGenericNode: Boolean get() = selectedNode?.codeNodeType == CodeNodeType.GENERIC
@@ -128,6 +134,13 @@ data class PropertiesPanelState(
      */
     fun updatePortName(portId: String, newName: String) {
         onPortNameChanged?.invoke(portId, newName)
+    }
+
+    /**
+     * Notifies listeners of port type change (for external state sync)
+     */
+    fun updatePortType(portId: String, typeName: String) {
+        onPortTypeChanged?.invoke(portId, typeName)
     }
 
     /**
@@ -324,6 +337,7 @@ enum class EditorType {
 fun PropertiesPanel(
     state: PropertiesPanelState,
     onStateChange: (PropertiesPanelState) -> Unit,
+    ipTypeRegistry: IPTypeRegistry? = null,
     modifier: Modifier = Modifier
 ) {
     Surface(
@@ -365,6 +379,10 @@ fun PropertiesPanel(
                     onPortNameChange = { portId, newName ->
                         state.updatePortName(portId, newName)
                     },
+                    onPortTypeChange = { portId, typeName ->
+                        state.updatePortType(portId, typeName)
+                    },
+                    ipTypeRegistry = ipTypeRegistry,
                     modifier = Modifier.weight(1f)
                 )
 
@@ -455,6 +473,137 @@ private fun EmptyStateMessage() {
 }
 
 /**
+ * A port editor row with a name text field and an IP type dropdown.
+ */
+@Composable
+private fun PortEditorRow(
+    label: String,
+    portName: String,
+    portDataTypeName: String,
+    ipTypes: List<io.codenode.fbpdsl.model.InformationPacketType>,
+    onNameChange: (String) -> Unit,
+    onTypeChange: (String) -> Unit
+) {
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Text(
+            text = label,
+            fontSize = 10.sp,
+            color = MaterialTheme.colors.onSurface.copy(alpha = 0.6f),
+            modifier = Modifier.padding(bottom = 2.dp)
+        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Port name text field
+            OutlinedTextField(
+                value = portName,
+                onValueChange = onNameChange,
+                modifier = Modifier.weight(1f).defaultMinSize(minHeight = 40.dp),
+                textStyle = androidx.compose.ui.text.TextStyle(fontSize = 12.sp),
+                singleLine = true,
+                isError = portName.isBlank(),
+                colors = TextFieldDefaults.outlinedTextFieldColors(
+                    backgroundColor = MaterialTheme.colors.surface,
+                    focusedBorderColor = MaterialTheme.colors.primary,
+                    unfocusedBorderColor = MaterialTheme.colors.onSurface.copy(alpha = 0.3f)
+                )
+            )
+
+            // IP type dropdown
+            if (ipTypes.isNotEmpty()) {
+                var expanded by remember { mutableStateOf(false) }
+                val currentType = ipTypes.find { it.typeName == portDataTypeName }
+                    ?: ipTypes.find { it.typeName == "Any" }
+
+                Box(modifier = Modifier.width(100.dp)) {
+                    OutlinedTextField(
+                        value = currentType?.typeName ?: "Any",
+                        onValueChange = {},
+                        modifier = Modifier.fillMaxWidth().defaultMinSize(minHeight = 40.dp)
+                            .clickable { expanded = true },
+                        textStyle = androidx.compose.ui.text.TextStyle(fontSize = 11.sp),
+                        readOnly = true,
+                        singleLine = true,
+                        leadingIcon = {
+                            if (currentType != null) {
+                                val ipColor = currentType.color
+                                Box(
+                                    modifier = Modifier
+                                        .size(10.dp)
+                                        .background(
+                                            Color(
+                                                red = ipColor.red / 255f,
+                                                green = ipColor.green / 255f,
+                                                blue = ipColor.blue / 255f
+                                            ),
+                                            CircleShape
+                                        )
+                                )
+                            }
+                        },
+                        trailingIcon = {
+                            Icon(
+                                imageVector = Icons.Default.ArrowDropDown,
+                                contentDescription = "Select type",
+                                modifier = Modifier.size(16.dp).clickable { expanded = true }
+                            )
+                        },
+                        colors = TextFieldDefaults.outlinedTextFieldColors(
+                            backgroundColor = MaterialTheme.colors.surface,
+                            focusedBorderColor = MaterialTheme.colors.primary,
+                            unfocusedBorderColor = MaterialTheme.colors.onSurface.copy(alpha = 0.3f)
+                        )
+                    )
+
+                    DropdownMenu(
+                        expanded = expanded,
+                        onDismissRequest = { expanded = false }
+                    ) {
+                        ipTypes.forEach { ipType ->
+                            DropdownMenuItem(
+                                onClick = {
+                                    onTypeChange(ipType.typeName)
+                                    expanded = false
+                                }
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(10.dp)
+                                            .background(
+                                                Color(
+                                                    red = ipType.color.red / 255f,
+                                                    green = ipType.color.green / 255f,
+                                                    blue = ipType.color.blue / 255f
+                                                ),
+                                                CircleShape
+                                            )
+                                    )
+                                    Text(
+                                        text = ipType.typeName,
+                                        fontSize = 12.sp,
+                                        color = if (ipType.typeName == portDataTypeName) {
+                                            MaterialTheme.colors.primary
+                                        } else {
+                                            MaterialTheme.colors.onSurface
+                                        }
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+/**
  * Scrollable content area with property editors
  */
 @Composable
@@ -463,6 +612,8 @@ private fun PropertiesContent(
     onNameChange: (String) -> Unit,
     onPropertyChange: (String, String) -> Unit,
     onPortNameChange: (String, String) -> Unit = { _, _ -> },
+    onPortTypeChange: (String, String) -> Unit = { _, _ -> },
+    ipTypeRegistry: IPTypeRegistry? = null,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -497,6 +648,8 @@ private fun PropertiesContent(
                 modifier = Modifier.padding(vertical = 4.dp)
             )
 
+            val ipTypes = ipTypeRegistry?.getAllTypes() ?: emptyList()
+
             // Input Port Names
             val inputPorts = state.selectedNode?.inputPorts ?: emptyList()
             if (inputPorts.isNotEmpty()) {
@@ -508,15 +661,13 @@ private fun PropertiesContent(
                     modifier = Modifier.padding(vertical = 4.dp)
                 )
                 inputPorts.forEach { port ->
-                    PropertyEditorRow(
-                        definition = PropertyDefinition(
-                            name = "Input ${inputPorts.indexOf(port) + 1}",
-                            type = PropertyType.STRING,
-                            required = true
-                        ),
-                        value = port.name,
-                        error = if (port.name.isBlank()) "Port name is required" else null,
-                        onValueChange = { onPortNameChange(port.id, it) }
+                    PortEditorRow(
+                        label = "Input ${inputPorts.indexOf(port) + 1}",
+                        portName = port.name,
+                        portDataTypeName = port.dataType.simpleName ?: "Any",
+                        ipTypes = ipTypes,
+                        onNameChange = { onPortNameChange(port.id, it) },
+                        onTypeChange = { onPortTypeChange(port.id, it) }
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                 }
@@ -534,15 +685,13 @@ private fun PropertiesContent(
                     modifier = Modifier.padding(vertical = 4.dp)
                 )
                 outputPorts.forEach { port ->
-                    PropertyEditorRow(
-                        definition = PropertyDefinition(
-                            name = "Output ${outputPorts.indexOf(port) + 1}",
-                            type = PropertyType.STRING,
-                            required = true
-                        ),
-                        value = port.name,
-                        error = if (port.name.isBlank()) "Port name is required" else null,
-                        onValueChange = { onPortNameChange(port.id, it) }
+                    PortEditorRow(
+                        label = "Output ${outputPorts.indexOf(port) + 1}",
+                        portName = port.name,
+                        portDataTypeName = port.dataType.simpleName ?: "Any",
+                        ipTypes = ipTypes,
+                        onNameChange = { onPortNameChange(port.id, it) },
+                        onTypeChange = { onPortTypeChange(port.id, it) }
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                 }
@@ -915,6 +1064,7 @@ fun CompactPropertiesPanelWithViewModel(
     selectedConnection: Connection? = null,
     flowGraph: FlowGraph? = null,
     propertyDefinitions: List<PropertyDefinition> = emptyList(),
+    ipTypeRegistry: IPTypeRegistry? = null,
     modifier: Modifier = Modifier
 ) {
     val vmState by viewModel.state.collectAsState()
@@ -949,7 +1099,8 @@ fun CompactPropertiesPanelWithViewModel(
                     validationErrors = vmState.validationErrors,
                     onNodeNameChanged = { name -> viewModel.updateNodeName(name) },
                     onPropertyChanged = { key, value -> viewModel.updateProperty(key, value) },
-                    onPortNameChanged = { portId, newName -> viewModel.updatePortName(portId, newName) }
+                    onPortNameChanged = { portId, newName -> viewModel.updatePortName(portId, newName) },
+                    onPortTypeChanged = { portId, typeName -> viewModel.updatePortType(portId, typeName) }
                 )
             } else {
                 PropertiesPanelState()
@@ -969,6 +1120,7 @@ fun CompactPropertiesPanelWithViewModel(
                     }
                 }
             },
+            ipTypeRegistry = ipTypeRegistry,
             modifier = modifier.width(280.dp)
         )
     }

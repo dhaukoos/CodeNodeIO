@@ -364,6 +364,12 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                     graphState.updatePortName(nodeId, portId, newName)
                     statusMessage = "Renamed port to: $newName"
                 }
+            },
+            onPortTypeChanged = { portId, typeName ->
+                graphState.selectedNodeId?.let { nodeId ->
+                    graphState.updatePortType(nodeId, portId, typeName, ipTypeRegistry)
+                    statusMessage = "Changed port type to: $typeName"
+                }
             }
         )
     }
@@ -894,7 +900,8 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                             matchingNodeType?.let { nodeType ->
                                 PropertiesPanelState.derivePropertyDefinitions(nodeType)
                             } ?: emptyList()
-                        } ?: emptyList()
+                        } ?: emptyList(),
+                        ipTypeRegistry = ipTypeRegistry
                     )
                 }
 
