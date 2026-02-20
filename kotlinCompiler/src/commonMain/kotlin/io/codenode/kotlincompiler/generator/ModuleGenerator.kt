@@ -112,6 +112,30 @@ class ModuleGenerator {
             content = generateControllerClass(flowGraph, packageName)
         ))
 
+        // Add ControllerInterface
+        val interfaceClassName = "${flowGraph.name.pascalCase()}ControllerInterface"
+        files.add(GeneratedFile(
+            name = "$interfaceClassName.kt",
+            path = "src/commonMain/kotlin/$flowPackagePath",
+            content = generateControllerInterfaceClass(flowGraph, packageName)
+        ))
+
+        // Add ControllerAdapter
+        val adapterClassName = "${flowGraph.name.pascalCase()}ControllerAdapter"
+        files.add(GeneratedFile(
+            name = "$adapterClassName.kt",
+            path = "src/commonMain/kotlin/$flowPackagePath",
+            content = generateControllerAdapterClass(flowGraph, packageName)
+        ))
+
+        // Add ViewModel
+        val viewModelClassName = "${flowGraph.name.pascalCase()}ViewModel"
+        files.add(GeneratedFile(
+            name = "$viewModelClassName.kt",
+            path = "src/commonMain/kotlin/$flowPackagePath",
+            content = generateViewModelClass(flowGraph, packageName)
+        ))
+
         return GeneratedModule(
             name = moduleName,
             structure = structure,

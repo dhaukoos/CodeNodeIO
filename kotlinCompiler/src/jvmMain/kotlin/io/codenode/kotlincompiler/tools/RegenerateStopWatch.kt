@@ -148,12 +148,29 @@ fun main() {
 
 import $usecasesPackage.TimerEmitterComponent
 import $usecasesPackage.DisplayReceiverComponent
-import $usecasesPackage.TimerOutput
 """
     )
     val flowFile = File(stopWatchDir, "StopWatchFlow.kt")
     flowFile.writeText(flowContent)
     println("Generated: ${flowFile.name}")
+
+    // Generate ControllerInterface
+    val interfaceContent = generator.generateControllerInterfaceClass(flowGraph, packageName)
+    val interfaceFile = File(stopWatchDir, "StopWatchControllerInterface.kt")
+    interfaceFile.writeText(interfaceContent)
+    println("Generated: ${interfaceFile.name}")
+
+    // Generate ControllerAdapter
+    val adapterContent = generator.generateControllerAdapterClass(flowGraph, packageName)
+    val adapterFile = File(stopWatchDir, "StopWatchControllerAdapter.kt")
+    adapterFile.writeText(adapterContent)
+    println("Generated: ${adapterFile.name}")
+
+    // Generate ViewModel
+    val viewModelContent = generator.generateViewModelClass(flowGraph, packageName)
+    val viewModelFile = File(stopWatchDir, "StopWatchViewModel.kt")
+    viewModelFile.writeText(viewModelContent)
+    println("Generated: ${viewModelFile.name}")
 
     println()
     println("Regeneration complete!")

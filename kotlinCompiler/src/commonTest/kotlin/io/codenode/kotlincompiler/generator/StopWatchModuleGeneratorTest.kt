@@ -308,7 +308,7 @@ class StopWatchModuleGeneratorTest {
     // ========== T029: StateFlow Properties Tests ==========
 
     @Test
-    fun `T029 - StopWatchController has elapsedSeconds StateFlow property`() {
+    fun `T029 - StopWatchController has seconds StateFlow property`() {
         // Given: A StopWatch FlowGraph
         val flowGraph = createStopWatchFlowGraph()
         val generator = ModuleGenerator()
@@ -317,13 +317,13 @@ class StopWatchModuleGeneratorTest {
         // When: Generating the controller class
         val controllerClass = generator.generateControllerClass(flowGraph, packageName)
 
-        // Then: Should have elapsedSeconds StateFlow
-        assertTrue(controllerClass.contains("elapsedSeconds") && controllerClass.contains("StateFlow"),
-            "Should have elapsedSeconds StateFlow property")
+        // Then: Should have seconds StateFlow derived from sink port name
+        assertTrue(controllerClass.contains("val seconds: StateFlow<Int>"),
+            "Should have seconds StateFlow property derived from sink port")
     }
 
     @Test
-    fun `T029 - StopWatchController has elapsedMinutes StateFlow property`() {
+    fun `T029 - StopWatchController has minutes StateFlow property`() {
         // Given: A StopWatch FlowGraph
         val flowGraph = createStopWatchFlowGraph()
         val generator = ModuleGenerator()
@@ -332,9 +332,9 @@ class StopWatchModuleGeneratorTest {
         // When: Generating the controller class
         val controllerClass = generator.generateControllerClass(flowGraph, packageName)
 
-        // Then: Should have elapsedMinutes StateFlow
-        assertTrue(controllerClass.contains("elapsedMinutes") && controllerClass.contains("StateFlow"),
-            "Should have elapsedMinutes StateFlow property")
+        // Then: Should have minutes StateFlow derived from sink port name
+        assertTrue(controllerClass.contains("val minutes: StateFlow<Int>"),
+            "Should have minutes StateFlow property derived from sink port")
     }
 
     @Test
@@ -388,7 +388,7 @@ class StopWatchModuleGeneratorTest {
     }
 
     @Test
-    fun `T029 - StopWatchController reset clears elapsed time`() {
+    fun `T029 - StopWatchController reset delegates to component`() {
         // Given: A StopWatch FlowGraph
         val flowGraph = createStopWatchFlowGraph()
         val generator = ModuleGenerator()
@@ -397,13 +397,11 @@ class StopWatchModuleGeneratorTest {
         // When: Generating the controller class
         val controllerClass = generator.generateControllerClass(flowGraph, packageName)
 
-        // Then: reset() should clear elapsed time values
-        assertTrue(controllerClass.contains("_elapsedSeconds.value = 0") ||
-            controllerClass.contains("elapsedSeconds") && controllerClass.contains("reset"),
-            "reset() should reset elapsedSeconds to 0")
-        assertTrue(controllerClass.contains("_elapsedMinutes.value = 0") ||
-            controllerClass.contains("elapsedMinutes") && controllerClass.contains("reset"),
-            "reset() should reset elapsedMinutes to 0")
+        // Then: reset() should exist and delegate to stop()
+        assertTrue(controllerClass.contains("fun reset(): FlowGraph"),
+            "reset() method should exist")
+        assertTrue(controllerClass.contains("return stop()"),
+            "reset() should delegate to stop()")
     }
 
     // ========== T023: build.gradle.kts Configuration Tests ==========

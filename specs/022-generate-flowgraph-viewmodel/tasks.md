@@ -123,10 +123,10 @@
 
 **Purpose**: Wire generators into module generation pipeline and verify end-to-end
 
-- [ ] T034 Update `generateModule()` method in kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/ModuleGenerator.kt to include ControllerInterface, ControllerAdapter, and ViewModel in the generated file list
-- [ ] T035 Update kotlinCompiler/src/jvmMain/kotlin/io/codenode/kotlincompiler/tools/RegenerateStopWatch.kt to generate ControllerInterface, ControllerAdapter, and ViewModel files alongside Controller and Flow
-- [ ] T036 Run full build and test verification: `./gradlew build`
-- [ ] T037 Validate quickstart.md scenarios match actual implementation
+- [x] T034 Update `generateModule()` method in kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/ModuleGenerator.kt to include ControllerInterface, ControllerAdapter, and ViewModel in the generated file list
+- [x] T035 Update kotlinCompiler/src/jvmMain/kotlin/io/codenode/kotlincompiler/tools/RegenerateStopWatch.kt to generate ControllerInterface, ControllerAdapter, and ViewModel files alongside Controller and Flow
+- [x] T036 Run full build and test verification: `./gradlew build`
+- [x] T037 Validate quickstart.md scenarios match actual implementation
 
 ---
 
