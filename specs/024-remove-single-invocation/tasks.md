@@ -47,15 +47,15 @@ No setup tasks required.
 
 ### Implementation for User Story 1
 
-- [ ] T001 [US1] Remove backward-compatibility test T041 (`existing createGenerator method still works`) from `fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/runtime/ContinuousFactoryTest.kt` — Delete the test function and its `@Suppress("DEPRECATION")` annotation. Keep all other tests intact.
+- [x] T001 [US1] Remove backward-compatibility test T041 (`existing createGenerator method still works`) from `fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/runtime/ContinuousFactoryTest.kt` — Delete the test function and its `@Suppress("DEPRECATION")` annotation. Keep all other tests intact.
 
-- [ ] T002 [US1] Remove backward-compatibility test T042 (`existing createSink method still works`) from `fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/runtime/ContinuousFactoryTest.kt` — Delete the test function and its `@Suppress("DEPRECATION")` annotation. Keep all other tests intact.
+- [x] T002 [US1] Remove backward-compatibility test T042 (`existing createSink method still works`) from `fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/runtime/ContinuousFactoryTest.kt` — Delete the test function and its `@Suppress("DEPRECATION")` annotation. Keep all other tests intact.
 
-- [ ] T003 [US1] Remove the deprecated `createGenerator<T>` factory method from `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/CodeNodeFactory.kt` — Delete the entire method including its `@Deprecated` annotation, KDoc, and function body. Do not modify any other methods.
+- [x] T003 [US1] Remove the deprecated `createGenerator<T>` factory method from `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/CodeNodeFactory.kt` — Delete the entire method including its `@Deprecated` annotation, KDoc, and function body. Do not modify any other methods.
 
-- [ ] T004 [US1] Remove the deprecated `createSink<T>` factory method from `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/CodeNodeFactory.kt` — Delete the entire method including its `@Deprecated` annotation, KDoc, and function body. Do not modify any other methods.
+- [x] T004 [US1] Remove the deprecated `createSink<T>` factory method from `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/CodeNodeFactory.kt` — Delete the entire method including its `@Deprecated` annotation, KDoc, and function body. Do not modify any other methods.
 
-- [ ] T005 [US1] Build verification for US1 — Run `./gradlew :fbpDsl:compileKotlinJvm` and `./gradlew :fbpDsl:jvmTest`. Verify compilation succeeds and all remaining tests pass. Search codebase for `createGenerator` and `createSink` to confirm only continuous versions remain.
+- [x] T005 [US1] Build verification for US1 — Run `./gradlew :fbpDsl:compileKotlinJvm` and `./gradlew :fbpDsl:jvmTest`. Verify compilation succeeds and all remaining tests pass. Search codebase for `createGenerator` and `createSink` to confirm only continuous versions remain.
 
 **Checkpoint**: Deprecated factory methods removed. Only `createContinuousGenerator` and `createContinuousSink` remain for generator/sink creation.
 
@@ -69,15 +69,15 @@ No setup tasks required.
 
 ### Implementation for User Story 2
 
-- [ ] T006 [P] [US2] Delete `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/usecase/examples/ExampleUseCases.kt` — Remove the entire file. This is the leaf dependency (depends on TypedUseCases, depended on by nothing).
+- [x] T006 [P] [US2] Delete `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/usecase/examples/ExampleUseCases.kt` — Remove the entire file. This is the leaf dependency (depends on TypedUseCases, depended on by nothing).
 
-- [ ] T007 [US2] Delete `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/usecase/TypedUseCases.kt` — Remove the entire file containing TransformerUseCase, FilterUseCase, ValidatorUseCase, SplitterUseCase, MergerUseCase, GeneratorUseCase, SinkUseCase. Depends on T006 (ExampleUseCases removed first).
+- [x] T007 [US2] Delete `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/usecase/TypedUseCases.kt` — Remove the entire file containing TransformerUseCase, FilterUseCase, ValidatorUseCase, SplitterUseCase, MergerUseCase, GeneratorUseCase, SinkUseCase. Depends on T006 (ExampleUseCases removed first).
 
-- [ ] T008 [P] [US2] Delete `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/usecase/LifecycleAwareUseCases.kt` — Remove the entire file containing LifecycleAwareUseCase, LifecycleManager, LifecycleDecorator, DatabaseUseCase, CachedUseCase, BufferedUseCase. Can run in parallel with T006 (no cross-dependency).
+- [x] T008 [P] [US2] Delete `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/usecase/LifecycleAwareUseCases.kt` — Remove the entire file containing LifecycleAwareUseCase, LifecycleManager, LifecycleDecorator, DatabaseUseCase, CachedUseCase, BufferedUseCase. Can run in parallel with T006 (no cross-dependency).
 
-- [ ] T009 [P] [US2] Delete `fbpDsl/docs/UseCase-Pattern-Guide.md` — Remove the UseCase pattern documentation file. Can run in parallel with T006-T008 (documentation, no code dependency).
+- [x] T009 [P] [US2] Delete `fbpDsl/docs/UseCase-Pattern-Guide.md` — Remove the UseCase pattern documentation file. Can run in parallel with T006-T008 (documentation, no code dependency).
 
-- [ ] T010 [US2] Build verification for US2 — Run `./gradlew :fbpDsl:compileKotlinJvm :graphEditor:compileKotlinJvm :kotlinCompiler:compileKotlinJvm :StopWatch:compileKotlinJvm` and `./gradlew :fbpDsl:jvmTest`. Verify all modules compile and tests pass. Search for removed class names (TransformerUseCase, FilterUseCase, etc.) to confirm no remaining references in source code.
+- [x] T010 [US2] Build verification for US2 — Run `./gradlew :fbpDsl:compileKotlinJvm :graphEditor:compileKotlinJvm :kotlinCompiler:compileKotlinJvm :StopWatch:compileKotlinJvm` and `./gradlew :fbpDsl:jvmTest`. Verify all modules compile and tests pass. Search for removed class names (TransformerUseCase, FilterUseCase, etc.) to confirm no remaining references in source code.
 
 **Checkpoint**: All UseCase abstractions removed. The `usecase/` directory should be empty (or contain only the directory structure).
 

@@ -791,64 +791,6 @@ class ContinuousFactoryTest {
     // ========== User Story 5: Backward Compatibility Tests ==========
 
     /**
-     * T041: Test existing createGenerator method still works
-     */
-    @Test
-    fun `existing createGenerator method still works`() = runTest {
-        // Use the original single-invocation generator factory
-        @Suppress("DEPRECATION")
-        val node = CodeNodeFactory.createGenerator<String>(
-            name = "LegacyGenerator",
-            description = "A legacy generator"
-        ) {
-            "generated value"
-        }
-
-        // Verify CodeNode is returned (not NodeRuntime)
-        assertNotNull(node, "Node should not be null")
-        assertEquals("LegacyGenerator", node.name)
-        assertEquals("A legacy generator", node.description)
-        assertEquals(CodeNodeType.GENERATOR, node.codeNodeType)
-
-        // Verify processing logic works
-        assertNotNull(node.processingLogic, "ProcessingLogic should be set")
-        val result = node.processingLogic?.invoke(emptyMap())
-        assertNotNull(result, "Result should not be null")
-        assertEquals(1, result?.size, "Should have one output")
-        assertTrue(result?.containsKey("output") == true, "Should have 'output' key")
-    }
-
-    /**
-     * T042: Test existing createSink method still works
-     */
-    @Test
-    fun `existing createSink method still works`() = runTest {
-        var receivedValue: String? = null
-
-        // Use the original single-invocation sink factory
-        @Suppress("DEPRECATION")
-        val node = CodeNodeFactory.createSink<String>(
-            name = "LegacySink",
-            description = "A legacy sink"
-        ) { value ->
-            receivedValue = value
-        }
-
-        // Verify CodeNode is returned (not NodeRuntime)
-        assertNotNull(node, "Node should not be null")
-        assertEquals("LegacySink", node.name)
-        assertEquals("A legacy sink", node.description)
-        assertEquals(CodeNodeType.SINK, node.codeNodeType)
-
-        // Verify processing logic works
-        assertNotNull(node.processingLogic, "ProcessingLogic should be set")
-        val inputPacket = io.codenode.fbpdsl.model.InformationPacketFactory.create("test input")
-        val result = node.processingLogic?.invoke(mapOf("input" to inputPacket))
-        assertEquals("test input", receivedValue, "Sink should have received the value")
-        assertTrue(result?.isEmpty() == true, "Sink should return empty map")
-    }
-
-    /**
      * T043: Test ProcessingLogic implementations work unchanged
      */
     @Test
