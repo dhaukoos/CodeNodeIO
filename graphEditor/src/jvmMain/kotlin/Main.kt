@@ -370,6 +370,10 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                     graphState.updatePortType(nodeId, portId, typeName, ipTypeRegistry)
                     statusMessage = "Changed port type to: $typeName"
                 }
+            },
+            onConnectionIPTypeChanged = { connectionId, ipTypeId ->
+                graphState.updateConnectionIPType(connectionId, ipTypeId, ipTypeRegistry)
+                statusMessage = "Changed connection IP type"
             }
         )
     }

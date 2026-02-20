@@ -80,12 +80,14 @@ data class PropertiesPanelViewModelState(
  * @param onPropertyChanged Callback when a property value is committed
  * @param onPortNameChanged Callback when a port name is committed
  * @param onPortTypeChanged Callback when a port type is changed (portId, typeName)
+ * @param onConnectionIPTypeChanged Callback when a connection's IP type is changed (connectionId, ipTypeId)
  */
 class PropertiesPanelViewModel(
     private val onNodeNameChanged: (String) -> Unit = { _ -> },
     private val onPropertyChanged: (String, String) -> Unit = { _, _ -> },
     private val onPortNameChanged: (String, String) -> Unit = { _, _ -> },
-    private val onPortTypeChanged: (String, String) -> Unit = { _, _ -> }
+    private val onPortTypeChanged: (String, String) -> Unit = { _, _ -> },
+    private val onConnectionIPTypeChanged: (String, String) -> Unit = { _, _ -> }
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(PropertiesPanelViewModelState())
@@ -228,6 +230,16 @@ class PropertiesPanelViewModel(
      */
     fun updatePortType(portId: String, typeName: String) {
         onPortTypeChanged(portId, typeName)
+    }
+
+    /**
+     * Updates a connection's IP type.
+     *
+     * @param connectionId The ID of the connection to update
+     * @param ipTypeId The ID of the IP type to set
+     */
+    fun updateConnectionIPType(connectionId: String, ipTypeId: String) {
+        onConnectionIPTypeChanged(connectionId, ipTypeId)
     }
 
     /**

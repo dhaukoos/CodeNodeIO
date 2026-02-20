@@ -946,6 +946,8 @@ fun CompactPropertiesPanel(
 fun ConnectionPropertiesPanel(
     connection: Connection,
     flowGraph: FlowGraph,
+    ipTypeRegistry: IPTypeRegistry? = null,
+    onIPTypeChanged: ((String, String) -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     val sourceNode = flowGraph.findNode(connection.sourceNodeId)
@@ -1013,6 +1015,107 @@ fun ConnectionPropertiesPanel(
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 ConnectionInfoRow(label = "ID", value = connection.id)
+
+                // IP Type selector
+                if (ipTypeRegistry != null) {
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    Text(
+                        text = "IP Type",
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colors.primary
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+
+                    val ipTypes = ipTypeRegistry.getAllTypes()
+                    var expanded by remember { mutableStateOf(false) }
+                    val currentType = connection.ipTypeId?.let { ipTypeRegistry.getById(it) }
+                        ?: ipTypes.find { it.typeName == "Any" }
+
+                    Box(modifier = Modifier.fillMaxWidth()) {
+                        OutlinedTextField(
+                            value = currentType?.typeName ?: "Any",
+                            onValueChange = {},
+                            modifier = Modifier.fillMaxWidth().defaultMinSize(minHeight = 40.dp)
+                                .clickable { expanded = true },
+                            textStyle = androidx.compose.ui.text.TextStyle(fontSize = 11.sp),
+                            readOnly = true,
+                            singleLine = true,
+                            leadingIcon = {
+                                if (currentType != null) {
+                                    val ipColor = currentType.color
+                                    Box(
+                                        modifier = Modifier
+                                            .size(10.dp)
+                                            .background(
+                                                Color(
+                                                    red = ipColor.red / 255f,
+                                                    green = ipColor.green / 255f,
+                                                    blue = ipColor.blue / 255f
+                                                ),
+                                                CircleShape
+                                            )
+                                    )
+                                }
+                            },
+                            trailingIcon = {
+                                Icon(
+                                    imageVector = Icons.Default.ArrowDropDown,
+                                    contentDescription = "Select type",
+                                    modifier = Modifier.size(16.dp).clickable { expanded = true }
+                                )
+                            },
+                            colors = TextFieldDefaults.outlinedTextFieldColors(
+                                backgroundColor = MaterialTheme.colors.surface,
+                                focusedBorderColor = MaterialTheme.colors.primary,
+                                unfocusedBorderColor = MaterialTheme.colors.onSurface.copy(alpha = 0.3f)
+                            )
+                        )
+
+                        DropdownMenu(
+                            expanded = expanded,
+                            onDismissRequest = { expanded = false }
+                        ) {
+                            ipTypes.forEach { ipType ->
+                                DropdownMenuItem(
+                                    onClick = {
+                                        onIPTypeChanged?.invoke(connection.id, ipType.id)
+                                        expanded = false
+                                    }
+                                ) {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                    ) {
+                                        Box(
+                                            modifier = Modifier
+                                                .size(10.dp)
+                                                .background(
+                                                    Color(
+                                                        red = ipType.color.red / 255f,
+                                                        green = ipType.color.green / 255f,
+                                                        blue = ipType.color.blue / 255f
+                                                    ),
+                                                    CircleShape
+                                                )
+                                        )
+                                        Text(
+                                            text = ipType.typeName,
+                                            fontSize = 12.sp,
+                                            color = if (ipType.id == connection.ipTypeId ||
+                                                (connection.ipTypeId == null && ipType.typeName == "Any")) {
+                                                MaterialTheme.colors.primary
+                                            } else {
+                                                MaterialTheme.colors.onSurface
+                                            }
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
     }
@@ -1083,6 +1186,10 @@ fun CompactPropertiesPanelWithViewModel(
         ConnectionPropertiesPanel(
             connection = selectedConnection,
             flowGraph = flowGraph,
+            ipTypeRegistry = ipTypeRegistry,
+            onIPTypeChanged = { connectionId, ipTypeId ->
+                viewModel.updateConnectionIPType(connectionId, ipTypeId)
+            },
             modifier = modifier.width(280.dp)
         )
     } else {
