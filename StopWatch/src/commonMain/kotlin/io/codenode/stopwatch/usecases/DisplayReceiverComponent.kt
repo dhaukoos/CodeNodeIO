@@ -117,6 +117,11 @@ class DisplayReceiverComponent : ProcessingLogic {
         sinkRuntime.stop()
     }
 
+    fun reset() {
+        _seconds.value = 0
+        _minutes.value = 0
+    }
+
     fun receiveSeconds(seconds: Int) {
         _seconds.value = seconds
     }
