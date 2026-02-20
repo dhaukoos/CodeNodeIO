@@ -1,6 +1,6 @@
 /*
  * FlowGraphFactoryGenerator
- * Generates factory functions for FlowGraph instantiation with ProcessingLogic
+ * Generates factory functions for FlowGraph instantiation with tick stubs
  * License: Apache 2.0
  */
 
@@ -9,43 +9,126 @@ package io.codenode.kotlincompiler.generator
 import io.codenode.fbpdsl.model.*
 
 /**
- * Result of component validation.
+ * Result of tick stub validation.
  *
- * @property isValid Whether all required components exist
- * @property missingComponents List of component names that are missing
+ * @property isValid Whether all required tick stub files exist
+ * @property missingStubs List of stub file names that are missing
  */
 data class ComponentValidationResult(
     val isValid: Boolean,
-    val missingComponents: List<String> = emptyList()
-)
+    val missingStubs: List<String> = emptyList()
+) {
+    // Kept as 'missingStubs' but property name preserved for backward compat
+    val missingComponents: List<String> get() = missingStubs
+}
 
 /**
  * Generator for FlowGraph factory functions.
  *
  * Generates a Kotlin source file with a factory function that:
- * - Instantiates all ProcessingLogic components for CodeNodes
- * - Wires up the FlowGraph with the instantiated components
- * - Returns a fully configured FlowGraph ready for execution
- *
- * T041: Read processingLogic references from .flow.kt / CodeNode configuration
- * T042: Generate ProcessingLogic instantiation using class names
- * T043: Validate that all ProcessingLogic classes exist in module
- * T044: Generate {GraphName}Factory.kt with createXXXFlowGraph() function
+ * - Imports tick functions from the logicmethods package
+ * - Creates NodeRuntime instances via CodeNodeFactory.createTimed* methods
+ * - Passes tick function references to the factory methods
  */
 class FlowGraphFactoryGenerator {
+
+    /**
+     * Gets the tick val name for a node.
+     *
+     * @param node The code node
+     * @return Val name in format {nodeName}Tick
+     */
+    fun getTickValName(node: CodeNode): String {
+        return "${node.name.camelCase()}Tick"
+    }
+
+    /**
+     * Gets the import statement for a node's tick function.
+     *
+     * @param node The code node
+     * @param packageName The base package name
+     * @return Full import statement
+     */
+    fun getTickImport(node: CodeNode, packageName: String): String {
+        return "$packageName.logicmethods.${getTickValName(node)}"
+    }
+
+    /**
+     * Gets the CodeNodeFactory method name for a node based on its port configuration.
+     *
+     * @param node The code node
+     * @return Factory method name (e.g., "createTimedOut2Generator")
+     */
+    fun getFactoryMethodName(node: CodeNode): String {
+        val inputCount = node.inputPorts.size
+        val outputCount = node.outputPorts.size
+
+        return when {
+            inputCount == 0 && outputCount == 1 -> "createTimedGenerator"
+            inputCount == 0 && outputCount == 2 -> "createTimedOut2Generator"
+            inputCount == 0 && outputCount == 3 -> "createTimedOut3Generator"
+
+            inputCount == 1 && outputCount == 1 -> {
+                val inType = node.inputPorts[0].dataType.simpleName ?: "Any"
+                val outType = node.outputPorts[0].dataType.simpleName ?: "Any"
+                if (inType == outType) "createTimedFilter" else "createTimedTransformer"
+            }
+
+            inputCount == 2 && outputCount == 1 -> "createTimedIn2Out1Processor"
+            inputCount == 3 && outputCount == 1 -> "createTimedIn3Out1Processor"
+            inputCount == 1 && outputCount == 2 -> "createTimedIn1Out2Processor"
+            inputCount == 1 && outputCount == 3 -> "createTimedIn1Out3Processor"
+            inputCount == 2 && outputCount == 2 -> "createTimedIn2Out2Processor"
+            inputCount == 2 && outputCount == 3 -> "createTimedIn2Out3Processor"
+            inputCount == 3 && outputCount == 2 -> "createTimedIn3Out2Processor"
+            inputCount == 3 && outputCount == 3 -> "createTimedIn3Out3Processor"
+
+            inputCount == 1 && outputCount == 0 -> "createTimedSink"
+            inputCount == 2 && outputCount == 0 -> "createTimedIn2Sink"
+            inputCount == 3 && outputCount == 0 -> "createTimedIn3Sink"
+
+            else -> "createTimed"
+        }
+    }
+
+    /**
+     * Gets the type parameter string for the factory method call.
+     *
+     * @param node The code node
+     * @return Type parameter string (e.g., "Int, Int")
+     */
+    fun getTypeParams(node: CodeNode): String {
+        val inputCount = node.inputPorts.size
+        val outputCount = node.outputPorts.size
+        val inputTypes = node.inputPorts.map { it.dataType.simpleName ?: "Any" }
+        val outputTypes = node.outputPorts.map { it.dataType.simpleName ?: "Any" }
+
+        return when {
+            // Generators: just output types
+            inputCount == 0 -> outputTypes.joinToString(", ")
+            // Sinks: just input types
+            outputCount == 0 -> inputTypes.joinToString(", ")
+            // Filter: single type
+            inputCount == 1 && outputCount == 1 && inputTypes[0] == outputTypes[0] -> inputTypes[0]
+            // Transformer: input, output
+            inputCount == 1 && outputCount == 1 -> "${inputTypes[0]}, ${outputTypes[0]}"
+            // Processors: input types, then output types
+            else -> (inputTypes + outputTypes).joinToString(", ")
+        }
+    }
 
     /**
      * Generates a factory file content for a FlowGraph.
      *
      * @param flowGraph The flow graph to generate a factory for
-     * @param packageName The package name for the generated file (generated package)
-     * @param usecasesPackage Optional package name for ProcessingLogic usecases
+     * @param packageName The package name for the generated file
+     * @param usecasesPackage Optional package for tick stubs (defaults to packageName)
      * @return Generated Kotlin source code
      */
     fun generateFactory(flowGraph: FlowGraph, packageName: String, usecasesPackage: String? = null): String {
         val factoryFunctionName = "create${flowGraph.name.pascalCase()}FlowGraph"
         val allCodeNodes = flowGraph.getAllCodeNodes()
-        val effectiveUsecasesPackage = usecasesPackage ?: packageName
+        val logicMethodsBase = usecasesPackage ?: packageName
 
         return buildString {
             // Package declaration
@@ -53,142 +136,44 @@ class FlowGraphFactoryGenerator {
             appendLine()
 
             // Imports
-            appendLine("import io.codenode.fbpdsl.model.FlowGraph")
-            appendLine("import io.codenode.fbpdsl.model.CodeNode")
-            appendLine("import io.codenode.fbpdsl.model.Connection")
-            appendLine("import io.codenode.fbpdsl.model.Node")
-            appendLine("import io.codenode.fbpdsl.model.Port")
-            appendLine("import io.codenode.fbpdsl.model.CodeNodeType")
+            appendLine("import io.codenode.fbpdsl.model.CodeNodeFactory")
 
-            // Import usecases package if separate from generated package
-            if (usecasesPackage != null && usecasesPackage != packageName) {
-                appendLine("import $usecasesPackage.*")
-            }
-
-            // Add imports for external ProcessingLogic classes
-            val externalImports = getExternalImports(allCodeNodes, effectiveUsecasesPackage)
-            externalImports.forEach { import ->
-                appendLine("import $import")
+            // Import tick functions from logicmethods
+            allCodeNodes.forEach { node ->
+                appendLine("import ${getTickImport(node, logicMethodsBase)}")
             }
             appendLine()
 
             // KDoc for factory function
             appendLine("/**")
-            appendLine(" * Creates a fully configured ${flowGraph.name} FlowGraph with ProcessingLogic components.")
-            appendLine(" *")
-            appendLine(" * This factory function instantiates all ProcessingLogic implementations")
-            appendLine(" * and wires them into a ready-to-execute FlowGraph.")
+            appendLine(" * Creates the runtime nodes for the ${flowGraph.name} flow graph.")
             appendLine(" *")
             appendLine(" * Nodes: ${allCodeNodes.size}")
             appendLine(" * Connections: ${flowGraph.connections.size}")
             appendLine(" *")
-            appendLine(" * @return Configured FlowGraph with all ProcessingLogic components")
             appendLine(" * @generated by CodeNodeIO FlowGraphFactoryGenerator")
             appendLine(" */")
 
             // Factory function signature
-            appendLine("fun $factoryFunctionName(): FlowGraph {")
+            appendLine("fun $factoryFunctionName() {")
 
             val indent = "    "
 
-            // Instantiate ProcessingLogic components
-            if (allCodeNodes.isNotEmpty()) {
-                appendLine("${indent}// Instantiate ProcessingLogic components")
-                allCodeNodes.forEach { node ->
-                    val componentName = getComponentClassName(node)
-                    val varName = node.name.camelCase() + "Logic"
-                    appendLine("${indent}val $varName = ${getComponentInstantiation(node, packageName)}")
-                }
-                appendLine()
-            }
+            // Create NodeRuntime instances via CodeNodeFactory
+            allCodeNodes.forEach { node ->
+                val varName = node.name.camelCase()
+                val factoryMethod = getFactoryMethodName(node)
+                val typeParams = getTypeParams(node)
+                val tickValName = getTickValName(node)
+                val tickInterval = node.configuration["tickIntervalMs"] ?: "1000"
 
-            // Create CodeNodes with ProcessingLogic references
-            appendLine("${indent}// Create CodeNodes with ProcessingLogic references")
-            allCodeNodes.forEachIndexed { index, node ->
-                val nodeVarName = node.name.camelCase() + "Node"
-                val logicVarName = node.name.camelCase() + "Logic"
-
-                appendLine("${indent}val $nodeVarName = CodeNode(")
-                appendLine("${indent}${indent}id = \"${node.id}\",")
+                appendLine("${indent}val $varName = CodeNodeFactory.$factoryMethod<$typeParams>(")
                 appendLine("${indent}${indent}name = \"${node.name}\",")
-                appendLine("${indent}${indent}codeNodeType = CodeNodeType.${node.codeNodeType.name},")
-                appendLine("${indent}${indent}position = Node.Position(${node.position.x}, ${node.position.y}),")
-
-                // Input ports
-                appendLine("${indent}${indent}inputPorts = listOf(")
-                node.inputPorts.forEachIndexed { portIndex, port ->
-                    val portComma = if (portIndex < node.inputPorts.size - 1) "," else ""
-                    appendLine("${indent}${indent}${indent}Port(")
-                    appendLine("${indent}${indent}${indent}${indent}id = \"${port.id}\",")
-                    appendLine("${indent}${indent}${indent}${indent}name = \"${port.name}\",")
-                    appendLine("${indent}${indent}${indent}${indent}direction = Port.Direction.INPUT,")
-                    appendLine("${indent}${indent}${indent}${indent}dataType = ${port.dataType.simpleName ?: "Any"}::class,")
-                    appendLine("${indent}${indent}${indent}${indent}owningNodeId = \"${node.id}\"")
-                    appendLine("${indent}${indent}${indent})$portComma")
-                }
-                appendLine("${indent}${indent}),")
-
-                // Output ports
-                appendLine("${indent}${indent}outputPorts = listOf(")
-                node.outputPorts.forEachIndexed { portIndex, port ->
-                    val portComma = if (portIndex < node.outputPorts.size - 1) "," else ""
-                    appendLine("${indent}${indent}${indent}Port(")
-                    appendLine("${indent}${indent}${indent}${indent}id = \"${port.id}\",")
-                    appendLine("${indent}${indent}${indent}${indent}name = \"${port.name}\",")
-                    appendLine("${indent}${indent}${indent}${indent}direction = Port.Direction.OUTPUT,")
-                    appendLine("${indent}${indent}${indent}${indent}dataType = ${port.dataType.simpleName ?: "Any"}::class,")
-                    appendLine("${indent}${indent}${indent}${indent}owningNodeId = \"${node.id}\"")
-                    appendLine("${indent}${indent}${indent})$portComma")
-                }
-                appendLine("${indent}${indent}),")
-
-                // ProcessingLogic reference
-                appendLine("${indent}${indent}processingLogic = $logicVarName")
-
-                val nodeComma = if (index < allCodeNodes.size - 1) "" else ""
-                appendLine("${indent})$nodeComma")
-                appendLine()
-            }
-
-            // Create connections
-            if (flowGraph.connections.isNotEmpty()) {
-                appendLine("${indent}// Create connections")
-                appendLine("${indent}val connections = listOf(")
-                flowGraph.connections.forEachIndexed { index, conn ->
-                    val comma = if (index < flowGraph.connections.size - 1) "," else ""
-                    appendLine("${indent}${indent}Connection(")
-                    appendLine("${indent}${indent}${indent}id = \"${conn.id}\",")
-                    appendLine("${indent}${indent}${indent}sourceNodeId = \"${conn.sourceNodeId}\",")
-                    appendLine("${indent}${indent}${indent}sourcePortId = \"${conn.sourcePortId}\",")
-                    appendLine("${indent}${indent}${indent}targetNodeId = \"${conn.targetNodeId}\",")
-                    appendLine("${indent}${indent}${indent}targetPortId = \"${conn.targetPortId}\"")
-                    appendLine("${indent}${indent})$comma")
-                }
+                appendLine("${indent}${indent}tickIntervalMs = $tickInterval,")
+                appendLine("${indent}${indent}tick = $tickValName")
                 appendLine("${indent})")
                 appendLine()
             }
-
-            // Return the FlowGraph
-            appendLine("${indent}return FlowGraph(")
-            appendLine("${indent}${indent}id = \"${flowGraph.id}\",")
-            appendLine("${indent}${indent}name = \"${flowGraph.name}\",")
-            appendLine("${indent}${indent}version = \"${flowGraph.version}\",")
-            flowGraph.description?.let { desc ->
-                appendLine("${indent}${indent}description = \"${escapeString(desc)}\",")
-            }
-            appendLine("${indent}${indent}rootNodes = listOf(")
-            allCodeNodes.forEachIndexed { index, node ->
-                val nodeVarName = node.name.camelCase() + "Node"
-                val comma = if (index < allCodeNodes.size - 1) "," else ""
-                appendLine("${indent}${indent}${indent}$nodeVarName$comma")
-            }
-            appendLine("${indent}${indent}),")
-            if (flowGraph.connections.isNotEmpty()) {
-                appendLine("${indent}${indent}connections = connections")
-            } else {
-                appendLine("${indent}${indent}connections = emptyList()")
-            }
-            appendLine("${indent})")
 
             appendLine("}")
         }
@@ -205,91 +190,35 @@ class FlowGraphFactoryGenerator {
     }
 
     /**
-     * Gets the list of required ProcessingLogic component class names.
+     * Gets the list of required tick stub file names.
      *
      * @param flowGraph The flow graph to analyze
-     * @return List of unique component class names required
+     * @return List of unique tick stub file names required
      */
     fun getRequiredComponents(flowGraph: FlowGraph): List<String> {
-        val allCodeNodes = flowGraph.getAllCodeNodes()
-        return allCodeNodes.map { node ->
-            getComponentClassName(node)
-        }.distinct()
+        val stubGenerator = ProcessingLogicStubGenerator()
+        return flowGraph.getAllCodeNodes()
+            .filter { stubGenerator.shouldGenerateStub(it) }
+            .map { "${it.name.pascalCase()}ProcessLogic" }
+            .distinct()
     }
 
     /**
-     * Validates that all required ProcessingLogic component files exist.
+     * Validates that all required tick stub files exist.
      *
      * @param flowGraph The flow graph to validate
      * @param existingFiles Set of file names that exist in the source directory
-     * @return ComponentValidationResult indicating validity and any missing components
+     * @return ComponentValidationResult indicating validity and any missing stubs
      */
     fun validateComponents(flowGraph: FlowGraph, existingFiles: Set<String>): ComponentValidationResult {
         val required = getRequiredComponents(flowGraph)
-        val missing = required.filter { componentName ->
-            !existingFiles.contains("$componentName.kt")
+        val missing = required.filter { stubName ->
+            !existingFiles.contains("$stubName.kt")
         }
         return ComponentValidationResult(
             isValid = missing.isEmpty(),
-            missingComponents = missing
+            missingStubs = missing
         )
-    }
-
-    /**
-     * Gets the component class name for a CodeNode.
-     *
-     * Uses the _useCaseClass configuration if present, otherwise defaults
-     * to {NodeName}Component naming convention.
-     */
-    private fun getComponentClassName(node: CodeNode): String {
-        val configuredClass = node.configuration["_useCaseClass"]
-        return if (configuredClass != null) {
-            // Extract simple class name from potentially fully qualified name
-            configuredClass.substringAfterLast(".")
-        } else {
-            // Default to NodeNameComponent
-            "${node.name.pascalCase()}Component"
-        }
-    }
-
-    /**
-     * Gets the instantiation expression for a component.
-     *
-     * @param node The code node
-     * @param packageName The current package name
-     * @return Kotlin instantiation expression (e.g., "MyComponent()" or "com.example.MyComponent()")
-     */
-    private fun getComponentInstantiation(node: CodeNode, packageName: String): String {
-        val configuredClass = node.configuration["_useCaseClass"]
-        return if (configuredClass != null && configuredClass.contains(".")) {
-            // Fully qualified - check if external
-            val classPackage = configuredClass.substringBeforeLast(".")
-            val className = configuredClass.substringAfterLast(".")
-            if (classPackage != packageName) {
-                // External package - use simple name (will be imported)
-                "$className()"
-            } else {
-                "$className()"
-            }
-        } else {
-            // Simple name or default
-            "${getComponentClassName(node)}()"
-        }
-    }
-
-    /**
-     * Gets the list of external imports needed for ProcessingLogic classes.
-     */
-    private fun getExternalImports(nodes: List<CodeNode>, packageName: String): List<String> {
-        return nodes.mapNotNull { node ->
-            val configuredClass = node.configuration["_useCaseClass"]
-            if (configuredClass != null && configuredClass.contains(".")) {
-                val classPackage = configuredClass.substringBeforeLast(".")
-                if (classPackage != packageName) {
-                    configuredClass
-                } else null
-            } else null
-        }.distinct()
     }
 
     /**

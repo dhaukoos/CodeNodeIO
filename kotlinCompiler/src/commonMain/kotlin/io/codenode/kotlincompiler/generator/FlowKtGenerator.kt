@@ -18,7 +18,6 @@ import io.codenode.fbpdsl.model.*
  * T019: Implement flowGraph DSL block generation
  * T020: Implement codeNode DSL block generation
  * T021: Implement connection DSL statement generation
- * T022: Implement processingLogic<T>() reference generation
  */
 class FlowKtGenerator {
 
@@ -148,16 +147,9 @@ class FlowKtGenerator {
             builder.appendLine(")")
         }
 
-        // Add configuration (excluding internal _useCaseClass which is handled separately)
+        // Add configuration (excluding internal keys prefixed with _)
         node.configuration.filter { !it.key.startsWith("_") }.forEach { (key, value) ->
             builder.appendLine("${innerIndent}config(\"${escapeString(key)}\", \"${escapeString(value)}\")")
-        }
-
-        // T022: Generate processingLogic<T>() reference if configured
-        val useCaseClass = node.configuration["_useCaseClass"]
-        if (useCaseClass != null) {
-            val className = useCaseClass.substringAfterLast(".")
-            builder.appendLine("${innerIndent}processingLogic<$className>()")
         }
 
         builder.appendLine("${indent}}")

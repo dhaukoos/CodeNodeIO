@@ -18,7 +18,6 @@ import kotlin.test.*
  * T012: Test for generating package declaration
  * T013: Test for generating codeNode DSL blocks with all properties
  * T014: Test for generating connection DSL statements
- * T015: Test for generating processingLogic<T>() references
  */
 class FlowKtGeneratorTest {
 
@@ -388,11 +387,11 @@ class FlowKtGeneratorTest {
             "Should have at least 2 connection statements")
     }
 
-    // ========== T015: ProcessingLogic References ==========
+    // ========== No ProcessingLogic References ==========
 
     @Test
-    fun `T015 - generateFlowKt includes processingLogic reference when configured`() {
-        // Given
+    fun `generated output does not contain processingLogic references`() {
+        // Given - node with _useCaseClass config (legacy, should be ignored)
         val node = createTestCodeNode(
             id = "timer",
             name = "TimerEmitter",
@@ -400,85 +399,40 @@ class FlowKtGeneratorTest {
                 "_useCaseClass" to "io.codenode.generated.stopwatch.TimerEmitterComponent"
             )
         )
-        val flowGraph = createTestFlowGraph("LogicTest", listOf(node))
-        val generator = FlowKtGenerator()
-
-        // When
-        val result = generator.generateFlowKt(flowGraph, "io.codenode.generated")
-
-        // Then
-        assertTrue(
-            result.contains("processingLogic") ||
-            result.contains("ProcessingLogic") ||
-            result.contains("TimerEmitterComponent"),
-            "Should include processingLogic reference"
-        )
-    }
-
-    @Test
-    fun `T015 - processingLogic uses class name from configuration`() {
-        // Given
-        val node = createTestCodeNode(
-            id = "custom",
-            name = "CustomProcessor",
-            configuration = mapOf(
-                "_useCaseClass" to "io.myapp.components.CustomProcessorComponent"
-            )
-        )
-        val flowGraph = createTestFlowGraph("ClassNameTest", listOf(node))
-        val generator = FlowKtGenerator()
-
-        // When
-        val result = generator.generateFlowKt(flowGraph, "io.codenode.generated")
-
-        // Then
-        assertTrue(result.contains("CustomProcessorComponent"),
-            "Should include the ProcessingLogic class name")
-    }
-
-    @Test
-    fun `T015 - nodes without processingLogic config have null or placeholder`() {
-        // Given
-        val node = createTestCodeNode(
-            id = "noLogic",
-            name = "NoLogicNode",
-            configuration = emptyMap()  // No _useCaseClass
-        )
         val flowGraph = createTestFlowGraph("NoLogicTest", listOf(node))
         val generator = FlowKtGenerator()
 
         // When
         val result = generator.generateFlowKt(flowGraph, "io.codenode.generated")
 
-        // Then
-        // Should still generate the node, just without processingLogic or with null
-        assertTrue(result.contains("NoLogicNode") || result.contains("noLogicNode"),
-            "Should still generate node without processingLogic")
+        // Then - processingLogic references should NOT appear in generated output
+        assertFalse(result.contains("processingLogic"),
+            "Should not contain processingLogic DSL call")
+        assertFalse(result.contains("ProcessingLogic"),
+            "Should not reference ProcessingLogic interface")
+        // _useCaseClass is an internal config and should be filtered out
+        assertFalse(result.contains("_useCaseClass"),
+            "Should not include _useCaseClass in output")
     }
 
     @Test
-    fun `T015 - multiple nodes with different processingLogic classes`() {
+    fun `nodes generate correctly without processingLogic`() {
         // Given
-        val node1 = createTestCodeNode(
-            id = "timer",
-            name = "TimerEmitter",
-            configuration = mapOf("_useCaseClass" to "pkg.TimerEmitterComponent")
+        val node = createTestCodeNode(
+            id = "proc",
+            name = "DataProcessor",
+            configuration = emptyMap()
         )
-        val node2 = createTestCodeNode(
-            id = "display",
-            name = "DisplayReceiver",
-            configuration = mapOf("_useCaseClass" to "pkg.DisplayReceiverComponent")
-        )
-        val flowGraph = createTestFlowGraph("MultiLogic", listOf(node1, node2))
+        val flowGraph = createTestFlowGraph("CleanTest", listOf(node))
         val generator = FlowKtGenerator()
 
         // When
         val result = generator.generateFlowKt(flowGraph, "io.codenode.generated")
 
         // Then
-        assertTrue(result.contains("TimerEmitterComponent"),
-            "Should include TimerEmitterComponent")
-        assertTrue(result.contains("DisplayReceiverComponent"),
-            "Should include DisplayReceiverComponent")
+        assertTrue(result.contains("DataProcessor") || result.contains("dataProcessor"),
+            "Should still generate node without processingLogic")
+        assertFalse(result.contains("processingLogic"),
+            "Should not contain any processingLogic references")
     }
 }
