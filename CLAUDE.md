@@ -30,6 +30,7 @@ Auto-generated from all feature plans. Last updated: 2026-01-13
 - N/A (in-memory FlowGraph models, generated source code) (022-generate-flowgraph-viewmodel)
 - Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + Compose Desktop 1.7.3 + kotlinx-coroutines 1.8.0, kotlinx-serialization 1.6.0 (023-port-type-selector)
 - .flow.kts files (DSL text-based serialization via FlowGraphSerializer) (023-port-type-selector)
+- N/A (code deletion only) (024-remove-single-invocation)
 
 - Kotlin 1.9+, Go 1.21+ (001-ide-plugin-platform)
 
@@ -49,9 +50,9 @@ tests/
 Kotlin 1.9+, Go 1.21+: Follow standard conventions
 
 ## Recent Changes
+- 024-remove-single-invocation: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + kotlinx-coroutines 1.8.0, kotlinx-serialization 1.6.0
+- 024-remove-single-invocation: Added [if applicable, e.g., PostgreSQL, CoreData, files or N/A]
 - 023-port-type-selector: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + Compose Desktop 1.7.3 + kotlinx-coroutines 1.8.0, kotlinx-serialization 1.6.0
-- 022-generate-flowgraph-viewmodel: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + Compose Multiplatform 1.7.3, kotlinx-coroutines 1.8.0, lifecycle-viewmodel-compose 2.8.0, lifecycle-runtime-compose 2.8.0
-- 022-generate-flowgraph-viewmodel: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + Compose Multiplatform 1.7.3, kotlinx-coroutines 1.8.0, lifecycle-viewmodel-compose 2.8.0, lifecycle-runtime-compose 2.8.0
 
 
 <!-- MANUAL ADDITIONS START -->
