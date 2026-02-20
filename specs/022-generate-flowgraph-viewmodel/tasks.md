@@ -15,7 +15,7 @@
 
 **Purpose**: Add build dependency required for ViewModel in StopWatch module
 
-- [ ] T001 Add `implementation("org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose:2.8.0")` to commonMain dependencies in StopWatch/build.gradle.kts
+- [x] T001 Add `implementation("org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose:2.8.0")` to commonMain dependencies in StopWatch/build.gradle.kts
 
 ---
 
@@ -27,15 +27,15 @@
 
 ### Implementation for User Story 1
 
-- [ ] T002 [P] [US1] Move StopWatchControllerInterface.kt from KMPMobileApp/src/commonMain/kotlin/io/codenode/mobileapp/viewmodel/ to StopWatch/src/commonMain/kotlin/io/codenode/stopwatch/generated/StopWatchControllerInterface.kt — update package to `io.codenode.stopwatch.generated`
-- [ ] T003 [P] [US1] Move StopWatchControllerAdapter.kt from KMPMobileApp/src/commonMain/kotlin/io/codenode/mobileapp/viewmodel/ to StopWatch/src/commonMain/kotlin/io/codenode/stopwatch/generated/StopWatchControllerAdapter.kt — update package to `io.codenode.stopwatch.generated`, update import for StopWatchController
-- [ ] T004 [P] [US1] Move StopWatchViewModel.kt from KMPMobileApp/src/commonMain/kotlin/io/codenode/mobileapp/viewmodel/ to StopWatch/src/commonMain/kotlin/io/codenode/stopwatch/generated/StopWatchViewModel.kt — update package to `io.codenode.stopwatch.generated`
-- [ ] T005 [P] [US1] Move FakeStopWatchController.kt from KMPMobileApp/src/commonTest/kotlin/io/codenode/mobileapp/viewmodel/ to StopWatch/src/commonTest/kotlin/io/codenode/stopwatch/viewmodel/FakeStopWatchController.kt — update package to `io.codenode.stopwatch.viewmodel`, update import for StopWatchControllerInterface to `io.codenode.stopwatch.generated`
-- [ ] T006 [P] [US1] Move StopWatchViewModelTest.kt from KMPMobileApp/src/commonTest/kotlin/io/codenode/mobileapp/viewmodel/ to StopWatch/src/commonTest/kotlin/io/codenode/stopwatch/viewmodel/StopWatchViewModelTest.kt — update package to `io.codenode.stopwatch.viewmodel`, update imports for generated classes to `io.codenode.stopwatch.generated`
-- [ ] T007 [P] [US1] Update imports in KMPMobileApp/src/commonMain/kotlin/io/codenode/mobileapp/App.kt — change `io.codenode.mobileapp.viewmodel.StopWatchControllerAdapter` to `io.codenode.stopwatch.generated.StopWatchControllerAdapter` and `io.codenode.mobileapp.viewmodel.StopWatchViewModel` to `io.codenode.stopwatch.generated.StopWatchViewModel`
-- [ ] T008 [P] [US1] Update imports in KMPMobileApp/src/commonMain/kotlin/io/codenode/mobileapp/StopWatch.kt — change `io.codenode.mobileapp.viewmodel.StopWatchViewModel` to `io.codenode.stopwatch.generated.StopWatchViewModel`
-- [ ] T009 [US1] Delete old viewmodel directories: KMPMobileApp/src/commonMain/kotlin/io/codenode/mobileapp/viewmodel/ and KMPMobileApp/src/commonTest/kotlin/io/codenode/mobileapp/viewmodel/
-- [ ] T010 [US1] Verify build and tests pass after move: `./gradlew :StopWatch:jvmTest :KMPMobileApp:compileKotlinDesktop`
+- [x] T002 [P] [US1] Move StopWatchControllerInterface.kt from KMPMobileApp/src/commonMain/kotlin/io/codenode/mobileapp/viewmodel/ to StopWatch/src/commonMain/kotlin/io/codenode/stopwatch/generated/StopWatchControllerInterface.kt — update package to `io.codenode.stopwatch.generated`
+- [x] T003 [P] [US1] Move StopWatchControllerAdapter.kt from KMPMobileApp/src/commonMain/kotlin/io/codenode/mobileapp/viewmodel/ to StopWatch/src/commonMain/kotlin/io/codenode/stopwatch/generated/StopWatchControllerAdapter.kt — update package to `io.codenode.stopwatch.generated`, update import for StopWatchController
+- [x] T004 [P] [US1] Move StopWatchViewModel.kt from KMPMobileApp/src/commonMain/kotlin/io/codenode/mobileapp/viewmodel/ to StopWatch/src/commonMain/kotlin/io/codenode/stopwatch/generated/StopWatchViewModel.kt — update package to `io.codenode.stopwatch.generated`
+- [x] T005 [P] [US1] Move FakeStopWatchController.kt from KMPMobileApp/src/commonTest/kotlin/io/codenode/mobileapp/viewmodel/ to StopWatch/src/commonTest/kotlin/io/codenode/stopwatch/viewmodel/FakeStopWatchController.kt — update package to `io.codenode.stopwatch.viewmodel`, update import for StopWatchControllerInterface to `io.codenode.stopwatch.generated`
+- [x] T006 [P] [US1] Move StopWatchViewModelTest.kt from KMPMobileApp/src/commonTest/kotlin/io/codenode/mobileapp/viewmodel/ to StopWatch/src/commonTest/kotlin/io/codenode/stopwatch/viewmodel/StopWatchViewModelTest.kt — update package to `io.codenode.stopwatch.viewmodel`, update imports for generated classes to `io.codenode.stopwatch.generated`
+- [x] T007 [P] [US1] Update imports in KMPMobileApp/src/commonMain/kotlin/io/codenode/mobileapp/App.kt — change `io.codenode.mobileapp.viewmodel.StopWatchControllerAdapter` to `io.codenode.stopwatch.generated.StopWatchControllerAdapter` and `io.codenode.mobileapp.viewmodel.StopWatchViewModel` to `io.codenode.stopwatch.generated.StopWatchViewModel`
+- [x] T008 [P] [US1] Update imports in KMPMobileApp/src/commonMain/kotlin/io/codenode/mobileapp/StopWatch.kt — change `io.codenode.mobileapp.viewmodel.StopWatchViewModel` to `io.codenode.stopwatch.generated.StopWatchViewModel`
+- [x] T009 [US1] Delete old viewmodel directories: KMPMobileApp/src/commonMain/kotlin/io/codenode/mobileapp/viewmodel/ and KMPMobileApp/src/commonTest/kotlin/io/codenode/mobileapp/viewmodel/
+- [x] T010 [US1] Verify build and tests pass after move: `./gradlew :StopWatch:jvmTest :KMPMobileApp:compileKotlinIosX64`
 
 **Checkpoint**: StopWatch module is self-contained with ViewModel layer. KMPMobileApp references classes via StopWatch dependency. All 13 existing ViewModel tests pass in StopWatch module.
 

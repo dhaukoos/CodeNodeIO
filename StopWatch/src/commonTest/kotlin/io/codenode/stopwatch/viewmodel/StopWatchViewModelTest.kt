@@ -4,9 +4,10 @@
  * License: Apache 2.0
  */
 
-package io.codenode.mobileapp.viewmodel
+package io.codenode.stopwatch.viewmodel
 
 import io.codenode.fbpdsl.model.ExecutionState
+import io.codenode.stopwatch.generated.StopWatchViewModel
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test

@@ -17,8 +17,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import io.codenode.mobileapp.viewmodel.StopWatchControllerAdapter
-import io.codenode.mobileapp.viewmodel.StopWatchViewModel
+import io.codenode.stopwatch.generated.StopWatchControllerAdapter
+import io.codenode.stopwatch.generated.StopWatchViewModel
 import io.codenode.stopwatch.generated.StopWatchController
 import io.codenode.stopwatch.stopWatchFlowGraph
 

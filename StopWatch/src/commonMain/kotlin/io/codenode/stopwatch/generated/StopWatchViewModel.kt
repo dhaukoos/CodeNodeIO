@@ -4,7 +4,7 @@
  * License: Apache 2.0
  */
 
-package io.codenode.mobileapp.viewmodel
+package io.codenode.stopwatch.generated
 
 import androidx.lifecycle.ViewModel
 import io.codenode.fbpdsl.model.ExecutionState
