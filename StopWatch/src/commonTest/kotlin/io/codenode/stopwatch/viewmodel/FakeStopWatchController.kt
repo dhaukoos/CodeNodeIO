@@ -21,11 +21,11 @@ import kotlinx.coroutines.flow.asStateFlow
  */
 class FakeStopWatchController : StopWatchControllerInterface {
 
-    private val _elapsedSeconds = MutableStateFlow(0)
-    override val elapsedSeconds: StateFlow<Int> = _elapsedSeconds.asStateFlow()
+    private val _seconds = MutableStateFlow(0)
+    override val seconds: StateFlow<Int> = _seconds.asStateFlow()
 
-    private val _elapsedMinutes = MutableStateFlow(0)
-    override val elapsedMinutes: StateFlow<Int> = _elapsedMinutes.asStateFlow()
+    private val _minutes = MutableStateFlow(0)
+    override val minutes: StateFlow<Int> = _minutes.asStateFlow()
 
     private val _executionState = MutableStateFlow(ExecutionState.IDLE)
     override val executionState: StateFlow<ExecutionState> = _executionState.asStateFlow()
@@ -75,8 +75,8 @@ class FakeStopWatchController : StopWatchControllerInterface {
      */
     override fun reset(): FlowGraph {
         resetCalled = true
-        _elapsedSeconds.value = 0
-        _elapsedMinutes.value = 0
+        _seconds.value = 0
+        _minutes.value = 0
         _executionState.value = ExecutionState.IDLE
         return emptyFlowGraph
     }
@@ -104,17 +104,17 @@ class FakeStopWatchController : StopWatchControllerInterface {
     // Test helper methods for controlling state
 
     /**
-     * Sets elapsed seconds for testing state observation.
+     * Sets seconds for testing state observation.
      */
-    fun setElapsedSeconds(seconds: Int) {
-        _elapsedSeconds.value = seconds
+    fun setSeconds(seconds: Int) {
+        _seconds.value = seconds
     }
 
     /**
-     * Sets elapsed minutes for testing state observation.
+     * Sets minutes for testing state observation.
      */
-    fun setElapsedMinutes(minutes: Int) {
-        _elapsedMinutes.value = minutes
+    fun setMinutes(minutes: Int) {
+        _minutes.value = minutes
     }
 
     /**

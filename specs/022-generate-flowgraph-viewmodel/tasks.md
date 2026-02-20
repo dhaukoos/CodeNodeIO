@@ -49,17 +49,17 @@
 
 ### Prerequisite Renames for User Story 2
 
-- [ ] T011 [P] [US2] Update port dataType from `Any::class` to `Int::class` for all DisplayReceiver and TimerEmitter ports in kotlinCompiler/src/jvmMain/kotlin/io/codenode/kotlincompiler/tools/RegenerateStopWatch.kt
-- [ ] T012 [P] [US2] Update port dataType from `Any::class` to `Int::class` for all DisplayReceiver and TimerEmitter ports in StopWatch/src/commonMain/kotlin/io/codenode/stopwatch/StopWatch.flow.kt
-- [ ] T013 [US2] Rename StateFlow properties in StopWatch/src/commonMain/kotlin/io/codenode/stopwatch/usecases/DisplayReceiverComponent.kt — `displayedSecondsFlow` → `secondsFlow`, `displayedMinutesFlow` → `minutesFlow`, `_displayedSeconds` → `_seconds`, `_displayedMinutes` → `_minutes`. Also update any tests in StopWatch/src/commonTest/ that directly reference these component properties.
-- [ ] T014 [US2] Update StopWatch/src/commonMain/kotlin/io/codenode/stopwatch/generated/StopWatchController.kt — rename properties `elapsedSeconds` → `seconds`, `elapsedMinutes` → `minutes`; change wiring from `flow.timerEmitter.elapsedSecondsFlow` → `flow.displayReceiver.secondsFlow` and `flow.timerEmitter.elapsedMinutesFlow` → `flow.displayReceiver.minutesFlow`
-- [ ] T015 [P] [US2] Rename `elapsedSeconds` → `seconds` and `elapsedMinutes` → `minutes` in StopWatch/src/commonMain/kotlin/io/codenode/stopwatch/generated/StopWatchControllerInterface.kt
-- [ ] T016 [P] [US2] Rename `elapsedSeconds` → `seconds` and `elapsedMinutes` → `minutes` in StopWatch/src/commonMain/kotlin/io/codenode/stopwatch/generated/StopWatchControllerAdapter.kt
-- [ ] T017 [P] [US2] Rename `elapsedSeconds` → `seconds` and `elapsedMinutes` → `minutes` in StopWatch/src/commonMain/kotlin/io/codenode/stopwatch/generated/StopWatchViewModel.kt
-- [ ] T018 [P] [US2] Rename `elapsedSeconds` → `seconds` and `elapsedMinutes` → `minutes` (MutableStateFlow fields, property declarations, helper methods) in StopWatch/src/commonTest/kotlin/io/codenode/stopwatch/viewmodel/FakeStopWatchController.kt
-- [ ] T019 [P] [US2] Rename all `elapsedSeconds` → `seconds` and `elapsedMinutes` → `minutes` references in test assertions in StopWatch/src/commonTest/kotlin/io/codenode/stopwatch/viewmodel/StopWatchViewModelTest.kt
-- [ ] T020 [P] [US2] Update property names `viewModel.elapsedSeconds` → `viewModel.seconds` and `viewModel.elapsedMinutes` → `viewModel.minutes` in KMPMobileApp/src/commonMain/kotlin/io/codenode/mobileapp/StopWatch.kt
-- [ ] T021 [US2] Verify build and tests pass after all renames: `./gradlew :StopWatch:jvmTest :KMPMobileApp:compileKotlinDesktop`
+- [x] T011 [P] [US2] Update port dataType from `Any::class` to `Int::class` for all DisplayReceiver and TimerEmitter ports in kotlinCompiler/src/jvmMain/kotlin/io/codenode/kotlincompiler/tools/RegenerateStopWatch.kt
+- [x] T012 [P] [US2] Update port dataType from `Any::class` to `Int::class` for all DisplayReceiver and TimerEmitter ports in StopWatch/src/commonMain/kotlin/io/codenode/stopwatch/StopWatch.flow.kt
+- [x] T013 [US2] Rename StateFlow properties in StopWatch/src/commonMain/kotlin/io/codenode/stopwatch/usecases/DisplayReceiverComponent.kt — `displayedSecondsFlow` → `secondsFlow`, `displayedMinutesFlow` → `minutesFlow`, `_displayedSeconds` → `_seconds`, `_displayedMinutes` → `_minutes`. Also update any tests in StopWatch/src/commonTest/ that directly reference these component properties.
+- [x] T014 [US2] Update StopWatch/src/commonMain/kotlin/io/codenode/stopwatch/generated/StopWatchController.kt — rename properties `elapsedSeconds` → `seconds`, `elapsedMinutes` → `minutes`; change wiring from `flow.timerEmitter.elapsedSecondsFlow` → `flow.displayReceiver.secondsFlow` and `flow.timerEmitter.elapsedMinutesFlow` → `flow.displayReceiver.minutesFlow`
+- [x] T015 [P] [US2] Rename `elapsedSeconds` → `seconds` and `elapsedMinutes` → `minutes` in StopWatch/src/commonMain/kotlin/io/codenode/stopwatch/generated/StopWatchControllerInterface.kt
+- [x] T016 [P] [US2] Rename `elapsedSeconds` → `seconds` and `elapsedMinutes` → `minutes` in StopWatch/src/commonMain/kotlin/io/codenode/stopwatch/generated/StopWatchControllerAdapter.kt
+- [x] T017 [P] [US2] Rename `elapsedSeconds` → `seconds` and `elapsedMinutes` → `minutes` in StopWatch/src/commonMain/kotlin/io/codenode/stopwatch/generated/StopWatchViewModel.kt
+- [x] T018 [P] [US2] Rename `elapsedSeconds` → `seconds` and `elapsedMinutes` → `minutes` (MutableStateFlow fields, property declarations, helper methods) in StopWatch/src/commonTest/kotlin/io/codenode/stopwatch/viewmodel/FakeStopWatchController.kt
+- [x] T019 [P] [US2] Rename all `elapsedSeconds` → `seconds` and `elapsedMinutes` → `minutes` references in test assertions in StopWatch/src/commonTest/kotlin/io/codenode/stopwatch/viewmodel/StopWatchViewModelTest.kt
+- [x] T020 [P] [US2] Update property names `viewModel.elapsedSeconds` → `viewModel.seconds` and `viewModel.elapsedMinutes` → `viewModel.minutes` in KMPMobileApp/src/commonMain/kotlin/io/codenode/mobileapp/StopWatch.kt
+- [x] T021 [US2] Verify build and tests pass after all renames: `./gradlew :StopWatch:jvmTest :KMPMobileApp:compileKotlinIosX64`
 
 ### Generator Implementation for User Story 2
 

@@ -20,14 +20,14 @@ import kotlinx.coroutines.flow.StateFlow
 interface StopWatchControllerInterface {
 
     /**
-     * Current elapsed seconds (0-59) as observable StateFlow.
+     * Current seconds (0-59) as observable StateFlow.
      */
-    val elapsedSeconds: StateFlow<Int>
+    val seconds: StateFlow<Int>
 
     /**
-     * Current elapsed minutes as observable StateFlow.
+     * Current minutes as observable StateFlow.
      */
-    val elapsedMinutes: StateFlow<Int>
+    val minutes: StateFlow<Int>
 
     /**
      * Current execution state (IDLE, RUNNING, PAUSED) as observable StateFlow.

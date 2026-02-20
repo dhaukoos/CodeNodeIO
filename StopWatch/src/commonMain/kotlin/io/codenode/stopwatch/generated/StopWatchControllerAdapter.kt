@@ -23,11 +23,11 @@ class StopWatchControllerAdapter(
     private val controller: StopWatchController
 ) : StopWatchControllerInterface {
 
-    override val elapsedSeconds: StateFlow<Int>
-        get() = controller.elapsedSeconds
+    override val seconds: StateFlow<Int>
+        get() = controller.seconds
 
-    override val elapsedMinutes: StateFlow<Int>
-        get() = controller.elapsedMinutes
+    override val minutes: StateFlow<Int>
+        get() = controller.minutes
 
     override val executionState: StateFlow<ExecutionState>
         get() = controller.executionState

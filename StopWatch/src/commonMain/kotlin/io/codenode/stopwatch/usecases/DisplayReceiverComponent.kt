@@ -37,19 +37,19 @@ import kotlinx.coroutines.flow.asStateFlow
 class DisplayReceiverComponent : ProcessingLogic {
 
     // Observable state flows for displayed time
-    private val _displayedSeconds = MutableStateFlow(0)
-    val displayedSecondsFlow: StateFlow<Int> = _displayedSeconds.asStateFlow()
+    private val _seconds = MutableStateFlow(0)
+    val secondsFlow: StateFlow<Int> = _seconds.asStateFlow()
 
-    private val _displayedMinutes = MutableStateFlow(0)
-    val displayedMinutesFlow: StateFlow<Int> = _displayedMinutes.asStateFlow()
+    private val _minutes = MutableStateFlow(0)
+    val minutesFlow: StateFlow<Int> = _minutes.asStateFlow()
 
     /**
      * Consumer function - business logic for processing received timer values.
      * Updates StateFlows for UI observation.
      */
     val consumer: In2SinkBlock<Int, Int> = { seconds, minutes ->
-        _displayedSeconds.value = seconds
-        _displayedMinutes.value = minutes
+        _seconds.value = seconds
+        _minutes.value = minutes
     }
 
     /**
@@ -118,10 +118,10 @@ class DisplayReceiverComponent : ProcessingLogic {
     }
 
     fun receiveSeconds(seconds: Int) {
-        _displayedSeconds.value = seconds
+        _seconds.value = seconds
     }
 
     fun receiveMinutes(minutes: Int) {
-        _displayedMinutes.value = minutes
+        _minutes.value = minutes
     }
 }

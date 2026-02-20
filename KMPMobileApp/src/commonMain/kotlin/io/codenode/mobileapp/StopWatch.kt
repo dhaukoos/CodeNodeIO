@@ -43,7 +43,7 @@ data class StopWatchTime(
  * - FlowGraph domain logic (via StopWatchController)
  *
  * The ViewModel manages:
- * - State observation via StateFlow (elapsedSeconds, elapsedMinutes, executionState)
+ * - State observation via StateFlow (seconds, minutes, executionState)
  * - Action delegation (start, stop, reset)
  *
  * @param viewModel The StopWatchViewModel instance
@@ -58,8 +58,8 @@ fun StopWatch(
 ) {
     // Collect state from ViewModel's StateFlow properties
     val executionState by viewModel.executionState.collectAsState()
-    val elapsedSeconds by viewModel.elapsedSeconds.collectAsState()
-    val elapsedMinutes by viewModel.elapsedMinutes.collectAsState()
+    val seconds by viewModel.seconds.collectAsState()
+    val minutes by viewModel.minutes.collectAsState()
 
     // Derive state flags from executionState
     val isRunning = executionState == ExecutionState.RUNNING
@@ -72,16 +72,16 @@ fun StopWatch(
     ) {
         StopWatchFace(
             minSize = minSize,
-            seconds = elapsedSeconds,
-            minutes = elapsedMinutes,
+            seconds = seconds,
+            minutes = minutes,
             isRunning = isRunning
         )
 
         Spacer(modifier = Modifier.height(16.dp))
 
         // Digital time display
-        val minutesStr = elapsedMinutes.toString().padStart(2, '0')
-        val secondsStr = elapsedSeconds.toString().padStart(2, '0')
+        val minutesStr = minutes.toString().padStart(2, '0')
+        val secondsStr = seconds.toString().padStart(2, '0')
         Text(
             text = "$minutesStr:$secondsStr",
             style = TextStyle(fontSize = 24.sp)
@@ -156,7 +156,7 @@ fun StopWatch(
             // Reset button - enabled when IDLE or PAUSED with elapsed time
             Button(
                 onClick = { viewModel.reset() },
-                enabled = (isIdle || isPaused) && (elapsedSeconds > 0 || elapsedMinutes > 0)
+                enabled = (isIdle || isPaused) && (seconds > 0 || minutes > 0)
             ) {
                 Text("Reset")
             }

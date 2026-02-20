@@ -32,8 +32,8 @@ class StopWatchViewModelTest {
         val controller = FakeStopWatchController()
         val viewModel = StopWatchViewModel(controller)
 
-        assertEquals(0, viewModel.elapsedSeconds.first())
-        assertEquals(0, viewModel.elapsedMinutes.first())
+        assertEquals(0, viewModel.seconds.first())
+        assertEquals(0, viewModel.minutes.first())
         assertEquals(ExecutionState.IDLE, viewModel.executionState.first())
     }
 
@@ -47,15 +47,15 @@ class StopWatchViewModelTest {
         val viewModel = StopWatchViewModel(controller)
 
         // Initial value
-        assertEquals(0, viewModel.elapsedSeconds.first())
+        assertEquals(0, viewModel.seconds.first())
 
         // Update controller state
-        controller.setElapsedSeconds(30)
-        assertEquals(30, viewModel.elapsedSeconds.first())
+        controller.setSeconds(30)
+        assertEquals(30, viewModel.seconds.first())
 
         // Update to max seconds before rollover
-        controller.setElapsedSeconds(59)
-        assertEquals(59, viewModel.elapsedSeconds.first())
+        controller.setSeconds(59)
+        assertEquals(59, viewModel.seconds.first())
     }
 
     @Test
@@ -64,15 +64,15 @@ class StopWatchViewModelTest {
         val viewModel = StopWatchViewModel(controller)
 
         // Initial value
-        assertEquals(0, viewModel.elapsedMinutes.first())
+        assertEquals(0, viewModel.minutes.first())
 
         // Update controller state
-        controller.setElapsedMinutes(5)
-        assertEquals(5, viewModel.elapsedMinutes.first())
+        controller.setMinutes(5)
+        assertEquals(5, viewModel.minutes.first())
 
         // Update to higher value
-        controller.setElapsedMinutes(120)
-        assertEquals(120, viewModel.elapsedMinutes.first())
+        controller.setMinutes(120)
+        assertEquals(120, viewModel.minutes.first())
     }
 
     @Test
@@ -102,17 +102,17 @@ class StopWatchViewModelTest {
         val viewModel = StopWatchViewModel(controller)
 
         // Simulate timer counting: seconds increment, then minute rollover
-        controller.setElapsedSeconds(58)
-        assertEquals(58, viewModel.elapsedSeconds.first())
+        controller.setSeconds(58)
+        assertEquals(58, viewModel.seconds.first())
 
-        controller.setElapsedSeconds(59)
-        assertEquals(59, viewModel.elapsedSeconds.first())
+        controller.setSeconds(59)
+        assertEquals(59, viewModel.seconds.first())
 
         // Minute rollover
-        controller.setElapsedSeconds(0)
-        controller.setElapsedMinutes(1)
-        assertEquals(0, viewModel.elapsedSeconds.first())
-        assertEquals(1, viewModel.elapsedMinutes.first())
+        controller.setSeconds(0)
+        controller.setMinutes(1)
+        assertEquals(0, viewModel.seconds.first())
+        assertEquals(1, viewModel.minutes.first())
     }
 
     // ========================================
@@ -161,10 +161,10 @@ class StopWatchViewModelTest {
         val viewModel = StopWatchViewModel(controller)
 
         // Set some elapsed time
-        controller.setElapsedSeconds(30)
-        controller.setElapsedMinutes(5)
-        assertEquals(30, viewModel.elapsedSeconds.first())
-        assertEquals(5, viewModel.elapsedMinutes.first())
+        controller.setSeconds(30)
+        controller.setMinutes(5)
+        assertEquals(30, viewModel.seconds.first())
+        assertEquals(5, viewModel.minutes.first())
 
         // Verify reset not called yet
         assertEquals(false, controller.resetCalled)
@@ -174,8 +174,8 @@ class StopWatchViewModelTest {
 
         // Verify delegation
         assertTrue(controller.resetCalled)
-        assertEquals(0, viewModel.elapsedSeconds.first())
-        assertEquals(0, viewModel.elapsedMinutes.first())
+        assertEquals(0, viewModel.seconds.first())
+        assertEquals(0, viewModel.minutes.first())
         assertEquals(ExecutionState.IDLE, viewModel.executionState.first())
     }
 
@@ -230,18 +230,18 @@ class StopWatchViewModelTest {
         val viewModel = StopWatchViewModel(controller)
 
         // Set elapsed time
-        controller.setElapsedSeconds(45)
-        controller.setElapsedMinutes(3)
+        controller.setSeconds(45)
+        controller.setMinutes(3)
         viewModel.start()
 
         // Verify initial state
-        assertEquals(45, viewModel.elapsedSeconds.first())
-        assertEquals(3, viewModel.elapsedMinutes.first())
+        assertEquals(45, viewModel.seconds.first())
+        assertEquals(3, viewModel.minutes.first())
 
         // Pause should not affect elapsed time
         viewModel.pause()
-        assertEquals(45, viewModel.elapsedSeconds.first())
-        assertEquals(3, viewModel.elapsedMinutes.first())
+        assertEquals(45, viewModel.seconds.first())
+        assertEquals(3, viewModel.minutes.first())
         assertEquals(ExecutionState.PAUSED, viewModel.executionState.first())
     }
 
@@ -251,21 +251,21 @@ class StopWatchViewModelTest {
         val viewModel = StopWatchViewModel(controller)
 
         // Set elapsed time, start, and pause
-        controller.setElapsedSeconds(30)
-        controller.setElapsedMinutes(2)
+        controller.setSeconds(30)
+        controller.setMinutes(2)
         viewModel.start()
         viewModel.pause()
 
         // Verify paused
         assertEquals(ExecutionState.PAUSED, viewModel.executionState.first())
-        assertEquals(30, viewModel.elapsedSeconds.first())
-        assertEquals(2, viewModel.elapsedMinutes.first())
+        assertEquals(30, viewModel.seconds.first())
+        assertEquals(2, viewModel.minutes.first())
 
         // Resume should restore running state without affecting time
         viewModel.resume()
         assertEquals(ExecutionState.RUNNING, viewModel.executionState.first())
-        assertEquals(30, viewModel.elapsedSeconds.first())
-        assertEquals(2, viewModel.elapsedMinutes.first())
+        assertEquals(30, viewModel.seconds.first())
+        assertEquals(2, viewModel.minutes.first())
     }
 
     // ========================================
@@ -294,13 +294,13 @@ class StopWatchViewModelTest {
         assertTrue(controller.startCalled)
 
         // Simulate some elapsed time
-        controller.setElapsedSeconds(10)
-        controller.setElapsedMinutes(1)
+        controller.setSeconds(10)
+        controller.setMinutes(1)
 
         viewModel.reset()
         assertEquals(ExecutionState.IDLE, viewModel.executionState.first())
-        assertEquals(0, viewModel.elapsedSeconds.first())
-        assertEquals(0, viewModel.elapsedMinutes.first())
+        assertEquals(0, viewModel.seconds.first())
+        assertEquals(0, viewModel.minutes.first())
         assertTrue(controller.resetCalled)
 
         // Start again after reset
@@ -315,16 +315,16 @@ class StopWatchViewModelTest {
         val controller = FakeStopWatchController()
 
         // Set state before creating ViewModel (simulating late subscription)
-        controller.setElapsedSeconds(45)
-        controller.setElapsedMinutes(3)
+        controller.setSeconds(45)
+        controller.setMinutes(3)
         controller.setExecutionState(ExecutionState.RUNNING)
 
         // Create ViewModel after state is already set (late subscription)
         val viewModel = StopWatchViewModel(controller)
 
         // Verify late subscriber gets current state immediately
-        assertEquals(45, viewModel.elapsedSeconds.first())
-        assertEquals(3, viewModel.elapsedMinutes.first())
+        assertEquals(45, viewModel.seconds.first())
+        assertEquals(3, viewModel.minutes.first())
         assertEquals(ExecutionState.RUNNING, viewModel.executionState.first())
     }
 }

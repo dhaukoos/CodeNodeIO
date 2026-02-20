@@ -32,14 +32,14 @@ private fun createStopWatchFlowGraph(): FlowGraph {
                 id = "port_1770875159390_3123_elapsedSeconds",
                 name = "elapsedSeconds",
                 direction = Port.Direction.OUTPUT,
-                dataType = Any::class,
+                dataType = Int::class,
                 owningNodeId = timerEmitterId
             ),
             Port(
                 id = "port_1770875159406_3495_elapsedMinutes",
                 name = "elapsedMinutes",
                 direction = Port.Direction.OUTPUT,
-                dataType = Any::class,
+                dataType = Int::class,
                 owningNodeId = timerEmitterId
             )
         ),
@@ -59,14 +59,14 @@ private fun createStopWatchFlowGraph(): FlowGraph {
                 id = "port_1770875159414_670_seconds",
                 name = "seconds",
                 direction = Port.Direction.INPUT,
-                dataType = Any::class,
+                dataType = Int::class,
                 owningNodeId = displayReceiverId
             ),
             Port(
                 id = "port_1770875159414_9992_minutes",
                 name = "minutes",
                 direction = Port.Direction.INPUT,
-                dataType = Any::class,
+                dataType = Int::class,
                 owningNodeId = displayReceiverId
             )
         ),

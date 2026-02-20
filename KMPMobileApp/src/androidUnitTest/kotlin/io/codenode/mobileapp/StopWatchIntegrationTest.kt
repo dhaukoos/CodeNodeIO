@@ -240,7 +240,7 @@ class StopWatchIntegrationTest {
 
         // Then: elapsedSeconds should be 0
         assertEquals("After reset(), elapsedSeconds should be 0",
-            0, controller.elapsedSeconds.value)
+            0, controller.seconds.value)
     }
 
     @Test
@@ -254,7 +254,7 @@ class StopWatchIntegrationTest {
 
         // Then: elapsedMinutes should be 0
         assertEquals("After reset(), elapsedMinutes should be 0",
-            0, controller.elapsedMinutes.value)
+            0, controller.minutes.value)
     }
 
     @Test
@@ -272,9 +272,9 @@ class StopWatchIntegrationTest {
         assertEquals("After reset(), state should be IDLE",
             ExecutionState.IDLE, controller.executionState.value)
         assertEquals("After reset(), elapsedSeconds should be 0",
-            0, controller.elapsedSeconds.value)
+            0, controller.seconds.value)
         assertEquals("After reset(), elapsedMinutes should be 0",
-            0, controller.elapsedMinutes.value)
+            0, controller.minutes.value)
     }
 
     // ========== T036: isRunning Derivation Tests ==========
@@ -385,13 +385,13 @@ class StopWatchIntegrationTest {
         val controller = StopWatchController(flowGraph)
 
         // Then: All StateFlow properties should be accessible
-        assertNotNull("elapsedSeconds StateFlow should be accessible", controller.elapsedSeconds)
-        assertNotNull("elapsedMinutes StateFlow should be accessible", controller.elapsedMinutes)
+        assertNotNull("elapsedSeconds StateFlow should be accessible", controller.seconds)
+        assertNotNull("elapsedMinutes StateFlow should be accessible", controller.minutes)
         assertNotNull("executionState StateFlow should be accessible", controller.executionState)
 
         // And: Initial values should be correct
-        assertEquals("Initial elapsedSeconds should be 0", 0, controller.elapsedSeconds.value)
-        assertEquals("Initial elapsedMinutes should be 0", 0, controller.elapsedMinutes.value)
+        assertEquals("Initial elapsedSeconds should be 0", 0, controller.seconds.value)
+        assertEquals("Initial elapsedMinutes should be 0", 0, controller.minutes.value)
         assertEquals("Initial executionState should be IDLE",
             ExecutionState.IDLE, controller.executionState.value)
     }

@@ -27,18 +27,18 @@ class StopWatchViewModel(
 ) : ViewModel() {
 
     /**
-     * Current elapsed seconds (0-59).
+     * Current seconds (0-59).
      * Delegated from controller's StateFlow.
      * Updates when the timer ticks.
      */
-    val elapsedSeconds: StateFlow<Int> = controller.elapsedSeconds
+    val seconds: StateFlow<Int> = controller.seconds
 
     /**
-     * Current elapsed minutes.
+     * Current minutes.
      * Delegated from controller's StateFlow.
      * Updates when seconds roll over to a new minute.
      */
-    val elapsedMinutes: StateFlow<Int> = controller.elapsedMinutes
+    val minutes: StateFlow<Int> = controller.minutes
 
     /**
      * Current execution state (IDLE, RUNNING, PAUSED).

@@ -42,7 +42,7 @@ class DisplayReceiverComponentTest {
         advanceUntilIdle()
 
         // Then
-        assertEquals(42, displayReceiver.displayedSecondsFlow.first(),
+        assertEquals(42, displayReceiver.secondsFlow.first(),
             "displayedSeconds should update to 42")
 
         // When - send minutes value
@@ -50,7 +50,7 @@ class DisplayReceiverComponentTest {
         advanceUntilIdle()
 
         // Then
-        assertEquals(7, displayReceiver.displayedMinutesFlow.first(),
+        assertEquals(7, displayReceiver.minutesFlow.first(),
             "displayedMinutes should update to 7")
 
         // Cleanup
@@ -65,9 +65,9 @@ class DisplayReceiverComponentTest {
     fun displayReceiver_has_zero_initial_values() = runTest {
         val displayReceiver = DisplayReceiverComponent()
 
-        assertEquals(0, displayReceiver.displayedSecondsFlow.first(),
+        assertEquals(0, displayReceiver.secondsFlow.first(),
             "Initial displayedSeconds should be 0")
-        assertEquals(0, displayReceiver.displayedMinutesFlow.first(),
+        assertEquals(0, displayReceiver.minutesFlow.first(),
             "Initial displayedMinutes should be 0")
     }
 
@@ -90,9 +90,9 @@ class DisplayReceiverComponentTest {
             advanceUntilIdle()
 
             // Then - verify each update
-            assertEquals(i, displayReceiver.displayedSecondsFlow.first(),
+            assertEquals(i, displayReceiver.secondsFlow.first(),
                 "displayedSeconds should update to $i")
-            assertEquals(i * 10, displayReceiver.displayedMinutesFlow.first(),
+            assertEquals(i * 10, displayReceiver.minutesFlow.first(),
                 "displayedMinutes should update to ${i * 10}")
         }
 

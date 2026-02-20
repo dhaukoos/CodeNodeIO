@@ -56,7 +56,7 @@ class ChannelIntegrationTest {
         advanceTimeBy(150) // ~3 ticks
 
         // Then - verify data flowed through
-        val seconds = displayReceiver.displayedSecondsFlow.first()
+        val seconds = displayReceiver.secondsFlow.first()
         assertTrue(seconds >= 1, "DisplayReceiver should have received at least 1 tick, got $seconds")
 
         // Cleanup - stop components (generator closes its channels)
@@ -197,7 +197,7 @@ class ChannelIntegrationTest {
         advanceTimeBy(2100) // ~2 ticks at 1000ms
 
         // Then - verify data flowed through the channels
-        val seconds = flow.displayReceiver.displayedSecondsFlow.first()
+        val seconds = flow.displayReceiver.secondsFlow.first()
         assertTrue(seconds >= 1, "DisplayReceiver should have received timer ticks, got $seconds")
 
         // Verify graceful shutdown

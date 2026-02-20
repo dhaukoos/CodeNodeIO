@@ -66,18 +66,18 @@ class StopWatchController(
     private var wasRunningBeforePause: Boolean = false
 
     /**
-     * Current elapsed seconds as observable StateFlow.
+     * Current seconds as observable StateFlow.
      * Updates when the timer ticks.
-     * Directly observes the TimerEmitterComponent's state.
+     * Directly observes the DisplayReceiverComponent's state.
      */
-    val elapsedSeconds: StateFlow<Int> = flow.timerEmitter.elapsedSecondsFlow
+    val seconds: StateFlow<Int> = flow.displayReceiver.secondsFlow
 
     /**
-     * Current elapsed minutes as observable StateFlow.
+     * Current minutes as observable StateFlow.
      * Updates when seconds roll over to a new minute.
-     * Directly observes the TimerEmitterComponent's state.
+     * Directly observes the DisplayReceiverComponent's state.
      */
-    val elapsedMinutes: StateFlow<Int> = flow.timerEmitter.elapsedMinutesFlow
+    val minutes: StateFlow<Int> = flow.displayReceiver.minutesFlow
 
     private val _executionState = MutableStateFlow(ExecutionState.IDLE)
     /**
