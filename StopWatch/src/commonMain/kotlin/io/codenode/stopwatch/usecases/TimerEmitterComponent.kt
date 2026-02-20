@@ -46,7 +46,7 @@ class TimerEmitterComponent(
     private val speedAttenuation: Long = 1000L,
     initialSeconds: Int = 0,
     initialMinutes: Int = 0
-) : ProcessingLogic {
+) {
 
     // Observable state flows for elapsed time
     private val _elapsedSeconds = MutableStateFlow(initialSeconds)
@@ -107,13 +107,6 @@ class TimerEmitterComponent(
         set(value) {
             generatorRuntime.registry = value
         }
-
-    override suspend fun invoke(inputs: Map<String, InformationPacket<*>>): Map<String, InformationPacket<*>> {
-        return mapOf(
-            "elapsedSeconds" to InformationPacketFactory.create(_elapsedSeconds.value),
-            "elapsedMinutes" to InformationPacketFactory.create(_elapsedMinutes.value)
-        )
-    }
 
     suspend fun start(scope: CoroutineScope) {
         generatorRuntime.start(scope) {}

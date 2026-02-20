@@ -34,7 +34,7 @@ import kotlinx.coroutines.flow.asStateFlow
  *
  * Type: SINK (2 inputs: Int for seconds, Int for minutes, 0 outputs)
  */
-class DisplayReceiverComponent : ProcessingLogic {
+class DisplayReceiverComponent {
 
     // Observable state flows for displayed time
     private val _seconds = MutableStateFlow(0)
@@ -96,18 +96,6 @@ class DisplayReceiverComponent : ProcessingLogic {
         set(value) {
             sinkRuntime.inputChannel2 = value
         }
-
-    override suspend fun invoke(inputs: Map<String, InformationPacket<*>>): Map<String, InformationPacket<*>> {
-        inputs["seconds"]?.let { packet ->
-            @Suppress("UNCHECKED_CAST")
-            (packet as? InformationPacket<Int>)?.payload?.let { receiveSeconds(it) }
-        }
-        inputs["minutes"]?.let { packet ->
-            @Suppress("UNCHECKED_CAST")
-            (packet as? InformationPacket<Int>)?.payload?.let { receiveMinutes(it) }
-        }
-        return emptyMap()
-    }
 
     suspend fun start(scope: CoroutineScope) {
         sinkRuntime.start(scope) {}
