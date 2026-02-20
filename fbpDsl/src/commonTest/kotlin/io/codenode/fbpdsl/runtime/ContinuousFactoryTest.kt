@@ -788,41 +788,4 @@ class ContinuousFactoryTest {
         assertTrue(filter.isIdle(), "Initial state should be IDLE")
     }
 
-    // ========== User Story 5: Backward Compatibility Tests ==========
-
-    /**
-     * T043: Test ProcessingLogic implementations work unchanged
-     */
-    @Test
-    fun `ProcessingLogic implementations work unchanged`() = runTest {
-        // Create a node using the traditional ProcessingLogic pattern
-        val processingLogic = io.codenode.fbpdsl.model.ProcessingLogic { inputs ->
-            val inputPacket = inputs["input"] as? io.codenode.fbpdsl.model.InformationPacket<Int>
-            val value = inputPacket?.payload ?: 0
-            val result = value * 2
-            mapOf("output" to io.codenode.fbpdsl.model.InformationPacketFactory.create(result))
-        }
-
-        val node = CodeNodeFactory.create(
-            name = "ProcessingLogicNode",
-            codeNodeType = CodeNodeType.TRANSFORMER,
-            processingLogic = processingLogic
-        )
-
-        // Verify node works with ProcessingLogic
-        assertNotNull(node, "Node should not be null")
-        assertNotNull(node.processingLogic, "ProcessingLogic should be set")
-
-        // Execute processing logic
-        val inputPacket = io.codenode.fbpdsl.model.InformationPacketFactory.create(5)
-        val result = node.processingLogic?.invoke(mapOf("input" to inputPacket))
-
-        // Verify result
-        assertNotNull(result, "Result should not be null")
-        assertEquals(1, result?.size, "Should have one output")
-
-        @Suppress("UNCHECKED_CAST")
-        val outputPacket = result?.get("output") as? io.codenode.fbpdsl.model.InformationPacket<Int>
-        assertEquals(10, outputPacket?.payload, "Should double the input value")
-    }
 }

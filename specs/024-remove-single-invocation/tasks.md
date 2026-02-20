@@ -111,11 +111,11 @@ No setup tasks required.
 
 **Purpose**: Final validation and cleanup across all user stories.
 
-- [ ] T017 Remove backward-compatibility test T043 (`ProcessingLogic can be invoked directly`) from `fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/runtime/ContinuousFactoryTest.kt` — This test creates a node using `create()` with processingLogic and invokes it directly. Since `create()` is retained but the single-invocation invoke pattern is no longer the supported usage, remove this test if it only validates the deprecated pattern. If it tests `create()` functionality that remains valid, retain it.
+- [x] T017 Remove backward-compatibility test T043 (`ProcessingLogic can be invoked directly`) from `fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/runtime/ContinuousFactoryTest.kt` — This test creates a node using `create()` with processingLogic and invokes it directly. Since `create()` is retained but the single-invocation invoke pattern is no longer the supported usage, remove this test if it only validates the deprecated pattern. If it tests `create()` functionality that remains valid, retain it.
 
-- [ ] T018 Clean up empty `usecase/` directory structure in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/usecase/` — Remove the empty `usecase/` directory and its `examples/` subdirectory if they are empty after US2 file deletions.
+- [x] T018 Clean up empty `usecase/` directory structure in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/usecase/` — Remove the empty `usecase/` directory and its `examples/` subdirectory if they are empty after US2 file deletions.
 
-- [ ] T019 Full cross-module build verification and dangling reference scan — Run `./gradlew build` across all modules. Search entire codebase for all removed symbol names: `createGenerator`, `createSink`, `createTransformer`, `createFilter`, `createSplitter`, `createMerger`, `createValidator`, `TransformerUseCase`, `FilterUseCase`, `ValidatorUseCase`, `SplitterUseCase`, `MergerUseCase`, `GeneratorUseCase`, `SinkUseCase`, `LifecycleAwareUseCase`, `DatabaseUseCase`, `CachedUseCase`, `BufferedUseCase`. Confirm zero results in source code (references in historical specs and this tasks.md are acceptable).
+- [x] T019 Full cross-module build verification and dangling reference scan — Run `./gradlew build` across all modules. Search entire codebase for all removed symbol names: `createGenerator`, `createSink`, `createTransformer`, `createFilter`, `createSplitter`, `createMerger`, `createValidator`, `TransformerUseCase`, `FilterUseCase`, `ValidatorUseCase`, `SplitterUseCase`, `MergerUseCase`, `GeneratorUseCase`, `SinkUseCase`, `LifecycleAwareUseCase`, `DatabaseUseCase`, `CachedUseCase`, `BufferedUseCase`. Confirm zero results in source code (references in historical specs and this tasks.md are acceptable).
 
 ---
 
