@@ -7,6 +7,7 @@
 package io.codenode.kotlincompiler.generator
 
 import io.codenode.fbpdsl.model.*
+import kotlin.reflect.KClass
 
 /**
  * Generates complete Kotlin Multiplatform modules from FlowGraph definitions.
@@ -656,20 +657,11 @@ class ModuleGenerator {
             appendLine("    private var wasRunningBeforePause: Boolean = false")
             appendLine()
 
-            // StateFlow properties for observable state - now observe the flow's components
-            appendLine("    /**")
-            appendLine("     * Current elapsed seconds as observable StateFlow.")
-            appendLine("     * Updates when the timer ticks.")
-            appendLine("     * Directly observes the TimerEmitterComponent's state.")
-            appendLine("     */")
-            appendLine("    val elapsedSeconds: StateFlow<Int> = flow.timerEmitter.elapsedSecondsFlow")
-            appendLine()
-            appendLine("    /**")
-            appendLine("     * Current elapsed minutes as observable StateFlow.")
-            appendLine("     * Updates when seconds roll over to a new minute.")
-            appendLine("     * Directly observes the TimerEmitterComponent's state.")
-            appendLine("     */")
-            appendLine("    val elapsedMinutes: StateFlow<Int> = flow.timerEmitter.elapsedMinutesFlow")
+            // StateFlow properties derived from sink node input ports
+            val sinkProperties = collectSinkPortProperties(flowGraph)
+            sinkProperties.forEach { prop ->
+                appendLine("    val ${prop.propertyName}: StateFlow<${prop.kotlinType}> = flow.${prop.sinkNodeCamelCase}.${prop.propertyName}Flow")
+            }
             appendLine()
             appendLine("    private val _executionState = MutableStateFlow(ExecutionState.IDLE)")
             appendLine("    /**")
@@ -855,7 +847,94 @@ class ModuleGenerator {
             appendLine("}")
         }
     }
+
+    /**
+     * Collects observable state entries from sink node input ports.
+     *
+     * Algorithm:
+     * 1. Filter to SINK CodeNodes
+     * 2. Collect input ports from each sink
+     * 3. If multiple sinks contribute, prefix property names with sinkNodeCamelCase
+     * 4. Return collected SinkPortProperty entries
+     *
+     * @param flowGraph The flow graph to analyze
+     * @return List of SinkPortProperty entries
+     */
+    fun collectSinkPortProperties(flowGraph: FlowGraph): List<SinkPortProperty> {
+        val sinkNodes = flowGraph.getAllCodeNodes().filter { it.codeNodeType == CodeNodeType.SINK }
+        val multiSink = sinkNodes.size > 1
+
+        return sinkNodes.flatMap { node ->
+            val nodeCamelCase = node.name.camelCase()
+            node.inputPorts.map { port ->
+                val propertyName = if (multiSink) {
+                    "$nodeCamelCase${port.name.pascalCase()}"
+                } else {
+                    port.name
+                }
+                SinkPortProperty(
+                    propertyName = propertyName,
+                    kotlinType = port.dataType.simpleName ?: "Any",
+                    sinkNodeName = node.name,
+                    sinkNodeCamelCase = nodeCamelCase,
+                    portId = port.id
+                )
+            }
+        }
+    }
+
+    /**
+     * Generates a ControllerInterface from a FlowGraph.
+     *
+     * The interface declares observable StateFlow properties derived from
+     * sink node input ports, plus executionState and 5 lifecycle methods.
+     *
+     * @param flowGraph The flow graph to generate interface from
+     * @param packageName The package name for the generated interface
+     * @return Generated Kotlin interface source code
+     */
+    fun generateControllerInterfaceClass(flowGraph: FlowGraph, packageName: String): String {
+        val interfaceName = "${flowGraph.name.pascalCase()}ControllerInterface"
+        val properties = collectSinkPortProperties(flowGraph)
+
+        return buildString {
+            appendLine("package $packageName")
+            appendLine()
+            appendLine("import io.codenode.fbpdsl.model.ExecutionState")
+            appendLine("import io.codenode.fbpdsl.model.FlowGraph")
+            appendLine("import kotlinx.coroutines.flow.StateFlow")
+            appendLine()
+            appendLine("interface $interfaceName {")
+            properties.forEach { prop ->
+                appendLine("    val ${prop.propertyName}: StateFlow<${prop.kotlinType}>")
+            }
+            appendLine("    val executionState: StateFlow<ExecutionState>")
+            appendLine("    fun start(): FlowGraph")
+            appendLine("    fun stop(): FlowGraph")
+            appendLine("    fun reset(): FlowGraph")
+            appendLine("    fun pause(): FlowGraph")
+            appendLine("    fun resume(): FlowGraph")
+            appendLine("}")
+        }
+    }
 }
+
+/**
+ * Represents an observable state property derived from a sink node input port.
+ *
+ * @property propertyName The generated property name (port name, or prefixed with sinkNodeCamelCase for multi-sink)
+ * @property kotlinType The Kotlin type name (e.g., "Int", "String")
+ * @property sinkNodeName The original sink node name (e.g., "DisplayReceiver")
+ * @property sinkNodeCamelCase The camelCase form of the sink node name (e.g., "displayReceiver")
+ * @property portId The port ID from the FlowGraph
+ */
+data class SinkPortProperty(
+    val propertyName: String,
+    val kotlinType: String,
+    val sinkNodeName: String,
+    val sinkNodeCamelCase: String,
+    val portId: String
+)
 
 /**
  * Represents the directory structure of a generated module.

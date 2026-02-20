@@ -63,11 +63,11 @@
 
 ### Generator Implementation for User Story 2
 
-- [ ] T022 [US2] Add `SinkPortProperty` data class (propertyName, kotlinType, sinkNodeName, sinkNodeCamelCase, portId) and `collectSinkPortProperties(flowGraph)` helper method to kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/ModuleGenerator.kt — see contracts/generator-api.md for algorithm
-- [ ] T023 [US2] Implement `generateControllerInterfaceClass(flowGraph, packageName)` method in kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/ModuleGenerator.kt — generates interface with StateFlow properties from sink ports + executionState + 5 lifecycle methods. See contracts/generator-api.md for exact output format.
-- [ ] T024 [US2] Update `generateControllerClass()` in kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/ModuleGenerator.kt — derive StateFlow property declarations from sink port properties (instead of hardcoded) using pattern `val {portName}: StateFlow<{type}> = flow.{sinkNodeCamelCase}.{portName}Flow`; generalize registry wiring to iterate all nodes
-- [ ] T025 [US2] Create kotlinCompiler/src/commonTest/kotlin/io/codenode/kotlincompiler/generator/ViewModelGeneratorTest.kt with tests: (1) single-sink ControllerInterface matches expected output, (2) multi-sink prefixed property names, (3) zero-sink produces interface with only executionState and lifecycle methods, (4) collectSinkPortProperties returns correct entries
-- [ ] T026 [US2] Verify generator tests pass: `./gradlew :kotlinCompiler:jvmTest --tests "*ViewModelGeneratorTest*"`
+- [x] T022 [US2] Add `SinkPortProperty` data class (propertyName, kotlinType, sinkNodeName, sinkNodeCamelCase, portId) and `collectSinkPortProperties(flowGraph)` helper method to kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/ModuleGenerator.kt — see contracts/generator-api.md for algorithm
+- [x] T023 [US2] Implement `generateControllerInterfaceClass(flowGraph, packageName)` method in kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/ModuleGenerator.kt — generates interface with StateFlow properties from sink ports + executionState + 5 lifecycle methods. See contracts/generator-api.md for exact output format.
+- [x] T024 [US2] Update `generateControllerClass()` in kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/ModuleGenerator.kt — derive StateFlow property declarations from sink port properties (instead of hardcoded) using pattern `val {portName}: StateFlow<{type}> = flow.{sinkNodeCamelCase}.{portName}Flow`; generalize registry wiring to iterate all nodes
+- [x] T025 [US2] Create kotlinCompiler/src/commonTest/kotlin/io/codenode/kotlincompiler/generator/ViewModelGeneratorTest.kt with tests: (1) single-sink ControllerInterface matches expected output, (2) multi-sink prefixed property names, (3) zero-sink produces interface with only executionState and lifecycle methods, (4) collectSinkPortProperties returns correct entries
+- [x] T026 [US2] Verify generator tests pass: `./gradlew :kotlinCompiler:jvmTest --tests "*ViewModelGeneratorTest*"`
 
 **Checkpoint**: All property renames complete. Generator produces ControllerInterface matching the updated hand-written version. All 13 ViewModel tests + generator tests pass.
 
