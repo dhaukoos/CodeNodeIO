@@ -1317,7 +1317,8 @@ class GraphState(initialGraph: FlowGraph = flowGraph(
      * @param connectionId The ID of the connection to update
      * @param ipTypeId The new IP type ID to assign
      */
-    fun updateConnectionIPType(connectionId: String, ipTypeId: String) {
+    @Suppress("UNCHECKED_CAST")
+    fun updateConnectionIPType(connectionId: String, ipTypeId: String, ipTypeRegistry: IPTypeRegistry? = null) {
         val connection = flowGraph.connections.find { it.id == connectionId } ?: return
 
         val updatedConnection = connection.copy(ipTypeId = ipTypeId)
@@ -1325,6 +1326,32 @@ class GraphState(initialGraph: FlowGraph = flowGraph(
         // Remove old connection and add updated one
         flowGraph = flowGraph.removeConnection(connectionId)
         flowGraph = flowGraph.addConnection(updatedConnection)
+
+        // Propagate type to both attached ports
+        val ipType = ipTypeRegistry?.getById(ipTypeId)
+        if (ipType != null) {
+            val newDataType = ipType.payloadType as kotlin.reflect.KClass<Any>
+
+            // Update source port
+            val sourceNode = flowGraph.findNode(connection.sourceNodeId) as? CodeNode
+            if (sourceNode != null) {
+                val updatedOutputPorts = sourceNode.outputPorts.map { port ->
+                    if (port.id == connection.sourcePortId) (port as io.codenode.fbpdsl.model.Port<Any>).copy(dataType = newDataType) else port
+                }
+                val updatedSourceNode = sourceNode.copy(outputPorts = updatedOutputPorts)
+                flowGraph = flowGraph.removeNode(connection.sourceNodeId).addNode(updatedSourceNode)
+            }
+
+            // Update target port
+            val targetNode = flowGraph.findNode(connection.targetNodeId) as? CodeNode
+            if (targetNode != null) {
+                val updatedInputPorts = targetNode.inputPorts.map { port ->
+                    if (port.id == connection.targetPortId) (port as io.codenode.fbpdsl.model.Port<Any>).copy(dataType = newDataType) else port
+                }
+                val updatedTargetNode = targetNode.copy(inputPorts = updatedInputPorts)
+                flowGraph = flowGraph.removeNode(connection.targetNodeId).addNode(updatedTargetNode)
+            }
+        }
 
         isDirty = true
     }

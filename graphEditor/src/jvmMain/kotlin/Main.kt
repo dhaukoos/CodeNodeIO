@@ -857,7 +857,7 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                                     ipTypes = ipTypeRegistry.getAllTypes(),
                                     currentTypeId = menuState.currentTypeId,
                                     onTypeSelected = { connId, typeId ->
-                                        graphState.updateConnectionIPType(connId, typeId)
+                                        graphState.updateConnectionIPType(connId, typeId, ipTypeRegistry)
                                         statusMessage = "Changed connection IP type"
                                     },
                                     onDismiss = {

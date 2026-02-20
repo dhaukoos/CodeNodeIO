@@ -90,9 +90,9 @@ No setup tasks required.
 
 ### Implementation for User Story 3
 
-- [ ] T008 [US3] Extend `updateConnectionIPType()` in `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/state/GraphState.kt` to propagate to both attached ports - After updating the connection's ipTypeId (existing logic at lines ~1255-1265), resolve the ipType from IPTypeRegistry.getById(). Find source port (via connection.sourceNodeId + sourcePortId) and target port (via targetNodeId + targetPortId). Copy both ports with `dataType = ipType.payloadType`, update their owning nodes. Follow the contract in `contracts/ui-interactions.md` Interaction 3.
+- [x] T008 [US3] Extend `updateConnectionIPType()` in `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/state/GraphState.kt` to propagate to both attached ports - After updating the connection's ipTypeId (existing logic at lines ~1255-1265), resolve the ipType from IPTypeRegistry.getById(). Find source port (via connection.sourceNodeId + sourcePortId) and target port (via targetNodeId + targetPortId). Copy both ports with `dataType = ipType.payloadType`, update their owning nodes. Follow the contract in `contracts/ui-interactions.md` Interaction 3.
 
-- [ ] T009 [US3] Verify US3 propagation - Run `./gradlew :graphEditor:compileKotlinJvm` and `./gradlew :graphEditor:test`. Manually verify: change a connection type and confirm both port dropdowns reflect the new type.
+- [x] T009 [US3] Verify US3 propagation - Run `./gradlew :graphEditor:compileKotlinJvm` and `./gradlew :graphEditor:test`. Manually verify: change a connection type and confirm both port dropdowns reflect the new type.
 
 **Checkpoint**: Bidirectional propagation complete. Any type change (port or connection) propagates to all connected elements.
 
