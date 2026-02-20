@@ -489,6 +489,45 @@ object CodeNodeFactory {
     // ========== Timed Generator Factory Methods ==========
 
     /**
+     * Creates a timed single-output generator node that calls a tick function at a regular interval.
+     *
+     * The runtime manages the execution loop (delay, pause/resume, stop).
+     * The tick function provides only the per-tick business logic.
+     *
+     * @param T Type of output value
+     * @param name Human-readable name
+     * @param tickIntervalMs Milliseconds between tick invocations
+     * @param channelCapacity Buffer capacity for output channel (default: BUFFERED = 64)
+     * @param position Canvas position
+     * @param description Optional documentation
+     * @param tick Function called once per interval, returns value to emit
+     * @return GeneratorRuntime configured for timed tick mode
+     */
+    inline fun <reified T : Any> createTimedGenerator(
+        name: String,
+        tickIntervalMs: Long,
+        channelCapacity: Int = Channel.BUFFERED,
+        position: Node.Position = Node.Position.ORIGIN,
+        description: String? = null,
+        noinline tick: io.codenode.fbpdsl.runtime.GeneratorTickBlock<T>
+    ): GeneratorRuntime<T> {
+        val timedGenerate: ContinuousGeneratorBlock<T> = { emit ->
+            while (currentCoroutineContext().isActive) {
+                delay(tickIntervalMs)
+                emit(tick())
+            }
+        }
+
+        return createContinuousGenerator(
+            name = name,
+            channelCapacity = channelCapacity,
+            position = position,
+            description = description,
+            generate = timedGenerate
+        )
+    }
+
+    /**
      * Creates a timed 2-output generator node that calls a tick function at a regular interval.
      *
      * The runtime manages the execution loop (delay, pause/resume, stop).
@@ -524,6 +563,47 @@ object CodeNodeFactory {
         }
 
         return createOut2Generator(
+            name = name,
+            channelCapacity = channelCapacity,
+            position = position,
+            description = description,
+            generate = timedGenerate
+        )
+    }
+
+    /**
+     * Creates a timed 3-output generator node that calls a tick function at a regular interval.
+     *
+     * The runtime manages the execution loop (delay, pause/resume, stop).
+     * The tick function provides only the per-tick business logic.
+     *
+     * @param U Type of first output
+     * @param V Type of second output
+     * @param W Type of third output
+     * @param name Human-readable name
+     * @param tickIntervalMs Milliseconds between tick invocations
+     * @param channelCapacity Buffer capacity for output channels (default: BUFFERED = 64)
+     * @param position Canvas position
+     * @param description Optional documentation
+     * @param tick Function called once per interval, returns values to emit
+     * @return Out3GeneratorRuntime configured for timed tick mode
+     */
+    inline fun <reified U : Any, reified V : Any, reified W : Any> createTimedOut3Generator(
+        name: String,
+        tickIntervalMs: Long,
+        channelCapacity: Int = Channel.BUFFERED,
+        position: Node.Position = Node.Position.ORIGIN,
+        description: String? = null,
+        noinline tick: io.codenode.fbpdsl.runtime.Out3TickBlock<U, V, W>
+    ): io.codenode.fbpdsl.runtime.Out3GeneratorRuntime<U, V, W> {
+        val timedGenerate: io.codenode.fbpdsl.runtime.Out3GeneratorBlock<U, V, W> = { emit ->
+            while (currentCoroutineContext().isActive) {
+                delay(tickIntervalMs)
+                emit(tick())
+            }
+        }
+
+        return createOut3Generator(
             name = name,
             channelCapacity = channelCapacity,
             position = position,
@@ -935,5 +1015,466 @@ object CodeNodeFactory {
         )
 
         return io.codenode.fbpdsl.runtime.In3Out3Runtime(codeNode, channelCapacity, process)
+    }
+
+    // ========== Timed Processor Factory Methods ==========
+
+    /**
+     * Creates a timed transformer node that transforms input at a regular interval.
+     *
+     * The runtime manages the receive loop; the tick function is called once per interval
+     * after input is received. Delay occurs before processing.
+     *
+     * @param TIn Type of input values
+     * @param TOut Type of output values
+     * @param name Human-readable name
+     * @param tickIntervalMs Milliseconds between tick invocations
+     * @param position Canvas position
+     * @param description Optional documentation
+     * @param tick Function called once per interval with received input
+     * @return TransformerRuntime configured for timed tick mode
+     */
+    inline fun <reified TIn : Any, reified TOut : Any> createTimedTransformer(
+        name: String,
+        tickIntervalMs: Long,
+        position: Node.Position = Node.Position.ORIGIN,
+        description: String? = null,
+        noinline tick: io.codenode.fbpdsl.runtime.TransformerTickBlock<TIn, TOut>
+    ): TransformerRuntime<TIn, TOut> {
+        val timedTransform: ContinuousTransformBlock<TIn, TOut> = { input ->
+            delay(tickIntervalMs)
+            tick(input)
+        }
+
+        return createContinuousTransformer(
+            name = name,
+            position = position,
+            description = description,
+            transform = timedTransform
+        )
+    }
+
+    /**
+     * Creates a timed filter node that evaluates input at a regular interval.
+     *
+     * The runtime manages the receive loop; the tick function is called once per interval
+     * after input is received. Delay occurs before filtering.
+     *
+     * @param T Type of values being filtered
+     * @param name Human-readable name
+     * @param tickIntervalMs Milliseconds between tick invocations
+     * @param position Canvas position
+     * @param description Optional documentation
+     * @param tick Predicate called once per interval, returns true to pass, false to drop
+     * @return FilterRuntime configured for timed tick mode
+     */
+    inline fun <reified T : Any> createTimedFilter(
+        name: String,
+        tickIntervalMs: Long,
+        position: Node.Position = Node.Position.ORIGIN,
+        description: String? = null,
+        noinline tick: io.codenode.fbpdsl.runtime.FilterTickBlock<T>
+    ): FilterRuntime<T> {
+        val timedPredicate: ContinuousFilterPredicate<T> = { value ->
+            delay(tickIntervalMs)
+            tick(value)
+        }
+
+        return createContinuousFilter(
+            name = name,
+            position = position,
+            description = description,
+            predicate = timedPredicate
+        )
+    }
+
+    /**
+     * Creates a timed 2-input, 1-output processor that processes at a regular interval.
+     *
+     * @param A Type of first input
+     * @param B Type of second input
+     * @param R Type of output
+     * @param name Human-readable name
+     * @param tickIntervalMs Milliseconds between tick invocations
+     * @param position Canvas position
+     * @param description Optional documentation
+     * @param tick Function called once per interval with both inputs
+     * @return In2Out1Runtime configured for timed tick mode
+     */
+    inline fun <reified A : Any, reified B : Any, reified R : Any> createTimedIn2Out1Processor(
+        name: String,
+        tickIntervalMs: Long,
+        position: Node.Position = Node.Position.ORIGIN,
+        description: String? = null,
+        noinline tick: io.codenode.fbpdsl.runtime.In2Out1TickBlock<A, B, R>
+    ): io.codenode.fbpdsl.runtime.In2Out1Runtime<A, B, R> {
+        val timedProcess: io.codenode.fbpdsl.runtime.In2Out1ProcessBlock<A, B, R> = { a, b ->
+            delay(tickIntervalMs)
+            tick(a, b)
+        }
+
+        return createIn2Out1Processor(
+            name = name,
+            position = position,
+            description = description,
+            process = timedProcess
+        )
+    }
+
+    /**
+     * Creates a timed 3-input, 1-output processor that processes at a regular interval.
+     *
+     * @param A Type of first input
+     * @param B Type of second input
+     * @param C Type of third input
+     * @param R Type of output
+     * @param name Human-readable name
+     * @param tickIntervalMs Milliseconds between tick invocations
+     * @param position Canvas position
+     * @param description Optional documentation
+     * @param tick Function called once per interval with all three inputs
+     * @return In3Out1Runtime configured for timed tick mode
+     */
+    inline fun <reified A : Any, reified B : Any, reified C : Any, reified R : Any> createTimedIn3Out1Processor(
+        name: String,
+        tickIntervalMs: Long,
+        position: Node.Position = Node.Position.ORIGIN,
+        description: String? = null,
+        noinline tick: io.codenode.fbpdsl.runtime.In3Out1TickBlock<A, B, C, R>
+    ): io.codenode.fbpdsl.runtime.In3Out1Runtime<A, B, C, R> {
+        val timedProcess: io.codenode.fbpdsl.runtime.In3Out1ProcessBlock<A, B, C, R> = { a, b, c ->
+            delay(tickIntervalMs)
+            tick(a, b, c)
+        }
+
+        return createIn3Out1Processor(
+            name = name,
+            position = position,
+            description = description,
+            process = timedProcess
+        )
+    }
+
+    /**
+     * Creates a timed 1-input, 2-output processor that processes at a regular interval.
+     *
+     * @param A Type of input
+     * @param U Type of first output
+     * @param V Type of second output
+     * @param name Human-readable name
+     * @param tickIntervalMs Milliseconds between tick invocations
+     * @param channelCapacity Buffer capacity for output channels (default: BUFFERED = 64)
+     * @param position Canvas position
+     * @param description Optional documentation
+     * @param tick Function called once per interval with input, returns ProcessResult2
+     * @return In1Out2Runtime configured for timed tick mode
+     */
+    inline fun <reified A : Any, reified U : Any, reified V : Any> createTimedIn1Out2Processor(
+        name: String,
+        tickIntervalMs: Long,
+        channelCapacity: Int = Channel.BUFFERED,
+        position: Node.Position = Node.Position.ORIGIN,
+        description: String? = null,
+        noinline tick: io.codenode.fbpdsl.runtime.In1Out2TickBlock<A, U, V>
+    ): io.codenode.fbpdsl.runtime.In1Out2Runtime<A, U, V> {
+        val timedProcess: io.codenode.fbpdsl.runtime.In1Out2ProcessBlock<A, U, V> = { a ->
+            delay(tickIntervalMs)
+            tick(a)
+        }
+
+        return createIn1Out2Processor(
+            name = name,
+            channelCapacity = channelCapacity,
+            position = position,
+            description = description,
+            process = timedProcess
+        )
+    }
+
+    /**
+     * Creates a timed 1-input, 3-output processor that processes at a regular interval.
+     *
+     * @param A Type of input
+     * @param U Type of first output
+     * @param V Type of second output
+     * @param W Type of third output
+     * @param name Human-readable name
+     * @param tickIntervalMs Milliseconds between tick invocations
+     * @param channelCapacity Buffer capacity for output channels (default: BUFFERED = 64)
+     * @param position Canvas position
+     * @param description Optional documentation
+     * @param tick Function called once per interval with input, returns ProcessResult3
+     * @return In1Out3Runtime configured for timed tick mode
+     */
+    inline fun <reified A : Any, reified U : Any, reified V : Any, reified W : Any> createTimedIn1Out3Processor(
+        name: String,
+        tickIntervalMs: Long,
+        channelCapacity: Int = Channel.BUFFERED,
+        position: Node.Position = Node.Position.ORIGIN,
+        description: String? = null,
+        noinline tick: io.codenode.fbpdsl.runtime.In1Out3TickBlock<A, U, V, W>
+    ): io.codenode.fbpdsl.runtime.In1Out3Runtime<A, U, V, W> {
+        val timedProcess: io.codenode.fbpdsl.runtime.In1Out3ProcessBlock<A, U, V, W> = { a ->
+            delay(tickIntervalMs)
+            tick(a)
+        }
+
+        return createIn1Out3Processor(
+            name = name,
+            channelCapacity = channelCapacity,
+            position = position,
+            description = description,
+            process = timedProcess
+        )
+    }
+
+    /**
+     * Creates a timed 2-input, 2-output processor that processes at a regular interval.
+     *
+     * @param A Type of first input
+     * @param B Type of second input
+     * @param U Type of first output
+     * @param V Type of second output
+     * @param name Human-readable name
+     * @param tickIntervalMs Milliseconds between tick invocations
+     * @param channelCapacity Buffer capacity for output channels (default: BUFFERED = 64)
+     * @param position Canvas position
+     * @param description Optional documentation
+     * @param tick Function called once per interval with both inputs, returns ProcessResult2
+     * @return In2Out2Runtime configured for timed tick mode
+     */
+    inline fun <reified A : Any, reified B : Any, reified U : Any, reified V : Any> createTimedIn2Out2Processor(
+        name: String,
+        tickIntervalMs: Long,
+        channelCapacity: Int = Channel.BUFFERED,
+        position: Node.Position = Node.Position.ORIGIN,
+        description: String? = null,
+        noinline tick: io.codenode.fbpdsl.runtime.In2Out2TickBlock<A, B, U, V>
+    ): io.codenode.fbpdsl.runtime.In2Out2Runtime<A, B, U, V> {
+        val timedProcess: io.codenode.fbpdsl.runtime.In2Out2ProcessBlock<A, B, U, V> = { a, b ->
+            delay(tickIntervalMs)
+            tick(a, b)
+        }
+
+        return createIn2Out2Processor(
+            name = name,
+            channelCapacity = channelCapacity,
+            position = position,
+            description = description,
+            process = timedProcess
+        )
+    }
+
+    /**
+     * Creates a timed 2-input, 3-output processor that processes at a regular interval.
+     *
+     * @param A Type of first input
+     * @param B Type of second input
+     * @param U Type of first output
+     * @param V Type of second output
+     * @param W Type of third output
+     * @param name Human-readable name
+     * @param tickIntervalMs Milliseconds between tick invocations
+     * @param channelCapacity Buffer capacity for output channels (default: BUFFERED = 64)
+     * @param position Canvas position
+     * @param description Optional documentation
+     * @param tick Function called once per interval with both inputs, returns ProcessResult3
+     * @return In2Out3Runtime configured for timed tick mode
+     */
+    inline fun <reified A : Any, reified B : Any, reified U : Any, reified V : Any, reified W : Any> createTimedIn2Out3Processor(
+        name: String,
+        tickIntervalMs: Long,
+        channelCapacity: Int = Channel.BUFFERED,
+        position: Node.Position = Node.Position.ORIGIN,
+        description: String? = null,
+        noinline tick: io.codenode.fbpdsl.runtime.In2Out3TickBlock<A, B, U, V, W>
+    ): io.codenode.fbpdsl.runtime.In2Out3Runtime<A, B, U, V, W> {
+        val timedProcess: io.codenode.fbpdsl.runtime.In2Out3ProcessBlock<A, B, U, V, W> = { a, b ->
+            delay(tickIntervalMs)
+            tick(a, b)
+        }
+
+        return createIn2Out3Processor(
+            name = name,
+            channelCapacity = channelCapacity,
+            position = position,
+            description = description,
+            process = timedProcess
+        )
+    }
+
+    /**
+     * Creates a timed 3-input, 2-output processor that processes at a regular interval.
+     *
+     * @param A Type of first input
+     * @param B Type of second input
+     * @param C Type of third input
+     * @param U Type of first output
+     * @param V Type of second output
+     * @param name Human-readable name
+     * @param tickIntervalMs Milliseconds between tick invocations
+     * @param channelCapacity Buffer capacity for output channels (default: BUFFERED = 64)
+     * @param position Canvas position
+     * @param description Optional documentation
+     * @param tick Function called once per interval with all three inputs, returns ProcessResult2
+     * @return In3Out2Runtime configured for timed tick mode
+     */
+    inline fun <reified A : Any, reified B : Any, reified C : Any, reified U : Any, reified V : Any> createTimedIn3Out2Processor(
+        name: String,
+        tickIntervalMs: Long,
+        channelCapacity: Int = Channel.BUFFERED,
+        position: Node.Position = Node.Position.ORIGIN,
+        description: String? = null,
+        noinline tick: io.codenode.fbpdsl.runtime.In3Out2TickBlock<A, B, C, U, V>
+    ): io.codenode.fbpdsl.runtime.In3Out2Runtime<A, B, C, U, V> {
+        val timedProcess: io.codenode.fbpdsl.runtime.In3Out2ProcessBlock<A, B, C, U, V> = { a, b, c ->
+            delay(tickIntervalMs)
+            tick(a, b, c)
+        }
+
+        return createIn3Out2Processor(
+            name = name,
+            channelCapacity = channelCapacity,
+            position = position,
+            description = description,
+            process = timedProcess
+        )
+    }
+
+    /**
+     * Creates a timed 3-input, 3-output processor that processes at a regular interval.
+     *
+     * @param A Type of first input
+     * @param B Type of second input
+     * @param C Type of third input
+     * @param U Type of first output
+     * @param V Type of second output
+     * @param W Type of third output
+     * @param name Human-readable name
+     * @param tickIntervalMs Milliseconds between tick invocations
+     * @param channelCapacity Buffer capacity for output channels (default: BUFFERED = 64)
+     * @param position Canvas position
+     * @param description Optional documentation
+     * @param tick Function called once per interval with all three inputs, returns ProcessResult3
+     * @return In3Out3Runtime configured for timed tick mode
+     */
+    inline fun <reified A : Any, reified B : Any, reified C : Any, reified U : Any, reified V : Any, reified W : Any> createTimedIn3Out3Processor(
+        name: String,
+        tickIntervalMs: Long,
+        channelCapacity: Int = Channel.BUFFERED,
+        position: Node.Position = Node.Position.ORIGIN,
+        description: String? = null,
+        noinline tick: io.codenode.fbpdsl.runtime.In3Out3TickBlock<A, B, C, U, V, W>
+    ): io.codenode.fbpdsl.runtime.In3Out3Runtime<A, B, C, U, V, W> {
+        val timedProcess: io.codenode.fbpdsl.runtime.In3Out3ProcessBlock<A, B, C, U, V, W> = { a, b, c ->
+            delay(tickIntervalMs)
+            tick(a, b, c)
+        }
+
+        return createIn3Out3Processor(
+            name = name,
+            channelCapacity = channelCapacity,
+            position = position,
+            description = description,
+            process = timedProcess
+        )
+    }
+
+    // ========== Timed Sink Factory Methods ==========
+
+    /**
+     * Creates a timed single-input sink that consumes values at a regular interval.
+     *
+     * @param T Type of input values
+     * @param name Human-readable name
+     * @param tickIntervalMs Milliseconds between tick invocations
+     * @param position Canvas position
+     * @param description Optional documentation
+     * @param tick Function called once per interval with received value
+     * @return SinkRuntime configured for timed tick mode
+     */
+    inline fun <reified T : Any> createTimedSink(
+        name: String,
+        tickIntervalMs: Long,
+        position: Node.Position = Node.Position.ORIGIN,
+        description: String? = null,
+        noinline tick: io.codenode.fbpdsl.runtime.SinkTickBlock<T>
+    ): SinkRuntime<T> {
+        val timedConsume: ContinuousSinkBlock<T> = { value ->
+            delay(tickIntervalMs)
+            tick(value)
+        }
+
+        return createContinuousSink(
+            name = name,
+            position = position,
+            description = description,
+            consume = timedConsume
+        )
+    }
+
+    /**
+     * Creates a timed 2-input sink that consumes values at a regular interval.
+     *
+     * @param A Type of first input
+     * @param B Type of second input
+     * @param name Human-readable name
+     * @param tickIntervalMs Milliseconds between tick invocations
+     * @param position Canvas position
+     * @param description Optional documentation
+     * @param tick Function called once per interval with both received values
+     * @return In2SinkRuntime configured for timed tick mode
+     */
+    inline fun <reified A : Any, reified B : Any> createTimedIn2Sink(
+        name: String,
+        tickIntervalMs: Long,
+        position: Node.Position = Node.Position.ORIGIN,
+        description: String? = null,
+        noinline tick: io.codenode.fbpdsl.runtime.In2SinkTickBlock<A, B>
+    ): io.codenode.fbpdsl.runtime.In2SinkRuntime<A, B> {
+        val timedConsume: io.codenode.fbpdsl.runtime.In2SinkBlock<A, B> = { a, b ->
+            delay(tickIntervalMs)
+            tick(a, b)
+        }
+
+        return createIn2Sink(
+            name = name,
+            position = position,
+            description = description,
+            consume = timedConsume
+        )
+    }
+
+    /**
+     * Creates a timed 3-input sink that consumes values at a regular interval.
+     *
+     * @param A Type of first input
+     * @param B Type of second input
+     * @param C Type of third input
+     * @param name Human-readable name
+     * @param tickIntervalMs Milliseconds between tick invocations
+     * @param position Canvas position
+     * @param description Optional documentation
+     * @param tick Function called once per interval with all three received values
+     * @return In3SinkRuntime configured for timed tick mode
+     */
+    inline fun <reified A : Any, reified B : Any, reified C : Any> createTimedIn3Sink(
+        name: String,
+        tickIntervalMs: Long,
+        position: Node.Position = Node.Position.ORIGIN,
+        description: String? = null,
+        noinline tick: io.codenode.fbpdsl.runtime.In3SinkTickBlock<A, B, C>
+    ): io.codenode.fbpdsl.runtime.In3SinkRuntime<A, B, C> {
+        val timedConsume: io.codenode.fbpdsl.runtime.In3SinkBlock<A, B, C> = { a, b, c ->
+            delay(tickIntervalMs)
+            tick(a, b, c)
+        }
+
+        return createIn3Sink(
+            name = name,
+            position = position,
+            description = description,
+            consume = timedConsume
+        )
     }
 }

@@ -32,13 +32,13 @@ No setup tasks required.
 
 **Purpose**: Add all tick type aliases to ContinuousTypes.kt. These are needed by all user stories.
 
-- [ ] T001 Add generator tick type aliases to `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/ContinuousTypes.kt` — Add `GeneratorTickBlock<T>` = `suspend () -> T` and `Out3TickBlock<U, V, W>` = `suspend () -> ProcessResult3<U, V, W>`. Place them in a new `// ========== Timed Tick Blocks ==========` section after the existing `Out2TickBlock`. Include KDoc matching the existing `Out2TickBlock` style.
+- [x] T001 Add generator tick type aliases to `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/ContinuousTypes.kt` — Add `GeneratorTickBlock<T>` = `suspend () -> T` and `Out3TickBlock<U, V, W>` = `suspend () -> ProcessResult3<U, V, W>`. Place them in a new `// ========== Timed Tick Blocks ==========` section after the existing `Out2TickBlock`. Include KDoc matching the existing `Out2TickBlock` style.
 
-- [ ] T002 [P] Add processor tick type aliases to `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/ContinuousTypes.kt` — Add `TransformerTickBlock<TIn, TOut>` = `suspend (TIn) -> TOut`, `FilterTickBlock<T>` = `suspend (T) -> Boolean`, `In2Out1TickBlock<A, B, R>` = `suspend (A, B) -> R`, `In3Out1TickBlock<A, B, C, R>` = `suspend (A, B, C) -> R`, `In1Out2TickBlock<A, U, V>` = `suspend (A) -> ProcessResult2<U, V>`, `In1Out3TickBlock<A, U, V, W>` = `suspend (A) -> ProcessResult3<U, V, W>`, `In2Out2TickBlock<A, B, U, V>` = `suspend (A, B) -> ProcessResult2<U, V>`, `In2Out3TickBlock<A, B, U, V, W>` = `suspend (A, B) -> ProcessResult3<U, V, W>`, `In3Out2TickBlock<A, B, C, U, V>` = `suspend (A, B, C) -> ProcessResult2<U, V>`, `In3Out3TickBlock<A, B, C, U, V, W>` = `suspend (A, B, C) -> ProcessResult3<U, V, W>`. Include KDoc for each.
+- [x] T002 [P] Add processor tick type aliases to `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/ContinuousTypes.kt` — Add `TransformerTickBlock<TIn, TOut>` = `suspend (TIn) -> TOut`, `FilterTickBlock<T>` = `suspend (T) -> Boolean`, `In2Out1TickBlock<A, B, R>` = `suspend (A, B) -> R`, `In3Out1TickBlock<A, B, C, R>` = `suspend (A, B, C) -> R`, `In1Out2TickBlock<A, U, V>` = `suspend (A) -> ProcessResult2<U, V>`, `In1Out3TickBlock<A, U, V, W>` = `suspend (A) -> ProcessResult3<U, V, W>`, `In2Out2TickBlock<A, B, U, V>` = `suspend (A, B) -> ProcessResult2<U, V>`, `In2Out3TickBlock<A, B, U, V, W>` = `suspend (A, B) -> ProcessResult3<U, V, W>`, `In3Out2TickBlock<A, B, C, U, V>` = `suspend (A, B, C) -> ProcessResult2<U, V>`, `In3Out3TickBlock<A, B, C, U, V, W>` = `suspend (A, B, C) -> ProcessResult3<U, V, W>`. Include KDoc for each.
 
-- [ ] T003 [P] Add sink tick type aliases to `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/ContinuousTypes.kt` — Add `SinkTickBlock<T>` = `suspend (T) -> Unit`, `In2SinkTickBlock<A, B>` = `suspend (A, B) -> Unit`, `In3SinkTickBlock<A, B, C>` = `suspend (A, B, C) -> Unit`. Include KDoc for each.
+- [x] T003 [P] Add sink tick type aliases to `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/ContinuousTypes.kt` — Add `SinkTickBlock<T>` = `suspend (T) -> Unit`, `In2SinkTickBlock<A, B>` = `suspend (A, B) -> Unit`, `In3SinkTickBlock<A, B, C>` = `suspend (A, B, C) -> Unit`. Include KDoc for each.
 
-- [ ] T004 Build verification for foundational phase — Run `./gradlew :fbpDsl:compileKotlinJvm`. Verify all tick type aliases compile.
+- [x] T004 Build verification for foundational phase — Run `./gradlew :fbpDsl:compileKotlinJvm`. Verify all tick type aliases compile.
 
 **Checkpoint**: All 15 new tick type aliases defined. Factory method tasks can proceed.
 
@@ -52,11 +52,11 @@ No setup tasks required.
 
 ### Implementation for User Story 1
 
-- [ ] T005 [US1] Add `createTimedGenerator<T>` factory method to `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/CodeNodeFactory.kt` — Follow the exact `createTimedOut2Generator` pattern. Accept `tickIntervalMs: Long`, `channelCapacity: Int = Channel.BUFFERED`, and `tick: GeneratorTickBlock<T>`. Wrap tick in a generate block: `{ emit -> while (currentCoroutineContext().isActive) { delay(tickIntervalMs); emit(tick()) } }`. Delegate to `createContinuousGenerator`. Include KDoc. Place in the existing "Timed Generator Factory Methods" section, before `createTimedOut2Generator`.
+- [x] T005 [US1] Add `createTimedGenerator<T>` factory method to `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/CodeNodeFactory.kt` — Follow the exact `createTimedOut2Generator` pattern. Accept `tickIntervalMs: Long`, `channelCapacity: Int = Channel.BUFFERED`, and `tick: GeneratorTickBlock<T>`. Wrap tick in a generate block: `{ emit -> while (currentCoroutineContext().isActive) { delay(tickIntervalMs); emit(tick()) } }`. Delegate to `createContinuousGenerator`. Include KDoc. Place in the existing "Timed Generator Factory Methods" section, before `createTimedOut2Generator`.
 
-- [ ] T006 [US1] Add `createTimedOut3Generator<U, V, W>` factory method to `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/CodeNodeFactory.kt` — Same pattern as `createTimedOut2Generator`. Accept `tick: Out3TickBlock<U, V, W>`. Wrap in generate block with `Out3GeneratorBlock`. Delegate to `createOut3Generator`. Include KDoc. Place after `createTimedOut2Generator`.
+- [x] T006 [US1] Add `createTimedOut3Generator<U, V, W>` factory method to `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/CodeNodeFactory.kt` — Same pattern as `createTimedOut2Generator`. Accept `tick: Out3TickBlock<U, V, W>`. Wrap in generate block with `Out3GeneratorBlock`. Delegate to `createOut3Generator`. Include KDoc. Place after `createTimedOut2Generator`.
 
-- [ ] T007 [US1] Build verification for US1 — Run `./gradlew :fbpDsl:compileKotlinJvm` and `./gradlew :fbpDsl:jvmTest`. Verify compilation succeeds and all tests pass.
+- [x] T007 [US1] Build verification for US1 — Run `./gradlew :fbpDsl:compileKotlinJvm` and `./gradlew :fbpDsl:jvmTest`. Verify compilation succeeds and all tests pass.
 
 **Checkpoint**: All 3 timed generator variants exist (1 new single-output + 1 existing 2-output + 1 new 3-output).
 
@@ -70,27 +70,27 @@ No setup tasks required.
 
 ### Implementation for User Story 2
 
-- [ ] T008 [US2] Add `createTimedTransformer<TIn, TOut>` factory method to `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/CodeNodeFactory.kt` — Accept `tickIntervalMs: Long` and `tick: TransformerTickBlock<TIn, TOut>`. Wrap tick: `{ input -> delay(tickIntervalMs); tick(input) }`. Delegate to `createContinuousTransformer`. Include KDoc. Create a new `// ========== Timed Processor Factory Methods ==========` section after the existing timed generator section.
+- [x] T008 [US2] Add `createTimedTransformer<TIn, TOut>` factory method to `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/CodeNodeFactory.kt` — Accept `tickIntervalMs: Long` and `tick: TransformerTickBlock<TIn, TOut>`. Wrap tick: `{ input -> delay(tickIntervalMs); tick(input) }`. Delegate to `createContinuousTransformer`. Include KDoc. Create a new `// ========== Timed Processor Factory Methods ==========` section after the existing timed generator section.
 
-- [ ] T009 [US2] Add `createTimedFilter<T>` factory method to `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/CodeNodeFactory.kt` — Accept `tick: FilterTickBlock<T>`. Wrap tick: `{ value -> delay(tickIntervalMs); tick(value) }`. Delegate to `createContinuousFilter`. Include KDoc.
+- [x] T009 [US2] Add `createTimedFilter<T>` factory method to `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/CodeNodeFactory.kt` — Accept `tick: FilterTickBlock<T>`. Wrap tick: `{ value -> delay(tickIntervalMs); tick(value) }`. Delegate to `createContinuousFilter`. Include KDoc.
 
-- [ ] T010 [US2] Add `createTimedIn2Out1Processor<A, B, R>` factory method to `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/CodeNodeFactory.kt` — Accept `tick: In2Out1TickBlock<A, B, R>`. Wrap tick: `{ a, b -> delay(tickIntervalMs); tick(a, b) }`. Delegate to `createIn2Out1Processor`. Include KDoc.
+- [x] T010 [US2] Add `createTimedIn2Out1Processor<A, B, R>` factory method to `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/CodeNodeFactory.kt` — Accept `tick: In2Out1TickBlock<A, B, R>`. Wrap tick: `{ a, b -> delay(tickIntervalMs); tick(a, b) }`. Delegate to `createIn2Out1Processor`. Include KDoc.
 
-- [ ] T011 [US2] Add `createTimedIn3Out1Processor<A, B, C, R>` factory method to `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/CodeNodeFactory.kt` — Accept `tick: In3Out1TickBlock<A, B, C, R>`. Wrap tick: `{ a, b, c -> delay(tickIntervalMs); tick(a, b, c) }`. Delegate to `createIn3Out1Processor`. Include KDoc.
+- [x] T011 [US2] Add `createTimedIn3Out1Processor<A, B, C, R>` factory method to `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/CodeNodeFactory.kt` — Accept `tick: In3Out1TickBlock<A, B, C, R>`. Wrap tick: `{ a, b, c -> delay(tickIntervalMs); tick(a, b, c) }`. Delegate to `createIn3Out1Processor`. Include KDoc.
 
-- [ ] T012 [US2] Add `createTimedIn1Out2Processor<A, U, V>` factory method to `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/CodeNodeFactory.kt` — Accept `channelCapacity: Int = Channel.BUFFERED` and `tick: In1Out2TickBlock<A, U, V>`. Wrap tick: `{ a -> delay(tickIntervalMs); tick(a) }`. Delegate to `createIn1Out2Processor`. Include KDoc.
+- [x] T012 [US2] Add `createTimedIn1Out2Processor<A, U, V>` factory method to `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/CodeNodeFactory.kt` — Accept `channelCapacity: Int = Channel.BUFFERED` and `tick: In1Out2TickBlock<A, U, V>`. Wrap tick: `{ a -> delay(tickIntervalMs); tick(a) }`. Delegate to `createIn1Out2Processor`. Include KDoc.
 
-- [ ] T013 [US2] Add `createTimedIn1Out3Processor<A, U, V, W>` factory method to `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/CodeNodeFactory.kt` — Accept `channelCapacity` and `tick: In1Out3TickBlock<A, U, V, W>`. Wrap tick: `{ a -> delay(tickIntervalMs); tick(a) }`. Delegate to `createIn1Out3Processor`. Include KDoc.
+- [x] T013 [US2] Add `createTimedIn1Out3Processor<A, U, V, W>` factory method to `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/CodeNodeFactory.kt` — Accept `channelCapacity` and `tick: In1Out3TickBlock<A, U, V, W>`. Wrap tick: `{ a -> delay(tickIntervalMs); tick(a) }`. Delegate to `createIn1Out3Processor`. Include KDoc.
 
-- [ ] T014 [US2] Add `createTimedIn2Out2Processor<A, B, U, V>` factory method to `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/CodeNodeFactory.kt` — Accept `channelCapacity` and `tick: In2Out2TickBlock<A, B, U, V>`. Wrap tick: `{ a, b -> delay(tickIntervalMs); tick(a, b) }`. Delegate to `createIn2Out2Processor`. Include KDoc.
+- [x] T014 [US2] Add `createTimedIn2Out2Processor<A, B, U, V>` factory method to `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/CodeNodeFactory.kt` — Accept `channelCapacity` and `tick: In2Out2TickBlock<A, B, U, V>`. Wrap tick: `{ a, b -> delay(tickIntervalMs); tick(a, b) }`. Delegate to `createIn2Out2Processor`. Include KDoc.
 
-- [ ] T015 [US2] Add `createTimedIn2Out3Processor<A, B, U, V, W>` factory method to `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/CodeNodeFactory.kt` — Accept `channelCapacity` and `tick: In2Out3TickBlock<A, B, U, V, W>`. Wrap tick: `{ a, b -> delay(tickIntervalMs); tick(a, b) }`. Delegate to `createIn2Out3Processor`. Include KDoc.
+- [x] T015 [US2] Add `createTimedIn2Out3Processor<A, B, U, V, W>` factory method to `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/CodeNodeFactory.kt` — Accept `channelCapacity` and `tick: In2Out3TickBlock<A, B, U, V, W>`. Wrap tick: `{ a, b -> delay(tickIntervalMs); tick(a, b) }`. Delegate to `createIn2Out3Processor`. Include KDoc.
 
-- [ ] T016 [US2] Add `createTimedIn3Out2Processor<A, B, C, U, V>` factory method to `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/CodeNodeFactory.kt` — Accept `channelCapacity` and `tick: In3Out2TickBlock<A, B, C, U, V>`. Wrap tick: `{ a, b, c -> delay(tickIntervalMs); tick(a, b, c) }`. Delegate to `createIn3Out2Processor`. Include KDoc.
+- [x] T016 [US2] Add `createTimedIn3Out2Processor<A, B, C, U, V>` factory method to `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/CodeNodeFactory.kt` — Accept `channelCapacity` and `tick: In3Out2TickBlock<A, B, C, U, V>`. Wrap tick: `{ a, b, c -> delay(tickIntervalMs); tick(a, b, c) }`. Delegate to `createIn3Out2Processor`. Include KDoc.
 
-- [ ] T017 [US2] Add `createTimedIn3Out3Processor<A, B, C, U, V, W>` factory method to `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/CodeNodeFactory.kt` — Accept `channelCapacity` and `tick: In3Out3TickBlock<A, B, C, U, V, W>`. Wrap tick: `{ a, b, c -> delay(tickIntervalMs); tick(a, b, c) }`. Delegate to `createIn3Out3Processor`. Include KDoc.
+- [x] T017 [US2] Add `createTimedIn3Out3Processor<A, B, C, U, V, W>` factory method to `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/CodeNodeFactory.kt` — Accept `channelCapacity` and `tick: In3Out3TickBlock<A, B, C, U, V, W>`. Wrap tick: `{ a, b, c -> delay(tickIntervalMs); tick(a, b, c) }`. Delegate to `createIn3Out3Processor`. Include KDoc.
 
-- [ ] T018 [US2] Build verification for US2 — Run `./gradlew :fbpDsl:compileKotlinJvm` and `./gradlew :fbpDsl:jvmTest`. Verify compilation succeeds and all tests pass.
+- [x] T018 [US2] Build verification for US2 — Run `./gradlew :fbpDsl:compileKotlinJvm` and `./gradlew :fbpDsl:jvmTest`. Verify compilation succeeds and all tests pass.
 
 **Checkpoint**: All 10 timed processor variants exist.
 
@@ -104,13 +104,13 @@ No setup tasks required.
 
 ### Implementation for User Story 3
 
-- [ ] T019 [US3] Add `createTimedSink<T>` factory method to `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/CodeNodeFactory.kt` — Accept `tickIntervalMs: Long` and `tick: SinkTickBlock<T>`. Wrap tick: `{ value -> delay(tickIntervalMs); tick(value) }`. Delegate to `createContinuousSink`. Include KDoc. Create a new `// ========== Timed Sink Factory Methods ==========` section.
+- [x] T019 [US3] Add `createTimedSink<T>` factory method to `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/CodeNodeFactory.kt` — Accept `tickIntervalMs: Long` and `tick: SinkTickBlock<T>`. Wrap tick: `{ value -> delay(tickIntervalMs); tick(value) }`. Delegate to `createContinuousSink`. Include KDoc. Create a new `// ========== Timed Sink Factory Methods ==========` section.
 
-- [ ] T020 [US3] Add `createTimedIn2Sink<A, B>` factory method to `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/CodeNodeFactory.kt` — Accept `tick: In2SinkTickBlock<A, B>`. Wrap tick: `{ a, b -> delay(tickIntervalMs); tick(a, b) }`. Delegate to `createIn2Sink`. Include KDoc.
+- [x] T020 [US3] Add `createTimedIn2Sink<A, B>` factory method to `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/CodeNodeFactory.kt` — Accept `tick: In2SinkTickBlock<A, B>`. Wrap tick: `{ a, b -> delay(tickIntervalMs); tick(a, b) }`. Delegate to `createIn2Sink`. Include KDoc.
 
-- [ ] T021 [US3] Add `createTimedIn3Sink<A, B, C>` factory method to `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/CodeNodeFactory.kt` — Accept `tick: In3SinkTickBlock<A, B, C>`. Wrap tick: `{ a, b, c -> delay(tickIntervalMs); tick(a, b, c) }`. Delegate to `createIn3Sink`. Include KDoc.
+- [x] T021 [US3] Add `createTimedIn3Sink<A, B, C>` factory method to `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/CodeNodeFactory.kt` — Accept `tick: In3SinkTickBlock<A, B, C>`. Wrap tick: `{ a, b, c -> delay(tickIntervalMs); tick(a, b, c) }`. Delegate to `createIn3Sink`. Include KDoc.
 
-- [ ] T022 [US3] Build verification for US3 — Run `./gradlew :fbpDsl:compileKotlinJvm` and `./gradlew :fbpDsl:jvmTest`. Verify compilation succeeds and all tests pass.
+- [x] T022 [US3] Build verification for US3 — Run `./gradlew :fbpDsl:compileKotlinJvm` and `./gradlew :fbpDsl:jvmTest`. Verify compilation succeeds and all tests pass.
 
 **Checkpoint**: All 3 timed sink variants exist.
 
@@ -120,9 +120,9 @@ No setup tasks required.
 
 **Purpose**: Final validation across all user stories.
 
-- [ ] T023 Full cross-module build verification — Run `./gradlew :fbpDsl:compileKotlinJvm :graphEditor:compileKotlinJvm :kotlinCompiler:compileKotlinJvm :StopWatch:compileKotlinJvm` and `./gradlew :fbpDsl:jvmTest`. Verify all modules compile and all tests pass.
+- [x] T023 Full cross-module build verification — Run `./gradlew :fbpDsl:compileKotlinJvm :graphEditor:compileKotlinJvm :kotlinCompiler:compileKotlinJvm :StopWatch:compileKotlinJvm` and `./gradlew :fbpDsl:jvmTest`. Verify all modules compile and all tests pass.
 
-- [ ] T024 Verify method count and completeness — Search CodeNodeFactory.kt for all `createTimed` methods and confirm exactly 16 exist (1 existing + 15 new): `createTimedGenerator`, `createTimedOut2Generator`, `createTimedOut3Generator`, `createTimedTransformer`, `createTimedFilter`, `createTimedIn2Out1Processor`, `createTimedIn3Out1Processor`, `createTimedIn1Out2Processor`, `createTimedIn1Out3Processor`, `createTimedIn2Out2Processor`, `createTimedIn2Out3Processor`, `createTimedIn3Out2Processor`, `createTimedIn3Out3Processor`, `createTimedSink`, `createTimedIn2Sink`, `createTimedIn3Sink`. Search ContinuousTypes.kt for all `TickBlock` aliases and confirm exactly 16 exist (1 existing + 15 new).
+- [x] T024 Verify method count and completeness — Search CodeNodeFactory.kt for all `createTimed` methods and confirm exactly 16 exist (1 existing + 15 new): `createTimedGenerator`, `createTimedOut2Generator`, `createTimedOut3Generator`, `createTimedTransformer`, `createTimedFilter`, `createTimedIn2Out1Processor`, `createTimedIn3Out1Processor`, `createTimedIn1Out2Processor`, `createTimedIn1Out3Processor`, `createTimedIn2Out2Processor`, `createTimedIn2Out3Processor`, `createTimedIn3Out2Processor`, `createTimedIn3Out3Processor`, `createTimedSink`, `createTimedIn2Sink`, `createTimedIn3Sink`. Search ContinuousTypes.kt for all `TickBlock` aliases and confirm exactly 16 exist (1 existing + 15 new).
 
 ---
 

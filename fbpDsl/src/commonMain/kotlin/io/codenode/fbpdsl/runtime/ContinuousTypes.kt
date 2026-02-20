@@ -199,3 +199,163 @@ typealias Out2TickBlock<U, V> = suspend () -> ProcessResult2<U, V>
  * @param W Type of third output
  */
 typealias Out3GeneratorBlock<U, V, W> = suspend (emit: suspend (ProcessResult3<U, V, W>) -> Unit) -> Unit
+
+// ========== Timed Tick Blocks ==========
+
+// --- Generator Tick Blocks ---
+
+/**
+ * Type alias for single-output timed tick block.
+ * Called once per tick interval by the runtime, returns a value to emit.
+ *
+ * @param T Type of output value
+ */
+typealias GeneratorTickBlock<T> = suspend () -> T
+
+/**
+ * Type alias for 3-output timed tick block.
+ * Called once per tick interval by the runtime, returns values to emit.
+ *
+ * @param U Type of first output
+ * @param V Type of second output
+ * @param W Type of third output
+ */
+typealias Out3TickBlock<U, V, W> = suspend () -> ProcessResult3<U, V, W>
+
+// --- Processor Tick Blocks ---
+
+/**
+ * Type alias for timed transformer tick block.
+ * Called once per tick interval after receiving input, returns transformed output.
+ *
+ * @param TIn Type of input value
+ * @param TOut Type of output value
+ */
+typealias TransformerTickBlock<TIn, TOut> = suspend (TIn) -> TOut
+
+/**
+ * Type alias for timed filter tick block.
+ * Called once per tick interval after receiving input, returns true to pass, false to drop.
+ *
+ * @param T Type of value being filtered
+ */
+typealias FilterTickBlock<T> = suspend (T) -> Boolean
+
+/**
+ * Type alias for timed 2-input, 1-output processor tick block.
+ * Called once per tick interval after receiving both inputs.
+ *
+ * @param A Type of first input
+ * @param B Type of second input
+ * @param R Type of output
+ */
+typealias In2Out1TickBlock<A, B, R> = suspend (A, B) -> R
+
+/**
+ * Type alias for timed 3-input, 1-output processor tick block.
+ * Called once per tick interval after receiving all three inputs.
+ *
+ * @param A Type of first input
+ * @param B Type of second input
+ * @param C Type of third input
+ * @param R Type of output
+ */
+typealias In3Out1TickBlock<A, B, C, R> = suspend (A, B, C) -> R
+
+/**
+ * Type alias for timed 1-input, 2-output processor tick block.
+ * Called once per tick interval after receiving input, returns ProcessResult2.
+ *
+ * @param A Type of input
+ * @param U Type of first output
+ * @param V Type of second output
+ */
+typealias In1Out2TickBlock<A, U, V> = suspend (A) -> ProcessResult2<U, V>
+
+/**
+ * Type alias for timed 1-input, 3-output processor tick block.
+ * Called once per tick interval after receiving input, returns ProcessResult3.
+ *
+ * @param A Type of input
+ * @param U Type of first output
+ * @param V Type of second output
+ * @param W Type of third output
+ */
+typealias In1Out3TickBlock<A, U, V, W> = suspend (A) -> ProcessResult3<U, V, W>
+
+/**
+ * Type alias for timed 2-input, 2-output processor tick block.
+ * Called once per tick interval after receiving both inputs, returns ProcessResult2.
+ *
+ * @param A Type of first input
+ * @param B Type of second input
+ * @param U Type of first output
+ * @param V Type of second output
+ */
+typealias In2Out2TickBlock<A, B, U, V> = suspend (A, B) -> ProcessResult2<U, V>
+
+/**
+ * Type alias for timed 2-input, 3-output processor tick block.
+ * Called once per tick interval after receiving both inputs, returns ProcessResult3.
+ *
+ * @param A Type of first input
+ * @param B Type of second input
+ * @param U Type of first output
+ * @param V Type of second output
+ * @param W Type of third output
+ */
+typealias In2Out3TickBlock<A, B, U, V, W> = suspend (A, B) -> ProcessResult3<U, V, W>
+
+/**
+ * Type alias for timed 3-input, 2-output processor tick block.
+ * Called once per tick interval after receiving all three inputs, returns ProcessResult2.
+ *
+ * @param A Type of first input
+ * @param B Type of second input
+ * @param C Type of third input
+ * @param U Type of first output
+ * @param V Type of second output
+ */
+typealias In3Out2TickBlock<A, B, C, U, V> = suspend (A, B, C) -> ProcessResult2<U, V>
+
+/**
+ * Type alias for timed 3-input, 3-output processor tick block.
+ * Called once per tick interval after receiving all three inputs, returns ProcessResult3.
+ *
+ * @param A Type of first input
+ * @param B Type of second input
+ * @param C Type of third input
+ * @param U Type of first output
+ * @param V Type of second output
+ * @param W Type of third output
+ */
+typealias In3Out3TickBlock<A, B, C, U, V, W> = suspend (A, B, C) -> ProcessResult3<U, V, W>
+
+// --- Sink Tick Blocks ---
+
+/**
+ * Type alias for timed single-input sink tick block.
+ * Called once per tick interval after receiving input.
+ *
+ * @param T Type of input value
+ */
+typealias SinkTickBlock<T> = suspend (T) -> Unit
+
+/**
+ * Type alias for timed 2-input sink tick block.
+ * Called once per tick interval after receiving both inputs.
+ *
+ * @param A Type of first input
+ * @param B Type of second input
+ */
+typealias In2SinkTickBlock<A, B> = suspend (A, B) -> Unit
+
+/**
+ * Type alias for timed 3-input sink tick block.
+ * Called once per tick interval after receiving all three inputs.
+ *
+ * @param A Type of first input
+ * @param B Type of second input
+ * @param C Type of third input
+ */
+typealias In3SinkTickBlock<A, B, C> = suspend (A, B, C) -> Unit
