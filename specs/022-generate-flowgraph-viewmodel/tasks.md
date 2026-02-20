@@ -97,9 +97,9 @@
 
 ### Implementation for User Story 4
 
-- [ ] T030 [US4] Implement `generateViewModelClass(flowGraph, packageName)` method in kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/ModuleGenerator.kt — generates class extending ViewModel(), assigns StateFlow properties from controller, delegates lifecycle methods. See contracts/generator-api.md for exact output format.
-- [ ] T031 [US4] Add ViewModel generation tests to kotlinCompiler/src/commonTest/kotlin/io/codenode/kotlincompiler/generator/ViewModelGeneratorTest.kt — (1) single-sink ViewModel matches expected output, (2) multi-sink ViewModel with prefixed properties
-- [ ] T032 [US4] Verify generator tests pass: `./gradlew :kotlinCompiler:jvmTest --tests "*ViewModelGeneratorTest*"`
+- [x] T030 [US4] Implement `generateViewModelClass(flowGraph, packageName)` method in kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/ModuleGenerator.kt — generates class extending ViewModel(), assigns StateFlow properties from controller, delegates lifecycle methods. See contracts/generator-api.md for exact output format.
+- [x] T031 [US4] Add ViewModel generation tests to kotlinCompiler/src/commonTest/kotlin/io/codenode/kotlincompiler/generator/ViewModelGeneratorTest.kt — (1) single-sink ViewModel matches expected output, (2) multi-sink ViewModel with prefixed properties
+- [x] T032 [US4] Verify generator tests pass: `./gradlew :kotlinCompiler:jvmTest --tests "*ViewModelGeneratorTest*"`
 
 **Checkpoint**: All three generator methods implemented and tested. Each produces output matching the hand-written StopWatch equivalents.
 

@@ -391,4 +391,57 @@ class ViewModelGeneratorTest {
         assertTrue(output.contains("    override fun start(): FlowGraph = controller.start()"))
         assertTrue(output.contains("    override fun resume(): FlowGraph = controller.resume()"))
     }
+
+    // ========== generateViewModelClass Tests ==========
+
+    @Test
+    fun generateViewModelClass_single_sink_matches_expected_output() {
+        val generator = ModuleGenerator()
+        val flowGraph = createSingleSinkFlowGraph()
+        val packageName = "io.codenode.stopwatch.generated"
+
+        val output = generator.generateViewModelClass(flowGraph, packageName)
+
+        val expected = buildString {
+            appendLine("package io.codenode.stopwatch.generated")
+            appendLine()
+            appendLine("import androidx.lifecycle.ViewModel")
+            appendLine("import io.codenode.fbpdsl.model.ExecutionState")
+            appendLine("import io.codenode.fbpdsl.model.FlowGraph")
+            appendLine("import kotlinx.coroutines.flow.StateFlow")
+            appendLine()
+            appendLine("class StopWatchViewModel(")
+            appendLine("    private val controller: StopWatchControllerInterface")
+            appendLine(") : ViewModel() {")
+            appendLine("    val seconds: StateFlow<Int> = controller.seconds")
+            appendLine("    val minutes: StateFlow<Int> = controller.minutes")
+            appendLine("    val executionState: StateFlow<ExecutionState> = controller.executionState")
+            appendLine("    fun start(): FlowGraph = controller.start()")
+            appendLine("    fun stop(): FlowGraph = controller.stop()")
+            appendLine("    fun reset(): FlowGraph = controller.reset()")
+            appendLine("    fun pause(): FlowGraph = controller.pause()")
+            appendLine("    fun resume(): FlowGraph = controller.resume()")
+            appendLine("}")
+        }
+
+        assertEquals(expected, output)
+    }
+
+    @Test
+    fun generateViewModelClass_multi_sink_uses_prefixed_properties() {
+        val generator = ModuleGenerator()
+        val flowGraph = createMultiSinkFlowGraph()
+        val packageName = "io.codenode.generated"
+
+        val output = generator.generateViewModelClass(flowGraph, packageName)
+
+        assertTrue(output.contains("class MultiSinkViewModel("))
+        assertTrue(output.contains("    private val controller: MultiSinkControllerInterface"))
+        assertTrue(output.contains(") : ViewModel() {"))
+        assertTrue(output.contains("    val displayReceiverSeconds: StateFlow<Int> = controller.displayReceiverSeconds"))
+        assertTrue(output.contains("    val alertReceiverLevel: StateFlow<String> = controller.alertReceiverLevel"))
+        assertTrue(output.contains("    val executionState: StateFlow<ExecutionState> = controller.executionState"))
+        assertTrue(output.contains("    fun start(): FlowGraph = controller.start()"))
+        assertTrue(output.contains("    fun resume(): FlowGraph = controller.resume()"))
+    }
 }

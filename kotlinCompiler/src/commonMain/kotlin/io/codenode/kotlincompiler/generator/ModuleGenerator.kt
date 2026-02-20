@@ -959,6 +959,47 @@ class ModuleGenerator {
             appendLine("}")
         }
     }
+
+    /**
+     * Generates a ViewModel class from a FlowGraph.
+     *
+     * The ViewModel extends `ViewModel()`, accepts a ControllerInterface as
+     * constructor dependency, assigns StateFlow properties from the controller,
+     * and delegates lifecycle methods.
+     *
+     * @param flowGraph The flow graph to generate ViewModel from
+     * @param packageName The package name for the generated class
+     * @return Generated Kotlin class source code
+     */
+    fun generateViewModelClass(flowGraph: FlowGraph, packageName: String): String {
+        val namePrefix = flowGraph.name.pascalCase()
+        val viewModelName = "${namePrefix}ViewModel"
+        val interfaceName = "${namePrefix}ControllerInterface"
+        val properties = collectSinkPortProperties(flowGraph)
+
+        return buildString {
+            appendLine("package $packageName")
+            appendLine()
+            appendLine("import androidx.lifecycle.ViewModel")
+            appendLine("import io.codenode.fbpdsl.model.ExecutionState")
+            appendLine("import io.codenode.fbpdsl.model.FlowGraph")
+            appendLine("import kotlinx.coroutines.flow.StateFlow")
+            appendLine()
+            appendLine("class $viewModelName(")
+            appendLine("    private val controller: $interfaceName")
+            appendLine(") : ViewModel() {")
+            properties.forEach { prop ->
+                appendLine("    val ${prop.propertyName}: StateFlow<${prop.kotlinType}> = controller.${prop.propertyName}")
+            }
+            appendLine("    val executionState: StateFlow<ExecutionState> = controller.executionState")
+            appendLine("    fun start(): FlowGraph = controller.start()")
+            appendLine("    fun stop(): FlowGraph = controller.stop()")
+            appendLine("    fun reset(): FlowGraph = controller.reset()")
+            appendLine("    fun pause(): FlowGraph = controller.pause()")
+            appendLine("    fun resume(): FlowGraph = controller.resume()")
+            appendLine("}")
+        }
+    }
 }
 
 /**
