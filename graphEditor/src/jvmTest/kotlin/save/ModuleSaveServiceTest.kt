@@ -785,4 +785,144 @@ class ModuleSaveServiceTest {
         assertTrue(content.contains("connect"),
             "flow.kt should contain the new connection")
     }
+
+    // ========== Runtime File Generation ==========
+
+    @Test
+    fun `saveModule creates all 5 runtime files in generated directory`() {
+        // Given
+        val node1 = CodeNode(
+            id = "gen1",
+            name = "TimerEmitter",
+            codeNodeType = CodeNodeType.GENERATOR,
+            position = Node.Position(100.0, 100.0),
+            inputPorts = emptyList(),
+            outputPorts = listOf(
+                Port(id = "gen1_out", name = "value", direction = Port.Direction.OUTPUT, dataType = Int::class, owningNodeId = "gen1")
+            )
+        )
+        val node2 = CodeNode(
+            id = "sink1",
+            name = "Display",
+            codeNodeType = CodeNodeType.SINK,
+            position = Node.Position(300.0, 100.0),
+            inputPorts = listOf(
+                Port(id = "sink1_in", name = "data", direction = Port.Direction.INPUT, dataType = Int::class, owningNodeId = "sink1")
+            ),
+            outputPorts = emptyList()
+        )
+        val flowGraph = FlowGraph(
+            id = "flow_runtime",
+            name = "RuntimeTest",
+            version = "1.0.0",
+            rootNodes = listOf(node1, node2),
+            connections = listOf(
+                Connection("c1", "gen1", "gen1_out", "sink1", "sink1_in")
+            )
+        )
+        val saveService = ModuleSaveService()
+
+        // When
+        val result = saveService.saveModule(flowGraph, tempDir)
+
+        // Then
+        assertTrue(result.success)
+        val generatedDir = File(result.moduleDir, "src/commonMain/kotlin/io/codenode/runtimetest/generated")
+
+        val expectedFiles = listOf(
+            "RuntimeTestFlow.kt",
+            "RuntimeTestController.kt",
+            "RuntimeTestControllerInterface.kt",
+            "RuntimeTestControllerAdapter.kt",
+            "RuntimeTestViewModel.kt"
+        )
+        for (fileName in expectedFiles) {
+            val file = File(generatedDir, fileName)
+            assertTrue(file.exists(), "$fileName should exist in generated directory")
+            assertTrue(file.readText().isNotBlank(), "$fileName should not be empty")
+        }
+    }
+
+    @Test
+    fun `re-save overwrites existing runtime files`() {
+        // Given
+        val node1 = CodeNode(
+            id = "gen1",
+            name = "Source",
+            codeNodeType = CodeNodeType.GENERATOR,
+            position = Node.Position(100.0, 100.0),
+            inputPorts = emptyList(),
+            outputPorts = listOf(
+                Port(id = "gen1_out", name = "value", direction = Port.Direction.OUTPUT, dataType = Int::class, owningNodeId = "gen1")
+            )
+        )
+        val flowGraph1 = FlowGraph(
+            id = "flow_overwrite",
+            name = "OverwriteTest",
+            version = "1.0.0",
+            rootNodes = listOf(node1)
+        )
+        val saveService = ModuleSaveService()
+
+        // First save
+        val result1 = saveService.saveModule(flowGraph1, tempDir)
+        assertTrue(result1.success)
+
+        val generatedDir = File(result1.moduleDir, "src/commonMain/kotlin/io/codenode/overwritetest/generated")
+        val flowFile = File(generatedDir, "OverwriteTestFlow.kt")
+        val originalContent = flowFile.readText()
+        assertTrue(originalContent.contains("Source"), "First save should reference Source node")
+
+        // Change the flow (rename node)
+        val node2 = node1.copy(name = "UpdatedSource")
+        val flowGraph2 = flowGraph1.copy(rootNodes = listOf(node2))
+
+        // Re-save
+        val result2 = saveService.saveModule(flowGraph2, tempDir)
+
+        // Then - runtime files should be overwritten with new content
+        assertTrue(result2.success)
+        val updatedContent = flowFile.readText()
+        assertTrue(updatedContent.contains("UpdatedSource"),
+            "Runtime file should be overwritten with new content")
+    }
+
+    @Test
+    fun `filesCreated includes all 5 runtime file paths`() {
+        // Given
+        val node1 = CodeNode(
+            id = "gen1",
+            name = "Emitter",
+            codeNodeType = CodeNodeType.GENERATOR,
+            position = Node.Position(100.0, 100.0),
+            inputPorts = emptyList(),
+            outputPorts = listOf(
+                Port(id = "gen1_out", name = "value", direction = Port.Direction.OUTPUT, dataType = Int::class, owningNodeId = "gen1")
+            )
+        )
+        val flowGraph = FlowGraph(
+            id = "flow_files",
+            name = "FilesTest",
+            version = "1.0.0",
+            rootNodes = listOf(node1)
+        )
+        val saveService = ModuleSaveService()
+
+        // When
+        val result = saveService.saveModule(flowGraph, tempDir)
+
+        // Then
+        assertTrue(result.success)
+        val runtimeFileNames = listOf(
+            "FilesTestFlow.kt",
+            "FilesTestController.kt",
+            "FilesTestControllerInterface.kt",
+            "FilesTestControllerAdapter.kt",
+            "FilesTestViewModel.kt"
+        )
+        for (fileName in runtimeFileNames) {
+            assertTrue(result.filesCreated.any { it.contains(fileName) },
+                "filesCreated should include $fileName")
+        }
+    }
 }

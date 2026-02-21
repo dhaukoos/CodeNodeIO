@@ -73,12 +73,12 @@
 
 ### Tests for User Story 2
 
-- [ ] T010 [P] [US2] Write unit tests for `RuntimeControllerGenerator` in `kotlinCompiler/src/commonTest/kotlin/io/codenode/kotlincompiler/generator/RuntimeControllerGeneratorTest.kt` — test cases: (1) StopWatch-like flow → verify Flow instance, start/stop/pause/resume/reset methods, executionState StateFlow, seconds/minutes StateFlow properties delegated from flow; (2) no sink nodes → only executionState property; (3) verify bindToLifecycle() method present.
+- [X] T010 [P] [US2] Write unit tests for `RuntimeControllerGenerator` in `kotlinCompiler/src/commonTest/kotlin/io/codenode/kotlincompiler/generator/RuntimeControllerGeneratorTest.kt` — test cases: (1) StopWatch-like flow → verify Flow instance, start/stop/pause/resume/reset methods, executionState StateFlow, seconds/minutes StateFlow properties delegated from flow; (2) no sink nodes → only executionState property; (3) verify bindToLifecycle() method present.
 
 ### Implementation for User Story 2
 
-- [ ] T011 [US2] Implement `RuntimeControllerGenerator` in `kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/RuntimeControllerGenerator.kt` — `fun generate(flowGraph: FlowGraph, generatedPackage: String, usecasesPackage: String): String`. Generates: class with FlowGraph constructor param, RuntimeRegistry, RootControlNode, {Name}Flow instance, CoroutineScope, wasRunningBeforePause flag, StateFlow properties (executionState + one per observable state delegated from flow.*Flow), start/stop/pause/resume/reset/getStatus/setNodeState/setNodeConfig/bindToLifecycle methods. Reference: `StopWatch/src/commonMain/kotlin/io/codenode/stopwatch/generated/StopWatchController.kt`.
-- [ ] T012 [US2] Verify RuntimeControllerGenerator tests pass — run `./gradlew :kotlinCompiler:allTests` and fix any failures.
+- [X] T011 [US2] Implement `RuntimeControllerGenerator` in `kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/RuntimeControllerGenerator.kt` — `fun generate(flowGraph: FlowGraph, generatedPackage: String, usecasesPackage: String): String`. Generates: class with FlowGraph constructor param, RuntimeRegistry, RootControlNode, {Name}Flow instance, CoroutineScope, wasRunningBeforePause flag, StateFlow properties (executionState + one per observable state delegated from flow.*Flow), start/stop/pause/resume/reset/getStatus/setNodeState/setNodeConfig/bindToLifecycle methods. Reference: `StopWatch/src/commonMain/kotlin/io/codenode/stopwatch/generated/StopWatchController.kt`.
+- [X] T012 [US2] Verify RuntimeControllerGenerator tests pass — run `./gradlew :kotlinCompiler:allTests` and fix any failures.
 
 **Checkpoint**: `RuntimeControllerGenerator` produces correct Controller.kt content.
 
@@ -92,12 +92,12 @@
 
 ### Tests for User Story 3
 
-- [ ] T013 [P] [US3] Write unit tests for `RuntimeControllerInterfaceGenerator` in `kotlinCompiler/src/commonTest/kotlin/io/codenode/kotlincompiler/generator/RuntimeControllerInterfaceGeneratorTest.kt` — test cases: (1) StopWatch-like flow → verify interface with seconds/minutes/executionState StateFlow properties and start/stop/reset/pause/resume methods returning FlowGraph; (2) no sink nodes → only executionState property.
+- [X] T013 [P] [US3] Write unit tests for `RuntimeControllerInterfaceGenerator` in `kotlinCompiler/src/commonTest/kotlin/io/codenode/kotlincompiler/generator/RuntimeControllerInterfaceGeneratorTest.kt` — test cases: (1) StopWatch-like flow → verify interface with seconds/minutes/executionState StateFlow properties and start/stop/reset/pause/resume methods returning FlowGraph; (2) no sink nodes → only executionState property.
 
 ### Implementation for User Story 3
 
-- [ ] T014 [US3] Implement `RuntimeControllerInterfaceGenerator` in `kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/RuntimeControllerInterfaceGenerator.kt` — `fun generate(flowGraph: FlowGraph, generatedPackage: String): String`. Generates: interface with StateFlow property declarations (executionState + observable state), and control method declarations (start, stop, reset, pause, resume returning FlowGraph). Reference: `StopWatch/src/commonMain/kotlin/io/codenode/stopwatch/generated/StopWatchControllerInterface.kt`.
-- [ ] T015 [US3] Verify RuntimeControllerInterfaceGenerator tests pass — run `./gradlew :kotlinCompiler:allTests` and fix any failures.
+- [X] T014 [US3] Implement `RuntimeControllerInterfaceGenerator` in `kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/RuntimeControllerInterfaceGenerator.kt` — `fun generate(flowGraph: FlowGraph, generatedPackage: String): String`. Generates: interface with StateFlow property declarations (executionState + observable state), and control method declarations (start, stop, reset, pause, resume returning FlowGraph). Reference: `StopWatch/src/commonMain/kotlin/io/codenode/stopwatch/generated/StopWatchControllerInterface.kt`.
+- [X] T015 [US3] Verify RuntimeControllerInterfaceGenerator tests pass — run `./gradlew :kotlinCompiler:allTests` and fix any failures.
 
 **Checkpoint**: `RuntimeControllerInterfaceGenerator` produces correct Interface.kt content.
 
@@ -111,12 +111,12 @@
 
 ### Tests for User Story 4
 
-- [ ] T016 [P] [US4] Write unit tests for `RuntimeControllerAdapterGenerator` in `kotlinCompiler/src/commonTest/kotlin/io/codenode/kotlincompiler/generator/RuntimeControllerAdapterGeneratorTest.kt` — test cases: (1) StopWatch-like flow → verify adapter implements interface, takes controller constructor param, delegates seconds/minutes/executionState and all control methods; (2) no sink nodes → only executionState delegation.
+- [X] T016 [P] [US4] Write unit tests for `RuntimeControllerAdapterGenerator` in `kotlinCompiler/src/commonTest/kotlin/io/codenode/kotlincompiler/generator/RuntimeControllerAdapterGeneratorTest.kt` — test cases: (1) StopWatch-like flow → verify adapter implements interface, takes controller constructor param, delegates seconds/minutes/executionState and all control methods; (2) no sink nodes → only executionState delegation.
 
 ### Implementation for User Story 4
 
-- [ ] T017 [US4] Implement `RuntimeControllerAdapterGenerator` in `kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/RuntimeControllerAdapterGenerator.kt` — `fun generate(flowGraph: FlowGraph, generatedPackage: String): String`. Generates: class with Controller constructor param, implements ControllerInterface, overrides all StateFlow properties and control methods by delegating to controller. Reference: `StopWatch/src/commonMain/kotlin/io/codenode/stopwatch/generated/StopWatchControllerAdapter.kt`.
-- [ ] T018 [US4] Verify RuntimeControllerAdapterGenerator tests pass — run `./gradlew :kotlinCompiler:allTests` and fix any failures.
+- [X] T017 [US4] Implement `RuntimeControllerAdapterGenerator` in `kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/RuntimeControllerAdapterGenerator.kt` — `fun generate(flowGraph: FlowGraph, generatedPackage: String): String`. Generates: class with Controller constructor param, implements ControllerInterface, overrides all StateFlow properties and control methods by delegating to controller. Reference: `StopWatch/src/commonMain/kotlin/io/codenode/stopwatch/generated/StopWatchControllerAdapter.kt`.
+- [X] T018 [US4] Verify RuntimeControllerAdapterGenerator tests pass — run `./gradlew :kotlinCompiler:allTests` and fix any failures.
 
 **Checkpoint**: `RuntimeControllerAdapterGenerator` produces correct Adapter.kt content.
 
@@ -130,12 +130,12 @@
 
 ### Tests for User Story 5
 
-- [ ] T019 [P] [US5] Write unit tests for `RuntimeViewModelGenerator` in `kotlinCompiler/src/commonTest/kotlin/io/codenode/kotlincompiler/generator/RuntimeViewModelGeneratorTest.kt` — test cases: (1) StopWatch-like flow → verify ViewModel extends ViewModel, takes ControllerInterface param, delegates seconds/minutes/executionState and all control methods; (2) no sink nodes → only executionState delegation.
+- [X] T019 [P] [US5] Write unit tests for `RuntimeViewModelGenerator` in `kotlinCompiler/src/commonTest/kotlin/io/codenode/kotlincompiler/generator/RuntimeViewModelGeneratorTest.kt` — test cases: (1) StopWatch-like flow → verify ViewModel extends ViewModel, takes ControllerInterface param, delegates seconds/minutes/executionState and all control methods; (2) no sink nodes → only executionState delegation.
 
 ### Implementation for User Story 5
 
-- [ ] T020 [US5] Implement `RuntimeViewModelGenerator` in `kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/RuntimeViewModelGenerator.kt` — `fun generate(flowGraph: FlowGraph, generatedPackage: String): String`. Generates: class extending ViewModel with ControllerInterface constructor param, delegates all StateFlow properties and control methods. Reference: `StopWatch/src/commonMain/kotlin/io/codenode/stopwatch/generated/StopWatchViewModel.kt`.
-- [ ] T021 [US5] Verify RuntimeViewModelGenerator tests pass — run `./gradlew :kotlinCompiler:allTests` and fix any failures.
+- [X] T020 [US5] Implement `RuntimeViewModelGenerator` in `kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/RuntimeViewModelGenerator.kt` — `fun generate(flowGraph: FlowGraph, generatedPackage: String): String`. Generates: class extending ViewModel with ControllerInterface constructor param, delegates all StateFlow properties and control methods. Reference: `StopWatch/src/commonMain/kotlin/io/codenode/stopwatch/generated/StopWatchViewModel.kt`.
+- [X] T021 [US5] Verify RuntimeViewModelGenerator tests pass — run `./gradlew :kotlinCompiler:allTests` and fix any failures.
 
 **Checkpoint**: All 5 generators produce correct output individually.
 
@@ -145,9 +145,9 @@
 
 **Purpose**: Wire generators into ModuleSaveService and verify end-to-end
 
-- [ ] T022 Integrate all 5 generators into `ModuleSaveService` in `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/save/ModuleSaveService.kt` — add private fields for each generator, add `generateRuntimeFiles()` private method called after `.flow.kt` generation, write all 5 files to `generated/` package directory (always overwrite), add filenames to `filesCreated` list.
-- [ ] T023 Write integration tests in `graphEditor/src/jvmTest/kotlin/io/codenode/grapheditor/save/ModuleSaveServiceTest.kt` — add test cases: (1) saveModule creates all 5 runtime files in generated/ directory; (2) re-save overwrites existing runtime files; (3) filesCreated list includes all 5 runtime file paths.
-- [ ] T024 Run full build and verify — `./gradlew :kotlinCompiler:allTests :graphEditor:compileKotlinJvm :graphEditor:jvmTest` — fix any compilation or test failures across both modules.
+- [X] T022 Integrate all 5 generators into `ModuleSaveService` in `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/save/ModuleSaveService.kt` — add private fields for each generator, add `generateRuntimeFiles()` private method called after `.flow.kt` generation, write all 5 files to `generated/` package directory (always overwrite), add filenames to `filesCreated` list.
+- [X] T023 Write integration tests in `graphEditor/src/jvmTest/kotlin/io/codenode/grapheditor/save/ModuleSaveServiceTest.kt` — add test cases: (1) saveModule creates all 5 runtime files in generated/ directory; (2) re-save overwrites existing runtime files; (3) filesCreated list includes all 5 runtime file paths.
+- [X] T024 Run full build and verify — `./gradlew :kotlinCompiler:allTests :graphEditor:compileKotlinJvm :graphEditor:jvmTest` — fix any compilation or test failures across both modules.
 
 **Checkpoint**: End-to-end: compiling a FlowGraph from graphEditor produces all 5 runtime files.
 

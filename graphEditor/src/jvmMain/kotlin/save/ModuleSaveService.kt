@@ -11,6 +11,11 @@ import io.codenode.fbpdsl.model.FlowGraph
 import io.codenode.kotlincompiler.generator.FlowKtGenerator
 import io.codenode.kotlincompiler.generator.ModuleGenerator
 import io.codenode.kotlincompiler.generator.ProcessingLogicStubGenerator
+import io.codenode.kotlincompiler.generator.RuntimeFlowGenerator
+import io.codenode.kotlincompiler.generator.RuntimeControllerGenerator
+import io.codenode.kotlincompiler.generator.RuntimeControllerInterfaceGenerator
+import io.codenode.kotlincompiler.generator.RuntimeControllerAdapterGenerator
+import io.codenode.kotlincompiler.generator.RuntimeViewModelGenerator
 import java.io.File
 
 /**
@@ -56,6 +61,11 @@ class ModuleSaveService {
     private val moduleGenerator = ModuleGenerator()
     private val flowKtGenerator = FlowKtGenerator()
     private val stubGenerator = ProcessingLogicStubGenerator()
+    private val runtimeFlowGenerator = RuntimeFlowGenerator()
+    private val runtimeControllerGenerator = RuntimeControllerGenerator()
+    private val runtimeControllerInterfaceGenerator = RuntimeControllerInterfaceGenerator()
+    private val runtimeControllerAdapterGenerator = RuntimeControllerAdapterGenerator()
+    private val runtimeViewModelGenerator = RuntimeViewModelGenerator()
 
     /**
      * Saves a FlowGraph as a KMP module.
@@ -115,6 +125,9 @@ class ModuleSaveService {
             val flowKtFile = File(moduleDir, "src/commonMain/kotlin/$generatedPath/$flowKtFileName")
             flowKtFile.writeText(flowKtContent)
             filesCreated.add("src/commonMain/kotlin/$generatedPath/$flowKtFileName")
+
+            // Generate runtime files (Flow, Controller, Interface, Adapter, ViewModel)
+            generateRuntimeFiles(flowGraph, moduleDir, generatedPackage, usecasesPackage, effectiveModuleName, filesCreated)
 
             // T036/T037: Generate ProcessingLogic stub files (in usecases package)
             generateProcessingLogicStubs(flowGraph, moduleDir, usecasesPackage, filesCreated)
@@ -202,6 +215,37 @@ class ModuleSaveService {
 
         if (flowGraph.targetsPlatform(FlowGraph.TargetPlatform.KMP_WASM)) {
             File(moduleDir, "src/wasmJsMain/kotlin/$packagePath").mkdirs()
+        }
+    }
+
+    /**
+     * Generates the 5 runtime files (Flow, Controller, ControllerInterface,
+     * ControllerAdapter, ViewModel) in the generated package directory.
+     *
+     * These files are always overwritten on save since they are fully generated.
+     */
+    private fun generateRuntimeFiles(
+        flowGraph: FlowGraph,
+        moduleDir: File,
+        generatedPackage: String,
+        usecasesPackage: String,
+        effectiveModuleName: String,
+        filesCreated: MutableList<String>
+    ) {
+        val generatedPath = generatedPackage.replace(".", "/")
+        val generatedDir = File(moduleDir, "src/commonMain/kotlin/$generatedPath")
+
+        val runtimeFiles = listOf(
+            "${effectiveModuleName}Flow.kt" to runtimeFlowGenerator.generate(flowGraph, generatedPackage, usecasesPackage),
+            "${effectiveModuleName}Controller.kt" to runtimeControllerGenerator.generate(flowGraph, generatedPackage, usecasesPackage),
+            "${effectiveModuleName}ControllerInterface.kt" to runtimeControllerInterfaceGenerator.generate(flowGraph, generatedPackage),
+            "${effectiveModuleName}ControllerAdapter.kt" to runtimeControllerAdapterGenerator.generate(flowGraph, generatedPackage),
+            "${effectiveModuleName}ViewModel.kt" to runtimeViewModelGenerator.generate(flowGraph, generatedPackage)
+        )
+
+        for ((fileName, content) in runtimeFiles) {
+            File(generatedDir, fileName).writeText(content)
+            filesCreated.add("src/commonMain/kotlin/$generatedPath/$fileName")
         }
     }
 
