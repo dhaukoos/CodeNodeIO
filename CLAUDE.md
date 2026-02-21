@@ -33,6 +33,8 @@ Auto-generated from all feature plans. Last updated: 2026-01-13
 - N/A (code deletion only) (024-remove-single-invocation)
 - N/A (in-memory factory methods only) (025-timed-factory-methods)
 - N/A (in-memory models, generated source files) (026-processing-logic-stubs)
+- Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + kotlinx-coroutines 1.8.0, kotlinx-serialization 1.6.0, Compose Multiplatform 1.7.3, lifecycle-viewmodel-compose 2.8.0 (027-generate-runtime-files)
+- N/A (generates source code files to filesystem) (027-generate-runtime-files)
 
 - Kotlin 1.9+, Go 1.21+ (001-ide-plugin-platform)
 
@@ -52,9 +54,9 @@ tests/
 Kotlin 1.9+, Go 1.21+: Follow standard conventions
 
 ## Recent Changes
+- 027-generate-runtime-files: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + kotlinx-coroutines 1.8.0, kotlinx-serialization 1.6.0, Compose Multiplatform 1.7.3, lifecycle-viewmodel-compose 2.8.0
 - 026-processing-logic-stubs: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + kotlinx-coroutines 1.8.0, kotlinx-serialization 1.6.0, KotlinPoet (code generation)
 - 025-timed-factory-methods: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + kotlinx-coroutines 1.8.0, kotlinx-serialization 1.6.0
-- 024-remove-single-invocation: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + kotlinx-coroutines 1.8.0, kotlinx-serialization 1.6.0
 
 
 <!-- MANUAL ADDITIONS START -->
