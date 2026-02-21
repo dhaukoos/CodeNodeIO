@@ -114,7 +114,7 @@ class RuntimeTypeResolverTest {
             outputPorts = listOf(outputPort("out", "value", Int::class, "gen"))
         )
 
-        assertEquals("createContinuousGenerator", resolver.getFactoryMethodName(node))
+        assertEquals("createTimedGenerator", resolver.getFactoryMethodName(node))
         assertEquals("tick", resolver.getTickParamName(node))
         assertEquals("GeneratorRuntime<Int>", resolver.getRuntimeTypeName(node))
     }

@@ -31,7 +31,7 @@ class RuntimeTypeResolver {
 
         return when {
             // Generators (0 inputs)
-            inputs == 0 && outputs == 1 -> "createContinuousGenerator"
+            inputs == 0 && outputs == 1 -> "createTimedGenerator"
             inputs == 0 && outputs == 2 -> "createTimedOut2Generator"
             inputs == 0 && outputs == 3 -> "createTimedOut3Generator"
 
