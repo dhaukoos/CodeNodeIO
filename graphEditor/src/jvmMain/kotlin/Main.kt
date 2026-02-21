@@ -987,12 +987,12 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
             LaunchedEffect(Unit) {
                 val outputDir = showDirectoryChooser()
                 if (outputDir != null) {
-                    val result = compilationService.compileToModule(
+                    val result = moduleSaveService.saveModule(
                         flowGraph = graphState.flowGraph,
                         outputDir = outputDir
                     )
                     if (result.success) {
-                        statusMessage = "Compiled ${result.fileCount} files to ${result.outputPath}"
+                        statusMessage = "Compiled ${result.filesCreated.size} files to ${result.moduleDir?.name}"
                     } else {
                         statusMessage = "Compile error: ${result.errorMessage}"
                     }
