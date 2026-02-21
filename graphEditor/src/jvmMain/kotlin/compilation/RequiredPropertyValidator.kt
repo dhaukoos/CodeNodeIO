@@ -69,11 +69,10 @@ class RequiredPropertyValidator {
 
     /**
      * Map of CodeNodeType to required property names.
-     * Currently only GENERIC nodes have required properties.
+     * No configuration properties are currently required — port counts and types
+     * are derived directly from the CodeNode model by RuntimeTypeResolver.
      */
-    private val requiredSpecs = mapOf(
-        CodeNodeType.GENERIC to setOf("_useCaseClass", "_genericType")
-    )
+    private val requiredSpecs = mapOf<CodeNodeType, Set<String>>()
 
     /**
      * Validates all nodes in the flow graph have required properties.
