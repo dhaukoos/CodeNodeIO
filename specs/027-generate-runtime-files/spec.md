@@ -9,17 +9,18 @@
 
 ### User Story 1 - Generate Flow Orchestrator (Priority: P1)
 
-When a user compiles a FlowGraph from the graphEditor, the system generates a `{FlowName}Flow` class that instantiates all node components, wires connections between them via typed channels, and provides `start(scope)` and `stop()` lifecycle methods. This is the foundational runtime file — all other generated files depend on it.
+When a user compiles a FlowGraph from the graphEditor, the system generates a `{FlowName}Flow` class that directly creates runtime instances (e.g., `Out2GeneratorRuntime<Int, Int>`) using `CodeNodeFactory` methods, passing the user's tick function vals from the stub files. Connections are wired via typed channel assignments between runtime instances. The Flow class also owns `MutableStateFlow` properties for sink node input ports (observable state). This eliminates the need for hand-written Component classes — the generated code replaces them entirely.
 
 **Why this priority**: The Flow class is the core runtime orchestrator. Without it, the Controller, Adapter, Interface, and ViewModel have nothing to manage. It directly wires the FlowGraph model into executable channel-based code.
 
-**Independent Test**: Can be fully tested by compiling any FlowGraph and verifying the generated `{FlowName}Flow.kt` file contains correct component instantiation, channel wiring matching the FlowGraph connections, and `start`/`stop` methods. The generated file can be compiled independently.
+**Independent Test**: Can be fully tested by compiling any FlowGraph and verifying the generated `{FlowName}Flow.kt` file contains correct runtime instantiation via `CodeNodeFactory`, tick function imports from `usecases.logicmethods`, channel wiring matching the FlowGraph connections, MutableStateFlow properties for sink ports, and `start`/`stop`/`reset` methods.
 
 **Acceptance Scenarios**:
 
-1. **Given** a FlowGraph with 2 nodes and 2 connections, **When** the user compiles via the graphEditor, **Then** a `{FlowName}Flow.kt` file is generated in the `generated` package containing component instances and `wireConnections()` matching the FlowGraph connections.
-2. **Given** a FlowGraph with nodes of varying types (generator, sink, transformer), **When** compiled, **Then** the Flow class wires output channels to input channels respecting each node's runtime type (e.g., `outputChannel1`, `inputChannel2`).
-3. **Given** a FlowGraph with no connections, **When** compiled, **Then** the Flow class contains component instances but `wireConnections()` has no wiring code.
+1. **Given** a FlowGraph with 2 nodes and 2 connections, **When** the user compiles via the graphEditor, **Then** a `{FlowName}Flow.kt` file is generated in the `generated` package containing direct runtime instances created via `CodeNodeFactory`, tick function imports from `usecases.logicmethods`, and `wireConnections()` matching the FlowGraph connections.
+2. **Given** a FlowGraph with nodes of varying types (generator, sink, transformer), **When** compiled, **Then** the Flow class creates the correct runtime type for each node (e.g., `Out2GeneratorRuntime`, `In2SinkRuntime`) and wires output channels to input channels respecting each runtime's channel property names.
+3. **Given** a FlowGraph with sink nodes, **When** compiled, **Then** the Flow class creates `MutableStateFlow` properties for each sink input port and wraps the user's tick function to update them.
+4. **Given** a FlowGraph with no connections, **When** compiled, **Then** the Flow class contains runtime instances but `wireConnections()` has no wiring code.
 
 ---
 
@@ -95,7 +96,7 @@ When a user compiles a FlowGraph, the system generates a `{FlowName}ViewModel` c
 
 ### Functional Requirements
 
-- **FR-001**: System MUST generate a `{FlowName}Flow.kt` file in the `generated` package that instantiates all node components and wires connections via typed channels.
+- **FR-001**: System MUST generate a `{FlowName}Flow.kt` file in the `generated` package that directly creates runtime instances via `CodeNodeFactory`, imports tick function vals from stub files, wires connections via typed channels, and owns `MutableStateFlow` properties for sink node input ports.
 - **FR-002**: System MUST generate a `{FlowName}Controller.kt` file in the `generated` package with execution control methods (`start`, `stop`, `pause`, `resume`, `reset`) and observable `StateFlow` properties.
 - **FR-003**: System MUST derive observable state properties from sink node input ports — using port names as property names and port IP types as StateFlow generic types.
 - **FR-004**: System MUST generate a `{FlowName}ControllerInterface.kt` file declaring the same control methods and StateFlow properties as the Controller.
@@ -122,6 +123,9 @@ When a user compiles a FlowGraph, the system generates a `{FlowName}ViewModel` c
 - Observable state discovery uses sink node input ports: the port name becomes the StateFlow property name, and the port's IP type becomes the generic type parameter.
 - All generated files go into the `generated` subpackage within the module's base package.
 - The Controller's `bindToLifecycle()` method is included as a standard part of the generated controller (matching the StopWatch reference implementation).
+- The generated Flow class directly creates runtime instances via `CodeNodeFactory` — no hand-written Component classes are needed. The user's only editable code is the tick function vals in `usecases.logicmethods/`.
+- Generator nodes use `createTimedOut2Generator` (etc.) with a default tick interval of 1000ms. This can be made configurable in a future iteration.
+- The sink consume block wraps the user's tick function to also update MutableStateFlows for observable state.
 
 ## Success Criteria *(mandatory)*
 

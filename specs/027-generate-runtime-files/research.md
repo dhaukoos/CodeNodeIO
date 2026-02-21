@@ -14,18 +14,65 @@
 2. Derive from all node output ports — rejected because intermediate outputs are implementation details, not observable state
 3. Configuration-based approach — rejected as over-engineered for the current need
 
-## R2: Component Class Reference Strategy
+## R2: Direct Runtime Instantiation (No Component Classes)
 
-**Decision**: The generated `{FlowName}Flow` class instantiates `{NodeName}Component` classes from the `usecases` package. These component classes are the hand-written wrappers around runtime instances that users create to add business logic beyond the tick function stubs.
+**Decision**: The generated `{FlowName}Flow` class directly creates runtime instances (e.g., `Out2GeneratorRuntime<Int, Int>`, `In2SinkRuntime<Int, Int>`) using `CodeNodeFactory` methods, passing the user's tick function vals from the `usecases.logicmethods` package. Hand-written Component classes (like `TimerEmitterComponent`, `DisplayReceiverComponent`) are eliminated — the generated code replaces them entirely.
 
-**Rationale**: The ProcessingLogicStubGenerator generates `{NodeName}ProcessLogic.kt` files containing tick val stubs (e.g., `timerEmitterTick`), but the actual component classes (`TimerEmitterComponent`, `DisplayReceiverComponent`) are hand-written by users. The generated Flow class will reference these component classes, following the same pattern as the StopWatch module.
+**Rationale**: The existing StopWatch Component classes are essentially boilerplate wrappers around runtime instances. Their responsibilities can be fully automated:
+1. Runtime creation → generated via `CodeNodeFactory.create*()` with tick function reference
+2. Channel exposure → runtime instances already expose channel properties directly
+3. Observable StateFlows → generated Flow class creates `MutableStateFlow` properties for sink input ports
+4. Lifecycle delegation → runtime `start()`/`stop()` called directly
 
-**Important distinction**: The generated code currently does NOT generate component classes. Component classes are user-written wrappers that:
-- Extend or compose a runtime (e.g., `Out2GeneratorRuntime<Int, Int>`)
-- Expose channel properties for wiring
-- Add domain-specific logic (StateFlows, reset behavior, etc.)
+**How it works**:
 
-**For the initial implementation**: The Flow generator will assume component classes exist in the `usecases` package with the naming convention `{NodeName}Component`. If they don't exist yet, the generated code will have compilation errors that guide the user to create them.
+For generators (e.g., TimerEmitter with 0 inputs, 2 outputs):
+```kotlin
+// Flow imports the user's tick val from usecases.logicmethods
+import io.codenode.stopwatch2.usecases.logicmethods.timerEmitterTick
+
+// Flow creates runtime directly with the tick function
+internal val timerEmitter = CodeNodeFactory.createTimedOut2Generator<Int, Int>(
+    name = "TimerEmitter",
+    tickIntervalMs = 1000L,
+    tick = timerEmitterTick
+)
+```
+
+For sinks with observable state (e.g., DisplayReceiver with 2 inputs, 0 outputs):
+```kotlin
+import io.codenode.stopwatch2.usecases.logicmethods.displayReceiverTick
+
+// Flow owns the observable state
+private val _seconds = MutableStateFlow(0)
+val secondsFlow: StateFlow<Int> = _seconds.asStateFlow()
+private val _minutes = MutableStateFlow(0)
+val minutesFlow: StateFlow<Int> = _minutes.asStateFlow()
+
+// Sink's consume block wraps user tick + updates StateFlows
+internal val displayReceiver = CodeNodeFactory.createIn2Sink<Int, Int>(
+    name = "DisplayReceiver",
+    consume = { seconds, minutes ->
+        _seconds.value = seconds
+        _minutes.value = minutes
+        displayReceiverTick(seconds, minutes)
+    }
+)
+```
+
+**Key implications**:
+- No `{NodeName}Component` classes needed — the generated Flow class handles everything
+- User-written tick stubs remain in `usecases.logicmethods/` as the only user-editable code
+- Observable state (MutableStateFlows) is owned by the Flow class for sink input ports
+- The Controller reads StateFlows from `flow.secondsFlow`, `flow.minutesFlow` etc.
+- `reset()` on the Controller zeroes the Flow's MutableStateFlows
+
+**Factory method selection**:
+- Generators: `createTimedOut2Generator` (tick-based, default 1000ms interval)
+- Sinks: `createIn2Sink` (event-driven, receives from channels)
+- Transformers/Processors: `createContinuousTransformer`, `createIn2Out1Processor`, etc.
+
+Note: The tick interval for generators defaults to 1000ms. This could later be made configurable via node configuration properties.
 
 ## R3: Channel Property Naming Convention
 
@@ -34,13 +81,13 @@
 | Channels | Property Names |
 |----------|---------------|
 | 1 input | `inputChannel` |
-| 2 inputs | `inputChannel`, `inputChannel2` |
-| 3 inputs | `inputChannel`, `inputChannel2`, `inputChannel3` |
-| 1 output | `outputChannel1` (multi-output generators) or `outputChannel` (single) |
+| 2 inputs | `inputChannel1`, `inputChannel2` |
+| 3 inputs | `inputChannel1`, `inputChannel2`, `inputChannel3` |
+| 1 output | `outputChannel` |
 | 2 outputs | `outputChannel1`, `outputChannel2` |
 | 3 outputs | `outputChannel1`, `outputChannel2`, `outputChannel3` |
 
-**Rationale**: These names are established by the runtime class hierarchy (`Out2GeneratorRuntime`, `In2SinkRuntime`, etc.) and are used consistently in the StopWatch reference implementation.
+**Rationale**: These names are established by the runtime class hierarchy (`Out2GeneratorRuntime`, `In2SinkRuntime`, etc.). Single-input sinks use `inputChannel`; multi-input sinks use numbered properties (`inputChannel1`, `inputChannel2`). Single-output generators use `outputChannel`; multi-output generators use numbered properties (`outputChannel1`, `outputChannel2`).
 
 ## R4: Runtime Type Resolution — Port Count Mapping
 
@@ -97,15 +144,24 @@ fun generate(flowGraph: FlowGraph, generatedPackage: String, usecasesPackage: St
 
 ## R8: Connection Wiring Strategy
 
-**Decision**: The generated Flow class wires connections by mapping FlowGraph connections to channel property assignments. For each connection:
-1. Resolve source node → source component instance name
-2. Resolve source port → determine output channel property name based on port index
-3. Resolve target node → target component instance name
-4. Resolve target port → determine input channel property name based on port index
-5. Generate: `targetComponent.inputChannelN = sourceComponent.outputChannelN`
+**Decision**: The generated Flow class wires connections by mapping FlowGraph connections to channel property assignments on the runtime instances directly. For each connection:
+1. Resolve source node → source runtime instance variable name (camelCase of node name)
+2. Resolve source port → determine output channel property name based on port index within the runtime
+3. Resolve target node → target runtime instance variable name
+4. Resolve target port → determine input channel property name based on port index within the runtime
+5. Generate: `{targetRuntime}.inputChannel{N} = {sourceRuntime}.outputChannel{N}`
 
-**Rationale**: This matches exactly how the StopWatch `StopWatchFlow.wireConnections()` works:
+**Rationale**: Runtime instances (e.g., `Out2GeneratorRuntime`, `In2SinkRuntime`) expose channel properties directly:
 ```kotlin
-displayReceiver.inputChannel = timerEmitter.outputChannel1
+// Generated wiring - runtime-to-runtime, no Component wrapper
+displayReceiver.inputChannel1 = timerEmitter.outputChannel1
 displayReceiver.inputChannel2 = timerEmitter.outputChannel2
 ```
+
+**Channel property names on runtime classes**:
+- `GeneratorRuntime<T>`: `outputChannel`
+- `Out2GeneratorRuntime<U, V>`: `outputChannel1`, `outputChannel2`
+- `Out3GeneratorRuntime<U, V, W>`: `outputChannel1`, `outputChannel2`, `outputChannel3`
+- `SinkRuntime<T>`: `inputChannel`
+- `In2SinkRuntime<A, B>`: `inputChannel1`, `inputChannel2`
+- `In3SinkRuntime<A, B, C>`: `inputChannel1`, `inputChannel2`, `inputChannel3`

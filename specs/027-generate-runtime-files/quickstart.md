@@ -33,13 +33,19 @@ usecases/
 ### Scenario 2: Verify Generated File Contents
 
 **StopWatch2Flow.kt** should contain:
-- `import io.codenode.stopwatch2.usecases.TimerEmitterComponent`
-- `import io.codenode.stopwatch2.usecases.DisplayReceiverComponent`
-- `internal val timerEmitter = TimerEmitterComponent()`
-- `internal val displayReceiver = DisplayReceiverComponent()`
-- `wireConnections()` with:
-  - `displayReceiver.inputChannel = timerEmitter.outputChannel1`
+- `import io.codenode.stopwatch2.usecases.logicmethods.timerEmitterTick` (tick val from stub)
+- `import io.codenode.stopwatch2.usecases.logicmethods.displayReceiverTick` (tick val from stub)
+- `import io.codenode.fbpdsl.model.CodeNodeFactory`
+- Observable MutableStateFlows for sink input ports:
+  - `private val _seconds = MutableStateFlow(0)` + `val secondsFlow: StateFlow<Int>`
+  - `private val _minutes = MutableStateFlow(0)` + `val minutesFlow: StateFlow<Int>`
+- Runtime instances created directly (no Component classes):
+  - `internal val timerEmitter = CodeNodeFactory.createTimedOut2Generator<Int, Int>(name = "TimerEmitter", tickIntervalMs = 1000L, tick = timerEmitterTick)`
+  - `internal val displayReceiver = CodeNodeFactory.createIn2Sink<Int, Int>(name = "DisplayReceiver", consume = { seconds, minutes -> _seconds.value = seconds; _minutes.value = minutes; displayReceiverTick(seconds, minutes) })`
+- `wireConnections()` with runtime-to-runtime channel wiring (2-input sink uses `inputChannel1`/`inputChannel2`, 2-output generator uses `outputChannel1`/`outputChannel2`):
+  - `displayReceiver.inputChannel1 = timerEmitter.outputChannel1`
   - `displayReceiver.inputChannel2 = timerEmitter.outputChannel2`
+- `reset()` method that zeroes all MutableStateFlows
 
 **StopWatch2Controller.kt** should contain:
 - `val seconds: StateFlow<Int>` (from DisplayReceiver "seconds" input port)

@@ -95,16 +95,63 @@ class RuntimeFlowGenerator {
 - Output: String of generated Kotlin source code
 - String-based generation using `buildString` (not KotlinPoet)
 
+### Direct Runtime Instantiation (No Component Classes)
+
+The generated Flow class directly creates runtime instances using `CodeNodeFactory` methods and passes tick function references from the user's stub files. This eliminates the need for hand-written Component classes.
+
+**For each node**, the Flow class:
+1. Imports the tick val from `{usecasesPackage}.logicmethods.{nodeName}Tick`
+2. Creates the appropriate runtime via `CodeNodeFactory.create*()`, passing the tick val
+3. For sink nodes: creates `MutableStateFlow` properties for each input port, wraps the user's tick function to also update the StateFlows
+
+**Runtime selection based on port counts** (from R4):
+- Generator (0 in, 2 out) → `CodeNodeFactory.createTimedOut2Generator(tick = timerEmitterTick)`
+- Sink (2 in, 0 out) → `CodeNodeFactory.createIn2Sink(consume = { a, b -> _aFlow.value = a; _bFlow.value = b; displayReceiverTick(a, b) })`
+- Transformer (1 in, 1 out) → `CodeNodeFactory.createContinuousTransformer(transform = transformerTick)`
+
+**Generated Flow class structure** (StopWatch2 example):
+```kotlin
+class StopWatch2Flow {
+    // Observable state for sink ports
+    private val _seconds = MutableStateFlow(0)
+    val secondsFlow: StateFlow<Int> = _seconds.asStateFlow()
+    private val _minutes = MutableStateFlow(0)
+    val minutesFlow: StateFlow<Int> = _minutes.asStateFlow()
+
+    // Runtime instances created with tick function references
+    internal val timerEmitter = CodeNodeFactory.createTimedOut2Generator<Int, Int>(
+        name = "TimerEmitter", tickIntervalMs = 1000L, tick = timerEmitterTick
+    )
+    internal val displayReceiver = CodeNodeFactory.createIn2Sink<Int, Int>(
+        name = "DisplayReceiver",
+        consume = { seconds, minutes ->
+            _seconds.value = seconds; _minutes.value = minutes
+            displayReceiverTick(seconds, minutes)
+        }
+    )
+
+    suspend fun start(scope: CoroutineScope) { ... }
+    fun stop() { ... }
+    fun reset() { /* zero all MutableStateFlows */ }
+    private fun wireConnections() {
+        // 2-input sink: inputChannel1/inputChannel2; 2-output generator: outputChannel1/outputChannel2
+        displayReceiver.inputChannel1 = timerEmitter.outputChannel1
+        displayReceiver.inputChannel2 = timerEmitter.outputChannel2
+    }
+}
+```
+
 ### Observable State Resolution
 
 ```kotlin
 fun getObservableStateProperties(flowGraph: FlowGraph): List<ObservableProperty>
 
 data class ObservableProperty(
-    val name: String,           // camelCase property name
+    val name: String,           // camelCase property name (e.g., "seconds")
     val typeName: String,       // e.g., "Int", "String"
-    val sourceNodeName: String, // Component reference for KDoc
-    val sourcePortName: String  // Port reference for KDoc
+    val sourceNodeName: String, // Node name for KDoc
+    val sourcePortName: String, // Port name for KDoc
+    val defaultValue: String    // e.g., "0" for Int, "\"\"" for String
 )
 ```
 
@@ -114,6 +161,7 @@ Algorithm:
 3. Check for name collisions across sinks
 4. If collision: disambiguate with `{nodeName}{PortName}` in camelCase
 5. Map port `dataType.simpleName` to Kotlin type name (default "Any")
+6. Determine default value for MutableStateFlow initialization
 
 ### Connection Wiring Resolution
 
@@ -121,8 +169,10 @@ For each `Connection` in `FlowGraph.connections`:
 1. Resolve source/target nodes via `findNode()`
 2. Determine source port index within `node.outputPorts`
 3. Determine target port index within `node.inputPorts`
-4. Map indices to channel property names (see research.md R3)
-5. Generate: `{target}.{inputProp} = {source}.{outputProp}`
+4. Map indices to runtime channel property names:
+   - 1 output: `outputChannel`; 2+ outputs: `outputChannel1`/`outputChannel2`/`outputChannel3`
+   - 1 input: `inputChannel`; 2+ inputs: `inputChannel1`/`inputChannel2`/`inputChannel3`
+5. Generate: `{targetRuntime}.{inputProp} = {sourceRuntime}.{outputProp}`
 
 ### ModuleSaveService Integration
 
