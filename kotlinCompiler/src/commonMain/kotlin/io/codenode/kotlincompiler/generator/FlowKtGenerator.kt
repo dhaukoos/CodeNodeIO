@@ -251,7 +251,11 @@ class FlowKtGenerator {
         val targetPortName = targetPort?.name ?: connection.targetPortId.substringAfterLast("_")
 
         builder.append("${indent}$sourceVar.output(\"$sourcePortName\") connect ")
-        builder.appendLine("$targetVar.input(\"$targetPortName\")")
+        builder.append("$targetVar.input(\"$targetPortName\")")
+        if (connection.ipTypeId != null) {
+            builder.append(" withType \"${connection.ipTypeId}\"")
+        }
+        builder.appendLine()
     }
 
     /**
@@ -276,7 +280,11 @@ class FlowKtGenerator {
         val sourcePortName = sourcePort?.name ?: connection.sourcePortId.substringAfterLast("_")
         val targetPortName = targetPort?.name ?: connection.targetPortId.substringAfterLast("_")
 
-        builder.appendLine("${indent}$sourceVar.output(\"$sourcePortName\") connect $targetVar.input(\"$targetPortName\")")
+        builder.append("${indent}$sourceVar.output(\"$sourcePortName\") connect $targetVar.input(\"$targetPortName\")")
+        if (connection.ipTypeId != null) {
+            builder.append(" withType \"${connection.ipTypeId}\"")
+        }
+        builder.appendLine()
     }
 
     /**

@@ -61,6 +61,10 @@ class FlowKtParser {
         """config\s*\(\s*"([^"]+)"\s*,\s*"([^"]+)"\s*\)"""
     )
 
+    private val targetPlatformPattern = Regex(
+        """targetPlatform\s*\(\s*FlowGraph\.TargetPlatform\.(\w+)\s*\)"""
+    )
+
     /**
      * Parses .flow.kt content into a FlowGraph.
      *
@@ -100,6 +104,9 @@ class FlowKtParser {
 
             val blockContent = content.substring(blockStart + 1, blockEnd)
 
+            // Parse target platforms
+            val targetPlatforms = parseTargetPlatforms(blockContent)
+
             // Parse nodes
             val (nodes, nodeVarMap) = parseCodeNodes(blockContent)
 
@@ -112,7 +119,8 @@ class FlowKtParser {
                 version = graphVersion,
                 description = graphDescription,
                 rootNodes = nodes,
-                connections = connections
+                connections = connections,
+                targetPlatforms = targetPlatforms
             )
 
             ParseResult(
@@ -188,6 +196,19 @@ class FlowKtParser {
         }
 
         return -1
+    }
+
+    /**
+     * Parses targetPlatform declarations from the block content.
+     */
+    private fun parseTargetPlatforms(blockContent: String): List<FlowGraph.TargetPlatform> {
+        return targetPlatformPattern.findAll(blockContent).mapNotNull { match ->
+            try {
+                FlowGraph.TargetPlatform.valueOf(match.groupValues[1])
+            } catch (e: IllegalArgumentException) {
+                null
+            }
+        }.toList()
     }
 
     /**
