@@ -820,6 +820,380 @@ class ModuleSaveServiceTest {
             "Orphaned file content should be preserved")
     }
 
+    // ========== State Properties File Generation (via compileModule) ==========
+
+    private fun createStopWatchFlowGraph(): FlowGraph {
+        val timerEmitter = CodeNode(
+            id = "timer",
+            name = "TimerEmitter",
+            codeNodeType = CodeNodeType.GENERATOR,
+            position = Node.Position(100.0, 100.0),
+            inputPorts = emptyList(),
+            outputPorts = listOf(
+                Port(id = "timer_sec", name = "elapsedSeconds", direction = Port.Direction.OUTPUT, dataType = Int::class, owningNodeId = "timer"),
+                Port(id = "timer_min", name = "elapsedMinutes", direction = Port.Direction.OUTPUT, dataType = Int::class, owningNodeId = "timer")
+            )
+        )
+        val displayReceiver = CodeNode(
+            id = "display",
+            name = "DisplayReceiver",
+            codeNodeType = CodeNodeType.SINK,
+            position = Node.Position(400.0, 100.0),
+            inputPorts = listOf(
+                Port(id = "display_sec", name = "seconds", direction = Port.Direction.INPUT, dataType = Int::class, owningNodeId = "display"),
+                Port(id = "display_min", name = "minutes", direction = Port.Direction.INPUT, dataType = Int::class, owningNodeId = "display")
+            ),
+            outputPorts = emptyList()
+        )
+        return FlowGraph(
+            id = "flow_stopwatch",
+            name = "StopWatch4",
+            version = "1.0.0",
+            rootNodes = listOf(timerEmitter, displayReceiver),
+            connections = listOf(
+                Connection("c1", "timer", "timer_sec", "display", "display_sec"),
+                Connection("c2", "timer", "timer_min", "display", "display_min")
+            )
+        )
+    }
+
+    @Test
+    fun `compileModule creates stateProperties directory`() {
+        // Given
+        val flowGraph = createStopWatchFlowGraph()
+        val saveService = ModuleSaveService()
+
+        // When
+        val result = saveService.compileModule(flowGraph, tempDir)
+
+        // Then
+        assertTrue(result.success)
+        val statePropsDir = File(result.moduleDir, "src/commonMain/kotlin/io/codenode/stopwatch4/stateProperties")
+        assertTrue(statePropsDir.exists(), "stateProperties directory should be created")
+        assertTrue(statePropsDir.isDirectory, "stateProperties path should be a directory")
+    }
+
+    @Test
+    fun `compileModule generates state properties files for StopWatch nodes`() {
+        // Given
+        val flowGraph = createStopWatchFlowGraph()
+        val saveService = ModuleSaveService()
+
+        // When
+        val result = saveService.compileModule(flowGraph, tempDir)
+
+        // Then
+        assertTrue(result.success)
+        val statePropsDir = File(result.moduleDir, "src/commonMain/kotlin/io/codenode/stopwatch4/stateProperties")
+
+        val timerFile = File(statePropsDir, "TimerEmitterStateProperties.kt")
+        val displayFile = File(statePropsDir, "DisplayReceiverStateProperties.kt")
+
+        assertTrue(timerFile.exists(), "TimerEmitterStateProperties.kt should be generated")
+        assertTrue(displayFile.exists(), "DisplayReceiverStateProperties.kt should be generated")
+    }
+
+    @Test
+    fun `state properties file contains MutableStateFlow for output ports`() {
+        // Given
+        val flowGraph = createStopWatchFlowGraph()
+        val saveService = ModuleSaveService()
+
+        // When
+        val result = saveService.compileModule(flowGraph, tempDir)
+
+        // Then
+        assertTrue(result.success)
+        val statePropsDir = File(result.moduleDir, "src/commonMain/kotlin/io/codenode/stopwatch4/stateProperties")
+        val timerContent = File(statePropsDir, "TimerEmitterStateProperties.kt").readText()
+
+        assertTrue(timerContent.contains("object TimerEmitterStateProperties"),
+            "Should contain object declaration")
+        assertTrue(timerContent.contains("internal val _elapsedSeconds = MutableStateFlow(0)"),
+            "Should contain MutableStateFlow for elapsedSeconds")
+        assertTrue(timerContent.contains("val elapsedSecondsFlow: StateFlow<Int>"),
+            "Should contain StateFlow accessor for elapsedSeconds")
+        assertTrue(timerContent.contains("internal val _elapsedMinutes = MutableStateFlow(0)"),
+            "Should contain MutableStateFlow for elapsedMinutes")
+    }
+
+    @Test
+    fun `state properties file contains MutableStateFlow for input ports`() {
+        // Given
+        val flowGraph = createStopWatchFlowGraph()
+        val saveService = ModuleSaveService()
+
+        // When
+        val result = saveService.compileModule(flowGraph, tempDir)
+
+        // Then
+        assertTrue(result.success)
+        val statePropsDir = File(result.moduleDir, "src/commonMain/kotlin/io/codenode/stopwatch4/stateProperties")
+        val displayContent = File(statePropsDir, "DisplayReceiverStateProperties.kt").readText()
+
+        assertTrue(displayContent.contains("object DisplayReceiverStateProperties"),
+            "Should contain object declaration")
+        assertTrue(displayContent.contains("internal val _seconds = MutableStateFlow(0)"),
+            "Should contain MutableStateFlow for seconds input")
+        assertTrue(displayContent.contains("val secondsFlow: StateFlow<Int>"),
+            "Should contain StateFlow accessor for seconds")
+        assertTrue(displayContent.contains("internal val _minutes = MutableStateFlow(0)"),
+            "Should contain MutableStateFlow for minutes input")
+    }
+
+    @Test
+    fun `state properties file contains reset method`() {
+        // Given
+        val flowGraph = createStopWatchFlowGraph()
+        val saveService = ModuleSaveService()
+
+        // When
+        val result = saveService.compileModule(flowGraph, tempDir)
+
+        // Then
+        assertTrue(result.success)
+        val statePropsDir = File(result.moduleDir, "src/commonMain/kotlin/io/codenode/stopwatch4/stateProperties")
+        val timerContent = File(statePropsDir, "TimerEmitterStateProperties.kt").readText()
+
+        assertTrue(timerContent.contains("fun reset()"), "Should contain reset method")
+        assertTrue(timerContent.contains("_elapsedSeconds.value = 0"), "Should reset elapsedSeconds")
+        assertTrue(timerContent.contains("_elapsedMinutes.value = 0"), "Should reset elapsedMinutes")
+    }
+
+    @Test
+    fun `compileModule does not generate state properties for portless nodes`() {
+        // Given - a node with no ports
+        val portlessNode = CodeNode(
+            id = "empty",
+            name = "EmptyNode",
+            codeNodeType = CodeNodeType.TRANSFORMER,
+            position = Node.Position(0.0, 0.0),
+            inputPorts = emptyList(),
+            outputPorts = emptyList()
+        )
+        val nodeWithPorts = createTestCodeNode("node1", "HasPorts")
+        val flowGraph = FlowGraph(
+            id = "flow_portless",
+            name = "PortlessTest",
+            version = "1.0.0",
+            rootNodes = listOf(portlessNode, nodeWithPorts)
+        )
+        val saveService = ModuleSaveService()
+
+        // When
+        val result = saveService.compileModule(flowGraph, tempDir)
+
+        // Then
+        assertTrue(result.success)
+        val statePropsDir = File(result.moduleDir, "src/commonMain/kotlin/io/codenode/portlesstest/stateProperties")
+
+        val emptyNodeFile = File(statePropsDir, "EmptyNodeStateProperties.kt")
+        assertFalse(emptyNodeFile.exists(), "No state properties file for portless node")
+
+        val hasPortsFile = File(statePropsDir, "HasPortsStateProperties.kt")
+        assertTrue(hasPortsFile.exists(), "State properties file should exist for node with ports")
+    }
+
+    @Test
+    fun `compileModule does not overwrite existing state properties files`() {
+        // Given
+        val flowGraph = createStopWatchFlowGraph()
+        val saveService = ModuleSaveService()
+
+        // First compile
+        val result1 = saveService.compileModule(flowGraph, tempDir)
+        assertTrue(result1.success)
+
+        // Modify the state properties file
+        val statePropsDir = File(result1.moduleDir, "src/commonMain/kotlin/io/codenode/stopwatch4/stateProperties")
+        val timerFile = File(statePropsDir, "TimerEmitterStateProperties.kt")
+        val userModification = "// USER MODIFIED\n" + timerFile.readText()
+        timerFile.writeText(userModification)
+
+        // Re-compile
+        val result2 = saveService.compileModule(flowGraph, tempDir)
+
+        // Then
+        assertTrue(result2.success)
+        val content = timerFile.readText()
+        assertTrue(content.startsWith("// USER MODIFIED"),
+            "State properties file should not be overwritten")
+    }
+
+    @Test
+    fun `filesCreated includes state properties files`() {
+        // Given
+        val flowGraph = createStopWatchFlowGraph()
+        val saveService = ModuleSaveService()
+
+        // When
+        val result = saveService.compileModule(flowGraph, tempDir)
+
+        // Then
+        assertTrue(result.success)
+        assertTrue(result.filesCreated.any { it.contains("TimerEmitterStateProperties.kt") },
+            "filesCreated should include TimerEmitterStateProperties.kt")
+        assertTrue(result.filesCreated.any { it.contains("DisplayReceiverStateProperties.kt") },
+            "filesCreated should include DisplayReceiverStateProperties.kt")
+    }
+
+    // ========== State Properties Re-compile Preservation & Orphan Detection ==========
+
+    @Test
+    fun `re-compile generates state properties only for new nodes`() {
+        // Given - initial flow with one node
+        val timerEmitter = CodeNode(
+            id = "timer", name = "TimerEmitter", codeNodeType = CodeNodeType.GENERATOR,
+            position = Node.Position(100.0, 100.0),
+            inputPorts = emptyList(),
+            outputPorts = listOf(
+                Port(id = "timer_sec", name = "elapsedSeconds", direction = Port.Direction.OUTPUT, dataType = Int::class, owningNodeId = "timer")
+            )
+        )
+        val flowGraph1 = FlowGraph(id = "flow_1", name = "ExpandFlow", version = "1.0.0", rootNodes = listOf(timerEmitter))
+        val saveService = ModuleSaveService()
+
+        // First compile
+        val result1 = saveService.compileModule(flowGraph1, tempDir)
+        assertTrue(result1.success)
+
+        // Modify the existing state properties file
+        val statePropsDir = File(result1.moduleDir, "src/commonMain/kotlin/io/codenode/expandflow/stateProperties")
+        val timerFile = File(statePropsDir, "TimerEmitterStateProperties.kt")
+        val userModified = "// USER MODIFIED\n" + timerFile.readText()
+        timerFile.writeText(userModified)
+
+        // Add a new node
+        val displayReceiver = CodeNode(
+            id = "display", name = "DisplayReceiver", codeNodeType = CodeNodeType.SINK,
+            position = Node.Position(400.0, 100.0),
+            inputPorts = listOf(
+                Port(id = "display_sec", name = "seconds", direction = Port.Direction.INPUT, dataType = Int::class, owningNodeId = "display")
+            ),
+            outputPorts = emptyList()
+        )
+        val flowGraph2 = FlowGraph(id = "flow_1", name = "ExpandFlow", version = "1.0.0", rootNodes = listOf(timerEmitter, displayReceiver))
+
+        // Re-compile
+        val result2 = saveService.compileModule(flowGraph2, tempDir)
+
+        // Then
+        assertTrue(result2.success)
+        // Existing file preserved
+        assertTrue(timerFile.readText().startsWith("// USER MODIFIED"),
+            "Existing state properties should not be overwritten")
+        // New node gets fresh file
+        val displayFile = File(statePropsDir, "DisplayReceiverStateProperties.kt")
+        assertTrue(displayFile.exists(), "New node should get a state properties file")
+        assertTrue(displayFile.readText().contains("object DisplayReceiverStateProperties"),
+            "New state properties file should contain object declaration")
+    }
+
+    @Test
+    fun `re-compile warns about orphaned state properties when node removed`() {
+        // Given - initial flow with two nodes
+        val timerEmitter = CodeNode(
+            id = "timer", name = "TimerEmitter", codeNodeType = CodeNodeType.GENERATOR,
+            position = Node.Position(100.0, 100.0),
+            inputPorts = emptyList(),
+            outputPorts = listOf(
+                Port(id = "timer_sec", name = "elapsedSeconds", direction = Port.Direction.OUTPUT, dataType = Int::class, owningNodeId = "timer")
+            )
+        )
+        val displayReceiver = CodeNode(
+            id = "display", name = "DisplayReceiver", codeNodeType = CodeNodeType.SINK,
+            position = Node.Position(400.0, 100.0),
+            inputPorts = listOf(
+                Port(id = "display_sec", name = "seconds", direction = Port.Direction.INPUT, dataType = Int::class, owningNodeId = "display")
+            ),
+            outputPorts = emptyList()
+        )
+        val flowGraph1 = FlowGraph(id = "flow_1", name = "ShrinkFlow", version = "1.0.0", rootNodes = listOf(timerEmitter, displayReceiver))
+        val saveService = ModuleSaveService()
+
+        // First compile
+        val result1 = saveService.compileModule(flowGraph1, tempDir)
+        assertTrue(result1.success)
+
+        // Remove displayReceiver from flow
+        val flowGraph2 = FlowGraph(id = "flow_1", name = "ShrinkFlow", version = "1.0.0", rootNodes = listOf(timerEmitter))
+
+        // Re-compile
+        val result2 = saveService.compileModule(flowGraph2, tempDir)
+
+        // Then
+        assertTrue(result2.success)
+        assertTrue(result2.warnings.any { it.contains("DisplayReceiverStateProperties") },
+            "Should warn about orphaned DisplayReceiverStateProperties")
+    }
+
+    @Test
+    fun `orphaned state properties file is not deleted`() {
+        // Given
+        val timerEmitter = CodeNode(
+            id = "timer", name = "TimerEmitter", codeNodeType = CodeNodeType.GENERATOR,
+            position = Node.Position(100.0, 100.0),
+            inputPorts = emptyList(),
+            outputPorts = listOf(
+                Port(id = "timer_sec", name = "elapsedSeconds", direction = Port.Direction.OUTPUT, dataType = Int::class, owningNodeId = "timer")
+            )
+        )
+        val displayReceiver = CodeNode(
+            id = "display", name = "DisplayReceiver", codeNodeType = CodeNodeType.SINK,
+            position = Node.Position(400.0, 100.0),
+            inputPorts = listOf(
+                Port(id = "display_sec", name = "seconds", direction = Port.Direction.INPUT, dataType = Int::class, owningNodeId = "display")
+            ),
+            outputPorts = emptyList()
+        )
+        val flowGraph1 = FlowGraph(id = "flow_1", name = "SafeFlow", version = "1.0.0", rootNodes = listOf(timerEmitter, displayReceiver))
+        val saveService = ModuleSaveService()
+
+        // First compile
+        val result1 = saveService.compileModule(flowGraph1, tempDir)
+        assertTrue(result1.success)
+
+        // Modify the file that will become orphaned
+        val statePropsDir = File(result1.moduleDir, "src/commonMain/kotlin/io/codenode/safeflow/stateProperties")
+        val orphanedFile = File(statePropsDir, "DisplayReceiverStateProperties.kt")
+        orphanedFile.writeText("// IMPORTANT USER STATE - DO NOT DELETE\n" + orphanedFile.readText())
+
+        // Remove node from flow
+        val flowGraph2 = FlowGraph(id = "flow_1", name = "SafeFlow", version = "1.0.0", rootNodes = listOf(timerEmitter))
+
+        // Re-compile
+        val result2 = saveService.compileModule(flowGraph2, tempDir)
+
+        // Then - orphaned file should NOT be deleted
+        assertTrue(result2.success)
+        assertTrue(orphanedFile.exists(), "Orphaned state properties file should not be deleted")
+        assertTrue(orphanedFile.readText().contains("IMPORTANT USER STATE"),
+            "Orphaned file content should be preserved")
+    }
+
+    @Test
+    fun `filesCreated excludes existing state properties files on re-compile`() {
+        // Given
+        val flowGraph = createStopWatchFlowGraph()
+        val saveService = ModuleSaveService()
+
+        // First compile
+        val result1 = saveService.compileModule(flowGraph, tempDir)
+        assertTrue(result1.success)
+        assertTrue(result1.filesCreated.any { it.contains("TimerEmitterStateProperties.kt") },
+            "First compile should report TimerEmitterStateProperties as created")
+
+        // Re-compile same flow
+        val result2 = saveService.compileModule(flowGraph, tempDir)
+
+        // Then - existing files should not be in filesCreated
+        assertTrue(result2.success)
+        assertFalse(result2.filesCreated.any { it.contains("TimerEmitterStateProperties.kt") },
+            "Existing state properties should not be in filesCreated")
+        assertFalse(result2.filesCreated.any { it.contains("DisplayReceiverStateProperties.kt") },
+            "Existing state properties should not be in filesCreated")
+    }
+
     // ========== Runtime File Generation (via compileModule) ==========
 
     @Test
@@ -919,6 +1293,84 @@ class ModuleSaveServiceTest {
         val updatedContent = flowFile.readText()
         assertTrue(updatedContent.contains("UpdatedSource"),
             "Runtime file should be overwritten with new content")
+    }
+
+    // ========== T021: End-to-End Quickstart Validation ==========
+
+    @Test
+    fun `T021 - end-to-end StopWatch4 compile validates all state properties integration`() {
+        // Quickstart checklist item 1: Compile a StopWatch4-like FlowGraph
+        val flowGraph = createStopWatchFlowGraph()
+        val saveService = ModuleSaveService()
+        val result = saveService.compileModule(flowGraph, tempDir)
+        assertTrue(result.success, "Compile should succeed")
+
+        val baseDir = File(result.moduleDir, "src/commonMain/kotlin/io/codenode/stopwatch4")
+        val statePropsDir = File(baseDir, "stateProperties")
+        val processingLogicDir = File(baseDir, "processingLogic")
+        val generatedDir = File(baseDir, "generated")
+
+        // Quickstart checklist item 2: Verify stateProperties/ directory with 2 files
+        assertTrue(statePropsDir.exists(), "stateProperties/ directory should exist")
+        val stateFiles = statePropsDir.listFiles()?.filter { it.isFile && it.name.endsWith("StateProperties.kt") } ?: emptyList()
+        assertEquals(2, stateFiles.size, "Should have exactly 2 state properties files")
+        assertTrue(stateFiles.any { it.name == "TimerEmitterStateProperties.kt" })
+        assertTrue(stateFiles.any { it.name == "DisplayReceiverStateProperties.kt" })
+
+        // Quickstart checklist item 3: Verify MutableStateFlow/StateFlow pairs match port names/types
+        val timerContent = File(statePropsDir, "TimerEmitterStateProperties.kt").readText()
+        assertTrue(timerContent.contains("internal val _elapsedSeconds = MutableStateFlow(0)"))
+        assertTrue(timerContent.contains("val elapsedSecondsFlow: StateFlow<Int>"))
+        assertTrue(timerContent.contains("internal val _elapsedMinutes = MutableStateFlow(0)"))
+        assertTrue(timerContent.contains("val elapsedMinutesFlow: StateFlow<Int>"))
+
+        val displayContent = File(statePropsDir, "DisplayReceiverStateProperties.kt").readText()
+        assertTrue(displayContent.contains("internal val _seconds = MutableStateFlow(0)"))
+        assertTrue(displayContent.contains("val secondsFlow: StateFlow<Int>"))
+        assertTrue(displayContent.contains("internal val _minutes = MutableStateFlow(0)"))
+        assertTrue(displayContent.contains("val minutesFlow: StateFlow<Int>"))
+
+        // Quickstart checklist item 4: Verify processing logic stubs import state properties
+        val timerStub = File(processingLogicDir, "TimerEmitterProcessLogic.kt")
+        assertTrue(timerStub.exists(), "TimerEmitter stub should exist")
+        assertTrue(timerStub.readText().contains("import io.codenode.stopwatch4.stateProperties.TimerEmitterStateProperties"),
+            "TimerEmitter stub should import TimerEmitterStateProperties")
+
+        val displayStub = File(processingLogicDir, "DisplayReceiverProcessLogic.kt")
+        assertTrue(displayStub.exists(), "DisplayReceiver stub should exist")
+        assertTrue(displayStub.readText().contains("import io.codenode.stopwatch4.stateProperties.DisplayReceiverStateProperties"),
+            "DisplayReceiver stub should import DisplayReceiverStateProperties")
+
+        // Quickstart checklist item 5: Verify Flow class delegates secondsFlow/minutesFlow from DisplayReceiverStateProperties
+        val flowFile = File(generatedDir, "StopWatch4Flow.kt")
+        assertTrue(flowFile.exists(), "StopWatch4Flow.kt should exist")
+        val flowContent = flowFile.readText()
+        assertTrue(flowContent.contains("val secondsFlow: StateFlow<Int> = DisplayReceiverStateProperties.secondsFlow"),
+            "Flow should delegate secondsFlow from DisplayReceiverStateProperties")
+        assertTrue(flowContent.contains("val minutesFlow: StateFlow<Int> = DisplayReceiverStateProperties.minutesFlow"),
+            "Flow should delegate minutesFlow from DisplayReceiverStateProperties")
+        // Verify it does NOT own MutableStateFlow (delegated, not owned)
+        assertFalse(flowContent.contains("MutableStateFlow"),
+            "Flow should not own MutableStateFlow when delegating to state properties")
+
+        // Quickstart checklist item 6: Verify Flow's reset() calls both state properties' reset() methods
+        assertTrue(flowContent.contains("TimerEmitterStateProperties.reset()"),
+            "Flow reset() should call TimerEmitterStateProperties.reset()")
+        assertTrue(flowContent.contains("DisplayReceiverStateProperties.reset()"),
+            "Flow reset() should call DisplayReceiverStateProperties.reset()")
+
+        // Quickstart checklist item 7: Re-compile and verify existing state property files are preserved
+        val timerFile = File(statePropsDir, "TimerEmitterStateProperties.kt")
+        val displayFile = File(statePropsDir, "DisplayReceiverStateProperties.kt")
+        timerFile.writeText("// USER CUSTOMIZED TIMER\n" + timerFile.readText())
+        displayFile.writeText("// USER CUSTOMIZED DISPLAY\n" + displayFile.readText())
+
+        val result2 = saveService.compileModule(flowGraph, tempDir)
+        assertTrue(result2.success, "Re-compile should succeed")
+        assertTrue(timerFile.readText().startsWith("// USER CUSTOMIZED TIMER"),
+            "TimerEmitter state properties should be preserved on re-compile")
+        assertTrue(displayFile.readText().startsWith("// USER CUSTOMIZED DISPLAY"),
+            "DisplayReceiver state properties should be preserved on re-compile")
     }
 
     @Test

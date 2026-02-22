@@ -30,10 +30,10 @@
 
 **Purpose**: Create the new StatePropertiesGenerator class that all user stories depend on.
 
-- [ ] T001 Create StatePropertiesGenerator with `shouldGenerate()` and `getStatePropertiesFileName()` methods in `kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/StatePropertiesGenerator.kt`
-- [ ] T002 Add `getStatePropertiesObjectName()` method to StatePropertiesGenerator in `kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/StatePropertiesGenerator.kt`
-- [ ] T003 Add `generateStateProperties(codeNode, packageName)` method to StatePropertiesGenerator that generates the full Kotlin object source with MutableStateFlow/StateFlow pairs for all ports, `internal` visibility for mutable properties, public StateFlow accessors, type-appropriate defaults per R5, and a `reset()` method in `kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/StatePropertiesGenerator.kt`
-- [ ] T004 Create StatePropertiesGeneratorTest with tests for: `shouldGenerate()` returns true for nodes with ports and false for portless nodes; `getStatePropertiesFileName()` returns correct filename; `getStatePropertiesObjectName()` returns correct object name; `generateStateProperties()` generates correct output for a 2-output generator node, a 2-input sink node, a transformer node, and a node with non-primitive types (TODO default) in `kotlinCompiler/src/commonTest/kotlin/io/codenode/kotlincompiler/generator/StatePropertiesGeneratorTest.kt`
+- [X] T001 Create StatePropertiesGenerator with `shouldGenerate()` and `getStatePropertiesFileName()` methods in `kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/StatePropertiesGenerator.kt`
+- [X] T002 Add `getStatePropertiesObjectName()` method to StatePropertiesGenerator in `kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/StatePropertiesGenerator.kt`
+- [X] T003 Add `generateStateProperties(codeNode, packageName)` method to StatePropertiesGenerator that generates the full Kotlin object source with MutableStateFlow/StateFlow pairs for all ports, `internal` visibility for mutable properties, public StateFlow accessors, type-appropriate defaults per R5, and a `reset()` method in `kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/StatePropertiesGenerator.kt`
+- [X] T004 Create StatePropertiesGeneratorTest with tests for: `shouldGenerate()` returns true for nodes with ports and false for portless nodes; `getStatePropertiesFileName()` returns correct filename; `getStatePropertiesObjectName()` returns correct object name; `generateStateProperties()` generates correct output for a 2-output generator node, a 2-input sink node, a transformer node, and a node with non-primitive types (TODO default) in `kotlinCompiler/src/commonTest/kotlin/io/codenode/kotlincompiler/generator/StatePropertiesGeneratorTest.kt`
 
 **Checkpoint**: StatePropertiesGenerator is complete and tested — user story implementation can now begin
 
@@ -47,9 +47,9 @@
 
 ### Implementation for User Story 1
 
-- [ ] T005 [US1] Add `STATE_PROPERTIES_SUBPACKAGE = "stateProperties"` constant and create `generateStatePropertiesFiles()` method in ModuleSaveService that generates state property files (with don't-overwrite semantics matching `generateProcessingLogicStubs()`) in `graphEditor/src/jvmMain/kotlin/save/ModuleSaveService.kt`
-- [ ] T006 [US1] Add `stateProperties` directory creation in `compileModule()` by calling `createDirectoryStructure()` for the stateProperties package, and call `generateStatePropertiesFiles()` from `compileModule()` in `graphEditor/src/jvmMain/kotlin/save/ModuleSaveService.kt`
-- [ ] T007 [US1] Add integration tests for state properties file generation in ModuleSaveServiceTest: verify stateProperties directory is created, verify correct files are generated for a StopWatch-like FlowGraph (TimerEmitterStateProperties.kt, DisplayReceiverStateProperties.kt), verify no file is generated for portless nodes in `graphEditor/src/jvmTest/kotlin/save/ModuleSaveServiceTest.kt`
+- [X] T005 [US1] Add `STATE_PROPERTIES_SUBPACKAGE = "stateProperties"` constant and create `generateStatePropertiesFiles()` method in ModuleSaveService that generates state property files (with don't-overwrite semantics matching `generateProcessingLogicStubs()`) in `graphEditor/src/jvmMain/kotlin/save/ModuleSaveService.kt`
+- [X] T006 [US1] Add `stateProperties` directory creation in `compileModule()` by calling `createDirectoryStructure()` for the stateProperties package, and call `generateStatePropertiesFiles()` from `compileModule()` in `graphEditor/src/jvmMain/kotlin/save/ModuleSaveService.kt`
+- [X] T007 [US1] Add integration tests for state properties file generation in ModuleSaveServiceTest: verify stateProperties directory is created, verify correct files are generated for a StopWatch-like FlowGraph (TimerEmitterStateProperties.kt, DisplayReceiverStateProperties.kt), verify no file is generated for portless nodes in `graphEditor/src/jvmTest/kotlin/save/ModuleSaveServiceTest.kt`
 
 **Checkpoint**: Compiling a FlowGraph generates state properties files in stateProperties/ directory
 
@@ -63,9 +63,9 @@
 
 ### Implementation for User Story 2
 
-- [ ] T008 [US2] Update `generateStub()` in ProcessingLogicStubGenerator to accept a `statePropertiesPackage` parameter and add an import statement for the corresponding `{NodeName}StateProperties` object in `kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/ProcessingLogicStubGenerator.kt`
-- [ ] T009 [US2] Update `generateProcessingLogicStubs()` in ModuleSaveService to pass the statePropertiesPackage parameter when calling `stubGenerator.generateStub()` in `graphEditor/src/jvmMain/kotlin/save/ModuleSaveService.kt`
-- [ ] T010 [US2] Update ProcessingLogicStubGeneratorTest to verify generated stubs contain import statement for the corresponding state properties object for generator, sink, and transformer nodes in `kotlinCompiler/src/commonTest/kotlin/io/codenode/kotlincompiler/generator/ProcessingLogicStubGeneratorTest.kt`
+- [X] T008 [US2] Update `generateStub()` in ProcessingLogicStubGenerator to accept a `statePropertiesPackage` parameter and add an import statement for the corresponding `{NodeName}StateProperties` object in `kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/ProcessingLogicStubGenerator.kt`
+- [X] T009 [US2] Update `generateProcessingLogicStubs()` in ModuleSaveService to pass the statePropertiesPackage parameter when calling `stubGenerator.generateStub()` in `graphEditor/src/jvmMain/kotlin/save/ModuleSaveService.kt`
+- [X] T010 [US2] Update ProcessingLogicStubGeneratorTest to verify generated stubs contain import statement for the corresponding state properties object for generator, sink, and transformer nodes in `kotlinCompiler/src/commonTest/kotlin/io/codenode/kotlincompiler/generator/ProcessingLogicStubGeneratorTest.kt`
 
 **Checkpoint**: Processing logic stubs import their state properties object
 
@@ -79,12 +79,12 @@
 
 ### Implementation for User Story 4
 
-- [ ] T011 [US4] Update `generate()` in RuntimeFlowGenerator to accept a `statePropertiesPackage` parameter and add import statements for all state properties objects in `kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/RuntimeFlowGenerator.kt`
-- [ ] T012 [US4] Update `generateObservableState()` in RuntimeFlowGenerator to delegate `StateFlow` properties from state properties objects (e.g., `val secondsFlow: StateFlow<Int> = DisplayReceiverStateProperties.secondsFlow`) instead of creating local MutableStateFlow in `kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/RuntimeFlowGenerator.kt`
-- [ ] T013 [US4] Update `generateSinkConsumeBlock()` in RuntimeFlowGenerator to reference state properties objects for `_portName.value` updates (e.g., `DisplayReceiverStateProperties._seconds.value = seconds`) in `kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/RuntimeFlowGenerator.kt`
-- [ ] T014 [US4] Update `generateResetMethod()` in RuntimeFlowGenerator to call `reset()` on each state properties object for all nodes (not just sink nodes) instead of directly resetting MutableStateFlow values in `kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/RuntimeFlowGenerator.kt`
-- [ ] T015 [US4] Update `generateRuntimeFiles()` in ModuleSaveService to pass `statePropertiesPackage` when calling `runtimeFlowGenerator.generate()` in `graphEditor/src/jvmMain/kotlin/save/ModuleSaveService.kt`
-- [ ] T016 [US4] Update RuntimeFlowGeneratorTest to verify: state properties imports are generated, observable state is delegated from state properties objects, sink consume block references state properties objects, reset method calls state properties reset() for all nodes in `kotlinCompiler/src/commonTest/kotlin/io/codenode/kotlincompiler/generator/RuntimeFlowGeneratorTest.kt`
+- [X] T011 [US4] Update `generate()` in RuntimeFlowGenerator to accept a `statePropertiesPackage` parameter and add import statements for all state properties objects in `kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/RuntimeFlowGenerator.kt`
+- [X] T012 [US4] Update `generateObservableState()` in RuntimeFlowGenerator to delegate `StateFlow` properties from state properties objects (e.g., `val secondsFlow: StateFlow<Int> = DisplayReceiverStateProperties.secondsFlow`) instead of creating local MutableStateFlow in `kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/RuntimeFlowGenerator.kt`
+- [X] T013 [US4] Update `generateSinkConsumeBlock()` in RuntimeFlowGenerator to reference state properties objects for `_portName.value` updates (e.g., `DisplayReceiverStateProperties._seconds.value = seconds`) in `kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/RuntimeFlowGenerator.kt`
+- [X] T014 [US4] Update `generateResetMethod()` in RuntimeFlowGenerator to call `reset()` on each state properties object for all nodes (not just sink nodes) instead of directly resetting MutableStateFlow values in `kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/RuntimeFlowGenerator.kt`
+- [X] T015 [US4] Update `generateRuntimeFiles()` in ModuleSaveService to pass `statePropertiesPackage` when calling `runtimeFlowGenerator.generate()` in `graphEditor/src/jvmMain/kotlin/save/ModuleSaveService.kt`
+- [X] T016 [US4] Update RuntimeFlowGeneratorTest to verify: state properties imports are generated, observable state is delegated from state properties objects, sink consume block references state properties objects, reset method calls state properties reset() for all nodes in `kotlinCompiler/src/commonTest/kotlin/io/codenode/kotlincompiler/generator/RuntimeFlowGeneratorTest.kt`
 
 **Checkpoint**: Flow class delegates all observable state from state properties objects
 
@@ -98,8 +98,8 @@
 
 ### Implementation for User Story 3
 
-- [ ] T017 [US3] Add orphan detection for stateProperties directory: extend `detectOrphanedComponents()` or add `detectOrphanedStateProperties()` to scan `stateProperties/` for `*StateProperties.kt` files not matching current FlowGraph nodes, and call it from `compileModule()` in `graphEditor/src/jvmMain/kotlin/save/ModuleSaveService.kt`
-- [ ] T018 [US3] Add integration tests for re-compile preservation: verify existing state properties files are not overwritten on re-compile, verify new nodes get fresh state properties files, verify orphaned state properties files produce warnings in `graphEditor/src/jvmTest/kotlin/save/ModuleSaveServiceTest.kt`
+- [X] T017 [US3] Add orphan detection for stateProperties directory: extend `detectOrphanedComponents()` or add `detectOrphanedStateProperties()` to scan `stateProperties/` for `*StateProperties.kt` files not matching current FlowGraph nodes, and call it from `compileModule()` in `graphEditor/src/jvmMain/kotlin/save/ModuleSaveService.kt`
+- [X] T018 [US3] Add integration tests for re-compile preservation: verify existing state properties files are not overwritten on re-compile, verify new nodes get fresh state properties files, verify orphaned state properties files produce warnings in `graphEditor/src/jvmTest/kotlin/save/ModuleSaveServiceTest.kt`
 
 **Checkpoint**: State properties files survive re-compilation; orphans are warned
 
@@ -109,9 +109,9 @@
 
 **Purpose**: Verify end-to-end correctness and update any dependent generators
 
-- [ ] T019 Check if RuntimeControllerGenerator, RuntimeControllerInterfaceGenerator, RuntimeControllerAdapterGenerator, or RuntimeViewModelGenerator need updates for state properties delegation (they may reference Flow's StateFlow properties which changed from owned to delegated) in `kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/Runtime*Generator.kt`
-- [ ] T020 Run full test suite: `./gradlew :kotlinCompiler:allTests` and `./gradlew :graphEditor:jvmTest` to verify all existing tests still pass
-- [ ] T021 Run quickstart.md validation: compile a StopWatch4-like FlowGraph and verify all 7 checklist items from quickstart.md
+- [X] T019 Check if RuntimeControllerGenerator, RuntimeControllerInterfaceGenerator, RuntimeControllerAdapterGenerator, or RuntimeViewModelGenerator need updates for state properties delegation (they may reference Flow's StateFlow properties which changed from owned to delegated) in `kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/Runtime*Generator.kt`
+- [X] T020 Run full test suite: `./gradlew :kotlinCompiler:allTests` and `./gradlew :graphEditor:jvmTest` to verify all existing tests still pass
+- [X] T021 Run quickstart.md validation: compile a StopWatch4-like FlowGraph and verify all 7 checklist items from quickstart.md
 
 ---
 

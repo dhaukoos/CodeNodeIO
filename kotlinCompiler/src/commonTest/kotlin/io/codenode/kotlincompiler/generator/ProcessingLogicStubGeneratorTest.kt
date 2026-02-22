@@ -413,6 +413,75 @@ class ProcessingLogicStubGeneratorTest {
         assertTrue(result.contains("- value: Double"))
     }
 
+    // ========== State Properties Import ==========
+
+    @Test
+    fun `generator stub imports state properties object when statePropertiesPackage provided`() {
+        val node = createTestCodeNode(
+            "timer", "TimerEmitter",
+            type = CodeNodeType.GENERATOR,
+            outputPorts = listOf(
+                outputPort("timer_sec", "elapsedSeconds", Int::class, "timer"),
+                outputPort("timer_min", "elapsedMinutes", Int::class, "timer")
+            )
+        )
+        val generator = ProcessingLogicStubGenerator()
+
+        val result = generator.generateStub(node, "io.codenode.stopwatch.processingLogic", "io.codenode.stopwatch.stateProperties")
+
+        assertTrue(result.contains("import io.codenode.stopwatch.stateProperties.TimerEmitterStateProperties"),
+            "Generator stub should import TimerEmitterStateProperties")
+    }
+
+    @Test
+    fun `sink stub imports state properties object when statePropertiesPackage provided`() {
+        val node = createTestCodeNode(
+            "display", "DisplayReceiver",
+            type = CodeNodeType.SINK,
+            inputPorts = listOf(
+                inputPort("d_sec", "seconds", Int::class, "display"),
+                inputPort("d_min", "minutes", Int::class, "display")
+            )
+        )
+        val generator = ProcessingLogicStubGenerator()
+
+        val result = generator.generateStub(node, "io.codenode.stopwatch.processingLogic", "io.codenode.stopwatch.stateProperties")
+
+        assertTrue(result.contains("import io.codenode.stopwatch.stateProperties.DisplayReceiverStateProperties"),
+            "Sink stub should import DisplayReceiverStateProperties")
+    }
+
+    @Test
+    fun `transformer stub imports state properties object when statePropertiesPackage provided`() {
+        val node = createTestCodeNode(
+            "trans", "DataTransformer",
+            type = CodeNodeType.TRANSFORMER,
+            inputPorts = listOf(inputPort("t_in", "rawData", String::class, "trans")),
+            outputPorts = listOf(outputPort("t_out", "processedData", Int::class, "trans"))
+        )
+        val generator = ProcessingLogicStubGenerator()
+
+        val result = generator.generateStub(node, "io.codenode.app.processingLogic", "io.codenode.app.stateProperties")
+
+        assertTrue(result.contains("import io.codenode.app.stateProperties.DataTransformerStateProperties"),
+            "Transformer stub should import DataTransformerStateProperties")
+    }
+
+    @Test
+    fun `stub does not import state properties when statePropertiesPackage is null`() {
+        val node = createTestCodeNode(
+            "timer", "TimerEmitter",
+            type = CodeNodeType.GENERATOR,
+            outputPorts = listOf(outputPort("timer_out", "value", Int::class, "timer"))
+        )
+        val generator = ProcessingLogicStubGenerator()
+
+        val result = generator.generateStub(node, "io.codenode.generated")
+
+        assertFalse(result.contains("StateProperties"),
+            "Stub should not contain StateProperties import when statePropertiesPackage is null")
+    }
+
     // ========== Default Return Values ==========
 
     @Test

@@ -126,9 +126,10 @@ class ProcessingLogicStubGenerator {
      *
      * @param codeNode The code node to generate a stub for
      * @param packageName The base package name (logicmethods sub-package will be appended)
+     * @param statePropertiesPackage The stateProperties package for import (null to omit)
      * @return Generated Kotlin source code, or empty string if stub should not be generated
      */
-    fun generateStub(codeNode: CodeNode, packageName: String): String {
+    fun generateStub(codeNode: CodeNode, packageName: String, statePropertiesPackage: String? = null): String {
         if (!shouldGenerateStub(codeNode)) return ""
 
         val tickTypeAlias = getTickTypeAlias(codeNode)
@@ -136,6 +137,7 @@ class ProcessingLogicStubGenerator {
         val typeAliasName = tickTypeAlias.substringBefore("<")
         val inputCount = codeNode.inputPorts.size
         val outputCount = codeNode.outputPorts.size
+        val hasPorts = inputCount > 0 || outputCount > 0
 
         return buildString {
             // Package declaration
@@ -148,6 +150,10 @@ class ProcessingLogicStubGenerator {
                 appendLine("import io.codenode.fbpdsl.runtime.ProcessResult2")
             } else if (outputCount == 3) {
                 appendLine("import io.codenode.fbpdsl.runtime.ProcessResult3")
+            }
+            if (statePropertiesPackage != null && hasPorts) {
+                val objectName = "${codeNode.name.pascalCase()}StateProperties"
+                appendLine("import $statePropertiesPackage.$objectName")
             }
             appendLine()
 

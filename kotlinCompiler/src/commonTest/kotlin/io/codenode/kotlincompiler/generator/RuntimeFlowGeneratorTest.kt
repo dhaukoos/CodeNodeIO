@@ -375,6 +375,145 @@ class RuntimeFlowGeneratorTest {
         assertTrue(result.contains("Version: 1.0.0"))
     }
 
+    // ========== State Properties Delegation Tests ==========
+
+    private val statePropsPackage = "io.codenode.testapp.stateProperties"
+
+    @Test
+    fun `state properties mode generates imports for all nodes with ports`() {
+        val flowGraph = createStopWatchLikeFlow()
+        val result = generator.generate(flowGraph, generatedPackage, usecasesPackage, statePropsPackage)
+
+        assertTrue(result.contains("import io.codenode.testapp.stateProperties.TimerEmitterStateProperties"),
+            "Should import TimerEmitterStateProperties")
+        assertTrue(result.contains("import io.codenode.testapp.stateProperties.DisplayReceiverStateProperties"),
+            "Should import DisplayReceiverStateProperties")
+    }
+
+    @Test
+    fun `state properties mode does not import MutableStateFlow or asStateFlow`() {
+        val flowGraph = createStopWatchLikeFlow()
+        val result = generator.generate(flowGraph, generatedPackage, usecasesPackage, statePropsPackage)
+
+        assertFalse(result.contains("import kotlinx.coroutines.flow.MutableStateFlow"),
+            "Should not import MutableStateFlow in state properties mode")
+        assertFalse(result.contains("import kotlinx.coroutines.flow.asStateFlow"),
+            "Should not import asStateFlow in state properties mode")
+    }
+
+    @Test
+    fun `state properties mode imports StateFlow`() {
+        val flowGraph = createStopWatchLikeFlow()
+        val result = generator.generate(flowGraph, generatedPackage, usecasesPackage, statePropsPackage)
+
+        assertTrue(result.contains("import kotlinx.coroutines.flow.StateFlow"),
+            "Should still import StateFlow for type declaration")
+    }
+
+    @Test
+    fun `state properties mode delegates observable state from state properties objects`() {
+        val flowGraph = createStopWatchLikeFlow()
+        val result = generator.generate(flowGraph, generatedPackage, usecasesPackage, statePropsPackage)
+
+        assertTrue(result.contains("val secondsFlow: StateFlow<Int> = DisplayReceiverStateProperties.secondsFlow"),
+            "Should delegate secondsFlow from DisplayReceiverStateProperties")
+        assertTrue(result.contains("val minutesFlow: StateFlow<Int> = DisplayReceiverStateProperties.minutesFlow"),
+            "Should delegate minutesFlow from DisplayReceiverStateProperties")
+    }
+
+    @Test
+    fun `state properties mode does not create local MutableStateFlow`() {
+        val flowGraph = createStopWatchLikeFlow()
+        val result = generator.generate(flowGraph, generatedPackage, usecasesPackage, statePropsPackage)
+
+        assertFalse(result.contains("private val _seconds = MutableStateFlow"),
+            "Should not create local MutableStateFlow in state properties mode")
+        assertFalse(result.contains("asStateFlow()"),
+            "Should not use asStateFlow() in state properties mode")
+    }
+
+    @Test
+    fun `state properties mode sink consume block references state properties object`() {
+        val flowGraph = createStopWatchLikeFlow()
+        val result = generator.generate(flowGraph, generatedPackage, usecasesPackage, statePropsPackage)
+
+        assertTrue(result.contains("DisplayReceiverStateProperties._seconds.value = seconds"),
+            "Consume block should update via DisplayReceiverStateProperties._seconds")
+        assertTrue(result.contains("DisplayReceiverStateProperties._minutes.value = minutes"),
+            "Consume block should update via DisplayReceiverStateProperties._minutes")
+    }
+
+    @Test
+    fun `state properties mode sink consume block still calls user tick`() {
+        val flowGraph = createStopWatchLikeFlow()
+        val result = generator.generate(flowGraph, generatedPackage, usecasesPackage, statePropsPackage)
+
+        assertTrue(result.contains("displayReceiverTick(seconds, minutes)"),
+            "Consume block should still call user tick function")
+    }
+
+    @Test
+    fun `state properties mode reset calls reset on all node state properties`() {
+        val flowGraph = createStopWatchLikeFlow()
+        val result = generator.generate(flowGraph, generatedPackage, usecasesPackage, statePropsPackage)
+
+        assertTrue(result.contains("TimerEmitterStateProperties.reset()"),
+            "Reset should call TimerEmitterStateProperties.reset()")
+        assertTrue(result.contains("DisplayReceiverStateProperties.reset()"),
+            "Reset should call DisplayReceiverStateProperties.reset()")
+    }
+
+    @Test
+    fun `state properties mode reset does not directly reset MutableStateFlow values`() {
+        val flowGraph = createStopWatchLikeFlow()
+        val result = generator.generate(flowGraph, generatedPackage, usecasesPackage, statePropsPackage)
+
+        assertFalse(result.contains("_seconds.value = 0"),
+            "Reset should not directly reset MutableStateFlow in state properties mode")
+        assertFalse(result.contains("_minutes.value = 0"),
+            "Reset should not directly reset MutableStateFlow in state properties mode")
+    }
+
+    @Test
+    fun `state properties mode with single-input sink delegates correctly`() {
+        val sink = createTestCodeNode(
+            "sink", "Logger", CodeNodeType.SINK,
+            inputPorts = listOf(inputPort("s_in", "message", String::class, "sink"))
+        )
+        val flowGraph = createFlowGraph(nodes = listOf(sink))
+        val result = generator.generate(flowGraph, generatedPackage, usecasesPackage, statePropsPackage)
+
+        assertTrue(result.contains("val messageFlow: StateFlow<String> = LoggerStateProperties.messageFlow"),
+            "Should delegate messageFlow from LoggerStateProperties")
+        assertTrue(result.contains("LoggerStateProperties._message.value = message"),
+            "Consume block should reference LoggerStateProperties._message")
+        assertTrue(result.contains("LoggerStateProperties.reset()"),
+            "Reset should call LoggerStateProperties.reset()")
+    }
+
+    @Test
+    fun `state properties mode skips portless nodes in reset`() {
+        val portlessNode = CodeNode(
+            id = "empty",
+            name = "EmptyNode",
+            codeNodeType = CodeNodeType.TRANSFORMER,
+            position = Node.Position(0.0, 0.0),
+            inputPorts = emptyList(),
+            outputPorts = emptyList()
+        )
+        val sink = createTestCodeNode(
+            "sink", "Logger", CodeNodeType.SINK,
+            inputPorts = listOf(inputPort("s_in", "message", String::class, "sink"))
+        )
+        val flowGraph = createFlowGraph(nodes = listOf(portlessNode, sink))
+        val result = generator.generate(flowGraph, generatedPackage, usecasesPackage, statePropsPackage)
+
+        assertTrue(result.contains("LoggerStateProperties.reset()"),
+            "Reset should include Logger")
+        assertFalse(result.contains("EmptyNodeStateProperties"),
+            "Reset should not include portless EmptyNode")
+    }
+
     // ========== Helper: StopWatch-like FlowGraph ==========
 
     private fun createStopWatchLikeFlow(): FlowGraph {
