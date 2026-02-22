@@ -15,7 +15,7 @@ import io.codenode.fbpdsl.model.FlowGraph
  * properties for sink input ports.
  *
  * The generated Flow class:
- * - Imports tick vals from the usecases.logicmethods package
+ * - Imports tick vals from the processingLogic package
  * - Creates runtime instances using CodeNodeFactory.create*() methods
  * - Wraps sink consume blocks to update MutableStateFlow + call user tick
  * - Provides start(scope)/stop()/reset()/wireConnections() methods
@@ -85,7 +85,7 @@ class RuntimeFlowGenerator {
     ) {
         // Tick function imports from user stubs
         codeNodes.forEach { node ->
-            appendLine("import $usecasesPackage.logicmethods.${node.name.camelCase()}Tick")
+            appendLine("import $usecasesPackage.${node.name.camelCase()}Tick")
         }
         appendLine()
 

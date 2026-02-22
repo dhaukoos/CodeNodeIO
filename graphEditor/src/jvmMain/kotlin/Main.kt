@@ -326,6 +326,7 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
     var showCompileDialog by remember { mutableStateOf(false) }
     var showModuleSaveDialog by remember { mutableStateOf(false) }
     var showFlowGraphPropertiesDialog by remember { mutableStateOf(false) }
+    var lastSaveOutputDir by remember { mutableStateOf<File?>(null) }
     var statusMessage by remember { mutableStateOf("Ready - Create a new graph or open an existing one") }
 
     // IPPaletteViewModel for the IP Palette
@@ -985,9 +986,9 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
 
         if (showCompileDialog) {
             LaunchedEffect(Unit) {
-                val outputDir = showDirectoryChooser()
+                val outputDir = lastSaveOutputDir
                 if (outputDir != null) {
-                    val result = moduleSaveService.saveModule(
+                    val result = moduleSaveService.compileModule(
                         flowGraph = graphState.flowGraph,
                         outputDir = outputDir
                     )
@@ -996,6 +997,8 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                     } else {
                         statusMessage = "Compile error: ${result.errorMessage}"
                     }
+                } else {
+                    statusMessage = "Please save the module first before compiling"
                 }
                 showCompileDialog = false
             }
@@ -1011,6 +1014,7 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                         outputDir = outputDir
                     )
                     if (result.success) {
+                        lastSaveOutputDir = outputDir
                         statusMessage = "Module saved to ${result.moduleDir?.name}"
                     } else {
                         statusMessage = "Save error: ${result.errorMessage}"

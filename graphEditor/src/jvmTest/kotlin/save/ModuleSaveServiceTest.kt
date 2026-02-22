@@ -11,15 +11,10 @@ import java.io.File
 import kotlin.test.*
 
 /**
- * TDD tests for ModuleSaveService - verifies module creation on save.
+ * TDD tests for ModuleSaveService - verifies module creation on save and compile.
  *
- * These tests are written FIRST and should FAIL until ModuleSaveService is implemented.
- *
- * T001: Test for creating module directory on save
- * T002: Test for generating build.gradle.kts with KMP configuration
- * T003: Test for creating src/commonMain/kotlin/{package} directory structure
- * T004: Test for generating settings.gradle.kts
- * T005: Test for deriving module name from FlowGraph name
+ * Save creates: module directory, gradle files, directory structure, .flow.kt at module root.
+ * Compile creates: 5 runtime files under generated/, ProcessingLogic stubs under processingLogic/.
  */
 class ModuleSaveServiceTest {
 
@@ -205,10 +200,10 @@ class ModuleSaveServiceTest {
 
         // Then
         assertTrue(result.success)
-        // Usecases package for user components
-        val usecasesDir = File(result.moduleDir, "src/commonMain/kotlin/io/codenode/testmodule/usecases")
-        assertTrue(usecasesDir.exists(), "Usecases package directory should exist")
-        assertTrue(usecasesDir.isDirectory, "Usecases path should be a directory")
+        // ProcessingLogic package for user components
+        val processingLogicDir = File(result.moduleDir, "src/commonMain/kotlin/io/codenode/testmodule/processingLogic")
+        assertTrue(processingLogicDir.exists(), "ProcessingLogic package directory should exist")
+        assertTrue(processingLogicDir.isDirectory, "ProcessingLogic path should be a directory")
         // Generated package for generated code
         val generatedDir = File(result.moduleDir, "src/commonMain/kotlin/io/codenode/testmodule/generated")
         assertTrue(generatedDir.exists(), "Generated package directory should exist")
@@ -346,18 +341,19 @@ class ModuleSaveServiceTest {
         // Then
         assertTrue(result.success)
         // Default base package is io.codenode.{lowercase module name}
-        // Usecases package is io.codenode.{modulename}.usecases
-        val expectedPackageDir = File(result.moduleDir, "src/commonMain/kotlin/io/codenode/stopwatch/usecases")
+        // ProcessingLogic package is io.codenode.{modulename}.processingLogic
+        val expectedPackageDir = File(result.moduleDir, "src/commonMain/kotlin/io/codenode/stopwatch/processingLogic")
         assertTrue(expectedPackageDir.exists(),
-            "Default usecases package directory should be created based on module name")
+            "Default processingLogic package directory should be created based on module name")
     }
 
-    // ========== T036/T037: ProcessingLogic Stub Generation ==========
+    // ========== Save writes .flow.kt at module root ==========
 
     @Test
-    fun `T036 - saveModule generates ProcessingLogic stub for CodeNode`() {
+    fun `saveModule writes flow kt at module root`() {
         // Given
-        val flowGraph = createTestFlowGraph("TestModule")
+        val node1 = createTestCodeNode("node1", "Original", CodeNodeType.GENERATOR)
+        val flowGraph = createTestFlowGraph("UpdateFlow", listOf(node1))
         val saveService = ModuleSaveService()
 
         // When
@@ -365,7 +361,158 @@ class ModuleSaveServiceTest {
 
         // Then
         assertTrue(result.success)
-        val packageDir = File(result.moduleDir, "src/commonMain/kotlin/io/codenode/testmodule/usecases")
+        val flowKtFile = File(result.moduleDir, "UpdateFlow.flow.kt")
+        assertTrue(flowKtFile.exists(), ".flow.kt should be at module root")
+        val content = flowKtFile.readText()
+        assertTrue(content.contains("Original"),
+            "flow.kt should contain the node")
+    }
+
+    @Test
+    fun `re-save updates flow kt at module root`() {
+        // Given
+        val node1 = createTestCodeNode("node1", "Original", CodeNodeType.GENERATOR)
+        val flowGraph1 = createTestFlowGraph("UpdateFlow", listOf(node1))
+        val saveService = ModuleSaveService()
+
+        // First save
+        val result1 = saveService.saveModule(flowGraph1, tempDir)
+        assertTrue(result1.success)
+
+        val flowKtFile = File(result1.moduleDir, "UpdateFlow.flow.kt")
+        assertTrue(flowKtFile.exists(), "First save should create .flow.kt at module root")
+        assertTrue(flowKtFile.readText().contains("Original"))
+
+        // Add new node
+        val node2 = createTestCodeNode("node2", "Added", CodeNodeType.SINK)
+        val flowGraph2 = createTestFlowGraph("UpdateFlow", listOf(node1, node2))
+
+        // Re-save
+        val result2 = saveService.saveModule(flowGraph2, tempDir)
+
+        // Then
+        assertTrue(result2.success)
+        val updatedContent = flowKtFile.readText()
+        assertTrue(updatedContent.contains("Original"),
+            "Updated flow.kt should still contain Original node")
+        assertTrue(updatedContent.contains("Added"),
+            "Updated flow.kt should contain new Added node")
+    }
+
+    @Test
+    fun `re-save updates flow kt when node position changes`() {
+        // Given
+        val node1 = createTestCodeNode("node1", "Movable")
+        val flowGraph1 = createTestFlowGraph("PositionTest", listOf(node1))
+        val saveService = ModuleSaveService()
+
+        // First save
+        val result1 = saveService.saveModule(flowGraph1, tempDir)
+        assertTrue(result1.success)
+
+        // Move the node
+        val movedNode = node1.copy(position = Node.Position(500.0, 600.0))
+        val flowGraph2 = createTestFlowGraph("PositionTest", listOf(movedNode))
+
+        // Re-save
+        val result2 = saveService.saveModule(flowGraph2, tempDir)
+
+        // Then
+        assertTrue(result2.success)
+        val flowKtFile = File(result2.moduleDir, "PositionTest.flow.kt")
+        val content = flowKtFile.readText()
+        assertTrue(content.contains("500.0") && content.contains("600.0"),
+            "flow.kt should reflect new node position")
+    }
+
+    @Test
+    fun `re-save updates flow kt when connection added`() {
+        // Given - two nodes, no connection initially
+        val node1 = createTestCodeNode("node1", "Source", CodeNodeType.GENERATOR)
+        val node2 = createTestCodeNode("node2", "Target", CodeNodeType.SINK)
+        val flowGraph1 = FlowGraph(
+            id = "flow_connect",
+            name = "ConnectTest",
+            version = "1.0.0",
+            rootNodes = listOf(node1, node2),
+            connections = emptyList()
+        )
+        val saveService = ModuleSaveService()
+
+        // First save
+        val result1 = saveService.saveModule(flowGraph1, tempDir)
+        assertTrue(result1.success)
+
+        // Add connection
+        val connection = Connection(
+            id = "conn_1",
+            sourceNodeId = "node1",
+            sourcePortId = "node1_output",
+            targetNodeId = "node2",
+            targetPortId = "node2_input"
+        )
+        val flowGraph2 = flowGraph1.copy(connections = listOf(connection))
+
+        // Re-save
+        val result2 = saveService.saveModule(flowGraph2, tempDir)
+
+        // Then
+        assertTrue(result2.success)
+        val flowKtFile = File(result2.moduleDir, "ConnectTest.flow.kt")
+        val content = flowKtFile.readText()
+        assertTrue(content.contains("connect"),
+            "flow.kt should contain the new connection")
+    }
+
+    @Test
+    fun `saveModule does not generate runtime files`() {
+        // Given
+        val flowGraph = createTestFlowGraph("SaveOnly")
+        val saveService = ModuleSaveService()
+
+        // When
+        val result = saveService.saveModule(flowGraph, tempDir)
+
+        // Then
+        assertTrue(result.success)
+        val generatedDir = File(result.moduleDir, "src/commonMain/kotlin/io/codenode/saveonly/generated")
+        // Generated directory exists (created by directory structure) but should be empty
+        val generatedFiles = generatedDir.listFiles()?.filter { it.isFile } ?: emptyList()
+        assertTrue(generatedFiles.isEmpty(),
+            "saveModule should not generate runtime files")
+    }
+
+    @Test
+    fun `saveModule does not generate ProcessingLogic stubs`() {
+        // Given
+        val flowGraph = createTestFlowGraph("SaveOnly")
+        val saveService = ModuleSaveService()
+
+        // When
+        val result = saveService.saveModule(flowGraph, tempDir)
+
+        // Then
+        assertTrue(result.success)
+        val processingLogicDir = File(result.moduleDir, "src/commonMain/kotlin/io/codenode/saveonly/processingLogic")
+        val stubFiles = processingLogicDir.listFiles()?.filter { it.isFile } ?: emptyList()
+        assertTrue(stubFiles.isEmpty(),
+            "saveModule should not generate ProcessingLogic stubs")
+    }
+
+    // ========== T036/T037: ProcessingLogic Stub Generation (via compileModule) ==========
+
+    @Test
+    fun `T036 - compileModule generates ProcessingLogic stub for CodeNode`() {
+        // Given
+        val flowGraph = createTestFlowGraph("TestModule")
+        val saveService = ModuleSaveService()
+
+        // When
+        val result = saveService.compileModule(flowGraph, tempDir)
+
+        // Then
+        assertTrue(result.success)
+        val packageDir = File(result.moduleDir, "src/commonMain/kotlin/io/codenode/testmodule/processingLogic")
         val stubFile = File(packageDir, "ProcessorProcessLogic.kt")
         assertTrue(stubFile.exists(), "ProcessingLogic stub should be created for CodeNode")
     }
@@ -377,11 +524,11 @@ class ModuleSaveServiceTest {
         val saveService = ModuleSaveService()
 
         // When
-        val result = saveService.saveModule(flowGraph, tempDir)
+        val result = saveService.compileModule(flowGraph, tempDir)
 
         // Then
         assertTrue(result.success)
-        val packageDir = File(result.moduleDir, "src/commonMain/kotlin/io/codenode/testmodule/usecases")
+        val packageDir = File(result.moduleDir, "src/commonMain/kotlin/io/codenode/testmodule/processingLogic")
         val stubFile = File(packageDir, "ProcessorProcessLogic.kt")
         val content = stubFile.readText()
         assertTrue(content.contains("Tick"), "Stub should contain tick type alias reference")
@@ -389,7 +536,7 @@ class ModuleSaveServiceTest {
     }
 
     @Test
-    fun `T037 - saveModule generates stub for each CodeNode`() {
+    fun `T037 - compileModule generates stub for each CodeNode`() {
         // Given
         val node1 = CodeNode(
             id = "node1",
@@ -432,11 +579,11 @@ class ModuleSaveServiceTest {
         val saveService = ModuleSaveService()
 
         // When
-        val result = saveService.saveModule(flowGraph, tempDir)
+        val result = saveService.compileModule(flowGraph, tempDir)
 
         // Then
         assertTrue(result.success)
-        val packageDir = File(result.moduleDir, "src/commonMain/kotlin/io/codenode/multinodetest/usecases")
+        val packageDir = File(result.moduleDir, "src/commonMain/kotlin/io/codenode/multinodetest/processingLogic")
         val stub1 = File(packageDir, "FirstNodeProcessLogic.kt")
         val stub2 = File(packageDir, "SecondNodeProcessLogic.kt")
         assertTrue(stub1.exists(), "Stub for FirstNode should be created")
@@ -444,23 +591,23 @@ class ModuleSaveServiceTest {
     }
 
     @Test
-    fun `T037 - saveModule does not overwrite existing stub files`() {
+    fun `T037 - compileModule does not overwrite existing stub files`() {
         // Given
         val flowGraph = createTestFlowGraph("TestModule")
         val saveService = ModuleSaveService()
 
-        // First save
-        val result1 = saveService.saveModule(flowGraph, tempDir)
+        // First compile
+        val result1 = saveService.compileModule(flowGraph, tempDir)
         assertTrue(result1.success)
 
         // Modify the stub file
-        val packageDir = File(result1.moduleDir, "src/commonMain/kotlin/io/codenode/testmodule/usecases")
+        val packageDir = File(result1.moduleDir, "src/commonMain/kotlin/io/codenode/testmodule/processingLogic")
         val stubFile = File(packageDir, "ProcessorProcessLogic.kt")
         val userImplementation = "// USER IMPLEMENTATION - DO NOT OVERWRITE\n" + stubFile.readText()
         stubFile.writeText(userImplementation)
 
-        // Second save
-        val result2 = saveService.saveModule(flowGraph, tempDir)
+        // Second compile
+        val result2 = saveService.compileModule(flowGraph, tempDir)
 
         // Then
         assertTrue(result2.success)
@@ -469,70 +616,59 @@ class ModuleSaveServiceTest {
             "Existing stub file should not be overwritten")
     }
 
-    // ========== T045: Preserve Existing ProcessingLogic Files on Re-save ==========
+    // ========== T045: Preserve Existing ProcessingLogic Files on Re-compile ==========
 
     @Test
-    fun `T045 - re-save preserves user implementation in ProcessingLogic files`() {
+    fun `T045 - re-compile preserves user implementation in ProcessingLogic files`() {
         // Given
         val flowGraph = createTestFlowGraph("IncrementalTest")
         val saveService = ModuleSaveService()
 
-        // First save - creates stub
-        val result1 = saveService.saveModule(flowGraph, tempDir)
+        // First compile - creates stub
+        val result1 = saveService.compileModule(flowGraph, tempDir)
         assertTrue(result1.success)
 
         // User implements the ProcessingLogic
-        val packageDir = File(result1.moduleDir, "src/commonMain/kotlin/io/codenode/incrementaltest/usecases")
+        val packageDir = File(result1.moduleDir, "src/commonMain/kotlin/io/codenode/incrementaltest/processingLogic")
         val stubFile = File(packageDir, "ProcessorProcessLogic.kt")
         val userImplementation = """
-            package io.codenode.generated.incrementaltest
+            package io.codenode.incrementaltest.processingLogic
 
-            import io.codenode.fbpdsl.model.ProcessingLogic
-            import io.codenode.fbpdsl.model.InformationPacket
+            import io.codenode.fbpdsl.runtime.TransformerTickBlock
 
-            class ProcessorComponent : ProcessingLogic {
+            class ProcessorComponent {
                 // USER IMPLEMENTED CODE - MUST BE PRESERVED
                 private val customField = "user data"
-
-                override suspend operator fun invoke(
-                    inputs: Map<String, InformationPacket<*>>
-                ): Map<String, InformationPacket<*>> {
-                    // Custom implementation by user
-                    val processed = inputs["input"]?.payload.toString().uppercase()
-                    return mapOf("output" to InformationPacket(processed))
-                }
             }
         """.trimIndent()
         stubFile.writeText(userImplementation)
 
-        // Re-save the same FlowGraph
-        val result2 = saveService.saveModule(flowGraph, tempDir)
+        // Re-compile the same FlowGraph
+        val result2 = saveService.compileModule(flowGraph, tempDir)
 
         // Then - user implementation should be preserved
         assertTrue(result2.success)
         val content = stubFile.readText()
         assertTrue(content.contains("USER IMPLEMENTED CODE - MUST BE PRESERVED"),
-            "User implementation should be preserved on re-save")
+            "User implementation should be preserved on re-compile")
         assertTrue(content.contains("customField"),
             "User's custom fields should be preserved")
-        assertTrue(content.contains("uppercase()"),
-            "User's custom logic should be preserved")
     }
 
     @Test
-    fun `T045 - re-save preserves multiple ProcessingLogic files`() {
+    fun `T045 - re-compile preserves multiple ProcessingLogic files`() {
         // Given
         val node1 = createTestCodeNode("node1", "Generator", CodeNodeType.GENERATOR)
         val node2 = createTestCodeNode("node2", "Processor", CodeNodeType.TRANSFORMER)
         val flowGraph = createTestFlowGraph("MultiNode", listOf(node1, node2))
         val saveService = ModuleSaveService()
 
-        // First save
-        val result1 = saveService.saveModule(flowGraph, tempDir)
+        // First compile
+        val result1 = saveService.compileModule(flowGraph, tempDir)
         assertTrue(result1.success)
 
         // User implements both files
-        val packageDir = File(result1.moduleDir, "src/commonMain/kotlin/io/codenode/multinode/usecases")
+        val packageDir = File(result1.moduleDir, "src/commonMain/kotlin/io/codenode/multinode/processingLogic")
         val file1 = File(packageDir, "GeneratorProcessLogic.kt")
         val file2 = File(packageDir, "ProcessorProcessLogic.kt")
 
@@ -541,8 +677,8 @@ class ModuleSaveServiceTest {
         file1.writeText(impl1)
         file2.writeText(impl2)
 
-        // Re-save
-        val result2 = saveService.saveModule(flowGraph, tempDir)
+        // Re-compile
+        val result2 = saveService.compileModule(flowGraph, tempDir)
 
         // Then
         assertTrue(result2.success)
@@ -555,18 +691,18 @@ class ModuleSaveServiceTest {
     // ========== T046: Generate Stubs Only for NEW Nodes ==========
 
     @Test
-    fun `T046 - re-save generates stub only for new node`() {
+    fun `T046 - re-compile generates stub only for new node`() {
         // Given - initial flow with one node
         val node1 = createTestCodeNode("node1", "ExistingNode", CodeNodeType.TRANSFORMER)
         val flowGraph1 = createTestFlowGraph("ExpandingFlow", listOf(node1))
         val saveService = ModuleSaveService()
 
-        // First save
-        val result1 = saveService.saveModule(flowGraph1, tempDir)
+        // First compile
+        val result1 = saveService.compileModule(flowGraph1, tempDir)
         assertTrue(result1.success)
 
         // User implements the first node
-        val packageDir = File(result1.moduleDir, "src/commonMain/kotlin/io/codenode/expandingflow/usecases")
+        val packageDir = File(result1.moduleDir, "src/commonMain/kotlin/io/codenode/expandingflow/processingLogic")
         val existingStub = File(packageDir, "ExistingNodeProcessLogic.kt")
         val userImpl = "// USER IMPLEMENTED\n" + existingStub.readText()
         existingStub.writeText(userImpl)
@@ -575,8 +711,8 @@ class ModuleSaveServiceTest {
         val node2 = createTestCodeNode("node2", "NewNode", CodeNodeType.SINK)
         val flowGraph2 = createTestFlowGraph("ExpandingFlow", listOf(node1, node2))
 
-        // Re-save with new node
-        val result2 = saveService.saveModule(flowGraph2, tempDir)
+        // Re-compile with new node
+        val result2 = saveService.compileModule(flowGraph2, tempDir)
 
         // Then
         assertTrue(result2.success)
@@ -593,24 +729,24 @@ class ModuleSaveServiceTest {
     }
 
     @Test
-    fun `T046 - filesCreated only includes newly created files on re-save`() {
+    fun `T046 - filesCreated only includes newly created files on re-compile`() {
         // Given
         val node1 = createTestCodeNode("node1", "FirstNode", CodeNodeType.GENERATOR)
         val flowGraph1 = createTestFlowGraph("TrackFiles", listOf(node1))
         val saveService = ModuleSaveService()
 
-        // First save
-        val result1 = saveService.saveModule(flowGraph1, tempDir)
+        // First compile
+        val result1 = saveService.compileModule(flowGraph1, tempDir)
         assertTrue(result1.success)
         assertTrue(result1.filesCreated.any { it.contains("FirstNodeProcessLogic.kt") },
-            "First save should report FirstNodeProcessLogic as created")
+            "First compile should report FirstNodeProcessLogic as created")
 
         // Add second node
         val node2 = createTestCodeNode("node2", "SecondNode", CodeNodeType.SINK)
         val flowGraph2 = createTestFlowGraph("TrackFiles", listOf(node1, node2))
 
-        // Re-save
-        val result2 = saveService.saveModule(flowGraph2, tempDir)
+        // Re-compile
+        val result2 = saveService.compileModule(flowGraph2, tempDir)
 
         // Then - only new file should be in filesCreated
         assertTrue(result2.success)
@@ -623,19 +759,19 @@ class ModuleSaveServiceTest {
     // ========== T047: Warning When Node Removed (Orphaned ProcessingLogic) ==========
 
     @Test
-    fun `T047 - re-save warns about orphaned ProcessingLogic when node removed`() {
+    fun `T047 - re-compile warns about orphaned ProcessingLogic when node removed`() {
         // Given - initial flow with two nodes
         val node1 = createTestCodeNode("node1", "KeptNode", CodeNodeType.GENERATOR)
         val node2 = createTestCodeNode("node2", "RemovedNode", CodeNodeType.SINK)
         val flowGraph1 = createTestFlowGraph("ShrinkingFlow", listOf(node1, node2))
         val saveService = ModuleSaveService()
 
-        // First save
-        val result1 = saveService.saveModule(flowGraph1, tempDir)
+        // First compile
+        val result1 = saveService.compileModule(flowGraph1, tempDir)
         assertTrue(result1.success)
 
         // User implements both
-        val packageDir = File(result1.moduleDir, "src/commonMain/kotlin/io/codenode/shrinkingflow/usecases")
+        val packageDir = File(result1.moduleDir, "src/commonMain/kotlin/io/codenode/shrinkingflow/processingLogic")
         val keptFile = File(packageDir, "KeptNodeProcessLogic.kt")
         val removedFile = File(packageDir, "RemovedNodeProcessLogic.kt")
         keptFile.writeText("// User impl kept\n" + keptFile.readText())
@@ -644,11 +780,11 @@ class ModuleSaveServiceTest {
         // Remove node2 from flow
         val flowGraph2 = createTestFlowGraph("ShrinkingFlow", listOf(node1))
 
-        // Re-save without node2
-        val result2 = saveService.saveModule(flowGraph2, tempDir)
+        // Re-compile without node2
+        val result2 = saveService.compileModule(flowGraph2, tempDir)
 
         // Then
-        assertTrue(result2.success, "Save should still succeed")
+        assertTrue(result2.success, "Compile should still succeed")
         assertTrue(result2.warnings.isNotEmpty(), "Should have warnings about orphaned file")
         assertTrue(result2.warnings.any { it.contains("RemovedNodeProcessLogic") },
             "Warning should mention the orphaned component")
@@ -662,20 +798,20 @@ class ModuleSaveServiceTest {
         val flowGraph1 = createTestFlowGraph("SafeDelete", listOf(node1, node2))
         val saveService = ModuleSaveService()
 
-        // First save
-        val result1 = saveService.saveModule(flowGraph1, tempDir)
+        // First compile
+        val result1 = saveService.compileModule(flowGraph1, tempDir)
         assertTrue(result1.success)
 
         // Implement the file that will become orphaned
-        val packageDir = File(result1.moduleDir, "src/commonMain/kotlin/io/codenode/safedelete/usecases")
+        val packageDir = File(result1.moduleDir, "src/commonMain/kotlin/io/codenode/safedelete/processingLogic")
         val orphanedFile = File(packageDir, "ToRemoveProcessLogic.kt")
         orphanedFile.writeText("// IMPORTANT USER CODE - DO NOT DELETE\n" + orphanedFile.readText())
 
         // Remove node from flow
         val flowGraph2 = createTestFlowGraph("SafeDelete", listOf(node1))
 
-        // Re-save
-        val result2 = saveService.saveModule(flowGraph2, tempDir)
+        // Re-compile
+        val result2 = saveService.compileModule(flowGraph2, tempDir)
 
         // Then - orphaned file should NOT be deleted
         assertTrue(result2.success)
@@ -684,112 +820,10 @@ class ModuleSaveServiceTest {
             "Orphaned file content should be preserved")
     }
 
-    // ========== T048: Update .flow.kt While Preserving Structure ==========
+    // ========== Runtime File Generation (via compileModule) ==========
 
     @Test
-    fun `T048 - re-save updates flow kt file with new node`() {
-        // Given
-        val node1 = createTestCodeNode("node1", "Original", CodeNodeType.GENERATOR)
-        val flowGraph1 = createTestFlowGraph("UpdateFlow", listOf(node1))
-        val saveService = ModuleSaveService()
-
-        // First save
-        val result1 = saveService.saveModule(flowGraph1, tempDir)
-        assertTrue(result1.success)
-
-        val packageDir = File(result1.moduleDir, "src/commonMain/kotlin/io/codenode/updateflow/generated")
-        val flowKtFile = File(packageDir, "UpdateFlow.flow.kt")
-        val originalContent = flowKtFile.readText()
-        assertTrue(originalContent.contains("Original"),
-            "Original flow.kt should contain Original node")
-
-        // Add new node
-        val node2 = createTestCodeNode("node2", "Added", CodeNodeType.SINK)
-        val flowGraph2 = createTestFlowGraph("UpdateFlow", listOf(node1, node2))
-
-        // Re-save
-        val result2 = saveService.saveModule(flowGraph2, tempDir)
-
-        // Then
-        assertTrue(result2.success)
-        val updatedContent = flowKtFile.readText()
-        assertTrue(updatedContent.contains("Original"),
-            "Updated flow.kt should still contain Original node")
-        assertTrue(updatedContent.contains("Added"),
-            "Updated flow.kt should contain new Added node")
-    }
-
-    @Test
-    fun `T048 - re-save updates flow kt when node position changes`() {
-        // Given
-        val node1 = createTestCodeNode("node1", "Movable")
-        val flowGraph1 = createTestFlowGraph("PositionTest", listOf(node1))
-        val saveService = ModuleSaveService()
-
-        // First save
-        val result1 = saveService.saveModule(flowGraph1, tempDir)
-        assertTrue(result1.success)
-
-        // Move the node
-        val movedNode = node1.copy(position = Node.Position(500.0, 600.0))
-        val flowGraph2 = createTestFlowGraph("PositionTest", listOf(movedNode))
-
-        // Re-save
-        val result2 = saveService.saveModule(flowGraph2, tempDir)
-
-        // Then
-        assertTrue(result2.success)
-        val packageDir = File(result2.moduleDir, "src/commonMain/kotlin/io/codenode/positiontest/generated")
-        val flowKtFile = File(packageDir, "PositionTest.flow.kt")
-        val content = flowKtFile.readText()
-        assertTrue(content.contains("500.0") && content.contains("600.0"),
-            "flow.kt should reflect new node position")
-    }
-
-    @Test
-    fun `T048 - re-save updates flow kt when connection added`() {
-        // Given - two nodes, no connection initially
-        val node1 = createTestCodeNode("node1", "Source", CodeNodeType.GENERATOR)
-        val node2 = createTestCodeNode("node2", "Target", CodeNodeType.SINK)
-        val flowGraph1 = FlowGraph(
-            id = "flow_connect",
-            name = "ConnectTest",
-            version = "1.0.0",
-            rootNodes = listOf(node1, node2),
-            connections = emptyList()
-        )
-        val saveService = ModuleSaveService()
-
-        // First save
-        val result1 = saveService.saveModule(flowGraph1, tempDir)
-        assertTrue(result1.success)
-
-        // Add connection
-        val connection = Connection(
-            id = "conn_1",
-            sourceNodeId = "node1",
-            sourcePortId = "node1_output",
-            targetNodeId = "node2",
-            targetPortId = "node2_input"
-        )
-        val flowGraph2 = flowGraph1.copy(connections = listOf(connection))
-
-        // Re-save
-        val result2 = saveService.saveModule(flowGraph2, tempDir)
-
-        // Then
-        assertTrue(result2.success)
-        val packageDir = File(result2.moduleDir, "src/commonMain/kotlin/io/codenode/connecttest/generated")
-        val flowKtFile = File(packageDir, "ConnectTest.flow.kt")
-        val content = flowKtFile.readText()
-        assertTrue(content.contains("connect"),
-            "flow.kt should contain the new connection")
-    }
-
-    // ========== Runtime File Generation ==========
-
-    @Test
-    fun `saveModule creates all 5 runtime files in generated directory`() {
+    fun `compileModule creates all 5 runtime files in generated directory`() {
         // Given
         val node1 = CodeNode(
             id = "gen1",
@@ -823,7 +857,7 @@ class ModuleSaveServiceTest {
         val saveService = ModuleSaveService()
 
         // When
-        val result = saveService.saveModule(flowGraph, tempDir)
+        val result = saveService.compileModule(flowGraph, tempDir)
 
         // Then
         assertTrue(result.success)
@@ -844,7 +878,7 @@ class ModuleSaveServiceTest {
     }
 
     @Test
-    fun `re-save overwrites existing runtime files`() {
+    fun `re-compile overwrites existing runtime files`() {
         // Given
         val node1 = CodeNode(
             id = "gen1",
@@ -864,21 +898,21 @@ class ModuleSaveServiceTest {
         )
         val saveService = ModuleSaveService()
 
-        // First save
-        val result1 = saveService.saveModule(flowGraph1, tempDir)
+        // First compile
+        val result1 = saveService.compileModule(flowGraph1, tempDir)
         assertTrue(result1.success)
 
         val generatedDir = File(result1.moduleDir, "src/commonMain/kotlin/io/codenode/overwritetest/generated")
         val flowFile = File(generatedDir, "OverwriteTestFlow.kt")
         val originalContent = flowFile.readText()
-        assertTrue(originalContent.contains("Source"), "First save should reference Source node")
+        assertTrue(originalContent.contains("Source"), "First compile should reference Source node")
 
         // Change the flow (rename node)
         val node2 = node1.copy(name = "UpdatedSource")
         val flowGraph2 = flowGraph1.copy(rootNodes = listOf(node2))
 
-        // Re-save
-        val result2 = saveService.saveModule(flowGraph2, tempDir)
+        // Re-compile
+        val result2 = saveService.compileModule(flowGraph2, tempDir)
 
         // Then - runtime files should be overwritten with new content
         assertTrue(result2.success)
@@ -909,7 +943,7 @@ class ModuleSaveServiceTest {
         val saveService = ModuleSaveService()
 
         // When
-        val result = saveService.saveModule(flowGraph, tempDir)
+        val result = saveService.compileModule(flowGraph, tempDir)
 
         // Then
         assertTrue(result.success)

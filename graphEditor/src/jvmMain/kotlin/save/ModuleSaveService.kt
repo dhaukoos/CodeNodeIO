@@ -38,24 +38,18 @@ data class ModuleSaveResult(
 /**
  * Service for saving FlowGraphs as KMP module structures.
  *
- * When a FlowGraph is saved, this service creates:
- * - Module directory with build.gradle.kts and settings.gradle.kts
- * - Source directory structure (src/commonMain/kotlin/{package})
- * - ProcessingLogic stub files for each CodeNode (Phase 3)
- * - The .flow.kt file defining the FlowGraph (Phase 2)
- *
- * T006: Create ModuleSaveService class with saveModule method
- * T007: Implement module directory creation with proper structure
- * T008: Implement build.gradle.kts generation
- * T009: Implement settings.gradle.kts generation
- * T010: Integrate into graphEditor Save action
+ * Two operations:
+ * - **Save**: Creates module directory structure (gradle files) + writes the .flow.kt
+ *   DSL file at the module root (alongside build.gradle.kts).
+ * - **Compile**: Generates the 5 runtime files under generated/ and ProcessingLogic
+ *   stubs under processingLogic/.
  */
 class ModuleSaveService {
 
     companion object {
         const val DEFAULT_PACKAGE_PREFIX = "io.codenode"
         const val GENERATED_SUBPACKAGE = "generated"
-        const val USECASES_SUBPACKAGE = "usecases"
+        const val PROCESSING_LOGIC_SUBPACKAGE = "processingLogic"
     }
 
     private val moduleGenerator = ModuleGenerator()
@@ -68,11 +62,14 @@ class ModuleSaveService {
     private val runtimeViewModelGenerator = RuntimeViewModelGenerator()
 
     /**
-     * Saves a FlowGraph as a KMP module.
+     * Saves a FlowGraph as a KMP module structure.
+     *
+     * Creates the module directory, gradle files, directory structure, and
+     * writes the .flow.kt DSL file at the module root.
      *
      * @param flowGraph The flow graph to save
      * @param outputDir Parent directory where the module will be created
-     * @param packageName Package name for generated code (default: io.codenode.generated.{modulename})
+     * @param packageName Package name for generated code (default: io.codenode.{modulename})
      * @param moduleName Module name (default: derived from FlowGraph name)
      * @return ModuleSaveResult with success status and module directory
      */
@@ -83,18 +80,13 @@ class ModuleSaveService {
         moduleName: String? = null
     ): ModuleSaveResult {
         return try {
-            // T005: Derive module name from FlowGraph name
             val effectiveModuleName = moduleName ?: deriveModuleName(flowGraph.name)
 
-            // Package structure:
-            // - basePackage: io.codenode.{modulename} (e.g., io.codenode.stopwatch)
-            // - generatedPackage: io.codenode.{modulename}.generated (for generated code)
-            // - usecasesPackage: io.codenode.{modulename}.usecases (for user-implemented components)
             val basePackage = packageName ?: "$DEFAULT_PACKAGE_PREFIX.${effectiveModuleName.lowercase()}"
             val generatedPackage = "$basePackage.$GENERATED_SUBPACKAGE"
-            val usecasesPackage = "$basePackage.$USECASES_SUBPACKAGE"
+            val processingLogicPackage = "$basePackage.$PROCESSING_LOGIC_SUBPACKAGE"
 
-            // T001/T007: Create module directory
+            // Create module directory
             val moduleDir = File(outputDir, effectiveModuleName)
             if (!moduleDir.exists()) {
                 moduleDir.mkdirs()
@@ -102,38 +94,83 @@ class ModuleSaveService {
 
             val filesCreated = mutableListOf<String>()
 
-            // T003/T007: Create source directory structure (both generated and usecases)
+            // Create source directory structure (both generated and processingLogic)
             createDirectoryStructure(moduleDir, generatedPackage, flowGraph)
-            createDirectoryStructure(moduleDir, usecasesPackage, flowGraph)
+            createDirectoryStructure(moduleDir, processingLogicPackage, flowGraph)
 
-            // T008: Generate and write build.gradle.kts
+            // Generate and write build.gradle.kts
             val buildGradleContent = moduleGenerator.generateBuildGradle(flowGraph, effectiveModuleName)
             val buildGradleFile = File(moduleDir, "build.gradle.kts")
             buildGradleFile.writeText(buildGradleContent)
             filesCreated.add("build.gradle.kts")
 
-            // T009: Generate and write settings.gradle.kts
+            // Generate and write settings.gradle.kts
             val settingsGradleContent = generateSettingsGradle(effectiveModuleName)
             val settingsGradleFile = File(moduleDir, "settings.gradle.kts")
             settingsGradleFile.writeText(settingsGradleContent)
             filesCreated.add("settings.gradle.kts")
 
-            // T025: Generate and write .flow.kt file (in generated package)
-            val generatedPath = generatedPackage.replace(".", "/")
-            val flowKtContent = flowKtGenerator.generateFlowKt(flowGraph, generatedPackage, usecasesPackage)
+            // Generate and write .flow.kt file at module root
+            val flowKtContent = flowKtGenerator.generateFlowKt(flowGraph, basePackage, processingLogicPackage)
             val flowKtFileName = "${effectiveModuleName}.flow.kt"
-            val flowKtFile = File(moduleDir, "src/commonMain/kotlin/$generatedPath/$flowKtFileName")
+            val flowKtFile = File(moduleDir, flowKtFileName)
             flowKtFile.writeText(flowKtContent)
-            filesCreated.add("src/commonMain/kotlin/$generatedPath/$flowKtFileName")
+            filesCreated.add(flowKtFileName)
+
+            ModuleSaveResult(
+                success = true,
+                moduleDir = moduleDir,
+                filesCreated = filesCreated
+            )
+        } catch (e: Exception) {
+            ModuleSaveResult(
+                success = false,
+                errorMessage = "Failed to save module: ${e.message}"
+            )
+        }
+    }
+
+    /**
+     * Compiles a FlowGraph by generating runtime files and ProcessingLogic stubs.
+     *
+     * Generates the 5 runtime files under the generated/ package and
+     * ProcessingLogic stubs under the processingLogic/ package.
+     *
+     * @param flowGraph The flow graph to compile
+     * @param outputDir Parent directory where the module exists
+     * @param packageName Package name for generated code (default: io.codenode.{modulename})
+     * @param moduleName Module name (default: derived from FlowGraph name)
+     * @return ModuleSaveResult with success status and files created
+     */
+    fun compileModule(
+        flowGraph: FlowGraph,
+        outputDir: File,
+        packageName: String? = null,
+        moduleName: String? = null
+    ): ModuleSaveResult {
+        return try {
+            val effectiveModuleName = moduleName ?: deriveModuleName(flowGraph.name)
+
+            val basePackage = packageName ?: "$DEFAULT_PACKAGE_PREFIX.${effectiveModuleName.lowercase()}"
+            val generatedPackage = "$basePackage.$GENERATED_SUBPACKAGE"
+            val processingLogicPackage = "$basePackage.$PROCESSING_LOGIC_SUBPACKAGE"
+
+            val moduleDir = File(outputDir, effectiveModuleName)
+
+            // Ensure directory structure exists (in case compile is run without prior save)
+            createDirectoryStructure(moduleDir, generatedPackage, flowGraph)
+            createDirectoryStructure(moduleDir, processingLogicPackage, flowGraph)
+
+            val filesCreated = mutableListOf<String>()
 
             // Generate runtime files (Flow, Controller, Interface, Adapter, ViewModel)
-            generateRuntimeFiles(flowGraph, moduleDir, generatedPackage, usecasesPackage, effectiveModuleName, filesCreated)
+            generateRuntimeFiles(flowGraph, moduleDir, generatedPackage, processingLogicPackage, effectiveModuleName, filesCreated)
 
-            // T036/T037: Generate ProcessingLogic stub files (in usecases package)
-            generateProcessingLogicStubs(flowGraph, moduleDir, usecasesPackage, filesCreated)
+            // Generate ProcessingLogic stub files (in processingLogic package)
+            generateProcessingLogicStubs(flowGraph, moduleDir, processingLogicPackage, filesCreated)
 
-            // T047: Detect orphaned ProcessingLogic files (in usecases package)
-            val warnings = detectOrphanedComponents(flowGraph, moduleDir, usecasesPackage)
+            // Detect orphaned ProcessingLogic files
+            val warnings = detectOrphanedComponents(flowGraph, moduleDir, processingLogicPackage)
 
             ModuleSaveResult(
                 success = true,
@@ -144,7 +181,7 @@ class ModuleSaveService {
         } catch (e: Exception) {
             ModuleSaveResult(
                 success = false,
-                errorMessage = "Failed to save module: ${e.message}"
+                errorMessage = "Failed to compile module: ${e.message}"
             )
         }
     }
@@ -159,7 +196,7 @@ class ModuleSaveService {
      * @param flowGraphName The FlowGraph name
      * @return A valid module directory name
      */
-    private fun deriveModuleName(flowGraphName: String): String {
+    internal fun deriveModuleName(flowGraphName: String): String {
         // Split on spaces and capitalize each word (PascalCase)
         return flowGraphName
             .split(" ")
@@ -179,7 +216,7 @@ class ModuleSaveService {
      * - Platform-specific directories based on FlowGraph targets
      *
      * @param moduleDir The module root directory
-     * @param packageName The package name (e.g., io.codenode.generated.stopwatch)
+     * @param packageName The package name (e.g., io.codenode.stopwatch.generated)
      * @param flowGraph The flow graph (for determining target platforms)
      */
     private fun createDirectoryStructure(
@@ -222,13 +259,13 @@ class ModuleSaveService {
      * Generates the 5 runtime files (Flow, Controller, ControllerInterface,
      * ControllerAdapter, ViewModel) in the generated package directory.
      *
-     * These files are always overwritten on save since they are fully generated.
+     * These files are always overwritten since they are fully generated.
      */
     private fun generateRuntimeFiles(
         flowGraph: FlowGraph,
         moduleDir: File,
         generatedPackage: String,
-        usecasesPackage: String,
+        processingLogicPackage: String,
         effectiveModuleName: String,
         filesCreated: MutableList<String>
     ) {
@@ -236,8 +273,8 @@ class ModuleSaveService {
         val generatedDir = File(moduleDir, "src/commonMain/kotlin/$generatedPath")
 
         val runtimeFiles = listOf(
-            "${effectiveModuleName}Flow.kt" to runtimeFlowGenerator.generate(flowGraph, generatedPackage, usecasesPackage),
-            "${effectiveModuleName}Controller.kt" to runtimeControllerGenerator.generate(flowGraph, generatedPackage, usecasesPackage),
+            "${effectiveModuleName}Flow.kt" to runtimeFlowGenerator.generate(flowGraph, generatedPackage, processingLogicPackage),
+            "${effectiveModuleName}Controller.kt" to runtimeControllerGenerator.generate(flowGraph, generatedPackage, processingLogicPackage),
             "${effectiveModuleName}ControllerInterface.kt" to runtimeControllerInterfaceGenerator.generate(flowGraph, generatedPackage),
             "${effectiveModuleName}ControllerAdapter.kt" to runtimeControllerAdapterGenerator.generate(flowGraph, generatedPackage),
             "${effectiveModuleName}ViewModel.kt" to runtimeViewModelGenerator.generate(flowGraph, generatedPackage)
@@ -250,7 +287,7 @@ class ModuleSaveService {
     }
 
     /**
-     * T036/T037: Generates ProcessingLogic stub files for each CodeNode in the FlowGraph.
+     * Generates ProcessingLogic stub files for each CodeNode in the FlowGraph.
      *
      * Creates one stub file per CodeNode, only if the file doesn't already exist
      * (to preserve user implementations).
@@ -286,9 +323,9 @@ class ModuleSaveService {
     }
 
     /**
-     * T047: Detects orphaned ProcessingLogic files (components for nodes that no longer exist).
+     * Detects orphaned ProcessingLogic files (components for nodes that no longer exist).
      *
-     * Scans the source directory for *Component.kt files and compares against
+     * Scans the source directory for *ProcessLogic.kt files and compares against
      * the current FlowGraph's CodeNodes. Files that don't correspond to any
      * current node are considered orphaned.
      *
@@ -319,7 +356,7 @@ class ModuleSaveService {
             "${moduleName}Factory.kt"
         )
 
-        // Find all *Component.kt files in source directory
+        // Find all *ProcessLogic.kt files in source directory
         val existingComponentFiles = sourceDir.listFiles()
             ?.filter { it.isFile && it.name.endsWith("ProcessLogic.kt") }
             ?.map { it.name }

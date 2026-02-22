@@ -81,8 +81,8 @@ class RuntimeFlowGeneratorTest {
         val flowGraph = createStopWatchLikeFlow()
         val result = generator.generate(flowGraph, generatedPackage, usecasesPackage)
 
-        assertTrue(result.contains("import io.codenode.testapp.usecases.logicmethods.timerEmitterTick"))
-        assertTrue(result.contains("import io.codenode.testapp.usecases.logicmethods.displayReceiverTick"))
+        assertTrue(result.contains("import io.codenode.testapp.usecases.timerEmitterTick"))
+        assertTrue(result.contains("import io.codenode.testapp.usecases.displayReceiverTick"))
     }
 
     @Test

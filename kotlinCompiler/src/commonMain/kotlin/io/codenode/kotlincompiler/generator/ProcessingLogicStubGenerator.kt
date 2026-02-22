@@ -13,12 +13,12 @@ import io.codenode.fbpdsl.model.CodeNode
  *
  * Generates a Kotlin source file with a top-level val property containing
  * a typed tick function stub for each CodeNode. The generated stubs include:
- * - Package declaration in .logicmethods sub-package
+ * - Package declaration in the processingLogic package
  * - Import for the correct tick type alias
  * - KDoc with node type and port descriptions
  * - Val with typed tick lambda and TODO placeholder
  *
- * Generated stub files are placed in a logicmethods/ folder, separate from
+ * Generated stub files are placed in a processingLogic/ package, separate from
  * generated/ files, because they are intended to be edited by the developer.
  */
 class ProcessingLogicStubGenerator {
@@ -138,8 +138,8 @@ class ProcessingLogicStubGenerator {
         val outputCount = codeNode.outputPorts.size
 
         return buildString {
-            // Package declaration with .logicmethods suffix
-            appendLine("package $packageName.logicmethods")
+            // Package declaration
+            appendLine("package $packageName")
             appendLine()
 
             // Imports

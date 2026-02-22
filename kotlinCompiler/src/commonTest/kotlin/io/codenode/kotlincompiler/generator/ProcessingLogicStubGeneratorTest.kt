@@ -137,7 +137,7 @@ class ProcessingLogicStubGeneratorTest {
         assertEquals("GeneratorTickBlock<Int>", typeAlias)
 
         val result = generator.generateStub(node, "io.codenode.generated")
-        assertTrue(result.contains("package io.codenode.generated.logicmethods"))
+        assertTrue(result.contains("package io.codenode.generated"))
         assertTrue(result.contains("import io.codenode.fbpdsl.runtime.GeneratorTickBlock"))
         assertTrue(result.contains("val dataGeneratorTick: GeneratorTickBlock<Int>"))
         assertTrue(result.contains("Generator (0 inputs, 1 outputs)"))
