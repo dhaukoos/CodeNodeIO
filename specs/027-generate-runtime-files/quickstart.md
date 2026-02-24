@@ -8,9 +8,9 @@
 ### Scenario 1: Compile StopWatch2 FlowGraph
 
 1. Open graphEditor, load or create "StopWatch2" FlowGraph with:
-   - TimerEmitter node (GENERIC, 0 inputs, 2 outputs: "elapsedSeconds" Int, "elapsedMinuts" Int)
+   - TimerEmitter node (GENERIC, 0 inputs, 2 outputs: "elapsedSeconds" Int, "elapsedMinutes" Int)
    - DisplayReceiver node (GENERIC, 2 inputs: "seconds" Int, "minutes" Int, 0 outputs)
-   - 2 connections: elapsedSeconds → seconds, elapsedMinuts → minutes
+   - 2 connections: elapsedSeconds → seconds, elapsedMinutes → minutes
 
 2. Click Compile/Save action
 

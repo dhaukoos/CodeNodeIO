@@ -1,17 +1,17 @@
-package io.codenode.stopwatch4
+package io.codenode.stopwatch3
 
 import io.codenode.fbpdsl.dsl.*
 import io.codenode.fbpdsl.model.*
-import io.codenode.stopwatch4.processingLogic.*
+import io.codenode.stopwatch3.processingLogic.*
 
-val stopWatch4FlowGraph = flowGraph("StopWatch4", version = "1.0.0") {
+val stopWatch3FlowGraph = flowGraph("StopWatch3", version = "1.0.0") {
     targetPlatform(FlowGraph.TargetPlatform.KMP_ANDROID)
     targetPlatform(FlowGraph.TargetPlatform.KMP_IOS)
 
     val timerEmitter = codeNode("TimerEmitter", nodeType = GENERIC) {
         position(296.0, 190.0)
         output("elapsedSeconds", Int::class)
-        output("elapsedMinuts", Int::class)
+        output("elapsedMinutes", Int::class)
     }
 
     val displayReceiver = codeNode("DisplayReceiver", nodeType = GENERIC) {
@@ -21,5 +21,5 @@ val stopWatch4FlowGraph = flowGraph("StopWatch4", version = "1.0.0") {
     }
 
     timerEmitter.output("elapsedSeconds") connect displayReceiver.input("seconds") withType "ip_int"
-    timerEmitter.output("elapsedMinuts") connect displayReceiver.input("minutes") withType "ip_int"
+    timerEmitter.output("elapsedMinutes") connect displayReceiver.input("minutes") withType "ip_int"
 }

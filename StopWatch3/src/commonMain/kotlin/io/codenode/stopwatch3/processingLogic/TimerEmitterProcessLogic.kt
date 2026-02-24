@@ -1,4 +1,4 @@
-package io.codenode.stopwatch4.processingLogic
+package io.codenode.stopwatch3.processingLogic
 
 import io.codenode.fbpdsl.runtime.Out2TickBlock
 import io.codenode.fbpdsl.runtime.ProcessResult2
@@ -10,7 +10,7 @@ import io.codenode.fbpdsl.runtime.ProcessResult2
  *
  * Outputs:
  *   - elapsedSeconds: Int
- *   - elapsedMinuts: Int
+ *   - elapsedMinutes: Int
  *
  */
 val timerEmitterTick: Out2TickBlock<Int, Int> = {
