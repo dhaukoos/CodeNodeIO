@@ -206,8 +206,10 @@ class RuntimeControllerGeneratorTest {
 
         assertTrue(result.contains("fun reset(): FlowGraph"))
         assertTrue(result.contains("wasRunningBeforePause = false"))
-        assertTrue(result.contains("flow.timerEmitter.reset()"))
-        assertTrue(result.contains("flow.displayReceiver.reset()"))
+        assertFalse(result.contains("flow.timerEmitter.reset()"),
+            "Should not call reset() on runtime instances (NodeRuntime has no reset method)")
+        assertFalse(result.contains("flow.displayReceiver.reset()"),
+            "Should not call reset() on runtime instances (NodeRuntime has no reset method)")
         assertTrue(result.contains("flow.reset()"))
         assertTrue(result.contains("return stop()"))
     }

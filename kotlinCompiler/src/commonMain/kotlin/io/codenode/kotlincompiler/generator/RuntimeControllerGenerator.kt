@@ -213,9 +213,6 @@ class RuntimeControllerGenerator {
     private fun StringBuilder.generateResetMethod(codeNodes: List<CodeNode>) {
         appendLine("    fun reset(): FlowGraph {")
         appendLine("        wasRunningBeforePause = false")
-        codeNodes.forEach { node ->
-            appendLine("        flow.${node.name.camelCase()}.reset()")
-        }
         appendLine("        flow.reset()")
         appendLine("        return stop()")
         appendLine("    }")

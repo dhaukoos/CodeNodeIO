@@ -275,8 +275,8 @@ class FlowKtGeneratorTest {
         val result = generator.generateFlowKt(flowGraph, "io.codenode.generated")
 
         // Then
-        assertTrue(result.contains("GENERATOR") || result.contains("Generator") || result.contains("nodeType"),
-            "Should include node type reference")
+        assertTrue(result.contains("nodeType = \"GENERATOR\""),
+            "Should include quoted node type string")
     }
 
     @Test

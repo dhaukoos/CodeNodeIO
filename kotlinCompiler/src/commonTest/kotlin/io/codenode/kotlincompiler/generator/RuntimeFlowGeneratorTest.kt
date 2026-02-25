@@ -174,9 +174,9 @@ class RuntimeFlowGeneratorTest {
         val result = generator.generate(flowGraph, generatedPackage, usecasesPackage)
 
         assertTrue(result.contains("suspend fun start(scope: CoroutineScope)"))
-        assertTrue(result.contains("timerEmitter.start(scope)"))
+        assertTrue(result.contains("timerEmitter.start(scope) {}"))
         assertTrue(result.contains("wireConnections()"))
-        assertTrue(result.contains("displayReceiver.start(scope)"))
+        assertTrue(result.contains("displayReceiver.start(scope) {}"))
     }
 
     @Test

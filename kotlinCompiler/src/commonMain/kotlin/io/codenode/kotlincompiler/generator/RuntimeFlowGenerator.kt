@@ -237,7 +237,7 @@ class RuntimeFlowGenerator {
         // Start generators first
         val generators = codeNodes.filter { it.inputPorts.isEmpty() && it.outputPorts.isNotEmpty() }
         generators.forEach { node ->
-            appendLine("        ${node.name.camelCase()}.start(scope)")
+            appendLine("        ${node.name.camelCase()}.start(scope) {}")
         }
 
         // Wire connections
@@ -246,7 +246,7 @@ class RuntimeFlowGenerator {
         // Start non-generators
         val nonGenerators = codeNodes.filter { !(it.inputPorts.isEmpty() && it.outputPorts.isNotEmpty()) }
         nonGenerators.forEach { node ->
-            appendLine("        ${node.name.camelCase()}.start(scope)")
+            appendLine("        ${node.name.camelCase()}.start(scope) {}")
         }
 
         appendLine("    }")

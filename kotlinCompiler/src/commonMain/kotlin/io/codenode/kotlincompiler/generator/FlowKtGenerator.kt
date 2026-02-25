@@ -116,7 +116,7 @@ class FlowKtGenerator {
         indent: String
     ) {
         builder.append("${indent}val $varName = codeNode(\"${escapeString(node.name)}\"")
-        builder.append(", nodeType = ${node.codeNodeType.name}")
+        builder.append(", nodeType = \"${node.codeNodeType.name}\"")
         builder.appendLine(") {")
 
         val innerIndent = indent + " ".repeat(INDENT_SIZE)
