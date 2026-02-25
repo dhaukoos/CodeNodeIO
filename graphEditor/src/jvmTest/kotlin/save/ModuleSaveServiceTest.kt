@@ -1295,4 +1295,290 @@ class ModuleSaveServiceTest {
         assertTrue(result.filesOverwritten.isEmpty(), "First save should have 0 overwritten")
         assertTrue(result.filesDeleted.isEmpty(), "First save should have 0 deleted")
     }
+
+    // ========== T008: Re-Save Integration Tests (US2) ==========
+
+    @Test
+    fun `T008 - re-save overwrites flow kt with updated content`() {
+        // First save with 2 nodes
+        val timerEmitter = CodeNode(
+            id = "timer", name = "TimerEmitter", codeNodeType = CodeNodeType.GENERATOR,
+            position = Node.Position(100.0, 200.0),
+            inputPorts = emptyList(),
+            outputPorts = listOf(
+                Port(id = "timer_sec", name = "elapsedSeconds", direction = Port.Direction.OUTPUT, dataType = Int::class, owningNodeId = "timer")
+            )
+        )
+        val displayReceiver = CodeNode(
+            id = "display", name = "DisplayReceiver", codeNodeType = CodeNodeType.SINK,
+            position = Node.Position(400.0, 200.0),
+            inputPorts = listOf(
+                Port(id = "display_sec", name = "seconds", direction = Port.Direction.INPUT, dataType = Int::class, owningNodeId = "display")
+            ),
+            outputPorts = emptyList()
+        )
+        val flowGraph1 = FlowGraph(
+            id = "flow_resave", name = "ReSaveTest", version = "1.0.0",
+            rootNodes = listOf(timerEmitter, displayReceiver),
+            connections = listOf(Connection("c1", "timer", "timer_sec", "display", "display_sec"))
+        )
+        val saveService = ModuleSaveService()
+
+        val result1 = saveService.saveModule(flowGraph1, tempDir)
+        assertTrue(result1.success)
+
+        // Add a Logger node
+        val logger = CodeNode(
+            id = "logger", name = "Logger", codeNodeType = CodeNodeType.SINK,
+            position = Node.Position(400.0, 400.0),
+            inputPorts = listOf(
+                Port(id = "logger_in", name = "message", direction = Port.Direction.INPUT, dataType = String::class, owningNodeId = "logger")
+            ),
+            outputPorts = emptyList()
+        )
+        val flowGraph2 = flowGraph1.copy(rootNodes = listOf(timerEmitter, displayReceiver, logger))
+
+        // Re-save
+        val result2 = saveService.saveModule(flowGraph2, tempDir)
+
+        assertTrue(result2.success)
+        val flowKtFile = File(result2.moduleDir, "ReSaveTest.flow.kt")
+        val content = flowKtFile.readText()
+        assertTrue(content.contains("Logger"), ".flow.kt should contain the new Logger node after re-save")
+        assertTrue(content.contains("TimerEmitter"), ".flow.kt should still contain TimerEmitter")
+    }
+
+    @Test
+    fun `T008 - re-save overwrites all 5 runtime files`() {
+        val timerEmitter = CodeNode(
+            id = "timer", name = "TimerEmitter", codeNodeType = CodeNodeType.GENERATOR,
+            position = Node.Position(100.0, 200.0),
+            inputPorts = emptyList(),
+            outputPorts = listOf(
+                Port(id = "timer_sec", name = "elapsedSeconds", direction = Port.Direction.OUTPUT, dataType = Int::class, owningNodeId = "timer")
+            )
+        )
+        val displayReceiver = CodeNode(
+            id = "display", name = "DisplayReceiver", codeNodeType = CodeNodeType.SINK,
+            position = Node.Position(400.0, 200.0),
+            inputPorts = listOf(
+                Port(id = "display_sec", name = "seconds", direction = Port.Direction.INPUT, dataType = Int::class, owningNodeId = "display")
+            ),
+            outputPorts = emptyList()
+        )
+        val flowGraph1 = FlowGraph(
+            id = "flow_resave", name = "ReSaveTest", version = "1.0.0",
+            rootNodes = listOf(timerEmitter, displayReceiver)
+        )
+        val saveService = ModuleSaveService()
+
+        saveService.saveModule(flowGraph1, tempDir)
+
+        // Re-save same flow
+        val result2 = saveService.saveModule(flowGraph1, tempDir)
+
+        assertTrue(result2.success)
+        val runtimeFiles = listOf(
+            "ReSaveTestFlow.kt", "ReSaveTestController.kt",
+            "ReSaveTestControllerInterface.kt", "ReSaveTestControllerAdapter.kt",
+            "ReSaveTestViewModel.kt"
+        )
+        for (fileName in runtimeFiles) {
+            assertTrue(result2.filesOverwritten.any { it.contains(fileName) },
+                "$fileName should be in filesOverwritten on re-save")
+        }
+    }
+
+    @Test
+    fun `T008 - re-save preserves existing processing logic stubs`() {
+        val timerEmitter = CodeNode(
+            id = "timer", name = "TimerEmitter", codeNodeType = CodeNodeType.GENERATOR,
+            position = Node.Position(100.0, 200.0),
+            inputPorts = emptyList(),
+            outputPorts = listOf(
+                Port(id = "timer_sec", name = "elapsedSeconds", direction = Port.Direction.OUTPUT, dataType = Int::class, owningNodeId = "timer")
+            )
+        )
+        val displayReceiver = CodeNode(
+            id = "display", name = "DisplayReceiver", codeNodeType = CodeNodeType.SINK,
+            position = Node.Position(400.0, 200.0),
+            inputPorts = listOf(
+                Port(id = "display_sec", name = "seconds", direction = Port.Direction.INPUT, dataType = Int::class, owningNodeId = "display")
+            ),
+            outputPorts = emptyList()
+        )
+        val flowGraph = FlowGraph(
+            id = "flow_resave", name = "ReSaveTest", version = "1.0.0",
+            rootNodes = listOf(timerEmitter, displayReceiver)
+        )
+        val saveService = ModuleSaveService()
+
+        val result1 = saveService.saveModule(flowGraph, tempDir)
+        assertTrue(result1.success)
+
+        // Simulate user editing the stubs
+        val procDir = File(result1.moduleDir, "src/commonMain/kotlin/io/codenode/resavetest/processingLogic")
+        val timerStub = File(procDir, "TimerEmitterProcessLogic.kt")
+        val displayStub = File(procDir, "DisplayReceiverProcessLogic.kt")
+        timerStub.writeText("// USER CODE: TimerEmitter\n" + timerStub.readText())
+        displayStub.writeText("// USER CODE: DisplayReceiver\n" + displayStub.readText())
+
+        // Re-save
+        val result2 = saveService.saveModule(flowGraph, tempDir)
+
+        assertTrue(result2.success)
+        assertTrue(timerStub.readText().startsWith("// USER CODE: TimerEmitter"),
+            "TimerEmitter processing logic should be preserved")
+        assertTrue(displayStub.readText().startsWith("// USER CODE: DisplayReceiver"),
+            "DisplayReceiver processing logic should be preserved")
+        assertFalse(result2.filesCreated.any { it.contains("TimerEmitterProcessLogic.kt") },
+            "Existing stub should not be in filesCreated")
+    }
+
+    @Test
+    fun `T008 - re-save preserves existing state properties stubs`() {
+        val timerEmitter = CodeNode(
+            id = "timer", name = "TimerEmitter", codeNodeType = CodeNodeType.GENERATOR,
+            position = Node.Position(100.0, 200.0),
+            inputPorts = emptyList(),
+            outputPorts = listOf(
+                Port(id = "timer_sec", name = "elapsedSeconds", direction = Port.Direction.OUTPUT, dataType = Int::class, owningNodeId = "timer")
+            )
+        )
+        val flowGraph = FlowGraph(
+            id = "flow_resave", name = "ReSaveTest", version = "1.0.0",
+            rootNodes = listOf(timerEmitter)
+        )
+        val saveService = ModuleSaveService()
+
+        val result1 = saveService.saveModule(flowGraph, tempDir)
+        assertTrue(result1.success)
+
+        val stateDir = File(result1.moduleDir, "src/commonMain/kotlin/io/codenode/resavetest/stateProperties")
+        val timerProps = File(stateDir, "TimerEmitterStateProperties.kt")
+        timerProps.writeText("// USER MODIFIED STATE\n" + timerProps.readText())
+
+        // Re-save
+        val result2 = saveService.saveModule(flowGraph, tempDir)
+
+        assertTrue(result2.success)
+        assertTrue(timerProps.readText().startsWith("// USER MODIFIED STATE"),
+            "State properties should be preserved on re-save")
+        assertFalse(result2.filesCreated.any { it.contains("TimerEmitterStateProperties.kt") },
+            "Existing state properties should not be in filesCreated")
+    }
+
+    @Test
+    fun `T008 - re-save creates new stubs for added nodes`() {
+        val timerEmitter = CodeNode(
+            id = "timer", name = "TimerEmitter", codeNodeType = CodeNodeType.GENERATOR,
+            position = Node.Position(100.0, 200.0),
+            inputPorts = emptyList(),
+            outputPorts = listOf(
+                Port(id = "timer_sec", name = "elapsedSeconds", direction = Port.Direction.OUTPUT, dataType = Int::class, owningNodeId = "timer")
+            )
+        )
+        val flowGraph1 = FlowGraph(
+            id = "flow_resave", name = "ReSaveTest", version = "1.0.0",
+            rootNodes = listOf(timerEmitter)
+        )
+        val saveService = ModuleSaveService()
+
+        saveService.saveModule(flowGraph1, tempDir)
+
+        // Add a Logger node
+        val logger = CodeNode(
+            id = "logger", name = "Logger", codeNodeType = CodeNodeType.SINK,
+            position = Node.Position(400.0, 400.0),
+            inputPorts = listOf(
+                Port(id = "logger_in", name = "message", direction = Port.Direction.INPUT, dataType = String::class, owningNodeId = "logger")
+            ),
+            outputPorts = emptyList()
+        )
+        val flowGraph2 = flowGraph1.copy(rootNodes = listOf(timerEmitter, logger))
+
+        // Re-save with new node
+        val result2 = saveService.saveModule(flowGraph2, tempDir)
+
+        assertTrue(result2.success)
+        // New stubs created
+        assertTrue(result2.filesCreated.any { it.contains("LoggerProcessLogic.kt") },
+            "New LoggerProcessLogic stub should be in filesCreated")
+        assertTrue(result2.filesCreated.any { it.contains("LoggerStateProperties.kt") },
+            "New LoggerStateProperties stub should be in filesCreated")
+        // Existing stubs NOT in filesCreated
+        assertFalse(result2.filesCreated.any { it.contains("TimerEmitterProcessLogic.kt") },
+            "Existing TimerEmitter stub should not be in filesCreated")
+    }
+
+    @Test
+    fun `T008 - re-save result matches quickstart Step 2 counts`() {
+        // Matches quickstart.md Step 2: re-save after adding a Logger node
+        val timerEmitter = CodeNode(
+            id = "timer", name = "TimerEmitter", codeNodeType = CodeNodeType.GENERATOR,
+            position = Node.Position(100.0, 200.0),
+            inputPorts = emptyList(),
+            outputPorts = listOf(
+                Port(id = "timer_sec", name = "elapsedSeconds", direction = Port.Direction.OUTPUT, dataType = Int::class, owningNodeId = "timer"),
+                Port(id = "timer_min", name = "elapsedMinutes", direction = Port.Direction.OUTPUT, dataType = Int::class, owningNodeId = "timer")
+            )
+        )
+        val displayReceiver = CodeNode(
+            id = "display", name = "DisplayReceiver", codeNodeType = CodeNodeType.SINK,
+            position = Node.Position(400.0, 200.0),
+            inputPorts = listOf(
+                Port(id = "display_sec", name = "seconds", direction = Port.Direction.INPUT, dataType = Int::class, owningNodeId = "display"),
+                Port(id = "display_min", name = "minutes", direction = Port.Direction.INPUT, dataType = Int::class, owningNodeId = "display")
+            ),
+            outputPorts = emptyList()
+        )
+        val flowGraph1 = FlowGraph(
+            id = "flow_qs2", name = "StopWatch3", version = "1.0.0",
+            rootNodes = listOf(timerEmitter, displayReceiver),
+            connections = listOf(
+                Connection("c1", "timer", "timer_sec", "display", "display_sec"),
+                Connection("c2", "timer", "timer_min", "display", "display_min")
+            )
+        )
+        val saveService = ModuleSaveService()
+
+        // Step 1: First save
+        val result1 = saveService.saveModule(flowGraph1, tempDir)
+        assertTrue(result1.success)
+        assertEquals(12, result1.filesCreated.size, "Step 1: 12 files created")
+
+        // Step 2: Add Logger node, re-save
+        val logger = CodeNode(
+            id = "logger", name = "Logger", codeNodeType = CodeNodeType.SINK,
+            position = Node.Position(400.0, 400.0),
+            inputPorts = listOf(
+                Port(id = "logger_in", name = "message", direction = Port.Direction.INPUT, dataType = String::class, owningNodeId = "logger")
+            ),
+            outputPorts = emptyList()
+        )
+        val flowGraph2 = flowGraph1.copy(rootNodes = listOf(timerEmitter, displayReceiver, logger))
+
+        val result2 = saveService.saveModule(flowGraph2, tempDir)
+
+        assertTrue(result2.success)
+        // Quickstart Step 2: 2 files created, 6 files overwritten, 0 deleted
+        assertEquals(2, result2.filesCreated.size,
+            "Step 2: 2 new files created (LoggerProcessLogic + LoggerStateProperties)")
+        assertEquals(6, result2.filesOverwritten.size,
+            "Step 2: 6 files overwritten (flow.kt + 5 runtime)")
+        assertEquals(0, result2.filesDeleted.size,
+            "Step 2: 0 files deleted")
+
+        // Verify the 2 created files are Logger stubs
+        assertTrue(result2.filesCreated.any { it.contains("LoggerProcessLogic.kt") })
+        assertTrue(result2.filesCreated.any { it.contains("LoggerStateProperties.kt") })
+
+        // Verify the 6 overwritten files are flow.kt + 5 runtime
+        assertTrue(result2.filesOverwritten.any { it.contains("StopWatch3.flow.kt") })
+        assertTrue(result2.filesOverwritten.any { it.contains("StopWatch3Flow.kt") })
+        assertTrue(result2.filesOverwritten.any { it.contains("StopWatch3Controller.kt") })
+        assertTrue(result2.filesOverwritten.any { it.contains("StopWatch3ControllerInterface.kt") })
+        assertTrue(result2.filesOverwritten.any { it.contains("StopWatch3ControllerAdapter.kt") })
+        assertTrue(result2.filesOverwritten.any { it.contains("StopWatch3ViewModel.kt") })
+    }
 }

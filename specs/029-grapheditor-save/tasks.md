@@ -61,8 +61,8 @@
 
 ### Implementation for User Story 2
 
-- [ ] T007 [US2] Extend the Save handler in Main.kt: if `saveLocationRegistry[flowGraph.name]` exists AND the directory still exists on disk, call `saveModule()` directly (no directory chooser). If directory no longer exists, remove from registry and fall through to first-save flow (FR-010) in `graphEditor/src/jvmMain/kotlin/Main.kt`
-- [ ] T008 [US2] Add integration tests for re-save: verify .flow.kt is overwritten with updated content, all 5 runtime files are overwritten, existing processing logic stubs are NOT overwritten, existing state properties stubs are NOT overwritten, new stubs are created for added nodes, `filesOverwritten` includes .flow.kt and runtime files, `filesCreated` includes only new stub files in `graphEditor/src/jvmTest/kotlin/save/ModuleSaveServiceTest.kt`
+- [X] T007 [US2] Extend the Save handler in Main.kt: if `saveLocationRegistry[flowGraph.name]` exists AND the directory still exists on disk, call `saveModule()` directly (no directory chooser). If directory no longer exists, remove from registry and fall through to first-save flow (FR-010) in `graphEditor/src/jvmMain/kotlin/Main.kt`
+- [X] T008 [US2] Add integration tests for re-save: verify .flow.kt is overwritten with updated content, all 5 runtime files are overwritten, existing processing logic stubs are NOT overwritten, existing state properties stubs are NOT overwritten, new stubs are created for added nodes, `filesOverwritten` includes .flow.kt and runtime files, `filesCreated` includes only new stub files in `graphEditor/src/jvmTest/kotlin/save/ModuleSaveServiceTest.kt`
 
 **Checkpoint**: Re-save updates generated files, preserves user stubs, creates new stubs
 
