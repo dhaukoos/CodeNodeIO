@@ -76,7 +76,7 @@
 
 ### Implementation for User Story 3
 
-- [ ] T009 [US3] Add integration tests for orphan deletion: save a FlowGraph with 3 nodes (generator + sink + transformer), remove the transformer, re-save with unified `saveModule()`, verify the transformer's processing logic stub is deleted, verify the transformer's state properties stub is deleted, verify the generator and sink stubs are preserved, verify `filesDeleted` contains the deleted file paths in `graphEditor/src/jvmTest/kotlin/save/ModuleSaveServiceTest.kt`
+- [X] T009 [US3] Add integration tests for orphan deletion: save a FlowGraph with 3 nodes (generator + sink + transformer), remove the transformer, re-save with unified `saveModule()`, verify the transformer's processing logic stub is deleted, verify the transformer's state properties stub is deleted, verify the generator and sink stubs are preserved, verify `filesDeleted` contains the deleted file paths in `graphEditor/src/jvmTest/kotlin/save/ModuleSaveServiceTest.kt`
 
 **Checkpoint**: Orphaned stubs are deleted on save, remaining stubs preserved
 
@@ -90,7 +90,7 @@
 
 ### Implementation for User Story 4
 
-- [ ] T010 [US4] Add integration tests for name change: save as "Alpha" (stored in registry), rename FlowGraph to "Beta", verify registry lookup for "Beta" returns null (triggering directory prompt), save "Beta" to a new location, verify "Alpha" module is untouched, verify "Beta" module is a complete new module in `graphEditor/src/jvmTest/kotlin/save/ModuleSaveServiceTest.kt`
+- [X] T010 [US4] Add integration tests for name change: save as "Alpha" (stored in registry), rename FlowGraph to "Beta", verify registry lookup for "Beta" returns null (triggering directory prompt), save "Beta" to a new location, verify "Alpha" module is untouched, verify "Beta" module is a complete new module in `graphEditor/src/jvmTest/kotlin/save/ModuleSaveServiceTest.kt`
 
 **Checkpoint**: Name changes trigger new save flow, old module preserved
 

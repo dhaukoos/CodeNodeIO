@@ -1581,4 +1581,178 @@ class ModuleSaveServiceTest {
         assertTrue(result2.filesOverwritten.any { it.contains("StopWatch3ControllerAdapter.kt") })
         assertTrue(result2.filesOverwritten.any { it.contains("StopWatch3ViewModel.kt") })
     }
+
+    // ========== T009: Orphan Deletion Integration (Quickstart Step 3) ==========
+
+    @Test
+    fun `T009 - re-save after removing node deletes orphaned stubs and preserves remaining`() {
+        // Matches quickstart.md Step 3: remove Logger node after Step 2
+        val timerEmitter = CodeNode(
+            id = "timer", name = "TimerEmitter", codeNodeType = CodeNodeType.GENERATOR,
+            position = Node.Position(100.0, 200.0),
+            inputPorts = emptyList(),
+            outputPorts = listOf(
+                Port(id = "timer_sec", name = "elapsedSeconds", direction = Port.Direction.OUTPUT, dataType = Int::class, owningNodeId = "timer"),
+                Port(id = "timer_min", name = "elapsedMinutes", direction = Port.Direction.OUTPUT, dataType = Int::class, owningNodeId = "timer")
+            )
+        )
+        val displayReceiver = CodeNode(
+            id = "display", name = "DisplayReceiver", codeNodeType = CodeNodeType.SINK,
+            position = Node.Position(400.0, 200.0),
+            inputPorts = listOf(
+                Port(id = "display_sec", name = "seconds", direction = Port.Direction.INPUT, dataType = Int::class, owningNodeId = "display"),
+                Port(id = "display_min", name = "minutes", direction = Port.Direction.INPUT, dataType = Int::class, owningNodeId = "display")
+            ),
+            outputPorts = emptyList()
+        )
+        val logger = CodeNode(
+            id = "logger", name = "Logger", codeNodeType = CodeNodeType.SINK,
+            position = Node.Position(400.0, 400.0),
+            inputPorts = listOf(
+                Port(id = "logger_in", name = "message", direction = Port.Direction.INPUT, dataType = String::class, owningNodeId = "logger")
+            ),
+            outputPorts = emptyList()
+        )
+        val flowGraph1 = FlowGraph(
+            id = "flow_qs3", name = "StopWatch3", version = "1.0.0",
+            rootNodes = listOf(timerEmitter, displayReceiver, logger),
+            connections = listOf(
+                Connection("c1", "timer", "timer_sec", "display", "display_sec"),
+                Connection("c2", "timer", "timer_min", "display", "display_min")
+            )
+        )
+        val saveService = ModuleSaveService()
+
+        // Step 1: First save with 3 nodes
+        val result1 = saveService.saveModule(flowGraph1, tempDir)
+        assertTrue(result1.success)
+
+        val moduleDir = result1.moduleDir!!
+        val processingLogicDir = File(moduleDir, "src/commonMain/kotlin/io/codenode/stopwatch3/processingLogic")
+        val statePropsDir = File(moduleDir, "src/commonMain/kotlin/io/codenode/stopwatch3/stateProperties")
+
+        // Verify all 3 nodes have stubs
+        assertTrue(File(processingLogicDir, "TimerEmitterProcessLogic.kt").exists())
+        assertTrue(File(processingLogicDir, "DisplayReceiverProcessLogic.kt").exists())
+        assertTrue(File(processingLogicDir, "LoggerProcessLogic.kt").exists())
+        assertTrue(File(statePropsDir, "TimerEmitterStateProperties.kt").exists())
+        assertTrue(File(statePropsDir, "DisplayReceiverStateProperties.kt").exists())
+        assertTrue(File(statePropsDir, "LoggerStateProperties.kt").exists())
+
+        // Step 3: Remove Logger node, re-save
+        val flowGraph3 = flowGraph1.copy(rootNodes = listOf(timerEmitter, displayReceiver))
+
+        val result3 = saveService.saveModule(flowGraph3, tempDir)
+
+        assertTrue(result3.success)
+
+        // Logger stubs deleted
+        assertFalse(File(processingLogicDir, "LoggerProcessLogic.kt").exists(),
+            "Logger processing logic stub should be deleted")
+        assertFalse(File(statePropsDir, "LoggerStateProperties.kt").exists(),
+            "Logger state properties stub should be deleted")
+
+        // TimerEmitter and DisplayReceiver stubs preserved
+        assertTrue(File(processingLogicDir, "TimerEmitterProcessLogic.kt").exists(),
+            "TimerEmitter processing logic stub should be preserved")
+        assertTrue(File(processingLogicDir, "DisplayReceiverProcessLogic.kt").exists(),
+            "DisplayReceiver processing logic stub should be preserved")
+        assertTrue(File(statePropsDir, "TimerEmitterStateProperties.kt").exists(),
+            "TimerEmitter state properties stub should be preserved")
+        assertTrue(File(statePropsDir, "DisplayReceiverStateProperties.kt").exists(),
+            "DisplayReceiver state properties stub should be preserved")
+
+        // filesDeleted contains the deleted file paths
+        assertTrue(result3.filesDeleted.any { it.contains("LoggerProcessLogic.kt") },
+            "filesDeleted should include LoggerProcessLogic.kt")
+        assertTrue(result3.filesDeleted.any { it.contains("LoggerStateProperties.kt") },
+            "filesDeleted should include LoggerStateProperties.kt")
+
+        // Quickstart Step 3 counts: 0 created, 6 overwritten, 2 deleted
+        assertEquals(0, result3.filesCreated.size,
+            "Step 3: 0 new files created")
+        assertEquals(6, result3.filesOverwritten.size,
+            "Step 3: 6 files overwritten (flow.kt + 5 runtime)")
+        assertEquals(2, result3.filesDeleted.size,
+            "Step 3: 2 files deleted (Logger processing logic + state properties)")
+    }
+
+    // ========== T010: Name Change Integration (Quickstart Step 4) ==========
+
+    @Test
+    fun `T010 - save under new name creates new module and preserves original`() {
+        // Matches quickstart.md Step 4: rename and save as new module
+        val timerEmitter = CodeNode(
+            id = "timer", name = "TimerEmitter", codeNodeType = CodeNodeType.GENERATOR,
+            position = Node.Position(100.0, 200.0),
+            inputPorts = emptyList(),
+            outputPorts = listOf(
+                Port(id = "timer_sec", name = "elapsedSeconds", direction = Port.Direction.OUTPUT, dataType = Int::class, owningNodeId = "timer")
+            )
+        )
+        val displayReceiver = CodeNode(
+            id = "display", name = "DisplayReceiver", codeNodeType = CodeNodeType.SINK,
+            position = Node.Position(400.0, 200.0),
+            inputPorts = listOf(
+                Port(id = "display_sec", name = "seconds", direction = Port.Direction.INPUT, dataType = Int::class, owningNodeId = "display")
+            ),
+            outputPorts = emptyList()
+        )
+
+        // Save as "Alpha"
+        val alphaFlow = FlowGraph(
+            id = "flow_alpha", name = "Alpha", version = "1.0.0",
+            rootNodes = listOf(timerEmitter, displayReceiver),
+            connections = listOf(
+                Connection("c1", "timer", "timer_sec", "display", "display_sec")
+            )
+        )
+        val saveService = ModuleSaveService()
+
+        val alphaResult = saveService.saveModule(alphaFlow, tempDir)
+        assertTrue(alphaResult.success)
+        val alphaDir = alphaResult.moduleDir!!
+        assertTrue(alphaDir.exists(), "Alpha module directory should exist")
+
+        // Record Alpha's files for later comparison
+        val alphaFlowKt = File(alphaDir, "Alpha.flow.kt")
+        assertTrue(alphaFlowKt.exists(), "Alpha .flow.kt should exist")
+        val alphaFlowKtContent = alphaFlowKt.readText()
+        val alphaGeneratedDir = File(alphaDir, "src/commonMain/kotlin/io/codenode/alpha/generated")
+        assertTrue(alphaGeneratedDir.exists(), "Alpha generated dir should exist")
+
+        // Rename to "Beta" and save to same output dir
+        val betaFlow = FlowGraph(
+            id = "flow_beta", name = "Beta", version = "1.0.0",
+            rootNodes = listOf(timerEmitter, displayReceiver),
+            connections = listOf(
+                Connection("c1", "timer", "timer_sec", "display", "display_sec")
+            )
+        )
+
+        val betaResult = saveService.saveModule(betaFlow, tempDir)
+        assertTrue(betaResult.success)
+        val betaDir = betaResult.moduleDir!!
+
+        // Beta is a complete new module
+        assertTrue(betaDir.exists(), "Beta module directory should exist")
+        assertNotEquals(alphaDir.absolutePath, betaDir.absolutePath,
+            "Beta module should be in a different directory than Alpha")
+        assertTrue(File(betaDir, "Beta.flow.kt").exists(), "Beta .flow.kt should exist")
+        assertTrue(File(betaDir, "build.gradle.kts").exists(), "Beta build.gradle.kts should exist")
+        assertTrue(File(betaDir, "settings.gradle.kts").exists(), "Beta settings.gradle.kts should exist")
+        assertTrue(File(betaDir, "src/commonMain/kotlin/io/codenode/beta/generated/BetaFlow.kt").exists(),
+            "Beta runtime files should exist")
+        assertTrue(File(betaDir, "src/commonMain/kotlin/io/codenode/beta/processingLogic/TimerEmitterProcessLogic.kt").exists(),
+            "Beta processing logic stubs should exist")
+        assertTrue(File(betaDir, "src/commonMain/kotlin/io/codenode/beta/stateProperties/TimerEmitterStateProperties.kt").exists(),
+            "Beta state properties stubs should exist")
+
+        // Alpha module is untouched
+        assertTrue(alphaDir.exists(), "Alpha module directory should still exist")
+        assertTrue(alphaFlowKt.exists(), "Alpha .flow.kt should still exist")
+        assertEquals(alphaFlowKtContent, alphaFlowKt.readText(),
+            "Alpha .flow.kt content should be unchanged")
+        assertTrue(alphaGeneratedDir.exists(), "Alpha generated dir should still exist")
+    }
 }
