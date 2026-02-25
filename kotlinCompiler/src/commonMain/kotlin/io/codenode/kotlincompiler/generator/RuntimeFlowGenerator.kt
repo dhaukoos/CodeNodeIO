@@ -179,7 +179,8 @@ class RuntimeFlowGenerator {
             appendLine("        name = \"${node.name}\",")
 
             if (isGenerator) {
-                appendLine("        tickIntervalMs = 1000L,")
+                val tickInterval = node.configuration["tickIntervalMs"] ?: "1000L"
+                appendLine("        tickIntervalMs = $tickInterval,")
                 appendLine("        $tickParamName = ${varName}Tick")
             } else if (isSink) {
                 generateSinkConsumeBlock(node, varName, tickParamName, observableProps, flowGraph, statePropertiesPackage)

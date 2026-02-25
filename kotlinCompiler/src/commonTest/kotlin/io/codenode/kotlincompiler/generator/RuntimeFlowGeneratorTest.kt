@@ -124,6 +124,28 @@ class RuntimeFlowGeneratorTest {
     }
 
     @Test
+    fun `generator with tickIntervalMs config uses configured value`() {
+        val timerEmitter = CodeNode(
+            id = "timer",
+            name = "TimerEmitter",
+            codeNodeType = CodeNodeType.GENERATOR,
+            position = Node.Position(100.0, 200.0),
+            inputPorts = emptyList(),
+            outputPorts = listOf(
+                outputPort("timer_out", "value", Int::class, "timer")
+            ),
+            configuration = mapOf("tickIntervalMs" to "500L")
+        )
+        val flowGraph = createFlowGraph(name = "ConfigTest", nodes = listOf(timerEmitter))
+        val result = generator.generate(flowGraph, generatedPackage, usecasesPackage)
+
+        assertTrue(result.contains("tickIntervalMs = 500L"),
+            "Should use configured tickIntervalMs value")
+        assertFalse(result.contains("tickIntervalMs = 1000L"),
+            "Should not use default 1000L when configured")
+    }
+
+    @Test
     fun `StopWatch-like flow generates sink runtime instance with wrapped consume`() {
         val flowGraph = createStopWatchLikeFlow()
         val result = generator.generate(flowGraph, generatedPackage, usecasesPackage)
