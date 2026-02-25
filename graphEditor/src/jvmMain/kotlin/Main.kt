@@ -323,7 +323,6 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
     val ipTypes = remember { ipTypeRegistry.getAllTypes() }
     var selectedIPType by remember { mutableStateOf<InformationPacketType?>(null) }
     var showOpenDialog by remember { mutableStateOf(false) }
-    var showCompileDialog by remember { mutableStateOf(false) }
     var showModuleSaveDialog by remember { mutableStateOf(false) }
     var showFlowGraphPropertiesDialog by remember { mutableStateOf(false) }
     val saveLocationRegistry = remember { mutableMapOf<String, File>() }
@@ -428,8 +427,7 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
             },
             onNavigateBack = {
                 graphState.navigateOut()
-            },
-            onCompile = { /* Dialog will handle this */ }
+            }
         )
     }
 
@@ -531,9 +529,6 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                     if (graphState.navigateOut()) {
                         statusMessage = "Navigated back to parent"
                     }
-                },
-                onCompile = {
-                    showCompileDialog = true
                 }
             )
 
@@ -984,26 +979,6 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
             }
         }
 
-        if (showCompileDialog) {
-            LaunchedEffect(Unit) {
-                val outputDir = saveLocationRegistry[graphState.flowGraph.name]
-                if (outputDir != null && outputDir.exists()) {
-                    val result = moduleSaveService.compileModule(
-                        flowGraph = graphState.flowGraph,
-                        outputDir = outputDir
-                    )
-                    if (result.success) {
-                        statusMessage = "Compiled ${result.filesCreated.size} files to ${result.moduleDir?.name}"
-                    } else {
-                        statusMessage = "Compile error: ${result.errorMessage}"
-                    }
-                } else {
-                    statusMessage = "Please save the module first before compiling"
-                }
-                showCompileDialog = false
-            }
-        }
-
         // Unified Save handler: registry lookup → directory chooser if needed → saveModule()
         if (showModuleSaveDialog) {
             LaunchedEffect(Unit) {
@@ -1084,7 +1059,6 @@ fun TopToolbar(
     onGroup: () -> Unit = {},
     onUngroup: () -> Unit = {},
     onNavigateBack: () -> Unit = {},
-    onCompile: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     Surface(
@@ -1212,19 +1186,6 @@ fun TopToolbar(
                 colors = ButtonDefaults.textButtonColors(contentColor = Color.White)
             ) {
                 Text("Ungroup")
-            }
-
-            Divider(
-                modifier = Modifier.width(1.dp).height(32.dp),
-                color = Color.White.copy(alpha = 0.3f)
-            )
-
-            // Compile
-            TextButton(
-                onClick = onCompile,
-                colors = ButtonDefaults.textButtonColors(contentColor = Color.White)
-            ) {
-                Text("Compile")
             }
         }
     }

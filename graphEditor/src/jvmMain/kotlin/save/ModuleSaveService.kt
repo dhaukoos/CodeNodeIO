@@ -47,8 +47,6 @@ data class ModuleSaveResult(
  * module directory, gradle files, .flow.kt at module root, 5 runtime files
  * under generated/, ProcessingLogic stubs under processingLogic/, and
  * StateProperties stubs under stateProperties/. Orphaned stubs are deleted.
- *
- * The legacy [compileModule] is retained for backward compatibility.
  */
 class ModuleSaveService {
 
@@ -169,68 +167,6 @@ class ModuleSaveService {
     }
 
     /**
-     * Compiles a FlowGraph by generating runtime files and ProcessingLogic stubs.
-     *
-     * Generates the 5 runtime files under the generated/ package and
-     * ProcessingLogic stubs under the processingLogic/ package.
-     *
-     * @param flowGraph The flow graph to compile
-     * @param outputDir Parent directory where the module exists
-     * @param packageName Package name for generated code (default: io.codenode.{modulename})
-     * @param moduleName Module name (default: derived from FlowGraph name)
-     * @return ModuleSaveResult with success status and files created
-     */
-    fun compileModule(
-        flowGraph: FlowGraph,
-        outputDir: File,
-        packageName: String? = null,
-        moduleName: String? = null
-    ): ModuleSaveResult {
-        return try {
-            val effectiveModuleName = moduleName ?: deriveModuleName(flowGraph.name)
-
-            val basePackage = packageName ?: "$DEFAULT_PACKAGE_PREFIX.${effectiveModuleName.lowercase()}"
-            val generatedPackage = "$basePackage.$GENERATED_SUBPACKAGE"
-            val processingLogicPackage = "$basePackage.$PROCESSING_LOGIC_SUBPACKAGE"
-            val statePropertiesPackage = "$basePackage.$STATE_PROPERTIES_SUBPACKAGE"
-
-            val moduleDir = File(outputDir, effectiveModuleName)
-
-            // Ensure directory structure exists (in case compile is run without prior save)
-            createDirectoryStructure(moduleDir, generatedPackage, flowGraph)
-            createDirectoryStructure(moduleDir, processingLogicPackage, flowGraph)
-            createDirectoryStructure(moduleDir, statePropertiesPackage, flowGraph)
-
-            val filesCreated = mutableListOf<String>()
-
-            // Generate runtime files (Flow, Controller, Interface, Adapter, ViewModel)
-            generateRuntimeFiles(flowGraph, moduleDir, generatedPackage, processingLogicPackage, statePropertiesPackage, effectiveModuleName, filesCreated)
-
-            // Generate ProcessingLogic stub files (in processingLogic package)
-            generateProcessingLogicStubs(flowGraph, moduleDir, processingLogicPackage, statePropertiesPackage, filesCreated)
-
-            // Generate state properties files (in stateProperties package)
-            generateStatePropertiesFiles(flowGraph, moduleDir, statePropertiesPackage, filesCreated)
-
-            // Detect orphaned files
-            val warnings = detectOrphanedComponents(flowGraph, moduleDir, processingLogicPackage) +
-                detectOrphanedStateProperties(flowGraph, moduleDir, statePropertiesPackage)
-
-            ModuleSaveResult(
-                success = true,
-                moduleDir = moduleDir,
-                filesCreated = filesCreated,
-                warnings = warnings
-            )
-        } catch (e: Exception) {
-            ModuleSaveResult(
-                success = false,
-                errorMessage = "Failed to compile module: ${e.message}"
-            )
-        }
-    }
-
-    /**
      * Derives a valid module name from a FlowGraph name.
      *
      * Handles:
@@ -296,38 +232,6 @@ class ModuleSaveService {
 
         if (flowGraph.targetsPlatform(FlowGraph.TargetPlatform.KMP_WASM)) {
             File(moduleDir, "src/wasmJsMain/kotlin/$packagePath").mkdirs()
-        }
-    }
-
-    /**
-     * Generates the 5 runtime files (Flow, Controller, ControllerInterface,
-     * ControllerAdapter, ViewModel) in the generated package directory.
-     *
-     * These files are always overwritten since they are fully generated.
-     */
-    private fun generateRuntimeFiles(
-        flowGraph: FlowGraph,
-        moduleDir: File,
-        generatedPackage: String,
-        processingLogicPackage: String,
-        statePropertiesPackage: String,
-        effectiveModuleName: String,
-        filesCreated: MutableList<String>
-    ) {
-        val generatedPath = generatedPackage.replace(".", "/")
-        val generatedDir = File(moduleDir, "src/commonMain/kotlin/$generatedPath")
-
-        val runtimeFiles = listOf(
-            "${effectiveModuleName}Flow.kt" to runtimeFlowGenerator.generate(flowGraph, generatedPackage, processingLogicPackage, statePropertiesPackage),
-            "${effectiveModuleName}Controller.kt" to runtimeControllerGenerator.generate(flowGraph, generatedPackage, processingLogicPackage),
-            "${effectiveModuleName}ControllerInterface.kt" to runtimeControllerInterfaceGenerator.generate(flowGraph, generatedPackage),
-            "${effectiveModuleName}ControllerAdapter.kt" to runtimeControllerAdapterGenerator.generate(flowGraph, generatedPackage),
-            "${effectiveModuleName}ViewModel.kt" to runtimeViewModelGenerator.generate(flowGraph, generatedPackage)
-        )
-
-        for ((fileName, content) in runtimeFiles) {
-            File(generatedDir, fileName).writeText(content)
-            filesCreated.add("src/commonMain/kotlin/$generatedPath/$fileName")
         }
     }
 
@@ -533,101 +437,6 @@ class ModuleSaveService {
                 filesDeleted.add(relativePath)
             }
         }
-    }
-
-    /**
-     * Detects orphaned ProcessingLogic files (components for nodes that no longer exist).
-     *
-     * Scans the source directory for *ProcessLogic.kt files and compares against
-     * the current FlowGraph's CodeNodes. Files that don't correspond to any
-     * current node are considered orphaned.
-     *
-     * @param flowGraph The current flow graph
-     * @param moduleDir The module root directory
-     * @param packageName The package name
-     * @return List of warning messages for orphaned files
-     */
-    private fun detectOrphanedComponents(
-        flowGraph: FlowGraph,
-        moduleDir: File,
-        packageName: String
-    ): List<String> {
-        val warnings = mutableListOf<String>()
-        val packagePath = packageName.replace(".", "/")
-        val sourceDir = File(moduleDir, "src/commonMain/kotlin/$packagePath")
-
-        if (!sourceDir.exists()) return warnings
-
-        // Get expected component file names from current FlowGraph
-        val codeNodes = flowGraph.getAllCodeNodes()
-        val expectedFiles = codeNodes.map { stubGenerator.getStubFileName(it) }.toSet()
-
-        // Also include known non-component files to ignore
-        val moduleName = moduleDir.name
-        val ignoredFiles = setOf(
-            "$moduleName.flow.kt",
-            "${moduleName}Factory.kt"
-        )
-
-        // Find all *ProcessLogic.kt files in source directory
-        val existingComponentFiles = sourceDir.listFiles()
-            ?.filter { it.isFile && it.name.endsWith("ProcessLogic.kt") }
-            ?.map { it.name }
-            ?: emptyList()
-
-        // Detect orphaned files
-        for (fileName in existingComponentFiles) {
-            if (fileName !in expectedFiles && fileName !in ignoredFiles) {
-                val componentName = fileName.removeSuffix(".kt")
-                warnings.add("Orphaned ProcessingLogic file: $componentName (node may have been removed from flow)")
-            }
-        }
-
-        return warnings
-    }
-
-    /**
-     * Detects orphaned state properties files (for nodes that no longer exist).
-     *
-     * Scans the stateProperties directory for *StateProperties.kt files and compares
-     * against the current FlowGraph's CodeNodes. Files that don't correspond to any
-     * current node are considered orphaned.
-     *
-     * @param flowGraph The current flow graph
-     * @param moduleDir The module root directory
-     * @param packageName The stateProperties package name
-     * @return List of warning messages for orphaned files
-     */
-    private fun detectOrphanedStateProperties(
-        flowGraph: FlowGraph,
-        moduleDir: File,
-        packageName: String
-    ): List<String> {
-        val warnings = mutableListOf<String>()
-        val packagePath = packageName.replace(".", "/")
-        val sourceDir = File(moduleDir, "src/commonMain/kotlin/$packagePath")
-
-        if (!sourceDir.exists()) return warnings
-
-        val codeNodes = flowGraph.getAllCodeNodes()
-        val expectedFiles = codeNodes
-            .filter { statePropertiesGenerator.shouldGenerate(it) }
-            .map { statePropertiesGenerator.getStatePropertiesFileName(it) }
-            .toSet()
-
-        val existingFiles = sourceDir.listFiles()
-            ?.filter { it.isFile && it.name.endsWith("StateProperties.kt") }
-            ?.map { it.name }
-            ?: emptyList()
-
-        for (fileName in existingFiles) {
-            if (fileName !in expectedFiles) {
-                val componentName = fileName.removeSuffix(".kt")
-                warnings.add("Orphaned StateProperties file: $componentName (node may have been removed from flow)")
-            }
-        }
-
-        return warnings
     }
 
     /**

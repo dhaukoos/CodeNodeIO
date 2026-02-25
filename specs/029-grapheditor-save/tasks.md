@@ -100,10 +100,10 @@
 
 **Purpose**: Clean up redundant UI elements and validate end-to-end
 
-- [ ] T011 Remove Compile button, `showCompileDialog` state variable, `onCompile` callback, and compile `LaunchedEffect` block from `graphEditor/src/jvmMain/kotlin/Main.kt`
-- [ ] T012 Deprecate or remove standalone `compileModule()` method from `ModuleSaveService.kt` (keep if needed for backward compatibility with tests, otherwise remove) in `graphEditor/src/jvmMain/kotlin/save/ModuleSaveService.kt`
-- [ ] T013 Run full test suite: `./gradlew :graphEditor:jvmTest` and `./gradlew :kotlinCompiler:allTests` to verify all tests pass
-- [ ] T014 Run quickstart.md validation: verify all 11 checklist items from quickstart.md against a StopWatch3-like FlowGraph lifecycle (first save, re-save with added node, re-save with removed node, save under new name)
+- [X] T011 Remove Compile button, `showCompileDialog` state variable, `onCompile` callback, and compile `LaunchedEffect` block from `graphEditor/src/jvmMain/kotlin/Main.kt`
+- [X] T012 Deprecate or remove standalone `compileModule()` method from `ModuleSaveService.kt` (keep if needed for backward compatibility with tests, otherwise remove) in `graphEditor/src/jvmMain/kotlin/save/ModuleSaveService.kt`
+- [X] T013 Run full test suite: `./gradlew :graphEditor:jvmTest` and `./gradlew :kotlinCompiler:allTests` to verify all tests pass
+- [X] T014 Run quickstart.md validation: verify all 11 checklist items from quickstart.md against a StopWatch3-like FlowGraph lifecycle (first save, re-save with added node, re-save with removed node, save under new name)
 
 ---
 

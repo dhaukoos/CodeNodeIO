@@ -271,20 +271,6 @@ class GraphEditorViewModelTest {
     }
 
     @Test
-    fun `compile shows compile dialog and calls callback`() = runTest {
-        var compileCalled = false
-
-        val viewModel = GraphEditorViewModel(
-            onCompile = { compileCalled = true }
-        )
-
-        viewModel.compile()
-
-        assertTrue(compileCalled)
-        assertEquals(EditorDialog.COMPILE, viewModel.state.first().activeDialog)
-    }
-
-    @Test
     fun `updateNavigationState updates state`() = runTest {
         val viewModel = GraphEditorViewModel()
 
@@ -302,10 +288,10 @@ class GraphEditorViewModelTest {
     fun `showDialog sets activeDialog`() = runTest {
         val viewModel = GraphEditorViewModel()
 
-        viewModel.showDialog(EditorDialog.COMPILE)
+        viewModel.showDialog(EditorDialog.SAVE_MODULE)
 
         val state = viewModel.state.first()
-        assertEquals(EditorDialog.COMPILE, state.activeDialog)
+        assertEquals(EditorDialog.SAVE_MODULE, state.activeDialog)
         assertTrue(state.hasActiveDialog)
     }
 
@@ -389,7 +375,7 @@ class GraphEditorViewModelTest {
 
         // Modify state
         viewModel.setStatusMessage("Modified")
-        viewModel.showDialog(EditorDialog.COMPILE)
+        viewModel.showDialog(EditorDialog.SAVE_MODULE)
         viewModel.updateGroupingState(true, true)
         viewModel.markDirty()
 

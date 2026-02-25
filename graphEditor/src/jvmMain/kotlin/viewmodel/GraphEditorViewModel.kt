@@ -20,7 +20,6 @@ enum class EditorDialog {
     NONE,
     OPEN_FILE,
     SAVE_MODULE,
-    COMPILE,
     FLOW_GRAPH_PROPERTIES
 }
 
@@ -83,7 +82,6 @@ data class GraphEditorState(
  * @param onGroupSelectedNodes Callback to group selected nodes
  * @param onUngroupSelectedNode Callback to ungroup a selected node
  * @param onNavigateBack Callback to navigate back from a GraphNode
- * @param onCompile Callback to compile the graph
  */
 class GraphEditorViewModel(
     private val onCreateNewGraph: () -> Unit = {},
@@ -93,8 +91,7 @@ class GraphEditorViewModel(
     private val onRedo: () -> Boolean = { false },
     private val onGroupSelectedNodes: () -> Unit = {},
     private val onUngroupSelectedNode: () -> Unit = {},
-    private val onNavigateBack: () -> Boolean = { false },
-    private val onCompile: () -> Unit = {}
+    private val onNavigateBack: () -> Boolean = { false }
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(GraphEditorState())
@@ -257,14 +254,6 @@ class GraphEditorViewModel(
                 it.copy(statusMessage = "Navigated back to parent")
             }
         }
-    }
-
-    /**
-     * Opens the compile dialog.
-     */
-    fun compile() {
-        showDialog(EditorDialog.COMPILE)
-        onCompile()
     }
 
     /**
