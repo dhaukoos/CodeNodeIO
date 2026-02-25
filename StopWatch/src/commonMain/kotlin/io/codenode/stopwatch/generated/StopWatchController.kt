@@ -105,8 +105,6 @@ class StopWatchController(
 
     fun reset(): FlowGraph {
         wasRunningBeforePause = false
-        flow.timerEmitter.reset()
-        flow.displayReceiver.reset()
         flow.reset()
         return stop()
     }

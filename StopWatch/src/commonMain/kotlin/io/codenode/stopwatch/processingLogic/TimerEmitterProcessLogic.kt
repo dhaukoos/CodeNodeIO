@@ -2,6 +2,7 @@ package io.codenode.stopwatch.processingLogic
 
 import io.codenode.fbpdsl.runtime.Out2TickBlock
 import io.codenode.fbpdsl.runtime.ProcessResult2
+import io.codenode.stopwatch.stateProperties.TimerEmitterStateProperties
 
 /**
  * Tick function for the TimerEmitter node.
@@ -14,16 +15,16 @@ import io.codenode.fbpdsl.runtime.ProcessResult2
  *
  */
 val timerEmitterTick: Out2TickBlock<Int, Int> = {
-    var newSeconds = _elapsedSeconds.value + 1
-    var newMinutes = _elapsedMinutes.value
+    var newSeconds = TimerEmitterStateProperties._elapsedSeconds.value + 1
+    var newMinutes = TimerEmitterStateProperties._elapsedMinutes.value
 
     if (newSeconds >= 60) {
         newSeconds = 0
         newMinutes += 1
     }
 
-    _elapsedSeconds.value = newSeconds
-    _elapsedMinutes.value = newMinutes
+    TimerEmitterStateProperties._elapsedSeconds.value = newSeconds
+    TimerEmitterStateProperties._elapsedMinutes.value = newMinutes
 
     ProcessResult2.both(newSeconds, newMinutes)
 }

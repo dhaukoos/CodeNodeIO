@@ -1,6 +1,7 @@
 package io.codenode.stopwatch.processingLogic
 
 import io.codenode.fbpdsl.runtime.In2SinkTickBlock
+import io.codenode.stopwatch.stateProperties.DisplayReceiverStateProperties
 
 /**
  * Tick function for the DisplayReceiver node.
@@ -13,7 +14,6 @@ import io.codenode.fbpdsl.runtime.In2SinkTickBlock
  *
  */
 val displayReceiverTick: In2SinkTickBlock<Int, Int> = { seconds, minutes ->
-    // TODO: Implement DisplayReceiver tick logic
-    _seconds.value = seconds
-    _minutes.value = minutes
+    DisplayReceiverStateProperties._seconds.value = seconds
+    DisplayReceiverStateProperties._minutes.value = minutes
 }

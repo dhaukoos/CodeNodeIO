@@ -51,9 +51,9 @@ class StopWatchFlow {
      * Starts the flow with the given coroutine scope.
      */
     suspend fun start(scope: CoroutineScope) {
-        timerEmitter.start(scope)
+        timerEmitter.start(scope) {}
         wireConnections()
-        displayReceiver.start(scope)
+        displayReceiver.start(scope) {}
     }
 
     /**
