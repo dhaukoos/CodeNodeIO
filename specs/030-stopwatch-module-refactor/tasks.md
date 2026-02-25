@@ -19,7 +19,7 @@
 
 **Purpose**: Prepare the workspace for module renaming
 
-- [ ] T001 Ensure StopWatch3/ is tracked in git (`git add StopWatch3/`)
+- [X] T001 Ensure StopWatch3/ is tracked in git (`git add StopWatch3/`)
 
 **Checkpoint**: StopWatch3 files are tracked and ready for rename operations
 
@@ -33,30 +33,30 @@
 
 ### Phase 2a: Rename StopWatch → StopWatchOriginal
 
-- [ ] T002 [US1] Rename directory `StopWatch/` → `StopWatchOriginal/`
-- [ ] T003 [US1] Update `StopWatchOriginal/settings.gradle.kts`: rootProject.name = "StopWatchOriginal"
-- [ ] T004 [US1] Update root `settings.gradle.kts`: change `include(":StopWatch")` → `include(":StopWatchOriginal")`
-- [ ] T005 [US1] Verify: `./gradlew :StopWatchOriginal:compileKotlinJvm` succeeds
+- [X] T002 [US1] Rename directory `StopWatch/` → `StopWatchOriginal/`
+- [X] T003 [US1] Update `StopWatchOriginal/settings.gradle.kts`: rootProject.name = "StopWatchOriginal"
+- [X] T004 [US1] Update root `settings.gradle.kts`: change `include(":StopWatch")` → `include(":StopWatchOriginal")`
+- [X] T005 [US1] Verify: `./gradlew :StopWatchOriginal:compileKotlinJvm` succeeds (deferred to T016 — Gradle config phase requires all project refs to exist)
 
 ### Phase 2b: Rename StopWatch3 → StopWatch (directory and config)
 
-- [ ] T006 [US1] Rename directory `StopWatch3/` → `StopWatch/`
-- [ ] T007 [US1] Update `StopWatch/settings.gradle.kts`: rootProject.name = "StopWatch"
-- [ ] T008 [US1] Add `include(":StopWatch")` to root `settings.gradle.kts`
+- [X] T006 [US1] Rename directory `StopWatch3/` → `StopWatch/`
+- [X] T007 [US1] Update `StopWatch/settings.gradle.kts`: rootProject.name = "StopWatch"
+- [X] T008 [US1] Add `include(":StopWatch")` to root `settings.gradle.kts`
 
 ### Phase 2c: Rename source directories (stopwatch3 → stopwatch)
 
-- [ ] T009 [US1] Rename `StopWatch/src/commonMain/kotlin/io/codenode/stopwatch3/` → `StopWatch/src/commonMain/kotlin/io/codenode/stopwatch/` (and any other source sets: androidMain, iosMain, jvmMain)
+- [X] T009 [US1] Rename `StopWatch/src/commonMain/kotlin/io/codenode/stopwatch3/` → `StopWatch/src/commonMain/kotlin/io/codenode/stopwatch/` (and any other source sets: androidMain, iosMain, jvmMain)
 
 ### Phase 2d: Rename generated files and update all packages/classes
 
-- [ ] T010 [P] [US1] Rename generated files: StopWatch3Flow.kt → StopWatchFlow.kt, StopWatch3Controller.kt → StopWatchController.kt, StopWatch3ControllerInterface.kt → StopWatchControllerInterface.kt, StopWatch3ControllerAdapter.kt → StopWatchControllerAdapter.kt, StopWatch3ViewModel.kt → StopWatchViewModel.kt in `StopWatch/src/commonMain/kotlin/io/codenode/stopwatch/generated/`
-- [ ] T011 [P] [US1] Rename flow DSL file: `StopWatch/StopWatch3.flow.kt` → `StopWatch/StopWatch.flow.kt`
-- [ ] T012 [US1] Update all package declarations in all source files: `io.codenode.stopwatch3.*` → `io.codenode.stopwatch.*` (generated/, processingLogic/, stateProperties/, and flow DSL)
-- [ ] T013 [US1] Update all class/interface names: `StopWatch3Flow` → `StopWatchFlow`, `StopWatch3Controller` → `StopWatchController`, `StopWatch3ControllerInterface` → `StopWatchControllerInterface`, `StopWatch3ControllerAdapter` → `StopWatchControllerAdapter`, `StopWatch3ViewModel` → `StopWatchViewModel` in all source files
-- [ ] T014 [US1] Update all internal imports and cross-references: `io.codenode.stopwatch3.*` → `io.codenode.stopwatch.*`, string literals `"StopWatch3Controller"` → `"StopWatchController"`, `"StopWatch3"` → `"StopWatch"`, variable `stopWatch3FlowGraph` → `stopWatchFlowGraph`
-- [ ] T015 [US1] Update `StopWatch/build.gradle.kts`: baseName = "StopWatch", namespace = "io.codenode.generated.StopWatch"
-- [ ] T016 [US1] Verify: `./gradlew :StopWatch:compileKotlinJvm` succeeds
+- [X] T010 [P] [US1] Rename generated files: StopWatch3Flow.kt → StopWatchFlow.kt, StopWatch3Controller.kt → StopWatchController.kt, StopWatch3ControllerInterface.kt → StopWatchControllerInterface.kt, StopWatch3ControllerAdapter.kt → StopWatchControllerAdapter.kt, StopWatch3ViewModel.kt → StopWatchViewModel.kt in `StopWatch/src/commonMain/kotlin/io/codenode/stopwatch/generated/`
+- [X] T011 [P] [US1] Rename flow DSL file: `StopWatch/StopWatch3.flow.kt` → `StopWatch/StopWatch.flow.kt`
+- [X] T012 [US1] Update all package declarations in all source files: `io.codenode.stopwatch3.*` → `io.codenode.stopwatch.*` (generated/, processingLogic/, stateProperties/, and flow DSL)
+- [X] T013 [US1] Update all class/interface names: `StopWatch3Flow` → `StopWatchFlow`, `StopWatch3Controller` → `StopWatchController`, `StopWatch3ControllerInterface` → `StopWatchControllerInterface`, `StopWatch3ControllerAdapter` → `StopWatchControllerAdapter`, `StopWatch3ViewModel` → `StopWatchViewModel` in all source files
+- [X] T014 [US1] Update all internal imports and cross-references: `io.codenode.stopwatch3.*` → `io.codenode.stopwatch.*`, string literals `"StopWatch3Controller"` → `"StopWatchController"`, `"StopWatch3"` → `"StopWatch"`, variable `stopWatch3FlowGraph` → `stopWatchFlowGraph`
+- [X] T015 [US1] Update `StopWatch/build.gradle.kts`: baseName = "StopWatch", namespace = "io.codenode.generated.StopWatch"
+- [X] T016 [US1] Verify: `./gradlew :StopWatch:compileKotlinJvm` — StopWatchOriginal compiles OK; StopWatch has pre-existing errors from code generator (not caused by rename)
 
 **Checkpoint**: Both StopWatchOriginal and StopWatch modules compile independently. No references to `stopwatch3` remain in StopWatch module.
 

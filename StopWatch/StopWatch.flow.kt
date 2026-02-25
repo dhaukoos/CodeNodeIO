@@ -1,10 +1,10 @@
-package io.codenode.stopwatch3
+package io.codenode.stopwatch
 
 import io.codenode.fbpdsl.dsl.*
 import io.codenode.fbpdsl.model.*
-import io.codenode.stopwatch3.processingLogic.*
+import io.codenode.stopwatch.processingLogic.*
 
-val stopWatch3FlowGraph = flowGraph("StopWatch3", version = "1.0.0") {
+val stopWatchFlowGraph = flowGraph("StopWatch", version = "1.0.0") {
     targetPlatform(FlowGraph.TargetPlatform.KMP_ANDROID)
     targetPlatform(FlowGraph.TargetPlatform.KMP_IOS)
 

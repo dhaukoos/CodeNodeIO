@@ -1,4 +1,4 @@
-package io.codenode.stopwatch3.processingLogic
+package io.codenode.stopwatch.processingLogic
 
 import io.codenode.fbpdsl.runtime.Out2TickBlock
 import io.codenode.fbpdsl.runtime.ProcessResult2

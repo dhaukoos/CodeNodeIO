@@ -1,4 +1,4 @@
-package io.codenode.stopwatch3.stateProperties
+package io.codenode.stopwatch.stateProperties
 
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
