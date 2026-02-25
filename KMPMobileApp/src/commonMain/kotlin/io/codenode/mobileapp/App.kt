@@ -21,6 +21,7 @@ import io.codenode.stopwatch.generated.StopWatchControllerAdapter
 import io.codenode.stopwatch.generated.StopWatchViewModel
 import io.codenode.stopwatch.generated.StopWatchController
 import io.codenode.stopwatch.stopWatchFlowGraph
+import io.codenode.stopwatch.userInterface.StopWatch
 
 /**
  * Main application composable.

@@ -50,10 +50,11 @@ kotlin {
                 // KMP-compatible lifecycle support (works on all platforms)
                 implementation("org.jetbrains.androidx.lifecycle:lifecycle-runtime-compose:2.8.0")
                 // Compose UI dependencies (for userInterface composables)
-                implementation(compose.runtime)
-                implementation(compose.foundation)
-                implementation(compose.material3)
-                implementation(compose.ui)
+                // Use explicit 1.7.3 to match KMPMobileApp and stay compatible with compileSdk 34
+                implementation("org.jetbrains.compose.runtime:runtime:1.7.3")
+                implementation("org.jetbrains.compose.foundation:foundation:1.7.3")
+                implementation("org.jetbrains.compose.material3:material3:1.7.3")
+                implementation("org.jetbrains.compose.ui:ui:1.7.3")
                 // JetBrains Multiplatform ViewModel
                 implementation("org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose:2.8.0")
             }
