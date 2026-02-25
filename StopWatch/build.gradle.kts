@@ -49,6 +49,13 @@ kotlin {
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
                 // KMP-compatible lifecycle support (works on all platforms)
                 implementation("org.jetbrains.androidx.lifecycle:lifecycle-runtime-compose:2.8.0")
+                // Compose UI dependencies (for userInterface composables)
+                implementation(compose.runtime)
+                implementation(compose.foundation)
+                implementation(compose.material3)
+                implementation(compose.ui)
+                // JetBrains Multiplatform ViewModel
+                implementation("org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose:2.8.0")
             }
         }
 

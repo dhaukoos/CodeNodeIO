@@ -4,7 +4,7 @@
  * License: Apache 2.0
  */
 
-package io.codenode.mobileapp
+package io.codenode.stopwatch.userInterface
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.BoxWithConstraints

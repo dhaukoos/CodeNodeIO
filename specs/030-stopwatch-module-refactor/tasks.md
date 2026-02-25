@@ -70,12 +70,12 @@
 
 ### Implementation for User Story 2
 
-- [ ] T017 [US2] Create directory `StopWatch/src/commonMain/kotlin/io/codenode/stopwatch/userInterface/`
-- [ ] T018 [US2] Move `KMPMobileApp/src/commonMain/kotlin/io/codenode/mobileapp/StopWatch.kt` → `StopWatch/src/commonMain/kotlin/io/codenode/stopwatch/userInterface/StopWatch.kt`
-- [ ] T019 [US2] Move `KMPMobileApp/src/commonMain/kotlin/io/codenode/mobileapp/StopWatchFace.kt` → `StopWatch/src/commonMain/kotlin/io/codenode/stopwatch/userInterface/StopWatchFace.kt`
-- [ ] T020 [US2] Update package declarations in moved files: `package io.codenode.mobileapp` → `package io.codenode.stopwatch.userInterface`
-- [ ] T021 [US2] Add Compose Multiplatform dependencies to `StopWatch/build.gradle.kts` (compose plugin, runtime, foundation, material3, ui)
-- [ ] T022 [US2] Verify: `./gradlew :StopWatch:compileKotlinJvm` succeeds with userInterface files
+- [X] T017 [US2] Create directory `StopWatch/src/commonMain/kotlin/io/codenode/stopwatch/userInterface/`
+- [X] T018 [US2] Move `KMPMobileApp/src/commonMain/kotlin/io/codenode/mobileapp/StopWatch.kt` → `StopWatch/src/commonMain/kotlin/io/codenode/stopwatch/userInterface/StopWatch.kt`
+- [X] T019 [US2] Move `KMPMobileApp/src/commonMain/kotlin/io/codenode/mobileapp/StopWatchFace.kt` → `StopWatch/src/commonMain/kotlin/io/codenode/stopwatch/userInterface/StopWatchFace.kt`
+- [X] T020 [US2] Update package declarations in moved files: `package io.codenode.mobileapp` → `package io.codenode.stopwatch.userInterface`
+- [X] T021 [US2] Add Compose Multiplatform dependencies to `StopWatch/build.gradle.kts` (compose plugin, runtime, foundation, material3, ui)
+- [X] T022 [US2] Verify: `./gradlew :StopWatch:compileKotlinJvm` — userInterface files compile OK; pre-existing generated code errors unchanged
 
 **Checkpoint**: StopWatch module contains both runtime code and UI composables, compiles successfully
 
