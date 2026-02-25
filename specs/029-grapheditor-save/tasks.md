@@ -29,9 +29,9 @@
 
 **Purpose**: Enhance ModuleSaveResult and create the unified saveModule() that all user stories depend on.
 
-- [ ] T001 Add `filesOverwritten: List<String>` and `filesDeleted: List<String>` fields to `ModuleSaveResult` data class in `graphEditor/src/jvmMain/kotlin/save/ModuleSaveService.kt`
-- [ ] T002 Create unified `saveModule()` that merges the current `saveModule()` (module dir, gradle files, .flow.kt) and `compileModule()` (runtime files, stubs, state properties) into a single method. The unified method must: create module directory and structure, write gradle files, write .flow.kt at module root, generate 5 runtime files (always overwrite), generate processing logic stubs (don't overwrite existing), generate state properties stubs (don't overwrite existing), delete orphaned processing logic stubs, delete orphaned state properties stubs. Track files in `filesCreated`, `filesOverwritten`, and `filesDeleted` lists in `graphEditor/src/jvmMain/kotlin/save/ModuleSaveService.kt`
-- [ ] T003 Update existing tests in `ModuleSaveServiceTest.kt` to use the unified `saveModule()` instead of separate `saveModule()`/`compileModule()` calls. Verify a single `saveModule()` call creates the full module: .flow.kt, gradle files, 5 runtime files, stubs, state properties. Verify `filesOverwritten` and `filesDeleted` fields are populated correctly in `graphEditor/src/jvmTest/kotlin/save/ModuleSaveServiceTest.kt`
+- [X] T001 Add `filesOverwritten: List<String>` and `filesDeleted: List<String>` fields to `ModuleSaveResult` data class in `graphEditor/src/jvmMain/kotlin/save/ModuleSaveService.kt`
+- [X] T002 Create unified `saveModule()` that merges the current `saveModule()` (module dir, gradle files, .flow.kt) and `compileModule()` (runtime files, stubs, state properties) into a single method. The unified method must: create module directory and structure, write gradle files, write .flow.kt at module root, generate 5 runtime files (always overwrite), generate processing logic stubs (don't overwrite existing), generate state properties stubs (don't overwrite existing), delete orphaned processing logic stubs, delete orphaned state properties stubs. Track files in `filesCreated`, `filesOverwritten`, and `filesDeleted` lists in `graphEditor/src/jvmMain/kotlin/save/ModuleSaveService.kt`
+- [X] T003 Update existing tests in `ModuleSaveServiceTest.kt` to use the unified `saveModule()` instead of separate `saveModule()`/`compileModule()` calls. Verify a single `saveModule()` call creates the full module: .flow.kt, gradle files, 5 runtime files, stubs, state properties. Verify `filesOverwritten` and `filesDeleted` fields are populated correctly in `graphEditor/src/jvmTest/kotlin/save/ModuleSaveServiceTest.kt`
 
 **Checkpoint**: Unified saveModule() is complete and tested — UI integration can now begin
 
@@ -45,9 +45,9 @@
 
 ### Implementation for User Story 1
 
-- [ ] T004 [US1] Replace `lastSaveOutputDir: File?` state variable with `saveLocationRegistry` (`MutableMap<String, File>`) that maps FlowGraph names to their save directories in `graphEditor/src/jvmMain/kotlin/Main.kt`
-- [ ] T005 [US1] Rewrite the Save button `LaunchedEffect` handler: look up `saveLocationRegistry[flowGraph.name]` — if not found, show directory chooser, call unified `saveModule()`, store result directory in registry, display result status message. Handle cancel (user closes directory chooser → no changes) in `graphEditor/src/jvmMain/kotlin/Main.kt`
-- [ ] T006 [US1] Add integration test: first save with unified `saveModule()` creates full module (module dir, .flow.kt, gradle files, 5 runtime files, processing logic stubs, state properties stubs) and `filesCreated` includes all files in `graphEditor/src/jvmTest/kotlin/save/ModuleSaveServiceTest.kt`
+- [X] T004 [US1] Replace `lastSaveOutputDir: File?` state variable with `saveLocationRegistry` (`MutableMap<String, File>`) that maps FlowGraph names to their save directories in `graphEditor/src/jvmMain/kotlin/Main.kt`
+- [X] T005 [US1] Rewrite the Save button `LaunchedEffect` handler: look up `saveLocationRegistry[flowGraph.name]` — if not found, show directory chooser, call unified `saveModule()`, store result directory in registry, display result status message. Handle cancel (user closes directory chooser → no changes) in `graphEditor/src/jvmMain/kotlin/Main.kt`
+- [X] T006 [US1] Add integration test: first save with unified `saveModule()` creates full module (module dir, .flow.kt, gradle files, 5 runtime files, processing logic stubs, state properties stubs) and `filesCreated` includes all files in `graphEditor/src/jvmTest/kotlin/save/ModuleSaveServiceTest.kt`
 
 **Checkpoint**: First-time save creates complete module from single Save action
 

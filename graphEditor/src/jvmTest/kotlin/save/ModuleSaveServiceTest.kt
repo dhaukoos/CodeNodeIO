@@ -11,10 +11,9 @@ import java.io.File
 import kotlin.test.*
 
 /**
- * TDD tests for ModuleSaveService - verifies module creation on save and compile.
- *
- * Save creates: module directory, gradle files, directory structure, .flow.kt at module root.
- * Compile creates: 5 runtime files under generated/, ProcessingLogic stubs under processingLogic/.
+ * TDD tests for ModuleSaveService - verifies unified saveModule() creates the
+ * full module: directory structure, gradle files, .flow.kt, 5 runtime files,
+ * ProcessingLogic stubs, StateProperties stubs, and handles orphan deletion.
  */
 class ModuleSaveServiceTest {
 
@@ -81,18 +80,50 @@ class ModuleSaveServiceTest {
         )
     }
 
+    private fun createStopWatchFlowGraph(): FlowGraph {
+        val timerEmitter = CodeNode(
+            id = "timer",
+            name = "TimerEmitter",
+            codeNodeType = CodeNodeType.GENERATOR,
+            position = Node.Position(100.0, 100.0),
+            inputPorts = emptyList(),
+            outputPorts = listOf(
+                Port(id = "timer_sec", name = "elapsedSeconds", direction = Port.Direction.OUTPUT, dataType = Int::class, owningNodeId = "timer"),
+                Port(id = "timer_min", name = "elapsedMinutes", direction = Port.Direction.OUTPUT, dataType = Int::class, owningNodeId = "timer")
+            )
+        )
+        val displayReceiver = CodeNode(
+            id = "display",
+            name = "DisplayReceiver",
+            codeNodeType = CodeNodeType.SINK,
+            position = Node.Position(400.0, 100.0),
+            inputPorts = listOf(
+                Port(id = "display_sec", name = "seconds", direction = Port.Direction.INPUT, dataType = Int::class, owningNodeId = "display"),
+                Port(id = "display_min", name = "minutes", direction = Port.Direction.INPUT, dataType = Int::class, owningNodeId = "display")
+            ),
+            outputPorts = emptyList()
+        )
+        return FlowGraph(
+            id = "flow_stopwatch",
+            name = "StopWatch4",
+            version = "1.0.0",
+            rootNodes = listOf(timerEmitter, displayReceiver),
+            connections = listOf(
+                Connection("c1", "timer", "timer_sec", "display", "display_sec"),
+                Connection("c2", "timer", "timer_min", "display", "display_min")
+            )
+        )
+    }
+
     // ========== T001: Module Directory Creation ==========
 
     @Test
     fun `T001 - saveModule creates module directory`() {
-        // Given
         val flowGraph = createTestFlowGraph("StopWatch")
         val saveService = ModuleSaveService()
 
-        // When
         val result = saveService.saveModule(flowGraph, tempDir)
 
-        // Then
         assertTrue(result.success, "Save should succeed")
         assertNotNull(result.moduleDir, "Module directory should be returned")
         assertTrue(result.moduleDir!!.exists(), "Module directory should exist")
@@ -101,14 +132,11 @@ class ModuleSaveServiceTest {
 
     @Test
     fun `T001 - saveModule creates module directory with correct name`() {
-        // Given
         val flowGraph = createTestFlowGraph("MyCustomFlow")
         val saveService = ModuleSaveService()
 
-        // When
         val result = saveService.saveModule(flowGraph, tempDir)
 
-        // Then
         assertTrue(result.success)
         assertEquals("MyCustomFlow", result.moduleDir?.name,
             "Module directory should be named after FlowGraph")
@@ -118,14 +146,11 @@ class ModuleSaveServiceTest {
 
     @Test
     fun `T002 - saveModule generates build gradle kts`() {
-        // Given
         val flowGraph = createTestFlowGraph("TestModule")
         val saveService = ModuleSaveService()
 
-        // When
         val result = saveService.saveModule(flowGraph, tempDir)
 
-        // Then
         assertTrue(result.success)
         val buildFile = File(result.moduleDir, "build.gradle.kts")
         assertTrue(buildFile.exists(), "build.gradle.kts should exist")
@@ -133,14 +158,11 @@ class ModuleSaveServiceTest {
 
     @Test
     fun `T002 - build gradle kts contains KMP multiplatform plugin`() {
-        // Given
         val flowGraph = createTestFlowGraph("TestModule")
         val saveService = ModuleSaveService()
 
-        // When
         val result = saveService.saveModule(flowGraph, tempDir)
 
-        // Then
         val buildFile = File(result.moduleDir, "build.gradle.kts")
         val content = buildFile.readText()
         assertTrue(content.contains("kotlin(\"multiplatform\")"),
@@ -149,7 +171,6 @@ class ModuleSaveServiceTest {
 
     @Test
     fun `T002 - build gradle kts contains target platforms from FlowGraph`() {
-        // Given
         val flowGraph = createTestFlowGraph("TestModule").copy(
             targetPlatforms = listOf(
                 FlowGraph.TargetPlatform.KMP_ANDROID,
@@ -158,10 +179,8 @@ class ModuleSaveServiceTest {
         )
         val saveService = ModuleSaveService()
 
-        // When
         val result = saveService.saveModule(flowGraph, tempDir)
 
-        // Then
         val buildFile = File(result.moduleDir, "build.gradle.kts")
         val content = buildFile.readText()
         assertTrue(content.contains("androidTarget"),
@@ -174,14 +193,11 @@ class ModuleSaveServiceTest {
 
     @Test
     fun `T003 - saveModule creates commonMain kotlin directory`() {
-        // Given
         val flowGraph = createTestFlowGraph("TestModule")
         val saveService = ModuleSaveService()
 
-        // When
         val result = saveService.saveModule(flowGraph, tempDir)
 
-        // Then
         assertTrue(result.success)
         val commonMainDir = File(result.moduleDir, "src/commonMain/kotlin")
         assertTrue(commonMainDir.exists(), "src/commonMain/kotlin should exist")
@@ -190,35 +206,28 @@ class ModuleSaveServiceTest {
 
     @Test
     fun `T003 - saveModule creates package directory structure`() {
-        // Given
         val flowGraph = createTestFlowGraph("TestModule")
-        val packageName = "io.codenode.testmodule"  // Base package
+        val packageName = "io.codenode.testmodule"
         val saveService = ModuleSaveService()
 
-        // When
         val result = saveService.saveModule(flowGraph, tempDir, packageName)
 
-        // Then
         assertTrue(result.success)
-        // ProcessingLogic package for user components
         val processingLogicDir = File(result.moduleDir, "src/commonMain/kotlin/io/codenode/testmodule/processingLogic")
         assertTrue(processingLogicDir.exists(), "ProcessingLogic package directory should exist")
-        assertTrue(processingLogicDir.isDirectory, "ProcessingLogic path should be a directory")
-        // Generated package for generated code
         val generatedDir = File(result.moduleDir, "src/commonMain/kotlin/io/codenode/testmodule/generated")
         assertTrue(generatedDir.exists(), "Generated package directory should exist")
+        val statePropsDir = File(result.moduleDir, "src/commonMain/kotlin/io/codenode/testmodule/stateProperties")
+        assertTrue(statePropsDir.exists(), "StateProperties package directory should exist")
     }
 
     @Test
     fun `T003 - saveModule creates commonTest kotlin directory`() {
-        // Given
         val flowGraph = createTestFlowGraph("TestModule")
         val saveService = ModuleSaveService()
 
-        // When
         val result = saveService.saveModule(flowGraph, tempDir)
 
-        // Then
         assertTrue(result.success)
         val commonTestDir = File(result.moduleDir, "src/commonTest/kotlin")
         assertTrue(commonTestDir.exists(), "src/commonTest/kotlin should exist")
@@ -228,14 +237,11 @@ class ModuleSaveServiceTest {
 
     @Test
     fun `T004 - saveModule generates settings gradle kts`() {
-        // Given
         val flowGraph = createTestFlowGraph("TestModule")
         val saveService = ModuleSaveService()
 
-        // When
         val result = saveService.saveModule(flowGraph, tempDir)
 
-        // Then
         assertTrue(result.success)
         val settingsFile = File(result.moduleDir, "settings.gradle.kts")
         assertTrue(settingsFile.exists(), "settings.gradle.kts should exist")
@@ -243,14 +249,11 @@ class ModuleSaveServiceTest {
 
     @Test
     fun `T004 - settings gradle kts contains rootProject name`() {
-        // Given
         val flowGraph = createTestFlowGraph("MyModule")
         val saveService = ModuleSaveService()
 
-        // When
         val result = saveService.saveModule(flowGraph, tempDir)
 
-        // Then
         val settingsFile = File(result.moduleDir, "settings.gradle.kts")
         val content = settingsFile.readText()
         assertTrue(content.contains("rootProject.name"),
@@ -261,14 +264,11 @@ class ModuleSaveServiceTest {
 
     @Test
     fun `T004 - settings gradle kts contains plugin repositories`() {
-        // Given
         val flowGraph = createTestFlowGraph("TestModule")
         val saveService = ModuleSaveService()
 
-        // When
         val result = saveService.saveModule(flowGraph, tempDir)
 
-        // Then
         val settingsFile = File(result.moduleDir, "settings.gradle.kts")
         val content = settingsFile.readText()
         assertTrue(content.contains("pluginManagement"),
@@ -281,49 +281,39 @@ class ModuleSaveServiceTest {
 
     @Test
     fun `T005 - module name derived from FlowGraph name`() {
-        // Given
         val flowGraph = createTestFlowGraph("UserAuthentication")
         val saveService = ModuleSaveService()
 
-        // When
         val result = saveService.saveModule(flowGraph, tempDir)
 
-        // Then
         assertTrue(result.success)
         assertEquals("UserAuthentication", result.moduleDir?.name)
     }
 
     @Test
     fun `T005 - module name handles spaces in FlowGraph name`() {
-        // Given
         val flowGraph = createTestFlowGraph("User Authentication Flow")
         val saveService = ModuleSaveService()
 
-        // When
         val result = saveService.saveModule(flowGraph, tempDir)
 
-        // Then
         assertTrue(result.success)
-        // Module name should not contain spaces
         assertFalse(result.moduleDir?.name?.contains(" ") ?: true,
             "Module name should not contain spaces")
     }
 
     @Test
     fun `T005 - module name can be overridden`() {
-        // Given
         val flowGraph = createTestFlowGraph("SomeFlow")
         val customModuleName = "custom-module-name"
         val saveService = ModuleSaveService()
 
-        // When
         val result = saveService.saveModule(
             flowGraph = flowGraph,
             outputDir = tempDir,
             moduleName = customModuleName
         )
 
-        // Then
         assertTrue(result.success)
         assertEquals(customModuleName, result.moduleDir?.name,
             "Module name should match custom override")
@@ -331,35 +321,27 @@ class ModuleSaveServiceTest {
 
     @Test
     fun `T005 - default package name derived from module name`() {
-        // Given
         val flowGraph = createTestFlowGraph("StopWatch")
         val saveService = ModuleSaveService()
 
-        // When
         val result = saveService.saveModule(flowGraph, tempDir)
 
-        // Then
         assertTrue(result.success)
-        // Default base package is io.codenode.{lowercase module name}
-        // ProcessingLogic package is io.codenode.{modulename}.processingLogic
         val expectedPackageDir = File(result.moduleDir, "src/commonMain/kotlin/io/codenode/stopwatch/processingLogic")
         assertTrue(expectedPackageDir.exists(),
             "Default processingLogic package directory should be created based on module name")
     }
 
-    // ========== Save writes .flow.kt at module root ==========
+    // ========== .flow.kt at module root ==========
 
     @Test
     fun `saveModule writes flow kt at module root`() {
-        // Given
         val node1 = createTestCodeNode("node1", "Original", CodeNodeType.GENERATOR)
         val flowGraph = createTestFlowGraph("UpdateFlow", listOf(node1))
         val saveService = ModuleSaveService()
 
-        // When
         val result = saveService.saveModule(flowGraph, tempDir)
 
-        // Then
         assertTrue(result.success)
         val flowKtFile = File(result.moduleDir, "UpdateFlow.flow.kt")
         assertTrue(flowKtFile.exists(), ".flow.kt should be at module root")
@@ -370,7 +352,6 @@ class ModuleSaveServiceTest {
 
     @Test
     fun `re-save updates flow kt at module root`() {
-        // Given
         val node1 = createTestCodeNode("node1", "Original", CodeNodeType.GENERATOR)
         val flowGraph1 = createTestFlowGraph("UpdateFlow", listOf(node1))
         val saveService = ModuleSaveService()
@@ -390,7 +371,6 @@ class ModuleSaveServiceTest {
         // Re-save
         val result2 = saveService.saveModule(flowGraph2, tempDir)
 
-        // Then
         assertTrue(result2.success)
         val updatedContent = flowKtFile.readText()
         assertTrue(updatedContent.contains("Original"),
@@ -401,23 +381,18 @@ class ModuleSaveServiceTest {
 
     @Test
     fun `re-save updates flow kt when node position changes`() {
-        // Given
         val node1 = createTestCodeNode("node1", "Movable")
         val flowGraph1 = createTestFlowGraph("PositionTest", listOf(node1))
         val saveService = ModuleSaveService()
 
-        // First save
         val result1 = saveService.saveModule(flowGraph1, tempDir)
         assertTrue(result1.success)
 
-        // Move the node
         val movedNode = node1.copy(position = Node.Position(500.0, 600.0))
         val flowGraph2 = createTestFlowGraph("PositionTest", listOf(movedNode))
 
-        // Re-save
         val result2 = saveService.saveModule(flowGraph2, tempDir)
 
-        // Then
         assertTrue(result2.success)
         val flowKtFile = File(result2.moduleDir, "PositionTest.flow.kt")
         val content = flowKtFile.readText()
@@ -427,7 +402,6 @@ class ModuleSaveServiceTest {
 
     @Test
     fun `re-save updates flow kt when connection added`() {
-        // Given - two nodes, no connection initially
         val node1 = createTestCodeNode("node1", "Source", CodeNodeType.GENERATOR)
         val node2 = createTestCodeNode("node2", "Target", CodeNodeType.SINK)
         val flowGraph1 = FlowGraph(
@@ -439,11 +413,9 @@ class ModuleSaveServiceTest {
         )
         val saveService = ModuleSaveService()
 
-        // First save
         val result1 = saveService.saveModule(flowGraph1, tempDir)
         assertTrue(result1.success)
 
-        // Add connection
         val connection = Connection(
             id = "conn_1",
             sourceNodeId = "node1",
@@ -453,10 +425,8 @@ class ModuleSaveServiceTest {
         )
         val flowGraph2 = flowGraph1.copy(connections = listOf(connection))
 
-        // Re-save
         val result2 = saveService.saveModule(flowGraph2, tempDir)
 
-        // Then
         assertTrue(result2.success)
         val flowKtFile = File(result2.moduleDir, "ConnectTest.flow.kt")
         val content = flowKtFile.readText()
@@ -464,80 +434,66 @@ class ModuleSaveServiceTest {
             "flow.kt should contain the new connection")
     }
 
+    // ========== Unified saveModule generates runtime files and stubs ==========
+
     @Test
-    fun `saveModule does not generate runtime files`() {
-        // Given
-        val flowGraph = createTestFlowGraph("SaveOnly")
+    fun `saveModule generates all 5 runtime files`() {
+        val flowGraph = createTestFlowGraph("FullSave")
         val saveService = ModuleSaveService()
 
-        // When
         val result = saveService.saveModule(flowGraph, tempDir)
 
-        // Then
         assertTrue(result.success)
-        val generatedDir = File(result.moduleDir, "src/commonMain/kotlin/io/codenode/saveonly/generated")
-        // Generated directory exists (created by directory structure) but should be empty
-        val generatedFiles = generatedDir.listFiles()?.filter { it.isFile } ?: emptyList()
-        assertTrue(generatedFiles.isEmpty(),
-            "saveModule should not generate runtime files")
+        val generatedDir = File(result.moduleDir, "src/commonMain/kotlin/io/codenode/fullsave/generated")
+        val expectedFiles = listOf(
+            "FullSaveFlow.kt",
+            "FullSaveController.kt",
+            "FullSaveControllerInterface.kt",
+            "FullSaveControllerAdapter.kt",
+            "FullSaveViewModel.kt"
+        )
+        for (fileName in expectedFiles) {
+            val file = File(generatedDir, fileName)
+            assertTrue(file.exists(), "$fileName should exist in generated directory")
+            assertTrue(file.readText().isNotBlank(), "$fileName should not be empty")
+        }
     }
 
     @Test
-    fun `saveModule does not generate ProcessingLogic stubs`() {
-        // Given
-        val flowGraph = createTestFlowGraph("SaveOnly")
+    fun `saveModule generates ProcessingLogic stubs`() {
+        val flowGraph = createTestFlowGraph("StubTest")
         val saveService = ModuleSaveService()
 
-        // When
         val result = saveService.saveModule(flowGraph, tempDir)
 
-        // Then
         assertTrue(result.success)
-        val processingLogicDir = File(result.moduleDir, "src/commonMain/kotlin/io/codenode/saveonly/processingLogic")
-        val stubFiles = processingLogicDir.listFiles()?.filter { it.isFile } ?: emptyList()
-        assertTrue(stubFiles.isEmpty(),
-            "saveModule should not generate ProcessingLogic stubs")
-    }
-
-    // ========== T036/T037: ProcessingLogic Stub Generation (via compileModule) ==========
-
-    @Test
-    fun `T036 - compileModule generates ProcessingLogic stub for CodeNode`() {
-        // Given
-        val flowGraph = createTestFlowGraph("TestModule")
-        val saveService = ModuleSaveService()
-
-        // When
-        val result = saveService.compileModule(flowGraph, tempDir)
-
-        // Then
-        assertTrue(result.success)
-        val packageDir = File(result.moduleDir, "src/commonMain/kotlin/io/codenode/testmodule/processingLogic")
+        val packageDir = File(result.moduleDir, "src/commonMain/kotlin/io/codenode/stubtest/processingLogic")
         val stubFile = File(packageDir, "ProcessorProcessLogic.kt")
         assertTrue(stubFile.exists(), "ProcessingLogic stub should be created for CodeNode")
-    }
-
-    @Test
-    fun `T036 - stub file contains ProcessingLogic implementation`() {
-        // Given
-        val flowGraph = createTestFlowGraph("TestModule")
-        val saveService = ModuleSaveService()
-
-        // When
-        val result = saveService.compileModule(flowGraph, tempDir)
-
-        // Then
-        assertTrue(result.success)
-        val packageDir = File(result.moduleDir, "src/commonMain/kotlin/io/codenode/testmodule/processingLogic")
-        val stubFile = File(packageDir, "ProcessorProcessLogic.kt")
         val content = stubFile.readText()
         assertTrue(content.contains("Tick"), "Stub should contain tick type alias reference")
         assertTrue(content.contains("TODO"), "Stub should have TODO placeholder")
     }
 
     @Test
-    fun `T037 - compileModule generates stub for each CodeNode`() {
-        // Given
+    fun `saveModule generates state properties files`() {
+        val flowGraph = createStopWatchFlowGraph()
+        val saveService = ModuleSaveService()
+
+        val result = saveService.saveModule(flowGraph, tempDir)
+
+        assertTrue(result.success)
+        val statePropsDir = File(result.moduleDir, "src/commonMain/kotlin/io/codenode/stopwatch4/stateProperties")
+        assertTrue(File(statePropsDir, "TimerEmitterStateProperties.kt").exists(),
+            "TimerEmitterStateProperties.kt should be generated")
+        assertTrue(File(statePropsDir, "DisplayReceiverStateProperties.kt").exists(),
+            "DisplayReceiverStateProperties.kt should be generated")
+    }
+
+    // ========== ProcessingLogic Stub Generation ==========
+
+    @Test
+    fun `saveModule generates stub for each CodeNode`() {
         val node1 = CodeNode(
             id = "node1",
             name = "FirstNode",
@@ -578,26 +534,21 @@ class ModuleSaveServiceTest {
         )
         val saveService = ModuleSaveService()
 
-        // When
-        val result = saveService.compileModule(flowGraph, tempDir)
+        val result = saveService.saveModule(flowGraph, tempDir)
 
-        // Then
         assertTrue(result.success)
         val packageDir = File(result.moduleDir, "src/commonMain/kotlin/io/codenode/multinodetest/processingLogic")
-        val stub1 = File(packageDir, "FirstNodeProcessLogic.kt")
-        val stub2 = File(packageDir, "SecondNodeProcessLogic.kt")
-        assertTrue(stub1.exists(), "Stub for FirstNode should be created")
-        assertTrue(stub2.exists(), "Stub for SecondNode should be created")
+        assertTrue(File(packageDir, "FirstNodeProcessLogic.kt").exists(), "Stub for FirstNode should be created")
+        assertTrue(File(packageDir, "SecondNodeProcessLogic.kt").exists(), "Stub for SecondNode should be created")
     }
 
     @Test
-    fun `T037 - compileModule does not overwrite existing stub files`() {
-        // Given
+    fun `saveModule does not overwrite existing stub files`() {
         val flowGraph = createTestFlowGraph("TestModule")
         val saveService = ModuleSaveService()
 
-        // First compile
-        val result1 = saveService.compileModule(flowGraph, tempDir)
+        // First save
+        val result1 = saveService.saveModule(flowGraph, tempDir)
         assertTrue(result1.success)
 
         // Modify the stub file
@@ -606,29 +557,25 @@ class ModuleSaveServiceTest {
         val userImplementation = "// USER IMPLEMENTATION - DO NOT OVERWRITE\n" + stubFile.readText()
         stubFile.writeText(userImplementation)
 
-        // Second compile
-        val result2 = saveService.compileModule(flowGraph, tempDir)
+        // Re-save
+        val result2 = saveService.saveModule(flowGraph, tempDir)
 
-        // Then
         assertTrue(result2.success)
         val content = stubFile.readText()
         assertTrue(content.startsWith("// USER IMPLEMENTATION"),
             "Existing stub file should not be overwritten")
     }
 
-    // ========== T045: Preserve Existing ProcessingLogic Files on Re-compile ==========
+    // ========== Preserve Existing Files on Re-save ==========
 
     @Test
-    fun `T045 - re-compile preserves user implementation in ProcessingLogic files`() {
-        // Given
+    fun `re-save preserves user implementation in ProcessingLogic files`() {
         val flowGraph = createTestFlowGraph("IncrementalTest")
         val saveService = ModuleSaveService()
 
-        // First compile - creates stub
-        val result1 = saveService.compileModule(flowGraph, tempDir)
+        val result1 = saveService.saveModule(flowGraph, tempDir)
         assertTrue(result1.success)
 
-        // User implements the ProcessingLogic
         val packageDir = File(result1.moduleDir, "src/commonMain/kotlin/io/codenode/incrementaltest/processingLogic")
         val stubFile = File(packageDir, "ProcessorProcessLogic.kt")
         val userImplementation = """
@@ -643,31 +590,26 @@ class ModuleSaveServiceTest {
         """.trimIndent()
         stubFile.writeText(userImplementation)
 
-        // Re-compile the same FlowGraph
-        val result2 = saveService.compileModule(flowGraph, tempDir)
+        val result2 = saveService.saveModule(flowGraph, tempDir)
 
-        // Then - user implementation should be preserved
         assertTrue(result2.success)
         val content = stubFile.readText()
         assertTrue(content.contains("USER IMPLEMENTED CODE - MUST BE PRESERVED"),
-            "User implementation should be preserved on re-compile")
+            "User implementation should be preserved on re-save")
         assertTrue(content.contains("customField"),
             "User's custom fields should be preserved")
     }
 
     @Test
-    fun `T045 - re-compile preserves multiple ProcessingLogic files`() {
-        // Given
+    fun `re-save preserves multiple ProcessingLogic files`() {
         val node1 = createTestCodeNode("node1", "Generator", CodeNodeType.GENERATOR)
         val node2 = createTestCodeNode("node2", "Processor", CodeNodeType.TRANSFORMER)
         val flowGraph = createTestFlowGraph("MultiNode", listOf(node1, node2))
         val saveService = ModuleSaveService()
 
-        // First compile
-        val result1 = saveService.compileModule(flowGraph, tempDir)
+        val result1 = saveService.saveModule(flowGraph, tempDir)
         assertTrue(result1.success)
 
-        // User implements both files
         val packageDir = File(result1.moduleDir, "src/commonMain/kotlin/io/codenode/multinode/processingLogic")
         val file1 = File(packageDir, "GeneratorProcessLogic.kt")
         val file2 = File(packageDir, "ProcessorProcessLogic.kt")
@@ -677,10 +619,8 @@ class ModuleSaveServiceTest {
         file1.writeText(impl1)
         file2.writeText(impl2)
 
-        // Re-compile
-        val result2 = saveService.compileModule(flowGraph, tempDir)
+        val result2 = saveService.saveModule(flowGraph, tempDir)
 
-        // Then
         assertTrue(result2.success)
         assertTrue(file1.readText().contains("GENERATOR IMPL v1.0"),
             "GeneratorProcessLogic should be preserved")
@@ -688,40 +628,31 @@ class ModuleSaveServiceTest {
             "ProcessorProcessLogic should be preserved")
     }
 
-    // ========== T046: Generate Stubs Only for NEW Nodes ==========
+    // ========== Generate Stubs Only for NEW Nodes ==========
 
     @Test
-    fun `T046 - re-compile generates stub only for new node`() {
-        // Given - initial flow with one node
+    fun `re-save generates stub only for new node`() {
         val node1 = createTestCodeNode("node1", "ExistingNode", CodeNodeType.TRANSFORMER)
         val flowGraph1 = createTestFlowGraph("ExpandingFlow", listOf(node1))
         val saveService = ModuleSaveService()
 
-        // First compile
-        val result1 = saveService.compileModule(flowGraph1, tempDir)
+        val result1 = saveService.saveModule(flowGraph1, tempDir)
         assertTrue(result1.success)
 
-        // User implements the first node
         val packageDir = File(result1.moduleDir, "src/commonMain/kotlin/io/codenode/expandingflow/processingLogic")
         val existingStub = File(packageDir, "ExistingNodeProcessLogic.kt")
         val userImpl = "// USER IMPLEMENTED\n" + existingStub.readText()
         existingStub.writeText(userImpl)
 
-        // Add a new node to the flow
         val node2 = createTestCodeNode("node2", "NewNode", CodeNodeType.SINK)
         val flowGraph2 = createTestFlowGraph("ExpandingFlow", listOf(node1, node2))
 
-        // Re-compile with new node
-        val result2 = saveService.compileModule(flowGraph2, tempDir)
+        val result2 = saveService.saveModule(flowGraph2, tempDir)
 
-        // Then
         assertTrue(result2.success)
-
-        // Existing node's implementation preserved
         assertTrue(existingStub.readText().contains("USER IMPLEMENTED"),
             "Existing node implementation should be preserved")
 
-        // New node gets a stub
         val newStub = File(packageDir, "NewNodeProcessLogic.kt")
         assertTrue(newStub.exists(), "New node should get a stub file")
         assertTrue(newStub.readText().contains("TODO"),
@@ -729,26 +660,21 @@ class ModuleSaveServiceTest {
     }
 
     @Test
-    fun `T046 - filesCreated only includes newly created files on re-compile`() {
-        // Given
+    fun `filesCreated only includes newly created files on re-save`() {
         val node1 = createTestCodeNode("node1", "FirstNode", CodeNodeType.GENERATOR)
         val flowGraph1 = createTestFlowGraph("TrackFiles", listOf(node1))
         val saveService = ModuleSaveService()
 
-        // First compile
-        val result1 = saveService.compileModule(flowGraph1, tempDir)
+        val result1 = saveService.saveModule(flowGraph1, tempDir)
         assertTrue(result1.success)
         assertTrue(result1.filesCreated.any { it.contains("FirstNodeProcessLogic.kt") },
-            "First compile should report FirstNodeProcessLogic as created")
+            "First save should report FirstNodeProcessLogic as created")
 
-        // Add second node
         val node2 = createTestCodeNode("node2", "SecondNode", CodeNodeType.SINK)
         val flowGraph2 = createTestFlowGraph("TrackFiles", listOf(node1, node2))
 
-        // Re-compile
-        val result2 = saveService.compileModule(flowGraph2, tempDir)
+        val result2 = saveService.saveModule(flowGraph2, tempDir)
 
-        // Then - only new file should be in filesCreated
         assertTrue(result2.success)
         assertFalse(result2.filesCreated.any { it.contains("FirstNodeProcessLogic.kt") },
             "Existing FirstNodeProcessLogic should not be in filesCreated")
@@ -756,342 +682,38 @@ class ModuleSaveServiceTest {
             "New SecondNodeProcessLogic should be in filesCreated")
     }
 
-    // ========== T047: Warning When Node Removed (Orphaned ProcessingLogic) ==========
+    // ========== Orphan Deletion (replaces warn-only behavior) ==========
 
     @Test
-    fun `T047 - re-compile warns about orphaned ProcessingLogic when node removed`() {
-        // Given - initial flow with two nodes
+    fun `re-save deletes orphaned ProcessingLogic when node removed`() {
         val node1 = createTestCodeNode("node1", "KeptNode", CodeNodeType.GENERATOR)
         val node2 = createTestCodeNode("node2", "RemovedNode", CodeNodeType.SINK)
         val flowGraph1 = createTestFlowGraph("ShrinkingFlow", listOf(node1, node2))
         val saveService = ModuleSaveService()
 
-        // First compile
-        val result1 = saveService.compileModule(flowGraph1, tempDir)
+        val result1 = saveService.saveModule(flowGraph1, tempDir)
         assertTrue(result1.success)
 
-        // User implements both
         val packageDir = File(result1.moduleDir, "src/commonMain/kotlin/io/codenode/shrinkingflow/processingLogic")
         val keptFile = File(packageDir, "KeptNodeProcessLogic.kt")
         val removedFile = File(packageDir, "RemovedNodeProcessLogic.kt")
-        keptFile.writeText("// User impl kept\n" + keptFile.readText())
-        removedFile.writeText("// User impl removed\n" + removedFile.readText())
+        assertTrue(keptFile.exists(), "KeptNode stub should exist after first save")
+        assertTrue(removedFile.exists(), "RemovedNode stub should exist after first save")
 
         // Remove node2 from flow
         val flowGraph2 = createTestFlowGraph("ShrinkingFlow", listOf(node1))
 
-        // Re-compile without node2
-        val result2 = saveService.compileModule(flowGraph2, tempDir)
+        val result2 = saveService.saveModule(flowGraph2, tempDir)
 
-        // Then
-        assertTrue(result2.success, "Compile should still succeed")
-        assertTrue(result2.warnings.isNotEmpty(), "Should have warnings about orphaned file")
-        assertTrue(result2.warnings.any { it.contains("RemovedNodeProcessLogic") },
-            "Warning should mention the orphaned component")
-    }
-
-    @Test
-    fun `T047 - orphaned ProcessingLogic file is not deleted`() {
-        // Given
-        val node1 = createTestCodeNode("node1", "Active", CodeNodeType.TRANSFORMER)
-        val node2 = createTestCodeNode("node2", "ToRemove", CodeNodeType.SINK)
-        val flowGraph1 = createTestFlowGraph("SafeDelete", listOf(node1, node2))
-        val saveService = ModuleSaveService()
-
-        // First compile
-        val result1 = saveService.compileModule(flowGraph1, tempDir)
-        assertTrue(result1.success)
-
-        // Implement the file that will become orphaned
-        val packageDir = File(result1.moduleDir, "src/commonMain/kotlin/io/codenode/safedelete/processingLogic")
-        val orphanedFile = File(packageDir, "ToRemoveProcessLogic.kt")
-        orphanedFile.writeText("// IMPORTANT USER CODE - DO NOT DELETE\n" + orphanedFile.readText())
-
-        // Remove node from flow
-        val flowGraph2 = createTestFlowGraph("SafeDelete", listOf(node1))
-
-        // Re-compile
-        val result2 = saveService.compileModule(flowGraph2, tempDir)
-
-        // Then - orphaned file should NOT be deleted
         assertTrue(result2.success)
-        assertTrue(orphanedFile.exists(), "Orphaned file should not be automatically deleted")
-        assertTrue(orphanedFile.readText().contains("IMPORTANT USER CODE"),
-            "Orphaned file content should be preserved")
-    }
-
-    // ========== State Properties File Generation (via compileModule) ==========
-
-    private fun createStopWatchFlowGraph(): FlowGraph {
-        val timerEmitter = CodeNode(
-            id = "timer",
-            name = "TimerEmitter",
-            codeNodeType = CodeNodeType.GENERATOR,
-            position = Node.Position(100.0, 100.0),
-            inputPorts = emptyList(),
-            outputPorts = listOf(
-                Port(id = "timer_sec", name = "elapsedSeconds", direction = Port.Direction.OUTPUT, dataType = Int::class, owningNodeId = "timer"),
-                Port(id = "timer_min", name = "elapsedMinutes", direction = Port.Direction.OUTPUT, dataType = Int::class, owningNodeId = "timer")
-            )
-        )
-        val displayReceiver = CodeNode(
-            id = "display",
-            name = "DisplayReceiver",
-            codeNodeType = CodeNodeType.SINK,
-            position = Node.Position(400.0, 100.0),
-            inputPorts = listOf(
-                Port(id = "display_sec", name = "seconds", direction = Port.Direction.INPUT, dataType = Int::class, owningNodeId = "display"),
-                Port(id = "display_min", name = "minutes", direction = Port.Direction.INPUT, dataType = Int::class, owningNodeId = "display")
-            ),
-            outputPorts = emptyList()
-        )
-        return FlowGraph(
-            id = "flow_stopwatch",
-            name = "StopWatch4",
-            version = "1.0.0",
-            rootNodes = listOf(timerEmitter, displayReceiver),
-            connections = listOf(
-                Connection("c1", "timer", "timer_sec", "display", "display_sec"),
-                Connection("c2", "timer", "timer_min", "display", "display_min")
-            )
-        )
+        assertTrue(keptFile.exists(), "KeptNode stub should still exist")
+        assertFalse(removedFile.exists(), "Orphaned RemovedNode stub should be deleted")
+        assertTrue(result2.filesDeleted.any { it.contains("RemovedNodeProcessLogic.kt") },
+            "filesDeleted should include the orphaned file")
     }
 
     @Test
-    fun `compileModule creates stateProperties directory`() {
-        // Given
-        val flowGraph = createStopWatchFlowGraph()
-        val saveService = ModuleSaveService()
-
-        // When
-        val result = saveService.compileModule(flowGraph, tempDir)
-
-        // Then
-        assertTrue(result.success)
-        val statePropsDir = File(result.moduleDir, "src/commonMain/kotlin/io/codenode/stopwatch4/stateProperties")
-        assertTrue(statePropsDir.exists(), "stateProperties directory should be created")
-        assertTrue(statePropsDir.isDirectory, "stateProperties path should be a directory")
-    }
-
-    @Test
-    fun `compileModule generates state properties files for StopWatch nodes`() {
-        // Given
-        val flowGraph = createStopWatchFlowGraph()
-        val saveService = ModuleSaveService()
-
-        // When
-        val result = saveService.compileModule(flowGraph, tempDir)
-
-        // Then
-        assertTrue(result.success)
-        val statePropsDir = File(result.moduleDir, "src/commonMain/kotlin/io/codenode/stopwatch4/stateProperties")
-
-        val timerFile = File(statePropsDir, "TimerEmitterStateProperties.kt")
-        val displayFile = File(statePropsDir, "DisplayReceiverStateProperties.kt")
-
-        assertTrue(timerFile.exists(), "TimerEmitterStateProperties.kt should be generated")
-        assertTrue(displayFile.exists(), "DisplayReceiverStateProperties.kt should be generated")
-    }
-
-    @Test
-    fun `state properties file contains MutableStateFlow for output ports`() {
-        // Given
-        val flowGraph = createStopWatchFlowGraph()
-        val saveService = ModuleSaveService()
-
-        // When
-        val result = saveService.compileModule(flowGraph, tempDir)
-
-        // Then
-        assertTrue(result.success)
-        val statePropsDir = File(result.moduleDir, "src/commonMain/kotlin/io/codenode/stopwatch4/stateProperties")
-        val timerContent = File(statePropsDir, "TimerEmitterStateProperties.kt").readText()
-
-        assertTrue(timerContent.contains("object TimerEmitterStateProperties"),
-            "Should contain object declaration")
-        assertTrue(timerContent.contains("internal val _elapsedSeconds = MutableStateFlow(0)"),
-            "Should contain MutableStateFlow for elapsedSeconds")
-        assertTrue(timerContent.contains("val elapsedSecondsFlow: StateFlow<Int>"),
-            "Should contain StateFlow accessor for elapsedSeconds")
-        assertTrue(timerContent.contains("internal val _elapsedMinutes = MutableStateFlow(0)"),
-            "Should contain MutableStateFlow for elapsedMinutes")
-    }
-
-    @Test
-    fun `state properties file contains MutableStateFlow for input ports`() {
-        // Given
-        val flowGraph = createStopWatchFlowGraph()
-        val saveService = ModuleSaveService()
-
-        // When
-        val result = saveService.compileModule(flowGraph, tempDir)
-
-        // Then
-        assertTrue(result.success)
-        val statePropsDir = File(result.moduleDir, "src/commonMain/kotlin/io/codenode/stopwatch4/stateProperties")
-        val displayContent = File(statePropsDir, "DisplayReceiverStateProperties.kt").readText()
-
-        assertTrue(displayContent.contains("object DisplayReceiverStateProperties"),
-            "Should contain object declaration")
-        assertTrue(displayContent.contains("internal val _seconds = MutableStateFlow(0)"),
-            "Should contain MutableStateFlow for seconds input")
-        assertTrue(displayContent.contains("val secondsFlow: StateFlow<Int>"),
-            "Should contain StateFlow accessor for seconds")
-        assertTrue(displayContent.contains("internal val _minutes = MutableStateFlow(0)"),
-            "Should contain MutableStateFlow for minutes input")
-    }
-
-    @Test
-    fun `state properties file contains reset method`() {
-        // Given
-        val flowGraph = createStopWatchFlowGraph()
-        val saveService = ModuleSaveService()
-
-        // When
-        val result = saveService.compileModule(flowGraph, tempDir)
-
-        // Then
-        assertTrue(result.success)
-        val statePropsDir = File(result.moduleDir, "src/commonMain/kotlin/io/codenode/stopwatch4/stateProperties")
-        val timerContent = File(statePropsDir, "TimerEmitterStateProperties.kt").readText()
-
-        assertTrue(timerContent.contains("fun reset()"), "Should contain reset method")
-        assertTrue(timerContent.contains("_elapsedSeconds.value = 0"), "Should reset elapsedSeconds")
-        assertTrue(timerContent.contains("_elapsedMinutes.value = 0"), "Should reset elapsedMinutes")
-    }
-
-    @Test
-    fun `compileModule does not generate state properties for portless nodes`() {
-        // Given - a node with no ports
-        val portlessNode = CodeNode(
-            id = "empty",
-            name = "EmptyNode",
-            codeNodeType = CodeNodeType.TRANSFORMER,
-            position = Node.Position(0.0, 0.0),
-            inputPorts = emptyList(),
-            outputPorts = emptyList()
-        )
-        val nodeWithPorts = createTestCodeNode("node1", "HasPorts")
-        val flowGraph = FlowGraph(
-            id = "flow_portless",
-            name = "PortlessTest",
-            version = "1.0.0",
-            rootNodes = listOf(portlessNode, nodeWithPorts)
-        )
-        val saveService = ModuleSaveService()
-
-        // When
-        val result = saveService.compileModule(flowGraph, tempDir)
-
-        // Then
-        assertTrue(result.success)
-        val statePropsDir = File(result.moduleDir, "src/commonMain/kotlin/io/codenode/portlesstest/stateProperties")
-
-        val emptyNodeFile = File(statePropsDir, "EmptyNodeStateProperties.kt")
-        assertFalse(emptyNodeFile.exists(), "No state properties file for portless node")
-
-        val hasPortsFile = File(statePropsDir, "HasPortsStateProperties.kt")
-        assertTrue(hasPortsFile.exists(), "State properties file should exist for node with ports")
-    }
-
-    @Test
-    fun `compileModule does not overwrite existing state properties files`() {
-        // Given
-        val flowGraph = createStopWatchFlowGraph()
-        val saveService = ModuleSaveService()
-
-        // First compile
-        val result1 = saveService.compileModule(flowGraph, tempDir)
-        assertTrue(result1.success)
-
-        // Modify the state properties file
-        val statePropsDir = File(result1.moduleDir, "src/commonMain/kotlin/io/codenode/stopwatch4/stateProperties")
-        val timerFile = File(statePropsDir, "TimerEmitterStateProperties.kt")
-        val userModification = "// USER MODIFIED\n" + timerFile.readText()
-        timerFile.writeText(userModification)
-
-        // Re-compile
-        val result2 = saveService.compileModule(flowGraph, tempDir)
-
-        // Then
-        assertTrue(result2.success)
-        val content = timerFile.readText()
-        assertTrue(content.startsWith("// USER MODIFIED"),
-            "State properties file should not be overwritten")
-    }
-
-    @Test
-    fun `filesCreated includes state properties files`() {
-        // Given
-        val flowGraph = createStopWatchFlowGraph()
-        val saveService = ModuleSaveService()
-
-        // When
-        val result = saveService.compileModule(flowGraph, tempDir)
-
-        // Then
-        assertTrue(result.success)
-        assertTrue(result.filesCreated.any { it.contains("TimerEmitterStateProperties.kt") },
-            "filesCreated should include TimerEmitterStateProperties.kt")
-        assertTrue(result.filesCreated.any { it.contains("DisplayReceiverStateProperties.kt") },
-            "filesCreated should include DisplayReceiverStateProperties.kt")
-    }
-
-    // ========== State Properties Re-compile Preservation & Orphan Detection ==========
-
-    @Test
-    fun `re-compile generates state properties only for new nodes`() {
-        // Given - initial flow with one node
-        val timerEmitter = CodeNode(
-            id = "timer", name = "TimerEmitter", codeNodeType = CodeNodeType.GENERATOR,
-            position = Node.Position(100.0, 100.0),
-            inputPorts = emptyList(),
-            outputPorts = listOf(
-                Port(id = "timer_sec", name = "elapsedSeconds", direction = Port.Direction.OUTPUT, dataType = Int::class, owningNodeId = "timer")
-            )
-        )
-        val flowGraph1 = FlowGraph(id = "flow_1", name = "ExpandFlow", version = "1.0.0", rootNodes = listOf(timerEmitter))
-        val saveService = ModuleSaveService()
-
-        // First compile
-        val result1 = saveService.compileModule(flowGraph1, tempDir)
-        assertTrue(result1.success)
-
-        // Modify the existing state properties file
-        val statePropsDir = File(result1.moduleDir, "src/commonMain/kotlin/io/codenode/expandflow/stateProperties")
-        val timerFile = File(statePropsDir, "TimerEmitterStateProperties.kt")
-        val userModified = "// USER MODIFIED\n" + timerFile.readText()
-        timerFile.writeText(userModified)
-
-        // Add a new node
-        val displayReceiver = CodeNode(
-            id = "display", name = "DisplayReceiver", codeNodeType = CodeNodeType.SINK,
-            position = Node.Position(400.0, 100.0),
-            inputPorts = listOf(
-                Port(id = "display_sec", name = "seconds", direction = Port.Direction.INPUT, dataType = Int::class, owningNodeId = "display")
-            ),
-            outputPorts = emptyList()
-        )
-        val flowGraph2 = FlowGraph(id = "flow_1", name = "ExpandFlow", version = "1.0.0", rootNodes = listOf(timerEmitter, displayReceiver))
-
-        // Re-compile
-        val result2 = saveService.compileModule(flowGraph2, tempDir)
-
-        // Then
-        assertTrue(result2.success)
-        // Existing file preserved
-        assertTrue(timerFile.readText().startsWith("// USER MODIFIED"),
-            "Existing state properties should not be overwritten")
-        // New node gets fresh file
-        val displayFile = File(statePropsDir, "DisplayReceiverStateProperties.kt")
-        assertTrue(displayFile.exists(), "New node should get a state properties file")
-        assertTrue(displayFile.readText().contains("object DisplayReceiverStateProperties"),
-            "New state properties file should contain object declaration")
-    }
-
-    @Test
-    fun `re-compile warns about orphaned state properties when node removed`() {
-        // Given - initial flow with two nodes
+    fun `re-save deletes orphaned StateProperties when node removed`() {
         val timerEmitter = CodeNode(
             id = "timer", name = "TimerEmitter", codeNodeType = CodeNodeType.GENERATOR,
             position = Node.Position(100.0, 100.0),
@@ -1111,25 +733,140 @@ class ModuleSaveServiceTest {
         val flowGraph1 = FlowGraph(id = "flow_1", name = "ShrinkFlow", version = "1.0.0", rootNodes = listOf(timerEmitter, displayReceiver))
         val saveService = ModuleSaveService()
 
-        // First compile
-        val result1 = saveService.compileModule(flowGraph1, tempDir)
+        val result1 = saveService.saveModule(flowGraph1, tempDir)
         assertTrue(result1.success)
+
+        val statePropsDir = File(result1.moduleDir, "src/commonMain/kotlin/io/codenode/shrinkflow/stateProperties")
+        val timerFile = File(statePropsDir, "TimerEmitterStateProperties.kt")
+        val displayFile = File(statePropsDir, "DisplayReceiverStateProperties.kt")
+        assertTrue(timerFile.exists())
+        assertTrue(displayFile.exists())
 
         // Remove displayReceiver from flow
         val flowGraph2 = FlowGraph(id = "flow_1", name = "ShrinkFlow", version = "1.0.0", rootNodes = listOf(timerEmitter))
 
-        // Re-compile
-        val result2 = saveService.compileModule(flowGraph2, tempDir)
+        val result2 = saveService.saveModule(flowGraph2, tempDir)
 
-        // Then
         assertTrue(result2.success)
-        assertTrue(result2.warnings.any { it.contains("DisplayReceiverStateProperties") },
-            "Should warn about orphaned DisplayReceiverStateProperties")
+        assertTrue(timerFile.exists(), "Kept node state properties should still exist")
+        assertFalse(displayFile.exists(), "Orphaned state properties should be deleted")
+        assertTrue(result2.filesDeleted.any { it.contains("DisplayReceiverStateProperties.kt") },
+            "filesDeleted should include the orphaned state properties file")
+    }
+
+    // ========== State Properties Content ==========
+
+    @Test
+    fun `state properties file contains MutableStateFlow for output ports`() {
+        val flowGraph = createStopWatchFlowGraph()
+        val saveService = ModuleSaveService()
+
+        val result = saveService.saveModule(flowGraph, tempDir)
+
+        assertTrue(result.success)
+        val statePropsDir = File(result.moduleDir, "src/commonMain/kotlin/io/codenode/stopwatch4/stateProperties")
+        val timerContent = File(statePropsDir, "TimerEmitterStateProperties.kt").readText()
+
+        assertTrue(timerContent.contains("object TimerEmitterStateProperties"),
+            "Should contain object declaration")
+        assertTrue(timerContent.contains("internal val _elapsedSeconds = MutableStateFlow(0)"),
+            "Should contain MutableStateFlow for elapsedSeconds")
+        assertTrue(timerContent.contains("val elapsedSecondsFlow: StateFlow<Int>"),
+            "Should contain StateFlow accessor for elapsedSeconds")
+        assertTrue(timerContent.contains("internal val _elapsedMinutes = MutableStateFlow(0)"),
+            "Should contain MutableStateFlow for elapsedMinutes")
     }
 
     @Test
-    fun `orphaned state properties file is not deleted`() {
-        // Given
+    fun `state properties file contains MutableStateFlow for input ports`() {
+        val flowGraph = createStopWatchFlowGraph()
+        val saveService = ModuleSaveService()
+
+        val result = saveService.saveModule(flowGraph, tempDir)
+
+        assertTrue(result.success)
+        val statePropsDir = File(result.moduleDir, "src/commonMain/kotlin/io/codenode/stopwatch4/stateProperties")
+        val displayContent = File(statePropsDir, "DisplayReceiverStateProperties.kt").readText()
+
+        assertTrue(displayContent.contains("object DisplayReceiverStateProperties"),
+            "Should contain object declaration")
+        assertTrue(displayContent.contains("internal val _seconds = MutableStateFlow(0)"),
+            "Should contain MutableStateFlow for seconds input")
+        assertTrue(displayContent.contains("val secondsFlow: StateFlow<Int>"),
+            "Should contain StateFlow accessor for seconds")
+        assertTrue(displayContent.contains("internal val _minutes = MutableStateFlow(0)"),
+            "Should contain MutableStateFlow for minutes input")
+    }
+
+    @Test
+    fun `state properties file contains reset method`() {
+        val flowGraph = createStopWatchFlowGraph()
+        val saveService = ModuleSaveService()
+
+        val result = saveService.saveModule(flowGraph, tempDir)
+
+        assertTrue(result.success)
+        val statePropsDir = File(result.moduleDir, "src/commonMain/kotlin/io/codenode/stopwatch4/stateProperties")
+        val timerContent = File(statePropsDir, "TimerEmitterStateProperties.kt").readText()
+
+        assertTrue(timerContent.contains("fun reset()"), "Should contain reset method")
+        assertTrue(timerContent.contains("_elapsedSeconds.value = 0"), "Should reset elapsedSeconds")
+        assertTrue(timerContent.contains("_elapsedMinutes.value = 0"), "Should reset elapsedMinutes")
+    }
+
+    @Test
+    fun `saveModule does not generate state properties for portless nodes`() {
+        val portlessNode = CodeNode(
+            id = "empty",
+            name = "EmptyNode",
+            codeNodeType = CodeNodeType.TRANSFORMER,
+            position = Node.Position(0.0, 0.0),
+            inputPorts = emptyList(),
+            outputPorts = emptyList()
+        )
+        val nodeWithPorts = createTestCodeNode("node1", "HasPorts")
+        val flowGraph = FlowGraph(
+            id = "flow_portless",
+            name = "PortlessTest",
+            version = "1.0.0",
+            rootNodes = listOf(portlessNode, nodeWithPorts)
+        )
+        val saveService = ModuleSaveService()
+
+        val result = saveService.saveModule(flowGraph, tempDir)
+
+        assertTrue(result.success)
+        val statePropsDir = File(result.moduleDir, "src/commonMain/kotlin/io/codenode/portlesstest/stateProperties")
+
+        assertFalse(File(statePropsDir, "EmptyNodeStateProperties.kt").exists(),
+            "No state properties file for portless node")
+        assertTrue(File(statePropsDir, "HasPortsStateProperties.kt").exists(),
+            "State properties file should exist for node with ports")
+    }
+
+    @Test
+    fun `saveModule does not overwrite existing state properties files`() {
+        val flowGraph = createStopWatchFlowGraph()
+        val saveService = ModuleSaveService()
+
+        val result1 = saveService.saveModule(flowGraph, tempDir)
+        assertTrue(result1.success)
+
+        val statePropsDir = File(result1.moduleDir, "src/commonMain/kotlin/io/codenode/stopwatch4/stateProperties")
+        val timerFile = File(statePropsDir, "TimerEmitterStateProperties.kt")
+        val userModification = "// USER MODIFIED\n" + timerFile.readText()
+        timerFile.writeText(userModification)
+
+        val result2 = saveService.saveModule(flowGraph, tempDir)
+
+        assertTrue(result2.success)
+        val content = timerFile.readText()
+        assertTrue(content.startsWith("// USER MODIFIED"),
+            "State properties file should not be overwritten")
+    }
+
+    @Test
+    fun `re-save generates state properties only for new nodes`() {
         val timerEmitter = CodeNode(
             id = "timer", name = "TimerEmitter", codeNodeType = CodeNodeType.GENERATOR,
             position = Node.Position(100.0, 100.0),
@@ -1138,6 +875,17 @@ class ModuleSaveServiceTest {
                 Port(id = "timer_sec", name = "elapsedSeconds", direction = Port.Direction.OUTPUT, dataType = Int::class, owningNodeId = "timer")
             )
         )
+        val flowGraph1 = FlowGraph(id = "flow_1", name = "ExpandFlow", version = "1.0.0", rootNodes = listOf(timerEmitter))
+        val saveService = ModuleSaveService()
+
+        val result1 = saveService.saveModule(flowGraph1, tempDir)
+        assertTrue(result1.success)
+
+        val statePropsDir = File(result1.moduleDir, "src/commonMain/kotlin/io/codenode/expandflow/stateProperties")
+        val timerFile = File(statePropsDir, "TimerEmitterStateProperties.kt")
+        val userModified = "// USER MODIFIED\n" + timerFile.readText()
+        timerFile.writeText(userModified)
+
         val displayReceiver = CodeNode(
             id = "display", name = "DisplayReceiver", codeNodeType = CodeNodeType.SINK,
             position = Node.Position(400.0, 100.0),
@@ -1146,59 +894,23 @@ class ModuleSaveServiceTest {
             ),
             outputPorts = emptyList()
         )
-        val flowGraph1 = FlowGraph(id = "flow_1", name = "SafeFlow", version = "1.0.0", rootNodes = listOf(timerEmitter, displayReceiver))
-        val saveService = ModuleSaveService()
+        val flowGraph2 = FlowGraph(id = "flow_1", name = "ExpandFlow", version = "1.0.0", rootNodes = listOf(timerEmitter, displayReceiver))
 
-        // First compile
-        val result1 = saveService.compileModule(flowGraph1, tempDir)
-        assertTrue(result1.success)
+        val result2 = saveService.saveModule(flowGraph2, tempDir)
 
-        // Modify the file that will become orphaned
-        val statePropsDir = File(result1.moduleDir, "src/commonMain/kotlin/io/codenode/safeflow/stateProperties")
-        val orphanedFile = File(statePropsDir, "DisplayReceiverStateProperties.kt")
-        orphanedFile.writeText("// IMPORTANT USER STATE - DO NOT DELETE\n" + orphanedFile.readText())
-
-        // Remove node from flow
-        val flowGraph2 = FlowGraph(id = "flow_1", name = "SafeFlow", version = "1.0.0", rootNodes = listOf(timerEmitter))
-
-        // Re-compile
-        val result2 = saveService.compileModule(flowGraph2, tempDir)
-
-        // Then - orphaned file should NOT be deleted
         assertTrue(result2.success)
-        assertTrue(orphanedFile.exists(), "Orphaned state properties file should not be deleted")
-        assertTrue(orphanedFile.readText().contains("IMPORTANT USER STATE"),
-            "Orphaned file content should be preserved")
+        assertTrue(timerFile.readText().startsWith("// USER MODIFIED"),
+            "Existing state properties should not be overwritten")
+        val displayFile = File(statePropsDir, "DisplayReceiverStateProperties.kt")
+        assertTrue(displayFile.exists(), "New node should get a state properties file")
+        assertTrue(displayFile.readText().contains("object DisplayReceiverStateProperties"),
+            "New state properties file should contain object declaration")
     }
 
-    @Test
-    fun `filesCreated excludes existing state properties files on re-compile`() {
-        // Given
-        val flowGraph = createStopWatchFlowGraph()
-        val saveService = ModuleSaveService()
-
-        // First compile
-        val result1 = saveService.compileModule(flowGraph, tempDir)
-        assertTrue(result1.success)
-        assertTrue(result1.filesCreated.any { it.contains("TimerEmitterStateProperties.kt") },
-            "First compile should report TimerEmitterStateProperties as created")
-
-        // Re-compile same flow
-        val result2 = saveService.compileModule(flowGraph, tempDir)
-
-        // Then - existing files should not be in filesCreated
-        assertTrue(result2.success)
-        assertFalse(result2.filesCreated.any { it.contains("TimerEmitterStateProperties.kt") },
-            "Existing state properties should not be in filesCreated")
-        assertFalse(result2.filesCreated.any { it.contains("DisplayReceiverStateProperties.kt") },
-            "Existing state properties should not be in filesCreated")
-    }
-
-    // ========== Runtime File Generation (via compileModule) ==========
+    // ========== Runtime File Generation ==========
 
     @Test
-    fun `compileModule creates all 5 runtime files in generated directory`() {
-        // Given
+    fun `saveModule creates all 5 runtime files in generated directory`() {
         val node1 = CodeNode(
             id = "gen1",
             name = "TimerEmitter",
@@ -1230,10 +942,8 @@ class ModuleSaveServiceTest {
         )
         val saveService = ModuleSaveService()
 
-        // When
-        val result = saveService.compileModule(flowGraph, tempDir)
+        val result = saveService.saveModule(flowGraph, tempDir)
 
-        // Then
         assertTrue(result.success)
         val generatedDir = File(result.moduleDir, "src/commonMain/kotlin/io/codenode/runtimetest/generated")
 
@@ -1252,8 +962,7 @@ class ModuleSaveServiceTest {
     }
 
     @Test
-    fun `re-compile overwrites existing runtime files`() {
-        // Given
+    fun `re-save overwrites existing runtime files`() {
         val node1 = CodeNode(
             id = "gen1",
             name = "Source",
@@ -1272,38 +981,140 @@ class ModuleSaveServiceTest {
         )
         val saveService = ModuleSaveService()
 
-        // First compile
-        val result1 = saveService.compileModule(flowGraph1, tempDir)
+        val result1 = saveService.saveModule(flowGraph1, tempDir)
         assertTrue(result1.success)
 
         val generatedDir = File(result1.moduleDir, "src/commonMain/kotlin/io/codenode/overwritetest/generated")
         val flowFile = File(generatedDir, "OverwriteTestFlow.kt")
         val originalContent = flowFile.readText()
-        assertTrue(originalContent.contains("Source"), "First compile should reference Source node")
+        assertTrue(originalContent.contains("Source"), "First save should reference Source node")
 
-        // Change the flow (rename node)
         val node2 = node1.copy(name = "UpdatedSource")
         val flowGraph2 = flowGraph1.copy(rootNodes = listOf(node2))
 
-        // Re-compile
-        val result2 = saveService.compileModule(flowGraph2, tempDir)
+        val result2 = saveService.saveModule(flowGraph2, tempDir)
 
-        // Then - runtime files should be overwritten with new content
         assertTrue(result2.success)
         val updatedContent = flowFile.readText()
         assertTrue(updatedContent.contains("UpdatedSource"),
             "Runtime file should be overwritten with new content")
     }
 
-    // ========== T021: End-to-End Quickstart Validation ==========
+    // ========== filesOverwritten Tracking ==========
 
     @Test
-    fun `T021 - end-to-end StopWatch4 compile validates all state properties integration`() {
-        // Quickstart checklist item 1: Compile a StopWatch4-like FlowGraph
+    fun `first save reports all files as created, none overwritten`() {
         val flowGraph = createStopWatchFlowGraph()
         val saveService = ModuleSaveService()
-        val result = saveService.compileModule(flowGraph, tempDir)
-        assertTrue(result.success, "Compile should succeed")
+
+        val result = saveService.saveModule(flowGraph, tempDir)
+
+        assertTrue(result.success)
+        assertTrue(result.filesCreated.isNotEmpty(), "First save should create files")
+        assertTrue(result.filesOverwritten.isEmpty(), "First save should not overwrite any files")
+        assertTrue(result.filesDeleted.isEmpty(), "First save should not delete any files")
+    }
+
+    @Test
+    fun `re-save reports flow kt and runtime files as overwritten`() {
+        val flowGraph = createStopWatchFlowGraph()
+        val saveService = ModuleSaveService()
+
+        // First save
+        saveService.saveModule(flowGraph, tempDir)
+
+        // Re-save
+        val result2 = saveService.saveModule(flowGraph, tempDir)
+
+        assertTrue(result2.success)
+        assertTrue(result2.filesOverwritten.any { it.contains("StopWatch4.flow.kt") },
+            "flow.kt should be in filesOverwritten")
+        assertTrue(result2.filesOverwritten.any { it.contains("StopWatch4Flow.kt") },
+            "StopWatch4Flow.kt should be in filesOverwritten")
+        assertTrue(result2.filesOverwritten.any { it.contains("StopWatch4Controller.kt") },
+            "StopWatch4Controller.kt should be in filesOverwritten")
+        assertTrue(result2.filesOverwritten.any { it.contains("StopWatch4ControllerInterface.kt") },
+            "StopWatch4ControllerInterface.kt should be in filesOverwritten")
+        assertTrue(result2.filesOverwritten.any { it.contains("StopWatch4ControllerAdapter.kt") },
+            "StopWatch4ControllerAdapter.kt should be in filesOverwritten")
+        assertTrue(result2.filesOverwritten.any { it.contains("StopWatch4ViewModel.kt") },
+            "StopWatch4ViewModel.kt should be in filesOverwritten")
+        assertEquals(6, result2.filesOverwritten.size,
+            "Should have exactly 6 overwritten files (flow.kt + 5 runtime)")
+    }
+
+    @Test
+    fun `re-save does not report gradle files as overwritten`() {
+        val flowGraph = createStopWatchFlowGraph()
+        val saveService = ModuleSaveService()
+
+        saveService.saveModule(flowGraph, tempDir)
+        val result2 = saveService.saveModule(flowGraph, tempDir)
+
+        assertTrue(result2.success)
+        assertFalse(result2.filesOverwritten.any { it.contains("build.gradle.kts") },
+            "build.gradle.kts should not be overwritten on re-save")
+        assertFalse(result2.filesOverwritten.any { it.contains("settings.gradle.kts") },
+            "settings.gradle.kts should not be overwritten on re-save")
+    }
+
+    @Test
+    fun `filesCreated includes all file categories on first save`() {
+        val flowGraph = createStopWatchFlowGraph()
+        val saveService = ModuleSaveService()
+
+        val result = saveService.saveModule(flowGraph, tempDir)
+
+        assertTrue(result.success)
+        // Gradle files
+        assertTrue(result.filesCreated.any { it.contains("build.gradle.kts") })
+        assertTrue(result.filesCreated.any { it.contains("settings.gradle.kts") })
+        // .flow.kt
+        assertTrue(result.filesCreated.any { it.contains("StopWatch4.flow.kt") })
+        // 5 runtime files
+        assertTrue(result.filesCreated.any { it.contains("StopWatch4Flow.kt") })
+        assertTrue(result.filesCreated.any { it.contains("StopWatch4Controller.kt") })
+        assertTrue(result.filesCreated.any { it.contains("StopWatch4ControllerInterface.kt") })
+        assertTrue(result.filesCreated.any { it.contains("StopWatch4ControllerAdapter.kt") })
+        assertTrue(result.filesCreated.any { it.contains("StopWatch4ViewModel.kt") })
+        // Processing logic stubs
+        assertTrue(result.filesCreated.any { it.contains("TimerEmitterProcessLogic.kt") })
+        assertTrue(result.filesCreated.any { it.contains("DisplayReceiverProcessLogic.kt") })
+        // State properties stubs
+        assertTrue(result.filesCreated.any { it.contains("TimerEmitterStateProperties.kt") })
+        assertTrue(result.filesCreated.any { it.contains("DisplayReceiverStateProperties.kt") })
+        // Total: 2 gradle + 1 flow.kt + 5 runtime + 2 stubs + 2 state props = 12
+        assertEquals(12, result.filesCreated.size, "First save should create 12 files")
+    }
+
+    @Test
+    fun `filesCreated excludes existing state properties files on re-save`() {
+        val flowGraph = createStopWatchFlowGraph()
+        val saveService = ModuleSaveService()
+
+        val result1 = saveService.saveModule(flowGraph, tempDir)
+        assertTrue(result1.success)
+        assertTrue(result1.filesCreated.any { it.contains("TimerEmitterStateProperties.kt") },
+            "First save should report TimerEmitterStateProperties as created")
+
+        val result2 = saveService.saveModule(flowGraph, tempDir)
+
+        assertTrue(result2.success)
+        assertFalse(result2.filesCreated.any { it.contains("TimerEmitterStateProperties.kt") },
+            "Existing state properties should not be in filesCreated")
+        assertFalse(result2.filesCreated.any { it.contains("DisplayReceiverStateProperties.kt") },
+            "Existing state properties should not be in filesCreated")
+    }
+
+    // ========== End-to-End Quickstart Validation ==========
+
+    @Test
+    fun `end-to-end StopWatch4 save validates all integration`() {
+        // Quickstart checklist item 1: Save a StopWatch4-like FlowGraph
+        val flowGraph = createStopWatchFlowGraph()
+        val saveService = ModuleSaveService()
+        val result = saveService.saveModule(flowGraph, tempDir)
+        assertTrue(result.success, "Save should succeed")
 
         val baseDir = File(result.moduleDir, "src/commonMain/kotlin/io/codenode/stopwatch4")
         val statePropsDir = File(baseDir, "stateProperties")
@@ -1341,7 +1152,7 @@ class ModuleSaveServiceTest {
         assertTrue(displayStub.readText().contains("import io.codenode.stopwatch4.stateProperties.DisplayReceiverStateProperties"),
             "DisplayReceiver stub should import DisplayReceiverStateProperties")
 
-        // Quickstart checklist item 5: Verify Flow class delegates secondsFlow/minutesFlow from DisplayReceiverStateProperties
+        // Quickstart checklist item 5: Verify Flow class delegates from StateProperties
         val flowFile = File(generatedDir, "StopWatch4Flow.kt")
         assertTrue(flowFile.exists(), "StopWatch4Flow.kt should exist")
         val flowContent = flowFile.readText()
@@ -1349,33 +1160,31 @@ class ModuleSaveServiceTest {
             "Flow should delegate secondsFlow from DisplayReceiverStateProperties")
         assertTrue(flowContent.contains("val minutesFlow: StateFlow<Int> = DisplayReceiverStateProperties.minutesFlow"),
             "Flow should delegate minutesFlow from DisplayReceiverStateProperties")
-        // Verify it does NOT own MutableStateFlow (delegated, not owned)
         assertFalse(flowContent.contains("MutableStateFlow"),
             "Flow should not own MutableStateFlow when delegating to state properties")
 
-        // Quickstart checklist item 6: Verify Flow's reset() calls both state properties' reset() methods
+        // Quickstart checklist item 6: Verify Flow's reset() calls state properties reset()
         assertTrue(flowContent.contains("TimerEmitterStateProperties.reset()"),
             "Flow reset() should call TimerEmitterStateProperties.reset()")
         assertTrue(flowContent.contains("DisplayReceiverStateProperties.reset()"),
             "Flow reset() should call DisplayReceiverStateProperties.reset()")
 
-        // Quickstart checklist item 7: Re-compile and verify existing state property files are preserved
+        // Quickstart checklist item 7: Re-save preserves existing state property files
         val timerFile = File(statePropsDir, "TimerEmitterStateProperties.kt")
         val displayFile = File(statePropsDir, "DisplayReceiverStateProperties.kt")
         timerFile.writeText("// USER CUSTOMIZED TIMER\n" + timerFile.readText())
         displayFile.writeText("// USER CUSTOMIZED DISPLAY\n" + displayFile.readText())
 
-        val result2 = saveService.compileModule(flowGraph, tempDir)
-        assertTrue(result2.success, "Re-compile should succeed")
+        val result2 = saveService.saveModule(flowGraph, tempDir)
+        assertTrue(result2.success, "Re-save should succeed")
         assertTrue(timerFile.readText().startsWith("// USER CUSTOMIZED TIMER"),
-            "TimerEmitter state properties should be preserved on re-compile")
+            "TimerEmitter state properties should be preserved on re-save")
         assertTrue(displayFile.readText().startsWith("// USER CUSTOMIZED DISPLAY"),
-            "DisplayReceiver state properties should be preserved on re-compile")
+            "DisplayReceiver state properties should be preserved on re-save")
     }
 
     @Test
-    fun `filesCreated includes all 5 runtime file paths`() {
-        // Given
+    fun `filesCreated includes all 5 runtime file paths on first save`() {
         val node1 = CodeNode(
             id = "gen1",
             name = "Emitter",
@@ -1394,10 +1203,8 @@ class ModuleSaveServiceTest {
         )
         val saveService = ModuleSaveService()
 
-        // When
-        val result = saveService.compileModule(flowGraph, tempDir)
+        val result = saveService.saveModule(flowGraph, tempDir)
 
-        // Then
         assertTrue(result.success)
         val runtimeFileNames = listOf(
             "FilesTestFlow.kt",
@@ -1410,5 +1217,82 @@ class ModuleSaveServiceTest {
             assertTrue(result.filesCreated.any { it.contains(fileName) },
                 "filesCreated should include $fileName")
         }
+    }
+
+    // ========== T006: First Save Integration Test (US1) ==========
+
+    @Test
+    fun `T006 - first save creates complete module with all file categories`() {
+        // Matches quickstart.md Step 1: StopWatch3-like FlowGraph with 2-output generator + 2-input sink
+        val timerEmitter = CodeNode(
+            id = "timer", name = "TimerEmitter", codeNodeType = CodeNodeType.GENERATOR,
+            position = Node.Position(100.0, 200.0),
+            inputPorts = emptyList(),
+            outputPorts = listOf(
+                Port(id = "timer_sec", name = "elapsedSeconds", direction = Port.Direction.OUTPUT, dataType = Int::class, owningNodeId = "timer"),
+                Port(id = "timer_min", name = "elapsedMinutes", direction = Port.Direction.OUTPUT, dataType = Int::class, owningNodeId = "timer")
+            )
+        )
+        val displayReceiver = CodeNode(
+            id = "display", name = "DisplayReceiver", codeNodeType = CodeNodeType.SINK,
+            position = Node.Position(400.0, 200.0),
+            inputPorts = listOf(
+                Port(id = "display_sec", name = "seconds", direction = Port.Direction.INPUT, dataType = Int::class, owningNodeId = "display"),
+                Port(id = "display_min", name = "minutes", direction = Port.Direction.INPUT, dataType = Int::class, owningNodeId = "display")
+            ),
+            outputPorts = emptyList()
+        )
+        val flowGraph = FlowGraph(
+            id = "flow_stopwatch3",
+            name = "StopWatch3",
+            version = "1.0.0",
+            rootNodes = listOf(timerEmitter, displayReceiver),
+            connections = listOf(
+                Connection("c1", "timer", "timer_sec", "display", "display_sec"),
+                Connection("c2", "timer", "timer_min", "display", "display_min")
+            )
+        )
+        val saveService = ModuleSaveService()
+
+        // First save — single saveModule() call
+        val result = saveService.saveModule(flowGraph, tempDir)
+
+        // Verify success
+        assertTrue(result.success, "First save should succeed")
+        assertNotNull(result.moduleDir, "Module directory should be returned")
+
+        val moduleDir = result.moduleDir!!
+        val basePackagePath = "src/commonMain/kotlin/io/codenode/stopwatch3"
+
+        // 1. Module directory structure
+        assertTrue(File(moduleDir, "build.gradle.kts").exists(), "build.gradle.kts should exist")
+        assertTrue(File(moduleDir, "settings.gradle.kts").exists(), "settings.gradle.kts should exist")
+        assertTrue(File(moduleDir, "StopWatch3.flow.kt").exists(), ".flow.kt should be at module root")
+
+        // 2. All 5 runtime files in generated/
+        val generatedDir = File(moduleDir, "$basePackagePath/generated")
+        assertTrue(File(generatedDir, "StopWatch3Flow.kt").exists(), "StopWatch3Flow.kt should exist")
+        assertTrue(File(generatedDir, "StopWatch3Controller.kt").exists(), "StopWatch3Controller.kt should exist")
+        assertTrue(File(generatedDir, "StopWatch3ControllerInterface.kt").exists(), "StopWatch3ControllerInterface.kt should exist")
+        assertTrue(File(generatedDir, "StopWatch3ControllerAdapter.kt").exists(), "StopWatch3ControllerAdapter.kt should exist")
+        assertTrue(File(generatedDir, "StopWatch3ViewModel.kt").exists(), "StopWatch3ViewModel.kt should exist")
+
+        // 3. Processing logic stubs in processingLogic/
+        val processingLogicDir = File(moduleDir, "$basePackagePath/processingLogic")
+        assertTrue(File(processingLogicDir, "TimerEmitterProcessLogic.kt").exists(), "TimerEmitter stub should exist")
+        assertTrue(File(processingLogicDir, "DisplayReceiverProcessLogic.kt").exists(), "DisplayReceiver stub should exist")
+
+        // 4. State properties stubs in stateProperties/
+        val statePropsDir = File(moduleDir, "$basePackagePath/stateProperties")
+        assertTrue(File(statePropsDir, "TimerEmitterStateProperties.kt").exists(), "TimerEmitter state props should exist")
+        assertTrue(File(statePropsDir, "DisplayReceiverStateProperties.kt").exists(), "DisplayReceiver state props should exist")
+
+        // 5. filesCreated includes all 12 files
+        assertEquals(12, result.filesCreated.size,
+            "First save should report 12 files created (2 gradle + 1 flow.kt + 5 runtime + 2 stubs + 2 state props)")
+
+        // 6. No overwrites or deletions on first save
+        assertTrue(result.filesOverwritten.isEmpty(), "First save should have 0 overwritten")
+        assertTrue(result.filesDeleted.isEmpty(), "First save should have 0 deleted")
     }
 }

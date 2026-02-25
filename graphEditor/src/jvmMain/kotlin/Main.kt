@@ -326,7 +326,7 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
     var showCompileDialog by remember { mutableStateOf(false) }
     var showModuleSaveDialog by remember { mutableStateOf(false) }
     var showFlowGraphPropertiesDialog by remember { mutableStateOf(false) }
-    var lastSaveOutputDir by remember { mutableStateOf<File?>(null) }
+    val saveLocationRegistry = remember { mutableMapOf<String, File>() }
     var statusMessage by remember { mutableStateOf("Ready - Create a new graph or open an existing one") }
 
     // IPPaletteViewModel for the IP Palette
@@ -986,8 +986,8 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
 
         if (showCompileDialog) {
             LaunchedEffect(Unit) {
-                val outputDir = lastSaveOutputDir
-                if (outputDir != null) {
+                val outputDir = saveLocationRegistry[graphState.flowGraph.name]
+                if (outputDir != null && outputDir.exists()) {
                     val result = moduleSaveService.compileModule(
                         flowGraph = graphState.flowGraph,
                         outputDir = outputDir
@@ -1004,18 +1004,36 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
             }
         }
 
-        // T010: Module Save dialog handler
+        // Unified Save handler: registry lookup → directory chooser if needed → saveModule()
         if (showModuleSaveDialog) {
             LaunchedEffect(Unit) {
-                val outputDir = showDirectoryChooser("Save Module To")
+                val flowGraphName = graphState.flowGraph.name
+                val savedDir = saveLocationRegistry[flowGraphName]
+
+                // Determine output directory: use registry or prompt user
+                val outputDir = if (savedDir != null && savedDir.exists()) {
+                    // Re-save to known location (no directory prompt)
+                    savedDir
+                } else {
+                    // Remove stale entry if directory no longer exists
+                    if (savedDir != null) {
+                        saveLocationRegistry.remove(flowGraphName)
+                    }
+                    // First save or directory gone: prompt for directory
+                    showDirectoryChooser("Save Module To")
+                }
+
                 if (outputDir != null) {
                     val result = moduleSaveService.saveModule(
                         flowGraph = graphState.flowGraph,
                         outputDir = outputDir
                     )
                     if (result.success) {
-                        lastSaveOutputDir = outputDir
-                        statusMessage = "Module saved to ${result.moduleDir?.name}"
+                        saveLocationRegistry[flowGraphName] = outputDir
+                        val created = result.filesCreated.size
+                        val overwritten = result.filesOverwritten.size
+                        val deleted = result.filesDeleted.size
+                        statusMessage = "Saved to ${result.moduleDir?.name}: $created created, $overwritten overwritten, $deleted deleted"
                     } else {
                         statusMessage = "Save error: ${result.errorMessage}"
                     }

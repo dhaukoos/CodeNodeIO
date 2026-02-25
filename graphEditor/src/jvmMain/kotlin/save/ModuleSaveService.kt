@@ -25,25 +25,30 @@ import java.io.File
  * @property success Whether the save succeeded
  * @property moduleDir The created module directory (if successful)
  * @property errorMessage Error message (if failed)
- * @property filesCreated List of files created during save
- * @property warnings List of warnings (e.g., orphaned ProcessingLogic files)
+ * @property filesCreated List of new files created during save
+ * @property filesOverwritten List of files overwritten during save
+ * @property filesDeleted List of orphaned files deleted during save
+ * @property warnings List of warnings (non-fatal issues)
  */
 data class ModuleSaveResult(
     val success: Boolean,
     val moduleDir: File? = null,
     val errorMessage: String? = null,
     val filesCreated: List<String> = emptyList(),
+    val filesOverwritten: List<String> = emptyList(),
+    val filesDeleted: List<String> = emptyList(),
     val warnings: List<String> = emptyList()
 )
 
 /**
  * Service for saving FlowGraphs as KMP module structures.
  *
- * Two operations:
- * - **Save**: Creates module directory structure (gradle files) + writes the .flow.kt
- *   DSL file at the module root (alongside build.gradle.kts).
- * - **Compile**: Generates the 5 runtime files under generated/ and ProcessingLogic
- *   stubs under processingLogic/.
+ * The unified [saveModule] creates the full module in a single call:
+ * module directory, gradle files, .flow.kt at module root, 5 runtime files
+ * under generated/, ProcessingLogic stubs under processingLogic/, and
+ * StateProperties stubs under stateProperties/. Orphaned stubs are deleted.
+ *
+ * The legacy [compileModule] is retained for backward compatibility.
  */
 class ModuleSaveService {
 
@@ -65,16 +70,19 @@ class ModuleSaveService {
     private val runtimeViewModelGenerator = RuntimeViewModelGenerator()
 
     /**
-     * Saves a FlowGraph as a KMP module structure.
+     * Saves a FlowGraph as a complete KMP module.
      *
-     * Creates the module directory, gradle files, directory structure, and
-     * writes the .flow.kt DSL file at the module root.
+     * Creates the full module in a single call: module directory, gradle files,
+     * .flow.kt at module root, 5 runtime files, ProcessingLogic stubs, and
+     * StateProperties stubs. On re-save, .flow.kt and runtime files are always
+     * overwritten, existing stubs are preserved, new stubs are created for added
+     * nodes, and orphaned stubs are deleted for removed nodes.
      *
      * @param flowGraph The flow graph to save
      * @param outputDir Parent directory where the module will be created
      * @param packageName Package name for generated code (default: io.codenode.{modulename})
      * @param moduleName Module name (default: derived from FlowGraph name)
-     * @return ModuleSaveResult with success status and module directory
+     * @return ModuleSaveResult with success status, module directory, and file tracking
      */
     fun saveModule(
         flowGraph: FlowGraph,
@@ -88,6 +96,7 @@ class ModuleSaveService {
             val basePackage = packageName ?: "$DEFAULT_PACKAGE_PREFIX.${effectiveModuleName.lowercase()}"
             val generatedPackage = "$basePackage.$GENERATED_SUBPACKAGE"
             val processingLogicPackage = "$basePackage.$PROCESSING_LOGIC_SUBPACKAGE"
+            val statePropertiesPackage = "$basePackage.$STATE_PROPERTIES_SUBPACKAGE"
 
             // Create module directory
             val moduleDir = File(outputDir, effectiveModuleName)
@@ -96,34 +105,60 @@ class ModuleSaveService {
             }
 
             val filesCreated = mutableListOf<String>()
+            val filesOverwritten = mutableListOf<String>()
+            val filesDeleted = mutableListOf<String>()
 
-            // Create source directory structure (both generated and processingLogic)
+            // Create source directory structure
             createDirectoryStructure(moduleDir, generatedPackage, flowGraph)
             createDirectoryStructure(moduleDir, processingLogicPackage, flowGraph)
+            createDirectoryStructure(moduleDir, statePropertiesPackage, flowGraph)
 
-            // Generate and write build.gradle.kts
-            val buildGradleContent = moduleGenerator.generateBuildGradle(flowGraph, effectiveModuleName)
-            val buildGradleFile = File(moduleDir, "build.gradle.kts")
-            buildGradleFile.writeText(buildGradleContent)
-            filesCreated.add("build.gradle.kts")
+            // Write gradle files (only if they don't exist)
+            writeFileIfNew(
+                File(moduleDir, "build.gradle.kts"),
+                moduleGenerator.generateBuildGradle(flowGraph, effectiveModuleName),
+                "build.gradle.kts",
+                filesCreated
+            )
+            writeFileIfNew(
+                File(moduleDir, "settings.gradle.kts"),
+                generateSettingsGradle(effectiveModuleName),
+                "settings.gradle.kts",
+                filesCreated
+            )
 
-            // Generate and write settings.gradle.kts
-            val settingsGradleContent = generateSettingsGradle(effectiveModuleName)
-            val settingsGradleFile = File(moduleDir, "settings.gradle.kts")
-            settingsGradleFile.writeText(settingsGradleContent)
-            filesCreated.add("settings.gradle.kts")
-
-            // Generate and write .flow.kt file at module root
-            val flowKtContent = flowKtGenerator.generateFlowKt(flowGraph, basePackage, processingLogicPackage)
+            // Write .flow.kt at module root (always overwrite)
             val flowKtFileName = "${effectiveModuleName}.flow.kt"
-            val flowKtFile = File(moduleDir, flowKtFileName)
-            flowKtFile.writeText(flowKtContent)
-            filesCreated.add(flowKtFileName)
+            writeFileAlways(
+                File(moduleDir, flowKtFileName),
+                flowKtGenerator.generateFlowKt(flowGraph, basePackage, processingLogicPackage),
+                flowKtFileName,
+                filesCreated,
+                filesOverwritten
+            )
+
+            // Generate 5 runtime files (always overwrite)
+            generateRuntimeFilesTracked(
+                flowGraph, moduleDir, generatedPackage, processingLogicPackage,
+                statePropertiesPackage, effectiveModuleName, filesCreated, filesOverwritten
+            )
+
+            // Generate processing logic stubs (don't overwrite existing)
+            generateProcessingLogicStubs(flowGraph, moduleDir, processingLogicPackage, statePropertiesPackage, filesCreated)
+
+            // Generate state properties files (don't overwrite existing)
+            generateStatePropertiesFiles(flowGraph, moduleDir, statePropertiesPackage, filesCreated)
+
+            // Delete orphaned stubs
+            deleteOrphanedComponents(flowGraph, moduleDir, processingLogicPackage, filesDeleted)
+            deleteOrphanedStateProperties(flowGraph, moduleDir, statePropertiesPackage, filesDeleted)
 
             ModuleSaveResult(
                 success = true,
                 moduleDir = moduleDir,
-                filesCreated = filesCreated
+                filesCreated = filesCreated,
+                filesOverwritten = filesOverwritten,
+                filesDeleted = filesDeleted
             )
         } catch (e: Exception) {
             ModuleSaveResult(
@@ -367,6 +402,135 @@ class ModuleSaveService {
                 val content = statePropertiesGenerator.generateStateProperties(codeNode, packageName)
                 file.writeText(content)
                 filesCreated.add("src/commonMain/kotlin/$packagePath/$fileName")
+            }
+        }
+    }
+
+    /**
+     * Writes a file only if it doesn't already exist.
+     * Tracks newly created files in [filesCreated].
+     */
+    private fun writeFileIfNew(
+        file: File,
+        content: String,
+        relativePath: String,
+        filesCreated: MutableList<String>
+    ) {
+        if (!file.exists()) {
+            file.writeText(content)
+            filesCreated.add(relativePath)
+        }
+    }
+
+    /**
+     * Writes a file, always overwriting existing content.
+     * Tracks as [filesOverwritten] if file existed, or [filesCreated] if new.
+     */
+    private fun writeFileAlways(
+        file: File,
+        content: String,
+        relativePath: String,
+        filesCreated: MutableList<String>,
+        filesOverwritten: MutableList<String>
+    ) {
+        val existed = file.exists()
+        file.writeText(content)
+        if (existed) filesOverwritten.add(relativePath) else filesCreated.add(relativePath)
+    }
+
+    /**
+     * Generates the 5 runtime files with proper overwrite tracking.
+     * Files are always written; tracked as overwritten if they existed, created if new.
+     */
+    private fun generateRuntimeFilesTracked(
+        flowGraph: FlowGraph,
+        moduleDir: File,
+        generatedPackage: String,
+        processingLogicPackage: String,
+        statePropertiesPackage: String,
+        effectiveModuleName: String,
+        filesCreated: MutableList<String>,
+        filesOverwritten: MutableList<String>
+    ) {
+        val generatedPath = generatedPackage.replace(".", "/")
+        val generatedDir = File(moduleDir, "src/commonMain/kotlin/$generatedPath")
+
+        val runtimeFiles = listOf(
+            "${effectiveModuleName}Flow.kt" to runtimeFlowGenerator.generate(flowGraph, generatedPackage, processingLogicPackage, statePropertiesPackage),
+            "${effectiveModuleName}Controller.kt" to runtimeControllerGenerator.generate(flowGraph, generatedPackage, processingLogicPackage),
+            "${effectiveModuleName}ControllerInterface.kt" to runtimeControllerInterfaceGenerator.generate(flowGraph, generatedPackage),
+            "${effectiveModuleName}ControllerAdapter.kt" to runtimeControllerAdapterGenerator.generate(flowGraph, generatedPackage),
+            "${effectiveModuleName}ViewModel.kt" to runtimeViewModelGenerator.generate(flowGraph, generatedPackage)
+        )
+
+        for ((fileName, content) in runtimeFiles) {
+            val file = File(generatedDir, fileName)
+            val relativePath = "src/commonMain/kotlin/$generatedPath/$fileName"
+            writeFileAlways(file, content, relativePath, filesCreated, filesOverwritten)
+        }
+    }
+
+    /**
+     * Deletes orphaned ProcessingLogic files (stubs for nodes that no longer exist).
+     * Tracks deleted files in [filesDeleted].
+     */
+    private fun deleteOrphanedComponents(
+        flowGraph: FlowGraph,
+        moduleDir: File,
+        packageName: String,
+        filesDeleted: MutableList<String>
+    ) {
+        val packagePath = packageName.replace(".", "/")
+        val sourceDir = File(moduleDir, "src/commonMain/kotlin/$packagePath")
+
+        if (!sourceDir.exists()) return
+
+        val codeNodes = flowGraph.getAllCodeNodes()
+        val expectedFiles = codeNodes.map { stubGenerator.getStubFileName(it) }.toSet()
+
+        val existingComponentFiles = sourceDir.listFiles()
+            ?.filter { it.isFile && it.name.endsWith("ProcessLogic.kt") }
+            ?: emptyList()
+
+        for (file in existingComponentFiles) {
+            if (file.name !in expectedFiles) {
+                val relativePath = "src/commonMain/kotlin/$packagePath/${file.name}"
+                file.delete()
+                filesDeleted.add(relativePath)
+            }
+        }
+    }
+
+    /**
+     * Deletes orphaned StateProperties files (for nodes that no longer exist).
+     * Tracks deleted files in [filesDeleted].
+     */
+    private fun deleteOrphanedStateProperties(
+        flowGraph: FlowGraph,
+        moduleDir: File,
+        packageName: String,
+        filesDeleted: MutableList<String>
+    ) {
+        val packagePath = packageName.replace(".", "/")
+        val sourceDir = File(moduleDir, "src/commonMain/kotlin/$packagePath")
+
+        if (!sourceDir.exists()) return
+
+        val codeNodes = flowGraph.getAllCodeNodes()
+        val expectedFiles = codeNodes
+            .filter { statePropertiesGenerator.shouldGenerate(it) }
+            .map { statePropertiesGenerator.getStatePropertiesFileName(it) }
+            .toSet()
+
+        val existingFiles = sourceDir.listFiles()
+            ?.filter { it.isFile && it.name.endsWith("StateProperties.kt") }
+            ?: emptyList()
+
+        for (file in existingFiles) {
+            if (file.name !in expectedFiles) {
+                val relativePath = "src/commonMain/kotlin/$packagePath/${file.name}"
+                file.delete()
+                filesDeleted.add(relativePath)
             }
         }
     }
