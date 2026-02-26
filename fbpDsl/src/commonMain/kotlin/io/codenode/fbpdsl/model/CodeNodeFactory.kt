@@ -508,20 +508,25 @@ object CodeNodeFactory {
         description: String? = null,
         noinline tick: io.codenode.fbpdsl.runtime.GeneratorTickBlock<T>
     ): GeneratorRuntime<T> {
+        // Reference holder so the lambda can read attenuationDelayMs from the runtime at execution time
+        val runtimeRef = arrayOfNulls<io.codenode.fbpdsl.runtime.NodeRuntime>(1)
+
         val timedGenerate: ContinuousGeneratorBlock<T> = { emit ->
             while (currentCoroutineContext().isActive) {
-                delay(tickIntervalMs)
+                delay(runtimeRef[0]?.attenuationDelayMs ?: tickIntervalMs)
                 emit(tick())
             }
         }
 
-        return createContinuousGenerator(
+        val runtime = createContinuousGenerator(
             name = name,
             channelCapacity = channelCapacity,
             position = position,
             description = description,
             generate = timedGenerate
         )
+        runtimeRef[0] = runtime
+        return runtime
     }
 
     /**
@@ -548,24 +553,29 @@ object CodeNodeFactory {
         description: String? = null,
         noinline tick: io.codenode.fbpdsl.runtime.Out2TickBlock<U, V>
     ): io.codenode.fbpdsl.runtime.Out2GeneratorRuntime<U, V> {
+        // Reference holder so the lambda can read attenuationDelayMs from the runtime at execution time
+        val runtimeRef = arrayOfNulls<io.codenode.fbpdsl.runtime.NodeRuntime>(1)
+
         // Wrap tick in a generate block that manages the timed loop.
         // Note: The generate lambda is compiled in this module. With real dispatchers
         // (production), delay() works correctly. For virtual-time tests, callers
         // should use createOut2Generator with a test-defined loop instead.
         val timedGenerate: io.codenode.fbpdsl.runtime.Out2GeneratorBlock<U, V> = { emit ->
             while (currentCoroutineContext().isActive) {
-                delay(tickIntervalMs)
+                delay(runtimeRef[0]?.attenuationDelayMs ?: tickIntervalMs)
                 emit(tick())
             }
         }
 
-        return createOut2Generator(
+        val runtime = createOut2Generator(
             name = name,
             channelCapacity = channelCapacity,
             position = position,
             description = description,
             generate = timedGenerate
         )
+        runtimeRef[0] = runtime
+        return runtime
     }
 
     /**
@@ -593,20 +603,25 @@ object CodeNodeFactory {
         description: String? = null,
         noinline tick: io.codenode.fbpdsl.runtime.Out3TickBlock<U, V, W>
     ): io.codenode.fbpdsl.runtime.Out3GeneratorRuntime<U, V, W> {
+        // Reference holder so the lambda can read attenuationDelayMs from the runtime at execution time
+        val runtimeRef = arrayOfNulls<io.codenode.fbpdsl.runtime.NodeRuntime>(1)
+
         val timedGenerate: io.codenode.fbpdsl.runtime.Out3GeneratorBlock<U, V, W> = { emit ->
             while (currentCoroutineContext().isActive) {
-                delay(tickIntervalMs)
+                delay(runtimeRef[0]?.attenuationDelayMs ?: tickIntervalMs)
                 emit(tick())
             }
         }
 
-        return createOut3Generator(
+        val runtime = createOut3Generator(
             name = name,
             channelCapacity = channelCapacity,
             position = position,
             description = description,
             generate = timedGenerate
         )
+        runtimeRef[0] = runtime
+        return runtime
     }
 
     // ========== Multi-Output Generator Factory Methods ==========

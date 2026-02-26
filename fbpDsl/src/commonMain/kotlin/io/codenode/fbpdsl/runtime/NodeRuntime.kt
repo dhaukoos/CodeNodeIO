@@ -39,6 +39,14 @@ open class NodeRuntime(
     var executionState: ExecutionState = ExecutionState.IDLE
 
     /**
+     * When non-null, replaces tickIntervalMs as the delay in timed generator loops.
+     * - null (default): uses original tickIntervalMs (normal behavior unchanged)
+     * - 0: no delay, generators run as fast as the loop allows
+     * - >0: delay in milliseconds between ticks
+     */
+    var attenuationDelayMs: Long? = null
+
+    /**
      * Runtime job reference for lifecycle control.
      * Tracks the active coroutine when the node is running.
      */

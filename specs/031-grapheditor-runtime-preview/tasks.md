@@ -27,11 +27,11 @@
 
 **Purpose**: Add `attenuationDelayMs` to NodeRuntime and wire it into timed generator delay loops. MUST complete before user stories.
 
-- [ ] T008 Add `var attenuationDelayMs: Long? = null` property to `NodeRuntime` in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/NodeRuntime.kt`
-- [ ] T009 Modify `createTimedGenerator` factory method in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/CodeNodeFactory.kt` to use `delay(attenuationDelayMs ?: tickIntervalMs)` in the timed loop (the closure must capture `this` reference to read the mutable property from the runtime instance)
-- [ ] T010 Modify `createTimedOut2Generator` factory method in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/CodeNodeFactory.kt` to use `delay(attenuationDelayMs ?: tickIntervalMs)` in the timed loop
-- [ ] T011 Modify `createTimedOut3Generator` factory method in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/CodeNodeFactory.kt` to use `delay(attenuationDelayMs ?: tickIntervalMs)` in the timed loop
-- [ ] T012 Verify existing fbpDsl tests still pass: `./gradlew :fbpDsl:allTests`
+- [X] T008 Add `var attenuationDelayMs: Long? = null` property to `NodeRuntime` in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/NodeRuntime.kt`
+- [X] T009 Modify `createTimedGenerator` factory method in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/CodeNodeFactory.kt` to use `delay(attenuationDelayMs ?: tickIntervalMs)` in the timed loop (the closure must capture `this` reference to read the mutable property from the runtime instance)
+- [X] T010 Modify `createTimedOut2Generator` factory method in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/CodeNodeFactory.kt` to use `delay(attenuationDelayMs ?: tickIntervalMs)` in the timed loop
+- [X] T011 Modify `createTimedOut3Generator` factory method in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/CodeNodeFactory.kt` to use `delay(attenuationDelayMs ?: tickIntervalMs)` in the timed loop
+- [X] T012 Verify existing fbpDsl tests still pass: `./gradlew :fbpDsl:allTests`
 
 **Checkpoint**: attenuationDelayMs property exists on NodeRuntime and is used by all timed generator factories. Existing behavior unchanged (null defaults to tickIntervalMs).
 
