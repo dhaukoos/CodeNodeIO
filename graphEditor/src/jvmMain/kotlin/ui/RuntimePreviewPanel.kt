@@ -241,8 +241,8 @@ fun RuntimePreviewPanel(
                         val snapped = (value / 100f).toLong() * 100L
                         runtimeSession.setAttenuation(snapped)
                     },
-                    valueRange = 0f..5000f,
-                    steps = 49,
+                    valueRange = 0f..2000f,
+                    steps = 19,
                     modifier = Modifier.fillMaxWidth()
                 )
 
@@ -251,7 +251,7 @@ fun RuntimePreviewPanel(
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text("0ms", fontSize = 10.sp, color = Color.Gray)
-                    Text("5000ms", fontSize = 10.sp, color = Color.Gray)
+                    Text("2000ms", fontSize = 10.sp, color = Color.Gray)
                 }
 
                 Divider()
