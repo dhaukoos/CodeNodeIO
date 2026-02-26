@@ -13,13 +13,13 @@
 
 **Purpose**: Restructure module dependencies so graphEditor → circuitSimulator → fbpDsl + StopWatch
 
-- [ ] T001 Remove graphEditor dependency from circuitSimulator in `circuitSimulator/build.gradle.kts` (per R2: reverse the dependency direction)
-- [ ] T002 Add StopWatch module dependency to circuitSimulator in `circuitSimulator/build.gradle.kts`: `implementation(project(":StopWatch"))`
-- [ ] T003 Add Compose Desktop dependencies to circuitSimulator in `circuitSimulator/build.gradle.kts`: compose.runtime, compose.foundation, compose.material3, compose.ui (explicit 1.7.3 versions matching StopWatch)
-- [ ] T004 Add lifecycle-viewmodel-compose 2.8.0 dependency to circuitSimulator in `circuitSimulator/build.gradle.kts`
-- [ ] T005 Add circuitSimulator dependency to graphEditor in `graphEditor/build.gradle.kts`: `implementation(project(":circuitSimulator"))`
-- [ ] T006 Add StopWatch dependency to graphEditor in `graphEditor/build.gradle.kts`: `implementation(project(":StopWatch"))`
-- [ ] T007 Verify compilation: `./gradlew :circuitSimulator:compileKotlinJvm :graphEditor:compileKotlinJvm`
+- [X] T001 Remove graphEditor dependency from circuitSimulator in `circuitSimulator/build.gradle.kts` (per R2: reverse the dependency direction)
+- [X] T002 Add StopWatch module dependency to circuitSimulator in `circuitSimulator/build.gradle.kts`: `implementation(project(":StopWatch"))`
+- [X] T003 Add Compose Desktop dependencies to circuitSimulator in `circuitSimulator/build.gradle.kts`: compose.runtime, compose.foundation, compose.material3, compose.ui (explicit 1.7.3 versions matching StopWatch)
+- [X] T004 Add lifecycle-viewmodel-compose 2.8.0 dependency to circuitSimulator in `circuitSimulator/build.gradle.kts`
+- [X] T005 Add circuitSimulator dependency to graphEditor in `graphEditor/build.gradle.kts`: `implementation(project(":circuitSimulator"))`
+- [X] T006 Add StopWatch dependency to graphEditor in `graphEditor/build.gradle.kts`: `implementation(project(":StopWatch"))`
+- [X] T007 Verify compilation: `./gradlew :circuitSimulator:compileKotlinJvm :graphEditor:compileKotlinJvm`
 
 ---
 
