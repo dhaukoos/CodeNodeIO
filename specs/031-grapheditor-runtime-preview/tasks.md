@@ -63,9 +63,9 @@
 
 ### Implementation for User Story 2
 
-- [ ] T018 [US2] Create `StopWatchPreviewProvider` in `circuitSimulator/src/commonMain/kotlin/io/codenode/circuitsimulator/StopWatchPreviewProvider.kt` that provides a `@Composable` function wrapping the StopWatch composable with the RuntimeSession's StopWatchViewModel. Include a "No preview available" fallback message when no module is loaded.
-- [ ] T019 [US2] Update `RuntimePreviewPanel` in `graphEditor/src/jvmMain/kotlin/ui/RuntimePreviewPanel.kt` to add a preview area below the controls section that calls `StopWatchPreviewProvider`'s composable function. The preview area should fill remaining vertical space in the panel.
-- [ ] T020 [US2] Verify compilation: `./gradlew :circuitSimulator:compileKotlinJvm :graphEditor:compileKotlinJvm`
+- [X] T018 [US2] Create `StopWatchPreviewProvider` in `graphEditor/src/jvmMain/kotlin/ui/StopWatchPreviewProvider.kt` that provides a `@Composable` function rendering StopWatchFace + digital time from the RuntimeSession's ViewModel state. Placed in graphEditor (not circuitSimulator) because Compose compiler plugin is required.
+- [X] T019 [US2] Update `RuntimePreviewPanel` in `graphEditor/src/jvmMain/kotlin/ui/RuntimePreviewPanel.kt` to add a preview area below the controls section that calls `StopWatchPreviewProvider`'s composable function. The preview area should fill remaining vertical space in the panel.
+- [X] T020 [US2] Verify compilation: `./gradlew :circuitSimulator:compileKotlinJvm :graphEditor:compileKotlinJvm`
 - [ ] T021 [US2] Manual verification: Launch graphEditor, expand preview panel, press Start, verify the StopWatch face renders with moving seconds hand and incrementing digital timer. Verify Pause freezes the display, Resume continues, Stop resets to 00:00.
 
 **Checkpoint**: Live preview pane renders StopWatch UI composables in real time, driven by flow graph execution.

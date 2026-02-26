@@ -237,17 +237,15 @@ fun RuntimePreviewPanel(
 
                 Divider()
 
-                // Preview area placeholder (US2 will add StopWatch composable here)
+                // Preview area - renders StopWatch face and digital time
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
                         .weight(1f),
-                    contentAlignment = Alignment.Center
+                    contentAlignment = Alignment.TopCenter
                 ) {
-                    Text(
-                        text = "No preview available",
-                        fontSize = 12.sp,
-                        color = Color.Gray
+                    StopWatchPreviewProvider.Preview(
+                        runtimeSession = runtimeSession
                     )
                 }
             }
