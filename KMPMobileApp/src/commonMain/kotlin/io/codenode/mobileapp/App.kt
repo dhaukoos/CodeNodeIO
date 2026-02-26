@@ -21,7 +21,7 @@ import io.codenode.stopwatch.generated.StopWatchControllerAdapter
 import io.codenode.stopwatch.generated.StopWatchViewModel
 import io.codenode.stopwatch.generated.StopWatchController
 import io.codenode.stopwatch.stopWatchFlowGraph
-import io.codenode.stopwatch.userInterface.StopWatch
+import io.codenode.stopwatch.userInterface.StopWatchScreen
 
 /**
  * Main application composable.
@@ -67,7 +67,7 @@ fun MainContent() {
             style = MaterialTheme.typography.bodyLarge,
             modifier = Modifier.padding(top = 8.dp)
         )
-        StopWatch(
+        StopWatchScreen(
             viewModel = viewModel,
             modifier = Modifier.padding(top = 32.dp),
             minSize = 400.dp

@@ -15,6 +15,7 @@ import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material.icons.filled.Pause
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -24,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.codenode.circuitsimulator.RuntimeSession
 import io.codenode.fbpdsl.model.ExecutionState
+import java.io.File
 
 /**
  * Collapsible right-side panel for runtime execution controls.
@@ -32,11 +34,14 @@ import io.codenode.fbpdsl.model.ExecutionState
  * - Execution state indicator
  * - Start/Stop/Pause/Resume buttons with contextual enable/disable
  * - Attenuation slider (0ms to 5000ms)
- * - Preview area placeholder (for US2)
+ * - Preview composable dropdown (discovers composables from loaded module)
+ * - Preview area rendering the selected composable
  *
  * @param runtimeSession The RuntimeSession orchestrator
  * @param isExpanded Whether the panel is currently expanded
  * @param onToggle Callback to toggle panel visibility
+ * @param moduleRootDir The root directory of the currently loaded module (null if none)
+ * @param flowGraphName The name of the current FlowGraph (used for default selection)
  * @param modifier Modifier for the panel container
  */
 @Composable
@@ -44,10 +49,24 @@ fun RuntimePreviewPanel(
     runtimeSession: RuntimeSession,
     isExpanded: Boolean,
     onToggle: () -> Unit,
+    moduleRootDir: File? = null,
+    flowGraphName: String = "",
     modifier: Modifier = Modifier
 ) {
     val executionState by runtimeSession.executionState.collectAsState()
     val attenuationMs by runtimeSession.attenuationDelayMs.collectAsState()
+
+    // Discover composables from the loaded module
+    val composables = remember(moduleRootDir) {
+        moduleRootDir?.let { discoverComposables(it) } ?: emptyList()
+    }
+
+    // Selected composable state — default to flowGraphName match
+    var selectedComposable by remember(composables, flowGraphName) {
+        val default = composables.firstOrNull { it == flowGraphName }
+        mutableStateOf(default)
+    }
+    var dropdownExpanded by remember { mutableStateOf(false) }
 
     Row(modifier = modifier) {
         // Vertical divider + toggle strip (always visible)
@@ -237,16 +256,90 @@ fun RuntimePreviewPanel(
 
                 Divider()
 
-                // Preview area - renders StopWatch face and digital time
+                // Preview composable selector
+                if (moduleRootDir == null) {
+                    Text(
+                        text = "No module loaded",
+                        fontSize = 12.sp,
+                        color = Color.Gray
+                    )
+                } else if (composables.isEmpty()) {
+                    Text(
+                        text = "No composables found",
+                        fontSize = 12.sp,
+                        color = Color.Gray
+                    )
+                } else {
+                    Text(
+                        text = "Preview Composable",
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+
+                    Box {
+                        OutlinedButton(
+                            onClick = { dropdownExpanded = true },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(
+                                text = selectedComposable ?: "Select...",
+                                modifier = Modifier.weight(1f),
+                                fontSize = 12.sp
+                            )
+                            Icon(
+                                Icons.Default.ArrowDropDown,
+                                contentDescription = "Select composable",
+                                modifier = Modifier.size(16.dp)
+                            )
+                        }
+
+                        DropdownMenu(
+                            expanded = dropdownExpanded,
+                            onDismissRequest = { dropdownExpanded = false }
+                        ) {
+                            composables.forEach { name ->
+                                DropdownMenuItem(
+                                    onClick = {
+                                        selectedComposable = name
+                                        dropdownExpanded = false
+                                    }
+                                ) {
+                                    Text(
+                                        text = name,
+                                        fontSize = 12.sp,
+                                        fontWeight = if (name == selectedComposable) FontWeight.Bold else FontWeight.Normal
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Preview area - renders selected composable
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
                         .weight(1f),
                     contentAlignment = Alignment.TopCenter
                 ) {
-                    StopWatchPreviewProvider.Preview(
-                        runtimeSession = runtimeSession
-                    )
+                    when (selectedComposable) {
+                        "StopWatch" -> StopWatchPreviewProvider.Preview(
+                            runtimeSession = runtimeSession
+                        )
+                        "StopWatchScreen" -> StopWatchPreviewProvider.ScreenPreview(
+                            runtimeSession = runtimeSession
+                        )
+                        null -> Text(
+                            text = "Select a composable to preview",
+                            fontSize = 12.sp,
+                            color = Color.Gray
+                        )
+                        else -> Text(
+                            text = "Preview not available for: $selectedComposable",
+                            fontSize = 12.sp,
+                            color = Color.Gray
+                        )
+                    }
                 }
             }
         }

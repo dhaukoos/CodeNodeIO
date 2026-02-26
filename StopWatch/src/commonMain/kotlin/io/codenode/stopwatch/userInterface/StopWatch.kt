@@ -1,83 +1,173 @@
 /*
- * StopWatch - Stopwatch composable using StopWatchViewModel
- * Uses ViewModel pattern to bridge FlowGraph domain logic with Compose UI.
- * Works on all KMP platforms (Android, iOS, Desktop).
+ * StopWatch - Analog stopwatch face with digital time display
  * License: Apache 2.0
  */
 
 package io.codenode.stopwatch.userInterface
 
-import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.center
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.drawText
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import io.codenode.fbpdsl.model.ExecutionState
-import io.codenode.stopwatch.generated.StopWatchViewModel
+import kotlin.math.PI
+import kotlin.math.cos
+import kotlin.math.sin
 
 /**
- * Data class to hold elapsed time components for the stopwatch.
+ * Extension function to convert seconds to radians for hand positioning.
+ * Subtracts 90 degrees (PI/2) because 0 degrees starts at 3 o'clock position.
  */
-data class StopWatchTime(
-    val minutes: Int = 0,
-    val seconds: Int = 0
-)
+private fun Int.secondsToRad(): Float {
+    return ((this * 6.0 - 90.0) * (PI / 180.0)).toFloat()
+}
 
 /**
- * StopWatch composable using ViewModel pattern.
+ * The stopwatch face (analog display) with digital time.
  *
- * This composable demonstrates the integration between:
- * - UI composable (StopWatchFace)
- * - ViewModel (StopWatchViewModel)
- * - FlowGraph domain logic (via StopWatchController)
+ * Renders an analog clock face with:
+ * - Circle outline
+ * - Tick marks at each second (larger at 5-second intervals)
+ * - Numbers at 5-second positions
+ * - Minutes hand (shorter, black)
+ * - Seconds hand (longer, magenta)
+ * - Digital MM:SS display below
  *
- * The ViewModel manages:
- * - State observation via StateFlow (seconds, minutes, executionState)
- * - Action delegation (start, stop, reset)
- *
- * @param viewModel The StopWatchViewModel instance
  * @param modifier Modifier for the composable
  * @param minSize Minimum size for the clock face
+ * @param seconds Current elapsed seconds (0-59)
+ * @param minutes Current elapsed minutes
+ * @param isRunning Whether the stopwatch is currently running
  */
 @Composable
 fun StopWatch(
-    viewModel: StopWatchViewModel,
     modifier: Modifier = Modifier,
-    minSize: Dp = 200.dp
+    minSize: Dp = 200.dp,
+    seconds: Int = 0,
+    minutes: Int = 0,
+    isRunning: Boolean = false
 ) {
-    // Collect state from ViewModel's StateFlow properties
-    val executionState by viewModel.executionState.collectAsState()
-    val seconds by viewModel.seconds.collectAsState()
-    val minutes by viewModel.minutes.collectAsState()
-
-    // Derive state flags from executionState
-    val isRunning = executionState == ExecutionState.RUNNING
-    val isPaused = executionState == ExecutionState.PAUSED
-    val isIdle = executionState == ExecutionState.IDLE
+    val textMeasurer = rememberTextMeasurer()
 
     Column(
         modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        StopWatchFace(
-            minSize = minSize,
-            seconds = seconds,
-            minutes = minutes,
-            isRunning = isRunning
-        )
+        BoxWithConstraints {
+            val width = if (minWidth < 1.dp) minSize else minWidth
+            val height = if (minHeight < 1.dp) minSize else minHeight
 
-        Spacer(modifier = Modifier.height(16.dp))
+            Canvas(
+                modifier = Modifier.size(width, height)
+            ) {
+                val radius = size.width * .4f
+
+                // Draw the circle
+                drawCircle(
+                    color = Color.Black,
+                    style = Stroke(width = radius * .05f),
+                    radius = radius,
+                    center = size.center
+                )
+
+                val angleDegreeDifference = (360f / 60f)
+
+                // Drawing tick marks
+                (1..60).forEach {
+                    val angleRadDifference =
+                        (((angleDegreeDifference * it) - 90f) * (PI / 180f)).toFloat()
+                    val lineLength = if (it % 5 == 0) radius * .85f else radius * .93f
+                    val lineColour = if (it % 5 == 0) Color.Black else Color.Gray
+                    val startOffsetLine = Offset(
+                        x = lineLength * cos(angleRadDifference) + size.center.x,
+                        y = lineLength * sin(angleRadDifference) + size.center.y
+                    )
+                    val endOffsetLine = Offset(
+                        x = (radius - ((radius * .05f) / 2)) * cos(angleRadDifference) + size.center.x,
+                        y = (radius - ((radius * .05f) / 2)) * sin(angleRadDifference) + size.center.y
+                    )
+                    drawLine(
+                        color = lineColour,
+                        start = startOffsetLine,
+                        end = endOffsetLine
+                    )
+
+                    // Draw numbers at 5-second intervals (showing seconds: 5, 10, 15, etc.)
+                    if (it % 5 == 0) {
+                        val positionX = (radius * .75f) * cos(angleRadDifference) + size.center.x
+                        val positionY = (radius * .75f) * sin(angleRadDifference) + size.center.y
+                        val text = it.toString()
+                        val textSize = (radius * .075f).sp
+
+                        val textLayoutResult = textMeasurer.measure(
+                            text = text,
+                            style = TextStyle(
+                                fontSize = textSize,
+                                color = Color.Gray
+                            )
+                        )
+
+                        drawText(
+                            textLayoutResult = textLayoutResult,
+                            topLeft = Offset(
+                                x = positionX - (textLayoutResult.size.width / 2),
+                                y = positionY - (textLayoutResult.size.height / 2)
+                            )
+                        )
+                    }
+                }
+
+                // Draw the center dot
+                drawCircle(
+                    color = Color.Black,
+                    radius = radius * .02f,
+                    center = size.center
+                )
+
+                // Minutes hand
+                val minutesAngle = (seconds / 60.0 * 6.0) - 90.0 + (minutes * 6.0)
+                drawLine(
+                    color = Color.Black,
+                    start = size.center,
+                    end = Offset(
+                        x = (radius * .55f) * cos((minutesAngle * (PI / 180)).toFloat()) + size.center.x,
+                        y = (radius * .55f) * sin((minutesAngle * (PI / 180)).toFloat()) + size.center.y
+                    ),
+                    strokeWidth = radius * .02f,
+                    cap = StrokeCap.Square
+                )
+
+                // Seconds hand
+                drawLine(
+                    color = Color.Magenta,
+                    start = size.center,
+                    end = Offset(
+                        x = (radius * .9f) * cos(seconds.secondsToRad()) + size.center.x,
+                        y = (radius * .9f) * sin(seconds.secondsToRad()) + size.center.y
+                    ),
+                    strokeWidth = 1.dp.toPx(),
+                    cap = StrokeCap.Round
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
 
         // Digital time display
         val minutesStr = minutes.toString().padStart(2, '0')
@@ -86,80 +176,5 @@ fun StopWatch(
             text = "$minutesStr:$secondsStr",
             style = TextStyle(fontSize = 24.sp)
         )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Control buttons - delegate to ViewModel
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            // Start button - visible when IDLE or after stop
-            if (isIdle) {
-                Button(
-                    onClick = { viewModel.start() },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color.Green
-                    )
-                ) {
-                    Text("Start")
-                }
-            }
-
-            // Stop button - visible when RUNNING
-            if (isRunning) {
-                Button(
-                    onClick = { viewModel.stop() },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color.Red
-                    )
-                ) {
-                    Text("Stop")
-                }
-            }
-
-            // Pause button - visible when RUNNING
-            if (isRunning) {
-                Button(
-                    onClick = { viewModel.pause() },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFFFFA500) // Orange
-                    )
-                ) {
-                    Text("Pause")
-                }
-            }
-
-            // Resume button - visible when PAUSED
-            if (isPaused) {
-                Button(
-                    onClick = { viewModel.resume() },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color.Green
-                    )
-                ) {
-                    Text("Resume")
-                }
-            }
-
-            // Stop button also visible when PAUSED (to fully stop from paused state)
-            if (isPaused) {
-                Button(
-                    onClick = { viewModel.stop() },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color.Red
-                    )
-                ) {
-                    Text("Stop")
-                }
-            }
-
-            // Reset button - enabled when IDLE or PAUSED with elapsed time
-            Button(
-                onClick = { viewModel.reset() },
-                enabled = (isIdle || isPaused) && (seconds > 0 || minutes > 0)
-            ) {
-                Text("Reset")
-            }
-        }
     }
 }

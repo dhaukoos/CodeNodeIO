@@ -289,6 +289,7 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
     // Runtime preview session and panel state
     val runtimeSession = remember { RuntimeSession() }
     var isRuntimePanelExpanded by remember { mutableStateOf(false) }
+    var moduleRootDir by remember { mutableStateOf<File?>(null) }
 
     // Custom node repository and state
     val customNodeRepository = remember { FileCustomNodeRepository() }
@@ -500,6 +501,7 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                     ) {}
                     graphState.setGraph(newGraph, markDirty = false)
                     graphState.navigateToRoot()
+                    moduleRootDir = null
                     statusMessage = "New graph created"
                 },
                 onOpen = { showOpenDialog = true },
@@ -915,6 +917,8 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                         runtimeSession = runtimeSession,
                         isExpanded = isRuntimePanelExpanded,
                         onToggle = { isRuntimePanelExpanded = !isRuntimePanelExpanded },
+                        moduleRootDir = moduleRootDir,
+                        flowGraphName = graphState.flowGraph.name,
                         modifier = Modifier.fillMaxHeight()
                     )
                 }
@@ -981,6 +985,7 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                         val parseResult = parser.parseFlowKt(file.readText())
                         if (parseResult.isSuccess && parseResult.graph != null) {
                             graphState.setGraph(parseResult.graph, markDirty = false)
+                            moduleRootDir = findModuleRoot(file.parentFile)
                             statusMessage = "Opened ${file.name}"
                         } else {
                             statusMessage = "Error opening: ${parseResult.errorMessage}"
@@ -1019,6 +1024,7 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                     )
                     if (result.success) {
                         saveLocationRegistry[flowGraphName] = outputDir
+                        moduleRootDir = result.moduleDir
                         val created = result.filesCreated.size
                         val overwritten = result.filesOverwritten.size
                         val deleted = result.filesDeleted.size
@@ -1309,6 +1315,24 @@ fun GraphEditorAppPreview() {
     MaterialTheme {
         GraphEditorApp()
     }
+}
+
+/**
+ * Walks up from a starting directory to find the module root (directory containing build.gradle.kts).
+ * Stops after 10 levels to avoid traversing too far up.
+ *
+ * @param startDir The directory to start searching from
+ * @return The module root directory, or null if not found
+ */
+private fun findModuleRoot(startDir: File?): File? {
+    var dir = startDir
+    var depth = 0
+    while (dir != null && depth < 10) {
+        if (File(dir, "build.gradle.kts").exists()) return dir
+        dir = dir.parentFile
+        depth++
+    }
+    return null
 }
 
 /**

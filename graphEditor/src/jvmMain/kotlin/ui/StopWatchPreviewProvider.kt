@@ -1,38 +1,29 @@
 /*
- * StopWatchPreviewProvider - Provides StopWatch preview composable for the runtime panel
+ * StopWatchPreviewProvider - Provides StopWatch preview composables for the runtime panel
  * License: Apache 2.0
  */
 
 package io.codenode.grapheditor.ui
 
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import io.codenode.circuitsimulator.RuntimeSession
 import io.codenode.fbpdsl.model.ExecutionState
-import io.codenode.stopwatch.userInterface.StopWatchFace
+import io.codenode.stopwatch.userInterface.StopWatch
+import io.codenode.stopwatch.userInterface.StopWatchScreen
 
 /**
- * Provides a preview composable that renders the StopWatch face and digital
- * time display, driven by the RuntimeSession's ViewModel state.
- *
- * Renders only the visual output (clock face + digital time) without control
- * buttons, since the RuntimePreviewPanel provides its own execution controls.
+ * Provides preview composables that render StopWatch components,
+ * driven by the RuntimeSession's ViewModel state.
  */
 object StopWatchPreviewProvider {
 
     /**
      * Renders the StopWatch preview: analog clock face + digital MM:SS display.
+     * Uses the StopWatch composable directly (no control buttons).
      *
      * @param runtimeSession The RuntimeSession providing the ViewModel state
      * @param modifier Modifier for the preview container
@@ -48,25 +39,30 @@ object StopWatchPreviewProvider {
         val executionState by viewModel.executionState.collectAsState()
         val isRunning = executionState == ExecutionState.RUNNING
 
-        Column(
-            modifier = modifier.fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            StopWatchFace(
-                minSize = 200.dp,
-                seconds = seconds,
-                minutes = minutes,
-                isRunning = isRunning
-            )
+        StopWatch(
+            modifier = modifier,
+            minSize = 200.dp,
+            seconds = seconds,
+            minutes = minutes,
+            isRunning = isRunning
+        )
+    }
 
-            Spacer(modifier = Modifier.height(8.dp))
-
-            val minutesStr = minutes.toString().padStart(2, '0')
-            val secondsStr = seconds.toString().padStart(2, '0')
-            Text(
-                text = "$minutesStr:$secondsStr",
-                style = TextStyle(fontSize = 24.sp)
-            )
-        }
+    /**
+     * Renders the full StopWatchScreen preview: clock face, digital time, and control buttons.
+     *
+     * @param runtimeSession The RuntimeSession providing the ViewModel state
+     * @param modifier Modifier for the preview container
+     */
+    @Composable
+    fun ScreenPreview(
+        runtimeSession: RuntimeSession,
+        modifier: Modifier = Modifier
+    ) {
+        StopWatchScreen(
+            viewModel = runtimeSession.viewModel,
+            modifier = modifier,
+            minSize = 200.dp
+        )
     }
 }
