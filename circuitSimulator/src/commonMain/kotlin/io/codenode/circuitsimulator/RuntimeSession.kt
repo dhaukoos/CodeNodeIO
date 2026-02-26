@@ -37,7 +37,7 @@ class RuntimeSession {
     val executionState: StateFlow<ExecutionState> = _executionState.asStateFlow()
 
     private val _attenuationDelayMs = MutableStateFlow(0L)
-    /** Current attenuation delay in milliseconds (0 = max speed, up to 5000ms) */
+    /** Current attenuation delay in milliseconds (0 = max speed, up to 2000ms) */
     val attenuationDelayMs: StateFlow<Long> = _attenuationDelayMs.asStateFlow()
 
     /**
@@ -83,13 +83,13 @@ class RuntimeSession {
 
     /**
      * Sets the attenuation delay for the generator runtime.
-     * Clamped to [0, 5000] range.
+     * Clamped to [0, 2000] range.
      * Takes effect on the next tick cycle.
      *
      * @param ms Delay in milliseconds (0 = no delay/max speed)
      */
     fun setAttenuation(ms: Long) {
-        val clamped = ms.coerceIn(0L, 5000L)
+        val clamped = ms.coerceIn(0L, 2000L)
         _attenuationDelayMs.value = clamped
         controller.setAttenuationDelay(clamped)
     }

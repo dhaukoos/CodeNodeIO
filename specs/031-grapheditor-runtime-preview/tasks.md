@@ -66,7 +66,7 @@
 - [X] T018 [US2] Create `StopWatchPreviewProvider` in `graphEditor/src/jvmMain/kotlin/ui/StopWatchPreviewProvider.kt` that provides a `@Composable` function rendering StopWatchFace + digital time from the RuntimeSession's ViewModel state. Placed in graphEditor (not circuitSimulator) because Compose compiler plugin is required.
 - [X] T019 [US2] Update `RuntimePreviewPanel` in `graphEditor/src/jvmMain/kotlin/ui/RuntimePreviewPanel.kt` to add a preview area below the controls section that calls `StopWatchPreviewProvider`'s composable function. The preview area should fill remaining vertical space in the panel.
 - [X] T020 [US2] Verify compilation: `./gradlew :circuitSimulator:compileKotlinJvm :graphEditor:compileKotlinJvm`
-- [ ] T021 [US2] Manual verification: Launch graphEditor, expand preview panel, press Start, verify the StopWatch face renders with moving seconds hand and incrementing digital timer. Verify Pause freezes the display, Resume continues, Stop resets to 00:00.
+- [X] T021 [US2] Manual verification: Launch graphEditor, expand preview panel, press Start, verify the StopWatch face renders with moving seconds hand and incrementing digital timer. Verify Pause freezes the display, Resume continues, Stop resets to 00:00.
 
 **Checkpoint**: Live preview pane renders StopWatch UI composables in real time, driven by flow graph execution.
 
@@ -80,10 +80,10 @@
 
 ### Implementation for User Story 3
 
-- [ ] T022 [US3] Implement auto-stop on graph edit: In `graphEditor/src/jvmMain/kotlin/Main.kt` (or `RuntimePreviewPanel.kt`), observe the flowGraph state and call `RuntimeSession.stop()` when the graph is modified while execution is running (FR-007)
-- [ ] T023 [US3] Clamp attenuation slider range: In `RuntimeSession` or `RuntimePreviewPanel`, ensure attenuationDelayMs is clamped to [0, 5000] range (FR-005)
-- [ ] T024 [US3] Manual verification - full lifecycle: Launch graphEditor, run quickstart.md Scenario 1 (start/stop), Scenario 2 (pause/resume), Scenario 3 (speed attenuation at 0ms, 1000ms, 3000ms), Scenario 4 (minute rollover), Scenario 5 (edit while running auto-stops)
-- [ ] T025 [US3] Manual verification - panel toggle: Run quickstart.md Scenario 6 (collapse/expand preview panel without losing state)
+- [X] T022 [US3] Implement auto-stop on graph edit: In `graphEditor/src/jvmMain/kotlin/Main.kt` (or `RuntimePreviewPanel.kt`), observe the flowGraph state and call `RuntimeSession.stop()` when the graph is modified while execution is running (FR-007)
+- [X] T023 [US3] Clamp attenuation slider range: In `RuntimeSession` or `RuntimePreviewPanel`, ensure attenuationDelayMs is clamped to [0, 5000] range (FR-005)
+- [X] T024 [US3] Manual verification - full lifecycle: Launch graphEditor, run quickstart.md Scenario 1 (start/stop), Scenario 2 (pause/resume), Scenario 3 (speed attenuation at 0ms, 1000ms, 3000ms), Scenario 4 (minute rollover), Scenario 5 (edit while running auto-stops)
+- [X] T025 [US3] Manual verification - panel toggle: Run quickstart.md Scenario 6 (collapse/expand preview panel without losing state)
 
 **Checkpoint**: All StopWatch lifecycle scenarios pass. Auto-stop on edit works. Attenuation range is clamped. Full PoC validated.
 

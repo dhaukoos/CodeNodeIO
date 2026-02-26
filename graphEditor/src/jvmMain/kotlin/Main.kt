@@ -75,6 +75,8 @@ import androidx.compose.ui.input.key.*
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.foundation.focusable
+import io.codenode.fbpdsl.model.ExecutionState
+import kotlinx.coroutines.flow.drop
 import java.io.File
 import javax.swing.JFileChooser
 import javax.swing.filechooser.FileNameExtensionFilter
@@ -334,6 +336,18 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
     var showFlowGraphPropertiesDialog by remember { mutableStateOf(false) }
     val saveLocationRegistry = remember { mutableMapOf<String, File>() }
     var statusMessage by remember { mutableStateOf("Ready - Create a new graph or open an existing one") }
+
+    // Auto-stop runtime when graph is edited while running (FR-007)
+    LaunchedEffect(runtimeSession) {
+        snapshotFlow { graphState.flowGraph }
+            .drop(1) // Skip the initial value
+            .collect {
+                if (runtimeSession.executionState.value != ExecutionState.IDLE) {
+                    runtimeSession.stop()
+                    statusMessage = "Execution stopped: graph was modified"
+                }
+            }
+    }
 
     // IPPaletteViewModel for the IP Palette
     val ipPaletteViewModel = remember {
