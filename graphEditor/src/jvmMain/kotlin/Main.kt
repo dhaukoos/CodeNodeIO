@@ -48,6 +48,8 @@ import io.codenode.grapheditor.ui.NodeGeneratorPanel
 import io.codenode.grapheditor.ui.GraphEditorWithToggle
 import io.codenode.grapheditor.ui.ViewMode
 import io.codenode.grapheditor.ui.CompactPropertiesPanelWithViewModel
+import io.codenode.grapheditor.ui.RuntimePreviewPanel
+import io.codenode.circuitsimulator.RuntimeSession
 import io.codenode.grapheditor.ui.PropertiesPanelState
 import io.codenode.grapheditor.repository.FileCustomNodeRepository
 import io.codenode.grapheditor.state.rememberPropertyChangeTracker
@@ -283,6 +285,10 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
     val graphState = remember { GraphState(initialGraph) }
     val undoRedoManager = rememberUndoRedoManager()
     val propertyChangeTracker = rememberPropertyChangeTracker(undoRedoManager, graphState)
+
+    // Runtime preview session and panel state
+    val runtimeSession = remember { RuntimeSession() }
+    var isRuntimePanelExpanded by remember { mutableStateOf(false) }
 
     // Custom node repository and state
     val customNodeRepository = remember { FileCustomNodeRepository() }
@@ -902,6 +908,14 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                             } ?: emptyList()
                         } ?: emptyList(),
                         ipTypeRegistry = ipTypeRegistry
+                    )
+
+                    // Runtime Preview Panel (right side, after properties)
+                    RuntimePreviewPanel(
+                        runtimeSession = runtimeSession,
+                        isExpanded = isRuntimePanelExpanded,
+                        onToggle = { isRuntimePanelExpanded = !isRuntimePanelExpanded },
+                        modifier = Modifier.fillMaxHeight()
                     )
                 }
 
