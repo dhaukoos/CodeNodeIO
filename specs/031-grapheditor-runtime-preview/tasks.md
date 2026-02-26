@@ -93,9 +93,9 @@
 
 **Purpose**: Cleanup, edge cases, and final validation
 
-- [ ] T026 Handle "no UI composables" edge case: When a module lacks userInterface composables, show "No preview available" in preview pane while controls still function (quickstart Scenario 7)
-- [ ] T027 Run all automated tests to verify no regressions: `./gradlew :fbpDsl:allTests :circuitSimulator:jvmTest :graphEditor:jvmTest`
-- [ ] T028 Run full quickstart.md validation (all 7 scenarios)
+- [X] T026 Handle "no UI composables" edge case: When a module lacks userInterface composables, show "No preview available" in preview pane while controls still function (quickstart Scenario 7)
+- [X] T027 Run all automated tests to verify no regressions: `./gradlew :fbpDsl:allTests :circuitSimulator:jvmTest :graphEditor:jvmTest`
+- [X] T028 Run full quickstart.md validation (all 7 scenarios)
 
 ---
 

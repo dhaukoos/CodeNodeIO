@@ -322,23 +322,31 @@ fun RuntimePreviewPanel(
                         .weight(1f),
                     contentAlignment = Alignment.TopCenter
                 ) {
-                    when (selectedComposable) {
-                        "StopWatch" -> StopWatchPreviewProvider.Preview(
-                            runtimeSession = runtimeSession
-                        )
-                        "StopWatchScreen" -> StopWatchPreviewProvider.ScreenPreview(
-                            runtimeSession = runtimeSession
-                        )
-                        null -> Text(
-                            text = "Select a composable to preview",
+                    if (moduleRootDir == null || composables.isEmpty()) {
+                        Text(
+                            text = "No preview available",
                             fontSize = 12.sp,
                             color = Color.Gray
                         )
-                        else -> Text(
-                            text = "Preview not available for: $selectedComposable",
-                            fontSize = 12.sp,
-                            color = Color.Gray
-                        )
+                    } else {
+                        when (selectedComposable) {
+                            "StopWatch" -> StopWatchPreviewProvider.Preview(
+                                runtimeSession = runtimeSession
+                            )
+                            "StopWatchScreen" -> StopWatchPreviewProvider.ScreenPreview(
+                                runtimeSession = runtimeSession
+                            )
+                            null -> Text(
+                                text = "Select a composable to preview",
+                                fontSize = 12.sp,
+                                color = Color.Gray
+                            )
+                            else -> Text(
+                                text = "Preview not available for: $selectedComposable",
+                                fontSize = 12.sp,
+                                color = Color.Gray
+                            )
+                        }
                     }
                 }
             }
