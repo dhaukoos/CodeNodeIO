@@ -242,6 +242,18 @@ class RuntimeControllerGeneratorTest {
     }
 
     @Test
+    fun `StopWatch-like flow generates setAttenuationDelay method for generators`() {
+        val flowGraph = createStopWatchLikeFlow()
+        val result = generator.generate(flowGraph, generatedPackage, usecasesPackage)
+
+        assertTrue(result.contains("fun setAttenuationDelay(ms: Long?)"))
+        assertTrue(result.contains("flow.timerEmitter.attenuationDelayMs = ms"),
+            "Should set attenuationDelayMs on generator nodes")
+        assertFalse(result.contains("flow.displayReceiver.attenuationDelayMs"),
+            "Should not set attenuationDelayMs on sink nodes")
+    }
+
+    @Test
     fun `StopWatch-like flow generates currentFlowGraph getter`() {
         val flowGraph = createStopWatchLikeFlow()
         val result = generator.generate(flowGraph, generatedPackage, usecasesPackage)

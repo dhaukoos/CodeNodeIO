@@ -59,6 +59,7 @@ class RuntimeControllerGenerator {
             generateSetNodeStateMethod(flowName)
             generateSetNodeConfigMethod(flowName)
             generateBindToLifecycleMethod()
+            generateSetAttenuationDelayMethod(codeNodes)
             generateCurrentFlowGraphGetter()
             appendLine("}")
             appendLine()
@@ -269,6 +270,21 @@ class RuntimeControllerGenerator {
         appendLine("                }")
         appendLine("            }")
         appendLine("        })")
+        appendLine("    }")
+        appendLine()
+    }
+
+    private fun StringBuilder.generateSetAttenuationDelayMethod(codeNodes: List<CodeNode>) {
+        val generators = codeNodes.filter { it.inputPorts.isEmpty() && it.outputPorts.isNotEmpty() }
+        appendLine("    /**")
+        appendLine("     * Sets the attenuation delay on all generator runtimes.")
+        appendLine("     * When non-null, replaces tickIntervalMs as the delay between ticks.")
+        appendLine("     * When null, reverts to the original tickIntervalMs.")
+        appendLine("     */")
+        appendLine("    fun setAttenuationDelay(ms: Long?) {")
+        generators.forEach { node ->
+            appendLine("        flow.${node.name.camelCase()}.attenuationDelayMs = ms")
+        }
         appendLine("    }")
         appendLine()
     }
