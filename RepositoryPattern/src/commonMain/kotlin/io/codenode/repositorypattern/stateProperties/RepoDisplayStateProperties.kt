@@ -8,14 +8,14 @@ import kotlinx.coroutines.flow.asStateFlow
  * State properties for the RepoDisplay node.
  *
  * Input ports:
- *   - input1: Any
+ *   - filteredList: Any
  */
 object RepoDisplayStateProperties {
 
-    internal val _input1 = MutableStateFlow(TODO("Provide initial value for Any"))
-    val input1Flow: StateFlow<Any> = _input1.asStateFlow()
+    internal val _filteredList = MutableStateFlow(TODO("Provide initial value for Any"))
+    val filteredListFlow: StateFlow<Any> = _filteredList.asStateFlow()
 
     fun reset() {
-        _input1.value = TODO("Provide initial value for Any")
+        _filteredList.value = TODO("Provide initial value for Any")
     }
 }

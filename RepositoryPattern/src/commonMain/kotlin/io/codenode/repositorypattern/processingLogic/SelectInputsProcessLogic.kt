@@ -10,8 +10,8 @@ import io.codenode.repositorypattern.stateProperties.SelectInputsStateProperties
  * Node type: Generator (0 inputs, 2 outputs)
  *
  * Outputs:
- *   - output1: Any
- *   - output2: Any
+ *   - filterBy: Any
+ *   - sortBy: Any
  *
  */
 val selectInputsTick: Out2TickBlock<Any, Any> = {

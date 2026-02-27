@@ -9,9 +9,9 @@ import io.codenode.repositorypattern.stateProperties.RepoDisplayStateProperties
  * Node type: Sink (1 inputs, 0 outputs)
  *
  * Inputs:
- *   - input1: Any
+ *   - filteredList: Any
  *
  */
-val repoDisplayTick: SinkTickBlock<Any> = { input1 ->
+val repoDisplayTick: SinkTickBlock<Any> = { filteredList ->
     // TODO: Implement RepoDisplay tick logic
 }

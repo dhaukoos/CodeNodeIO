@@ -76,17 +76,23 @@ class ModuleSaveService {
      * overwritten, existing stubs are preserved, new stubs are created for added
      * nodes, and orphaned stubs are deleted for removed nodes.
      *
+     * When [regenerateStubs] is true, ProcessingLogic stubs are selectively regenerated
+     * (boilerplate updated with current port names/types while preserving the lambda body),
+     * and StateProperties stubs are fully overwritten with fresh generation.
+     *
      * @param flowGraph The flow graph to save
      * @param outputDir Parent directory where the module will be created
      * @param packageName Package name for generated code (default: io.codenode.{modulename})
      * @param moduleName Module name (default: derived from FlowGraph name)
+     * @param regenerateStubs When true, regenerate stub files with updated boilerplate
      * @return ModuleSaveResult with success status, module directory, and file tracking
      */
     fun saveModule(
         flowGraph: FlowGraph,
         outputDir: File,
         packageName: String? = null,
-        moduleName: String? = null
+        moduleName: String? = null,
+        regenerateStubs: Boolean = false
     ): ModuleSaveResult {
         return try {
             val effectiveModuleName = moduleName ?: deriveModuleName(flowGraph.name)
@@ -144,11 +150,11 @@ class ModuleSaveService {
                 statePropertiesPackage, effectiveModuleName, filesCreated, filesOverwritten
             )
 
-            // Generate processing logic stubs (don't overwrite existing)
-            generateProcessingLogicStubs(flowGraph, moduleDir, processingLogicPackage, statePropertiesPackage, filesCreated)
+            // Generate processing logic stubs (don't overwrite existing, unless regenerating)
+            generateProcessingLogicStubs(flowGraph, moduleDir, processingLogicPackage, statePropertiesPackage, filesCreated, filesOverwritten, regenerateStubs)
 
-            // Generate state properties files (don't overwrite existing)
-            generateStatePropertiesFiles(flowGraph, moduleDir, statePropertiesPackage, filesCreated)
+            // Generate state properties files (don't overwrite existing, unless regenerating)
+            generateStatePropertiesFiles(flowGraph, moduleDir, statePropertiesPackage, filesCreated, filesOverwritten, regenerateStubs)
 
             // Delete orphaned stubs
             deleteOrphanedComponents(flowGraph, moduleDir, processingLogicPackage, filesDeleted)
@@ -242,20 +248,27 @@ class ModuleSaveService {
      * Generates ProcessingLogic stub files for each CodeNode in the FlowGraph.
      *
      * Creates one stub file per CodeNode, only if the file doesn't already exist
-     * (to preserve user implementations).
+     * (to preserve user implementations). When [regenerateStubs] is true,
+     * existing stubs are selectively regenerated: boilerplate (package, imports,
+     * KDoc, type alias, parameter names) is updated while the lambda body
+     * (user implementation) is preserved.
      *
      * @param flowGraph The flow graph containing CodeNodes
      * @param moduleDir The module root directory
      * @param packageName The package name for generated files
      * @param statePropertiesPackage The stateProperties package for import in stubs
      * @param filesCreated List to track created files
+     * @param filesOverwritten List to track overwritten files
+     * @param regenerateStubs When true, selectively regenerate existing stubs
      */
     private fun generateProcessingLogicStubs(
         flowGraph: FlowGraph,
         moduleDir: File,
         packageName: String,
         statePropertiesPackage: String,
-        filesCreated: MutableList<String>
+        filesCreated: MutableList<String>,
+        filesOverwritten: MutableList<String>,
+        regenerateStubs: Boolean
     ) {
         val packagePath = packageName.replace(".", "/")
         val sourceDir = File(moduleDir, "src/commonMain/kotlin/$packagePath")
@@ -266,13 +279,29 @@ class ModuleSaveService {
         for (codeNode in codeNodes) {
             val stubFileName = stubGenerator.getStubFileName(codeNode)
             val stubFile = File(sourceDir, stubFileName)
+            val relativePath = "src/commonMain/kotlin/$packagePath/$stubFileName"
 
-            // Only create stub if file doesn't exist (preserve user implementations)
             if (!stubFile.exists()) {
+                // New stub: generate fresh
                 val stubContent = stubGenerator.generateStub(codeNode, packageName, statePropertiesPackage)
                 stubFile.writeText(stubContent)
-                filesCreated.add("src/commonMain/kotlin/$packagePath/$stubFileName")
+                filesCreated.add(relativePath)
+            } else if (regenerateStubs) {
+                // Existing stub + regenerate flag: selectively regenerate
+                val existingContent = stubFile.readText()
+                val preservedBody = stubGenerator.extractLambdaBody(existingContent)
+                val newContent = if (preservedBody != null) {
+                    stubGenerator.generateStubWithPreservedBody(
+                        codeNode, packageName, statePropertiesPackage, preservedBody
+                    )
+                } else {
+                    // Could not parse lambda body — regenerate fresh
+                    stubGenerator.generateStub(codeNode, packageName, statePropertiesPackage)
+                }
+                stubFile.writeText(newContent)
+                filesOverwritten.add(relativePath)
             }
+            // else: existing stub + no regenerate flag → preserve as-is (do nothing)
         }
     }
 
@@ -281,17 +310,23 @@ class ModuleSaveService {
      *
      * Creates one state properties file per CodeNode that has ports,
      * only if the file doesn't already exist (to preserve user modifications).
+     * When [regenerateStubs] is true, existing files are fully overwritten
+     * (since port names are embedded in property names and cannot be selectively updated).
      *
      * @param flowGraph The flow graph containing CodeNodes
      * @param moduleDir The module root directory
      * @param packageName The package name for state properties files
      * @param filesCreated List to track created files
+     * @param filesOverwritten List to track overwritten files
+     * @param regenerateStubs When true, overwrite existing state properties files
      */
     private fun generateStatePropertiesFiles(
         flowGraph: FlowGraph,
         moduleDir: File,
         packageName: String,
-        filesCreated: MutableList<String>
+        filesCreated: MutableList<String>,
+        filesOverwritten: MutableList<String>,
+        regenerateStubs: Boolean
     ) {
         val packagePath = packageName.replace(".", "/")
         val sourceDir = File(moduleDir, "src/commonMain/kotlin/$packagePath")
@@ -303,13 +338,18 @@ class ModuleSaveService {
 
             val fileName = statePropertiesGenerator.getStatePropertiesFileName(codeNode)
             val file = File(sourceDir, fileName)
+            val relativePath = "src/commonMain/kotlin/$packagePath/$fileName"
 
-            // Only create if file doesn't exist (preserve user modifications)
             if (!file.exists()) {
                 val content = statePropertiesGenerator.generateStateProperties(codeNode, packageName)
                 file.writeText(content)
-                filesCreated.add("src/commonMain/kotlin/$packagePath/$fileName")
+                filesCreated.add(relativePath)
+            } else if (regenerateStubs) {
+                val content = statePropertiesGenerator.generateStateProperties(codeNode, packageName)
+                file.writeText(content)
+                filesOverwritten.add(relativePath)
             }
+            // else: existing file + no regenerate flag → preserve as-is
         }
     }
 

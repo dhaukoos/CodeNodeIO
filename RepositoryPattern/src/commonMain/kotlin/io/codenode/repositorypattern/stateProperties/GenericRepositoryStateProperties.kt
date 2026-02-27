@@ -8,30 +8,30 @@ import kotlinx.coroutines.flow.asStateFlow
  * State properties for the GenericRepository node.
  *
  * Input ports:
- *   - input1: Any
- *   - input2: Any
- *   - input3: Any
+ *   - insert: Any
+ *   - update: Any
+ *   - delete: Any
  * Output ports:
- *   - output1: Any
+ *   - getAll: Any
  */
 object GenericRepositoryStateProperties {
 
-    internal val _input1 = MutableStateFlow(TODO("Provide initial value for Any"))
-    val input1Flow: StateFlow<Any> = _input1.asStateFlow()
+    internal val _insert = MutableStateFlow(TODO("Provide initial value for Any"))
+    val insertFlow: StateFlow<Any> = _insert.asStateFlow()
 
-    internal val _input2 = MutableStateFlow(TODO("Provide initial value for Any"))
-    val input2Flow: StateFlow<Any> = _input2.asStateFlow()
+    internal val _update = MutableStateFlow(TODO("Provide initial value for Any"))
+    val updateFlow: StateFlow<Any> = _update.asStateFlow()
 
-    internal val _input3 = MutableStateFlow(TODO("Provide initial value for Any"))
-    val input3Flow: StateFlow<Any> = _input3.asStateFlow()
+    internal val _delete = MutableStateFlow(TODO("Provide initial value for Any"))
+    val deleteFlow: StateFlow<Any> = _delete.asStateFlow()
 
-    internal val _output1 = MutableStateFlow(TODO("Provide initial value for Any"))
-    val output1Flow: StateFlow<Any> = _output1.asStateFlow()
+    internal val _getAll = MutableStateFlow(TODO("Provide initial value for Any"))
+    val getAllFlow: StateFlow<Any> = _getAll.asStateFlow()
 
     fun reset() {
-        _input1.value = TODO("Provide initial value for Any")
-        _input2.value = TODO("Provide initial value for Any")
-        _input3.value = TODO("Provide initial value for Any")
-        _output1.value = TODO("Provide initial value for Any")
+        _insert.value = TODO("Provide initial value for Any")
+        _update.value = TODO("Provide initial value for Any")
+        _delete.value = TODO("Provide initial value for Any")
+        _getAll.value = TODO("Provide initial value for Any")
     }
 }

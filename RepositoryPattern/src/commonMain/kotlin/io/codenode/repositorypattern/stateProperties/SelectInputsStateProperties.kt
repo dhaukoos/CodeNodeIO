@@ -8,19 +8,19 @@ import kotlinx.coroutines.flow.asStateFlow
  * State properties for the SelectInputs node.
  *
  * Output ports:
- *   - output1: Any
- *   - output2: Any
+ *   - filterBy: Any
+ *   - sortBy: Any
  */
 object SelectInputsStateProperties {
 
-    internal val _output1 = MutableStateFlow(TODO("Provide initial value for Any"))
-    val output1Flow: StateFlow<Any> = _output1.asStateFlow()
+    internal val _filterBy = MutableStateFlow(TODO("Provide initial value for Any"))
+    val filterByFlow: StateFlow<Any> = _filterBy.asStateFlow()
 
-    internal val _output2 = MutableStateFlow(TODO("Provide initial value for Any"))
-    val output2Flow: StateFlow<Any> = _output2.asStateFlow()
+    internal val _sortBy = MutableStateFlow(TODO("Provide initial value for Any"))
+    val sortByFlow: StateFlow<Any> = _sortBy.asStateFlow()
 
     fun reset() {
-        _output1.value = TODO("Provide initial value for Any")
-        _output2.value = TODO("Provide initial value for Any")
+        _filterBy.value = TODO("Provide initial value for Any")
+        _sortBy.value = TODO("Provide initial value for Any")
     }
 }

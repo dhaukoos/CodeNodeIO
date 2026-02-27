@@ -9,15 +9,15 @@ import io.codenode.repositorypattern.stateProperties.GenericRepositoryStatePrope
  * Node type: Processor (3 inputs, 1 outputs)
  *
  * Inputs:
- *   - input1: Any
- *   - input2: Any
- *   - input3: Any
+ *   - insert: Any
+ *   - update: Any
+ *   - delete: Any
  *
  * Outputs:
- *   - output1: Any
+ *   - getAll: Any
  *
  */
-val genericRepositoryTick: In3Out1TickBlock<Any, Any, Any, Any> = { input1, input2, input3 ->
+val genericRepositoryTick: In3Out1TickBlock<Any, Any, Any, Any> = { insert, update, delete ->
     // TODO: Implement GenericRepository tick logic
     TODO("Provide default value")
 }

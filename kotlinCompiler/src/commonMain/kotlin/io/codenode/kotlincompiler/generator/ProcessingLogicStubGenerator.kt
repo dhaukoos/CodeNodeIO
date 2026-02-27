@@ -265,6 +265,115 @@ class ProcessingLogicStubGenerator {
     private fun outType(codeNode: CodeNode, index: Int): String =
         codeNode.outputPorts.getOrNull(index)?.dataType?.simpleName ?: "Any"
 
+    /**
+     * Extracts the lambda body from an existing stub file.
+     *
+     * The lambda body is everything between the `{ params ->` (or `{` for generators)
+     * opening and the final closing `}`. Returns null if the pattern is not found.
+     *
+     * @param existingContent The content of the existing stub file
+     * @return The lambda body lines (indented as in the original), or null if not parseable
+     */
+    fun extractLambdaBody(existingContent: String): String? {
+        val lines = existingContent.lines()
+
+        // Find the line containing `val ...Tick: ... = {`
+        val openIndex = lines.indexOfFirst { it.trimStart().startsWith("val ") && it.contains("= {") }
+        if (openIndex == -1) return null
+
+        // Find the last `}` line (closing the lambda)
+        val closeIndex = lines.indexOfLast { it.trim() == "}" }
+        if (closeIndex == -1 || closeIndex <= openIndex) return null
+
+        // Lambda body is everything between opening line and closing `}`
+        val bodyLines = lines.subList(openIndex + 1, closeIndex)
+        return bodyLines.joinToString("\n")
+    }
+
+    /**
+     * Generates a stub with a preserved lambda body instead of the default TODO.
+     *
+     * Used during stub regeneration to update boilerplate (package, imports, KDoc,
+     * type alias, parameter names) while keeping the user's implementation.
+     *
+     * @param codeNode The code node to generate a stub for
+     * @param packageName The package name
+     * @param statePropertiesPackage The stateProperties package for import
+     * @param preservedBody The lambda body to insert (from [extractLambdaBody])
+     * @return Generated Kotlin source code with preserved body
+     */
+    fun generateStubWithPreservedBody(
+        codeNode: CodeNode,
+        packageName: String,
+        statePropertiesPackage: String? = null,
+        preservedBody: String
+    ): String {
+        if (!shouldGenerateStub(codeNode)) return ""
+
+        val tickTypeAlias = getTickTypeAlias(codeNode)
+        val tickValName = getTickValName(codeNode)
+        val typeAliasName = tickTypeAlias.substringBefore("<")
+        val inputCount = codeNode.inputPorts.size
+        val outputCount = codeNode.outputPorts.size
+        val hasPorts = inputCount > 0 || outputCount > 0
+
+        return buildString {
+            // Package declaration
+            appendLine("package $packageName")
+            appendLine()
+
+            // Imports
+            appendLine("import io.codenode.fbpdsl.runtime.$typeAliasName")
+            if (outputCount == 2) {
+                appendLine("import io.codenode.fbpdsl.runtime.ProcessResult2")
+            } else if (outputCount == 3) {
+                appendLine("import io.codenode.fbpdsl.runtime.ProcessResult3")
+            }
+            if (statePropertiesPackage != null && hasPorts) {
+                val objectName = "${codeNode.name.pascalCase()}StateProperties"
+                appendLine("import $statePropertiesPackage.$objectName")
+            }
+            appendLine()
+
+            // KDoc
+            appendLine("/**")
+            appendLine(" * Tick function for the ${codeNode.name} node.")
+            appendLine(" *")
+            appendLine(" * Node type: ${getNodeCategory(codeNode)} ($inputCount inputs, $outputCount outputs)")
+            appendLine(" *")
+            if (inputCount > 0) {
+                appendLine(" * Inputs:")
+                codeNode.inputPorts.forEach { port ->
+                    appendLine(" *   - ${port.name}: ${port.dataType.simpleName ?: "Any"}")
+                }
+                appendLine(" *")
+            }
+            if (outputCount > 0) {
+                appendLine(" * Outputs:")
+                codeNode.outputPorts.forEach { port ->
+                    appendLine(" *   - ${port.name}: ${port.dataType.simpleName ?: "Any"}")
+                }
+                appendLine(" *")
+            }
+            appendLine(" */")
+
+            // Val declaration with new parameters but preserved body
+            append("val $tickValName: $tickTypeAlias = {")
+
+            // Lambda parameters for inputs
+            if (inputCount > 0) {
+                val params = codeNode.inputPorts.joinToString(", ") { it.name }
+                append(" $params ->")
+            }
+            appendLine()
+
+            // Preserved lambda body
+            appendLine(preservedBody)
+
+            appendLine("}")
+        }
+    }
+
     private fun defaultForType(typeName: String): String = when (typeName) {
         "Int" -> "0"
         "Long" -> "0L"

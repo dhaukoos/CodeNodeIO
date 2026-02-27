@@ -1679,6 +1679,216 @@ class ModuleSaveServiceTest {
 
     // ========== T010: Name Change Integration (Quickstart Step 4) ==========
 
+    // ========== Stub Regeneration Tests ==========
+
+    @Test
+    fun `regenerateStubs selectively regenerates ProcessingLogic boilerplate preserving lambda body`() {
+        // Initial save with port named "input" (String→Int = Transformer, default return is 0)
+        val node = CodeNode(
+            id = "node1", name = "Processor", codeNodeType = CodeNodeType.TRANSFORMER,
+            position = Node.Position(0.0, 0.0),
+            inputPorts = listOf(
+                Port(id = "p1", name = "input", direction = Port.Direction.INPUT, dataType = String::class, owningNodeId = "node1")
+            ),
+            outputPorts = listOf(
+                Port(id = "p2", name = "output", direction = Port.Direction.OUTPUT, dataType = Int::class, owningNodeId = "node1")
+            )
+        )
+        val flowGraph1 = createTestFlowGraph("RegenTest", listOf(node))
+        val saveService = ModuleSaveService()
+
+        val result1 = saveService.saveModule(flowGraph1, tempDir)
+        assertTrue(result1.success)
+
+        // Simulate user editing the lambda body
+        val packageDir = File(result1.moduleDir, "src/commonMain/kotlin/io/codenode/regentest/processingLogic")
+        val stubFile = File(packageDir, "ProcessorProcessLogic.kt")
+        val originalContent = stubFile.readText()
+        val userContent = originalContent.replace(
+            "    // TODO: Implement Processor tick logic\n    0",
+            "    // Custom user logic\n    input.length"
+        )
+        stubFile.writeText(userContent)
+
+        // Re-save with renamed port and regenerateStubs=true
+        val updatedNode = node.copy(
+            inputPorts = listOf(
+                Port(id = "p1", name = "query", direction = Port.Direction.INPUT, dataType = String::class, owningNodeId = "node1")
+            )
+        )
+        val flowGraph2 = createTestFlowGraph("RegenTest", listOf(updatedNode))
+
+        val result2 = saveService.saveModule(flowGraph2, tempDir, regenerateStubs = true)
+
+        assertTrue(result2.success)
+        val regeneratedContent = stubFile.readText()
+        // Boilerplate updated: new port name in KDoc and lambda params
+        assertTrue(regeneratedContent.contains("- query: String"),
+            "KDoc should reflect new port name 'query'")
+        assertTrue(regeneratedContent.contains("{ query ->"),
+            "Lambda parameter should use new port name 'query'")
+        // Lambda body preserved
+        assertTrue(regeneratedContent.contains("// Custom user logic"),
+            "User's comment should be preserved")
+        assertTrue(regeneratedContent.contains("input.length"),
+            "User's implementation should be preserved")
+        // Tracked as overwritten
+        assertTrue(result2.filesOverwritten.any { it.contains("ProcessorProcessLogic.kt") },
+            "Regenerated stub should be in filesOverwritten")
+    }
+
+    @Test
+    fun `regenerateStubs overwrites StateProperties files`() {
+        // Initial save with port named "input1"
+        val node = CodeNode(
+            id = "node1", name = "Receiver", codeNodeType = CodeNodeType.SINK,
+            position = Node.Position(0.0, 0.0),
+            inputPorts = listOf(
+                Port(id = "p1", name = "input1", direction = Port.Direction.INPUT, dataType = Int::class, owningNodeId = "node1")
+            ),
+            outputPorts = emptyList()
+        )
+        val flowGraph1 = createTestFlowGraph("StateRegenTest", listOf(node))
+        val saveService = ModuleSaveService()
+
+        val result1 = saveService.saveModule(flowGraph1, tempDir)
+        assertTrue(result1.success)
+
+        val stateDir = File(result1.moduleDir, "src/commonMain/kotlin/io/codenode/stateregentest/stateProperties")
+        val stateFile = File(stateDir, "ReceiverStateProperties.kt")
+        assertTrue(stateFile.readText().contains("_input1"),
+            "Initial state properties should use port name 'input1'")
+
+        // Re-save with renamed port and regenerateStubs=true
+        val updatedNode = node.copy(
+            inputPorts = listOf(
+                Port(id = "p1", name = "seconds", direction = Port.Direction.INPUT, dataType = Int::class, owningNodeId = "node1")
+            )
+        )
+        val flowGraph2 = createTestFlowGraph("StateRegenTest", listOf(updatedNode))
+
+        val result2 = saveService.saveModule(flowGraph2, tempDir, regenerateStubs = true)
+
+        assertTrue(result2.success)
+        val regeneratedContent = stateFile.readText()
+        // Old port name gone, new port name present
+        assertFalse(regeneratedContent.contains("_input1"),
+            "Old port name 'input1' should no longer appear")
+        assertTrue(regeneratedContent.contains("_seconds"),
+            "New port name 'seconds' should appear in MutableStateFlow")
+        assertTrue(regeneratedContent.contains("secondsFlow"),
+            "New port name should appear in StateFlow accessor")
+        assertTrue(regeneratedContent.contains("_seconds.value = 0"),
+            "Reset method should use new port name")
+        // Tracked as overwritten
+        assertTrue(result2.filesOverwritten.any { it.contains("ReceiverStateProperties.kt") },
+            "Regenerated state properties should be in filesOverwritten")
+    }
+
+    @Test
+    fun `default save without regenerateStubs preserves existing stubs unchanged`() {
+        val node = CodeNode(
+            id = "node1", name = "Processor", codeNodeType = CodeNodeType.TRANSFORMER,
+            position = Node.Position(0.0, 0.0),
+            inputPorts = listOf(
+                Port(id = "p1", name = "input", direction = Port.Direction.INPUT, dataType = String::class, owningNodeId = "node1")
+            ),
+            outputPorts = listOf(
+                Port(id = "p2", name = "output", direction = Port.Direction.OUTPUT, dataType = Int::class, owningNodeId = "node1")
+            )
+        )
+        val flowGraph1 = createTestFlowGraph("NoRegenTest", listOf(node))
+        val saveService = ModuleSaveService()
+
+        val result1 = saveService.saveModule(flowGraph1, tempDir)
+        assertTrue(result1.success)
+
+        val packageDir = File(result1.moduleDir, "src/commonMain/kotlin/io/codenode/noregentest/processingLogic")
+        val stubFile = File(packageDir, "ProcessorProcessLogic.kt")
+        val originalContent = stubFile.readText()
+
+        // Re-save with renamed port but WITHOUT regenerateStubs
+        val updatedNode = node.copy(
+            inputPorts = listOf(
+                Port(id = "p1", name = "query", direction = Port.Direction.INPUT, dataType = String::class, owningNodeId = "node1")
+            )
+        )
+        val flowGraph2 = createTestFlowGraph("NoRegenTest", listOf(updatedNode))
+
+        val result2 = saveService.saveModule(flowGraph2, tempDir)
+
+        assertTrue(result2.success)
+        assertEquals(originalContent, stubFile.readText(),
+            "Stub should be unchanged when regenerateStubs is false")
+        assertFalse(result2.filesOverwritten.any { it.contains("ProcessorProcessLogic.kt") },
+            "Stub should not appear in filesOverwritten")
+    }
+
+    @Test
+    fun `regenerateStubs creates stubs for new nodes and regenerates existing ones`() {
+        val node1 = CodeNode(
+            id = "node1", name = "ExistingNode", codeNodeType = CodeNodeType.TRANSFORMER,
+            position = Node.Position(0.0, 0.0),
+            inputPorts = listOf(
+                Port(id = "p1", name = "input", direction = Port.Direction.INPUT, dataType = String::class, owningNodeId = "node1")
+            ),
+            outputPorts = listOf(
+                Port(id = "p2", name = "output", direction = Port.Direction.OUTPUT, dataType = Int::class, owningNodeId = "node1")
+            )
+        )
+        val flowGraph1 = createTestFlowGraph("MixedRegenTest", listOf(node1))
+        val saveService = ModuleSaveService()
+
+        val result1 = saveService.saveModule(flowGraph1, tempDir)
+        assertTrue(result1.success)
+
+        // Add a new node and regenerate
+        val node2 = CodeNode(
+            id = "node2", name = "NewNode", codeNodeType = CodeNodeType.SINK,
+            position = Node.Position(300.0, 0.0),
+            inputPorts = listOf(
+                Port(id = "p3", name = "data", direction = Port.Direction.INPUT, dataType = Int::class, owningNodeId = "node2")
+            ),
+            outputPorts = emptyList()
+        )
+        val flowGraph2 = createTestFlowGraph("MixedRegenTest", listOf(node1, node2))
+
+        val result2 = saveService.saveModule(flowGraph2, tempDir, regenerateStubs = true)
+
+        assertTrue(result2.success)
+        // Existing node regenerated (appears in overwritten)
+        assertTrue(result2.filesOverwritten.any { it.contains("ExistingNodeProcessLogic.kt") },
+            "Existing stub should be in filesOverwritten")
+        assertTrue(result2.filesOverwritten.any { it.contains("ExistingNodeStateProperties.kt") },
+            "Existing state properties should be in filesOverwritten")
+        // New node created (appears in created)
+        assertTrue(result2.filesCreated.any { it.contains("NewNodeProcessLogic.kt") },
+            "New stub should be in filesCreated")
+        assertTrue(result2.filesCreated.any { it.contains("NewNodeStateProperties.kt") },
+            "New state properties should be in filesCreated")
+    }
+
+    @Test
+    fun `regenerateStubs tracks overwritten count correctly in result`() {
+        val flowGraph = createStopWatchFlowGraph()
+        val saveService = ModuleSaveService()
+
+        // First save
+        val result1 = saveService.saveModule(flowGraph, tempDir)
+        assertTrue(result1.success)
+        assertEquals(0, result1.filesOverwritten.size, "First save should have 0 overwritten")
+
+        // Re-save with regenerate
+        val result2 = saveService.saveModule(flowGraph, tempDir, regenerateStubs = true)
+
+        assertTrue(result2.success)
+        // 6 always-overwritten (flow.kt + 5 runtime) + 2 processing logic + 2 state properties = 10
+        assertEquals(10, result2.filesOverwritten.size,
+            "Should have 10 overwritten files (6 always + 2 proc logic + 2 state props)")
+        // No new files created
+        assertEquals(0, result2.filesCreated.size, "No new files on re-save with regen")
+    }
+
     @Test
     fun `T010 - save under new name creates new module and preserves original`() {
         // Matches quickstart.md Step 4: rename and save as new module

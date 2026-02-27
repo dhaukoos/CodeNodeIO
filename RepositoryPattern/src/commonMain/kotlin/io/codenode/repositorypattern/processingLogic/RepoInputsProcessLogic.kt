@@ -10,9 +10,9 @@ import io.codenode.repositorypattern.stateProperties.RepoInputsStateProperties
  * Node type: Generator (0 inputs, 3 outputs)
  *
  * Outputs:
- *   - output1: Any
- *   - output2: Any
- *   - output3: Any
+ *   - save: Any
+ *   - update: Any
+ *   - remove: Any
  *
  */
 val repoInputsTick: Out3TickBlock<Any, Any, Any> = {

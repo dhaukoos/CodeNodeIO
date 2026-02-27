@@ -9,15 +9,15 @@ import io.codenode.repositorypattern.stateProperties.FilterSortStateProperties
  * Node type: Processor (3 inputs, 1 outputs)
  *
  * Inputs:
- *   - input1: Any
- *   - input2: Any
- *   - input3: Any
+ *   - filterBy: Any
+ *   - sortBy: Any
+ *   - observeAll: Any
  *
  * Outputs:
- *   - output1: Any
+ *   - filteredList: Any
  *
  */
-val filterSortTick: In3Out1TickBlock<Any, Any, Any, Any> = { input1, input2, input3 ->
+val filterSortTick: In3Out1TickBlock<Any, Any, Any, Any> = { filterBy, sortBy, observeAll ->
     // TODO: Implement FilterSort tick logic
     TODO("Provide default value")
 }

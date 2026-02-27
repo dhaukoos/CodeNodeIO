@@ -8,24 +8,24 @@ import kotlinx.coroutines.flow.asStateFlow
  * State properties for the RepoInputs node.
  *
  * Output ports:
- *   - output1: Any
- *   - output2: Any
- *   - output3: Any
+ *   - save: Any
+ *   - update: Any
+ *   - remove: Any
  */
 object RepoInputsStateProperties {
 
-    internal val _output1 = MutableStateFlow(TODO("Provide initial value for Any"))
-    val output1Flow: StateFlow<Any> = _output1.asStateFlow()
+    internal val _save = MutableStateFlow(TODO("Provide initial value for Any"))
+    val saveFlow: StateFlow<Any> = _save.asStateFlow()
 
-    internal val _output2 = MutableStateFlow(TODO("Provide initial value for Any"))
-    val output2Flow: StateFlow<Any> = _output2.asStateFlow()
+    internal val _update = MutableStateFlow(TODO("Provide initial value for Any"))
+    val updateFlow: StateFlow<Any> = _update.asStateFlow()
 
-    internal val _output3 = MutableStateFlow(TODO("Provide initial value for Any"))
-    val output3Flow: StateFlow<Any> = _output3.asStateFlow()
+    internal val _remove = MutableStateFlow(TODO("Provide initial value for Any"))
+    val removeFlow: StateFlow<Any> = _remove.asStateFlow()
 
     fun reset() {
-        _output1.value = TODO("Provide initial value for Any")
-        _output2.value = TODO("Provide initial value for Any")
-        _output3.value = TODO("Provide initial value for Any")
+        _save.value = TODO("Provide initial value for Any")
+        _update.value = TODO("Provide initial value for Any")
+        _remove.value = TODO("Provide initial value for Any")
     }
 }
