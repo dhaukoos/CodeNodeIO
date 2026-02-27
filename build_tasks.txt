@@ -1,0 +1,20 @@
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+A problem occurred configuring project ':idePlugin'.
+> Failed to query the value of task ':idePlugin:runIde' property 'ideDir'.
+   > Could not resolve all dependencies for configuration ':idePlugin:z90_intellij'.
+      > Failed to calculate the value of task ':idePlugin:compileJava' property 'javaCompiler'.
+         > No matching toolchains found for requested specification: {languageVersion=11, vendor=any, implementation=vendor-specific} for MAC_OS on x86_64.
+            > No locally installed toolchains match and toolchain download repositories have not been configured.
+
+* Try:
+> Learn more about toolchain auto-detection at https://docs.gradle.org/8.5/userguide/toolchains.html#sec:auto_detection.
+> Learn more about toolchain repositories at https://docs.gradle.org/8.5/userguide/toolchains.html#sub:download_repositories.
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights.
+> Get more help at https://help.gradle.org.
+
+BUILD FAILED in 5s
