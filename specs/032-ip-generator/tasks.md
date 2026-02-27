@@ -27,11 +27,11 @@ _(No setup tasks required — all dependencies and build configuration are in pl
 
 **CRITICAL**: No user story work can begin until this phase is complete.
 
-- [ ] T001 [P] Create IPProperty data class (name, typeId, isRequired) and CustomIPTypeDefinition data class (id, typeName, properties, color) with auto-color palette constant in `graphEditor/src/jvmMain/kotlin/model/IPProperty.kt`
-- [ ] T002 [P] Create @Serializable SerializableIPType DTO (id, typeName, payloadTypeName, color, description, properties) and @Serializable SerializableIPProperty DTO (name, typeId, isRequired) with toDefinition/fromDefinition conversion methods in `graphEditor/src/jvmMain/kotlin/model/SerializableIPType.kt`
-- [ ] T003 Create FileIPTypeRepository with load() and save() methods following FileCustomNodeRepository pattern, persisting to ~/.codenode/custom-ip-types.json using Json { prettyPrint = true; ignoreUnknownKeys = true } in `graphEditor/src/jvmMain/kotlin/repository/FileIPTypeRepository.kt`
-- [ ] T004 Add custom type property storage (Map<String, List<IPProperty>>) to IPTypeRegistry, add registerCustomType() method that stores both the InformationPacketType and its properties, and add getCustomTypeProperties(id) accessor in `graphEditor/src/jvmMain/kotlin/state/IPTypeRegistry.kt`
-- [ ] T005 Compile foundational classes: `./gradlew :graphEditor:compileKotlinJvm`
+- [X] T001 [P] Create IPProperty data class (name, typeId, isRequired) and CustomIPTypeDefinition data class (id, typeName, properties, color) with auto-color palette constant in `graphEditor/src/jvmMain/kotlin/model/IPProperty.kt`
+- [X] T002 [P] Create @Serializable SerializableIPType DTO (id, typeName, payloadTypeName, color, description, properties) and @Serializable SerializableIPProperty DTO (name, typeId, isRequired) with toDefinition/fromDefinition conversion methods in `graphEditor/src/jvmMain/kotlin/model/SerializableIPType.kt`
+- [X] T003 Create FileIPTypeRepository with load() and save() methods following FileCustomNodeRepository pattern, persisting to ~/.codenode/custom-ip-types.json using Json { prettyPrint = true; ignoreUnknownKeys = true } in `graphEditor/src/jvmMain/kotlin/repository/FileIPTypeRepository.kt`
+- [X] T004 Add custom type property storage (Map<String, List<IPProperty>>) to IPTypeRegistry, add registerCustomType() method that stores both the InformationPacketType and its properties, and add getCustomTypeProperties(id) accessor in `graphEditor/src/jvmMain/kotlin/state/IPTypeRegistry.kt`
+- [X] T005 Compile foundational classes: `./gradlew :graphEditor:compileKotlinJvm`
 
 **Checkpoint**: All model, serialization, repository, and registry infrastructure ready for UI development.
 

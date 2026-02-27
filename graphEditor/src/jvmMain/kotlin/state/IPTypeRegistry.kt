@@ -8,6 +8,8 @@ package io.codenode.grapheditor.state
 
 import io.codenode.fbpdsl.model.IPColor
 import io.codenode.fbpdsl.model.InformationPacketType
+import io.codenode.grapheditor.model.CustomIPTypeDefinition
+import io.codenode.grapheditor.model.IPProperty
 
 /**
  * Runtime registry of available InformationPacket types for the graphEditor.
@@ -35,6 +37,7 @@ import io.codenode.fbpdsl.model.InformationPacketType
  */
 class IPTypeRegistry {
     private val types = mutableMapOf<String, InformationPacketType>()
+    private val customTypeProperties = mutableMapOf<String, List<IPProperty>>()
 
     /**
      * Registers an InformationPacket type in the registry.
@@ -126,6 +129,42 @@ class IPTypeRegistry {
         types[id] = type.withColor(newColor)
         return true
     }
+
+    /**
+     * Registers a custom IP type along with its property definitions.
+     *
+     * This stores both the InformationPacketType in the main registry and
+     * the property metadata in a separate map for later retrieval.
+     *
+     * @param definition The custom IP type definition containing properties
+     */
+    fun registerCustomType(definition: CustomIPTypeDefinition) {
+        val ipType = InformationPacketType(
+            id = definition.id,
+            typeName = definition.typeName,
+            payloadType = Any::class,
+            color = definition.color,
+            description = "Custom type: ${definition.typeName}"
+        )
+        register(ipType)
+        customTypeProperties[definition.id] = definition.properties
+    }
+
+    /**
+     * Gets the property definitions for a custom IP type.
+     *
+     * @param id The type ID
+     * @return List of properties, or null if not a custom type or not found
+     */
+    fun getCustomTypeProperties(id: String): List<IPProperty>? =
+        customTypeProperties[id]
+
+    /**
+     * Gets the number of registered custom types (types with property metadata).
+     *
+     * @return The count of custom types
+     */
+    fun customTypeCount(): Int = customTypeProperties.size
 
     companion object {
         /**
