@@ -52,6 +52,9 @@ import io.codenode.grapheditor.ui.RuntimePreviewPanel
 import io.codenode.circuitsimulator.RuntimeSession
 import io.codenode.grapheditor.ui.PropertiesPanelState
 import io.codenode.grapheditor.repository.FileCustomNodeRepository
+import io.codenode.grapheditor.repository.FileIPTypeRepository
+import io.codenode.grapheditor.viewmodel.IPGeneratorViewModel
+import io.codenode.grapheditor.ui.IPGeneratorPanel
 import io.codenode.grapheditor.state.rememberPropertyChangeTracker
 import io.codenode.grapheditor.serialization.FlowKtParser
 import io.codenode.grapheditor.save.ModuleSaveService
@@ -329,7 +332,20 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
         builtInNodeTypes + customNodes.map { it.toNodeTypeDefinition() }
     }
     val ipTypeRegistry = remember { IPTypeRegistry.withDefaults() }
-    val ipTypes = remember { ipTypeRegistry.getAllTypes() }
+    val ipTypeRepository = remember { FileIPTypeRepository() }
+    // Load persisted custom IP types on startup
+    var ipTypesVersion by remember { mutableStateOf(0) }
+    LaunchedEffect(Unit) {
+        ipTypeRepository.load()
+        ipTypeRepository.getAllDefinitions().forEach { definition ->
+            ipTypeRegistry.registerCustomType(definition)
+        }
+        ipTypesVersion++
+    }
+    val ipTypes = remember(ipTypesVersion) { ipTypeRegistry.getAllTypes() }
+    val ipGeneratorViewModel = remember(ipTypeRegistry, ipTypeRepository) {
+        IPGeneratorViewModel(ipTypeRegistry, ipTypeRepository)
+    }
     var selectedIPType by remember { mutableStateOf<InformationPacketType?>(null) }
     var showOpenDialog by remember { mutableStateOf(false) }
     var showModuleSaveDialog by remember { mutableStateOf(false) }
@@ -695,11 +711,20 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                         )
                     }
 
-                    // IP Palette
-                    IPPalette(
-                        viewModel = ipPaletteViewModel,
-                        ipTypes = ipTypes
-                    )
+                    // IP Generator + IP Palette
+                    Column {
+                        IPGeneratorPanel(
+                            viewModel = ipGeneratorViewModel,
+                            onTypeCreated = { definition ->
+                                ipTypesVersion++
+                                statusMessage = "Created IP type: ${definition.typeName}"
+                            }
+                        )
+                        IPPalette(
+                            viewModel = ipPaletteViewModel,
+                            ipTypes = ipTypes
+                        )
+                    }
 
                     // Compute connection colors based on IP types
                     val connectionColors: Map<String, Color> = remember(graphState.flowGraph.connections, ipTypeRegistry) {

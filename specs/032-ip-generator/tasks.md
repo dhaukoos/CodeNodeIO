@@ -45,10 +45,10 @@ _(No setup tasks required — all dependencies and build configuration are in pl
 
 ### Implementation for User Story 1
 
-- [ ] T006 [US1] Create IPGeneratorViewModel with IPGeneratorPanelState data class (typeName, isExpanded, basic isValid = typeName.isNotBlank()), methods: setTypeName(), toggleExpanded(), createType() that registers in IPTypeRegistry + saves via FileIPTypeRepository + resets form, and reset() that clears form preserving isExpanded, in `graphEditor/src/jvmMain/kotlin/viewmodel/IPGeneratorViewModel.kt`
-- [ ] T007 [US1] Create IPGeneratorPanel composable (stateful wrapper + stateless IPGeneratorPanelContent) with collapsible header (arrow toggle), name OutlinedTextField, Cancel OutlinedButton calling reset(), and Create Button enabled by state.isValid calling createType(), styled per NodeGeneratorPanel (250.dp width, Color(0xFFF5F5F5) background, 1.dp border, 12.dp padding) in `graphEditor/src/jvmMain/kotlin/ui/IPGeneratorPanel.kt`
-- [ ] T008 [US1] Wire IPGeneratorPanel into Main.kt: create IPGeneratorViewModel and FileIPTypeRepository in remember blocks, call repository.load() + register loaded types in IPTypeRegistry on startup, wrap existing IPPalette in a Column and add IPGeneratorPanel above it, pass onTypeCreated callback to refresh IPPalette, in `graphEditor/src/jvmMain/kotlin/Main.kt`
-- [ ] T009 [US1] Compile and verify US1: `./gradlew :graphEditor:compileKotlinJvm`
+- [X] T006 [US1] Create IPGeneratorViewModel with IPGeneratorPanelState data class (typeName, isExpanded, basic isValid = typeName.isNotBlank()), methods: setTypeName(), toggleExpanded(), createType() that registers in IPTypeRegistry + saves via FileIPTypeRepository + resets form, and reset() that clears form preserving isExpanded, in `graphEditor/src/jvmMain/kotlin/viewmodel/IPGeneratorViewModel.kt`
+- [X] T007 [US1] Create IPGeneratorPanel composable (stateful wrapper + stateless IPGeneratorPanelContent) with collapsible header (arrow toggle), name OutlinedTextField, Cancel OutlinedButton calling reset(), and Create Button enabled by state.isValid calling createType(), styled per NodeGeneratorPanel (250.dp width, Color(0xFFF5F5F5) background, 1.dp border, 12.dp padding) in `graphEditor/src/jvmMain/kotlin/ui/IPGeneratorPanel.kt`
+- [X] T008 [US1] Wire IPGeneratorPanel into Main.kt: create IPGeneratorViewModel and FileIPTypeRepository in remember blocks, call repository.load() + register loaded types in IPTypeRegistry on startup, wrap existing IPPalette in a Column and add IPGeneratorPanel above it, pass onTypeCreated callback to refresh IPPalette, in `graphEditor/src/jvmMain/kotlin/Main.kt`
+- [X] T009 [US1] Compile and verify US1: `./gradlew :graphEditor:compileKotlinJvm`
 
 **Checkpoint**: Core IP type creation works — enter name, click Create, type appears in palette and persists across sessions.
 
