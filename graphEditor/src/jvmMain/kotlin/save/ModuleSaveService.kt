@@ -44,9 +44,9 @@ data class ModuleSaveResult(
  * Service for saving FlowGraphs as KMP module structures.
  *
  * The unified [saveModule] creates the full module in a single call:
- * module directory, gradle files, .flow.kt at module root, 5 runtime files
- * under generated/, ProcessingLogic stubs under processingLogic/, and
- * StateProperties stubs under stateProperties/. Orphaned stubs are deleted.
+ * module directory, gradle files, .flow.kt in the base package source set,
+ * 5 runtime files under generated/, ProcessingLogic stubs under processingLogic/,
+ * and StateProperties stubs under stateProperties/. Orphaned stubs are deleted.
  */
 class ModuleSaveService {
 
@@ -71,7 +71,7 @@ class ModuleSaveService {
      * Saves a FlowGraph as a complete KMP module.
      *
      * Creates the full module in a single call: module directory, gradle files,
-     * .flow.kt at module root, 5 runtime files, ProcessingLogic stubs, and
+     * .flow.kt in the base package source set, 5 runtime files, ProcessingLogic stubs, and
      * StateProperties stubs. On re-save, .flow.kt and runtime files are always
      * overwritten, existing stubs are preserved, new stubs are created for added
      * nodes, and orphaned stubs are deleted for removed nodes.
@@ -107,6 +107,7 @@ class ModuleSaveService {
             val filesDeleted = mutableListOf<String>()
 
             // Create source directory structure
+            createDirectoryStructure(moduleDir, basePackage, flowGraph)
             createDirectoryStructure(moduleDir, generatedPackage, flowGraph)
             createDirectoryStructure(moduleDir, processingLogicPackage, flowGraph)
             createDirectoryStructure(moduleDir, statePropertiesPackage, flowGraph)
@@ -125,12 +126,14 @@ class ModuleSaveService {
                 filesCreated
             )
 
-            // Write .flow.kt at module root (always overwrite)
+            // Write .flow.kt in source set (always overwrite)
+            val basePackagePath = basePackage.replace(".", "/")
             val flowKtFileName = "${effectiveModuleName}.flow.kt"
+            val flowKtRelativePath = "src/commonMain/kotlin/$basePackagePath/$flowKtFileName"
             writeFileAlways(
-                File(moduleDir, flowKtFileName),
+                File(moduleDir, flowKtRelativePath),
                 flowKtGenerator.generateFlowKt(flowGraph, basePackage, processingLogicPackage),
-                flowKtFileName,
+                flowKtRelativePath,
                 filesCreated,
                 filesOverwritten
             )

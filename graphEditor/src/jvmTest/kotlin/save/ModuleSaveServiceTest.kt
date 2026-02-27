@@ -332,10 +332,10 @@ class ModuleSaveServiceTest {
             "Default processingLogic package directory should be created based on module name")
     }
 
-    // ========== .flow.kt at module root ==========
+    // ========== .flow.kt in source set ==========
 
     @Test
-    fun `saveModule writes flow kt at module root`() {
+    fun `saveModule writes flow kt in source set`() {
         val node1 = createTestCodeNode("node1", "Original", CodeNodeType.GENERATOR)
         val flowGraph = createTestFlowGraph("UpdateFlow", listOf(node1))
         val saveService = ModuleSaveService()
@@ -343,15 +343,15 @@ class ModuleSaveServiceTest {
         val result = saveService.saveModule(flowGraph, tempDir)
 
         assertTrue(result.success)
-        val flowKtFile = File(result.moduleDir, "UpdateFlow.flow.kt")
-        assertTrue(flowKtFile.exists(), ".flow.kt should be at module root")
+        val flowKtFile = File(result.moduleDir, "src/commonMain/kotlin/io/codenode/updateflow/UpdateFlow.flow.kt")
+        assertTrue(flowKtFile.exists(), ".flow.kt should be in source set")
         val content = flowKtFile.readText()
         assertTrue(content.contains("Original"),
             "flow.kt should contain the node")
     }
 
     @Test
-    fun `re-save updates flow kt at module root`() {
+    fun `re-save updates flow kt in source set`() {
         val node1 = createTestCodeNode("node1", "Original", CodeNodeType.GENERATOR)
         val flowGraph1 = createTestFlowGraph("UpdateFlow", listOf(node1))
         val saveService = ModuleSaveService()
@@ -360,8 +360,8 @@ class ModuleSaveServiceTest {
         val result1 = saveService.saveModule(flowGraph1, tempDir)
         assertTrue(result1.success)
 
-        val flowKtFile = File(result1.moduleDir, "UpdateFlow.flow.kt")
-        assertTrue(flowKtFile.exists(), "First save should create .flow.kt at module root")
+        val flowKtFile = File(result1.moduleDir, "src/commonMain/kotlin/io/codenode/updateflow/UpdateFlow.flow.kt")
+        assertTrue(flowKtFile.exists(), "First save should create .flow.kt in source set")
         assertTrue(flowKtFile.readText().contains("Original"))
 
         // Add new node
@@ -394,7 +394,7 @@ class ModuleSaveServiceTest {
         val result2 = saveService.saveModule(flowGraph2, tempDir)
 
         assertTrue(result2.success)
-        val flowKtFile = File(result2.moduleDir, "PositionTest.flow.kt")
+        val flowKtFile = File(result2.moduleDir, "src/commonMain/kotlin/io/codenode/positiontest/PositionTest.flow.kt")
         val content = flowKtFile.readText()
         assertTrue(content.contains("500.0") && content.contains("600.0"),
             "flow.kt should reflect new node position")
@@ -428,7 +428,7 @@ class ModuleSaveServiceTest {
         val result2 = saveService.saveModule(flowGraph2, tempDir)
 
         assertTrue(result2.success)
-        val flowKtFile = File(result2.moduleDir, "ConnectTest.flow.kt")
+        val flowKtFile = File(result2.moduleDir, "src/commonMain/kotlin/io/codenode/connecttest/ConnectTest.flow.kt")
         val content = flowKtFile.readText()
         assertTrue(content.contains("connect"),
             "flow.kt should contain the new connection")
@@ -1267,7 +1267,7 @@ class ModuleSaveServiceTest {
         // 1. Module directory structure
         assertTrue(File(moduleDir, "build.gradle.kts").exists(), "build.gradle.kts should exist")
         assertTrue(File(moduleDir, "settings.gradle.kts").exists(), "settings.gradle.kts should exist")
-        assertTrue(File(moduleDir, "StopWatch3.flow.kt").exists(), ".flow.kt should be at module root")
+        assertTrue(File(moduleDir, "$basePackagePath/StopWatch3.flow.kt").exists(), ".flow.kt should be in source set")
 
         // 2. All 5 runtime files in generated/
         val generatedDir = File(moduleDir, "$basePackagePath/generated")
@@ -1342,7 +1342,7 @@ class ModuleSaveServiceTest {
         val result2 = saveService.saveModule(flowGraph2, tempDir)
 
         assertTrue(result2.success)
-        val flowKtFile = File(result2.moduleDir, "ReSaveTest.flow.kt")
+        val flowKtFile = File(result2.moduleDir, "src/commonMain/kotlin/io/codenode/resavetest/ReSaveTest.flow.kt")
         val content = flowKtFile.readText()
         assertTrue(content.contains("Logger"), ".flow.kt should contain the new Logger node after re-save")
         assertTrue(content.contains("TimerEmitter"), ".flow.kt should still contain TimerEmitter")
@@ -1715,7 +1715,7 @@ class ModuleSaveServiceTest {
         assertTrue(alphaDir.exists(), "Alpha module directory should exist")
 
         // Record Alpha's files for later comparison
-        val alphaFlowKt = File(alphaDir, "Alpha.flow.kt")
+        val alphaFlowKt = File(alphaDir, "src/commonMain/kotlin/io/codenode/alpha/Alpha.flow.kt")
         assertTrue(alphaFlowKt.exists(), "Alpha .flow.kt should exist")
         val alphaFlowKtContent = alphaFlowKt.readText()
         val alphaGeneratedDir = File(alphaDir, "src/commonMain/kotlin/io/codenode/alpha/generated")
@@ -1738,7 +1738,7 @@ class ModuleSaveServiceTest {
         assertTrue(betaDir.exists(), "Beta module directory should exist")
         assertNotEquals(alphaDir.absolutePath, betaDir.absolutePath,
             "Beta module should be in a different directory than Alpha")
-        assertTrue(File(betaDir, "Beta.flow.kt").exists(), "Beta .flow.kt should exist")
+        assertTrue(File(betaDir, "src/commonMain/kotlin/io/codenode/beta/Beta.flow.kt").exists(), "Beta .flow.kt should exist")
         assertTrue(File(betaDir, "build.gradle.kts").exists(), "Beta build.gradle.kts should exist")
         assertTrue(File(betaDir, "settings.gradle.kts").exists(), "Beta settings.gradle.kts should exist")
         assertTrue(File(betaDir, "src/commonMain/kotlin/io/codenode/beta/generated/BetaFlow.kt").exists(),

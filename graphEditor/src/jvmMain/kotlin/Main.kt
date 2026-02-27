@@ -1000,6 +1000,10 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                         if (parseResult.isSuccess && parseResult.graph != null) {
                             graphState.setGraph(parseResult.graph, markDirty = false)
                             moduleRootDir = findModuleRoot(file.parentFile)
+                            // Register save location so re-save skips the directory prompt
+                            moduleRootDir?.parentFile?.let { parentDir ->
+                                saveLocationRegistry[parseResult.graph.name] = parentDir
+                            }
                             statusMessage = "Opened ${file.name}"
                         } else {
                             statusMessage = "Error opening: ${parseResult.errorMessage}"
