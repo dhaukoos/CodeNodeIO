@@ -33,6 +33,7 @@ import io.codenode.grapheditor.state.IPTypeRegistry
 import io.codenode.grapheditor.viewmodel.PropertiesPanelViewModel
 import io.codenode.grapheditor.viewmodel.PropertiesPanelViewModelState
 import io.codenode.fbpdsl.model.IPColor
+import io.codenode.fbpdsl.model.InformationPacketType
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.contentOrNull
@@ -1136,6 +1137,116 @@ private fun ConnectionInfoRow(
 }
 
 /**
+ * Properties panel for displaying selected IP type information
+ */
+@Composable
+fun IPTypePropertiesPanel(
+    ipType: InformationPacketType,
+    ipTypeRegistry: IPTypeRegistry,
+    modifier: Modifier = Modifier
+) {
+    Surface(
+        modifier = modifier.fillMaxHeight(),
+        color = MaterialTheme.colors.surface,
+        elevation = 4.dp
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(8.dp)
+        ) {
+            // Header
+            Text(
+                text = "IP Type Properties",
+                fontWeight = FontWeight.Bold,
+                fontSize = 14.sp
+            )
+
+            Divider(modifier = Modifier.padding(vertical = 8.dp))
+
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState())
+            ) {
+                // Type name
+                ConnectionInfoRow(label = "Name", value = ipType.typeName)
+
+                // Description
+                ipType.description?.let { desc ->
+                    ConnectionInfoRow(label = "Description", value = desc)
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // Color swatch row
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Color",
+                        fontSize = 11.sp,
+                        color = MaterialTheme.colors.onSurface.copy(alpha = 0.7f)
+                    )
+                    ColorSwatch(
+                        color = ipType.color,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+
+                // Custom type properties section
+                val customProperties = ipTypeRegistry.getCustomTypeProperties(ipType.id)
+                if (customProperties != null && customProperties.isNotEmpty()) {
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    Text(
+                        text = "Properties",
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colors.primary
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+
+                    customProperties.forEach { prop ->
+                        val resolvedTypeName = ipTypeRegistry.getById(prop.typeId)?.typeName ?: "Unknown"
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = prop.name,
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Medium
+                            )
+                            Text(
+                                text = resolvedTypeName,
+                                fontSize = 10.sp,
+                                color = MaterialTheme.colors.onSurface.copy(alpha = 0.6f),
+                                modifier = Modifier.weight(1f),
+                                textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                            )
+                            Surface(
+                                color = if (prop.isRequired) Color(0xFFE3F2FD) else Color(0xFFF5F5F5),
+                                shape = androidx.compose.foundation.shape.RoundedCornerShape(4.dp)
+                            ) {
+                                Text(
+                                    text = if (prop.isRequired) "Required" else "Optional",
+                                    fontSize = 9.sp,
+                                    color = if (prop.isRequired) Color(0xFF1565C0) else Color(0xFF757575),
+                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+/**
  * ViewModel-based Compact Properties Panel for integration with main editor.
  * Uses PropertiesPanelViewModel for state management.
  *
@@ -1154,6 +1265,7 @@ fun CompactPropertiesPanelWithViewModel(
     viewModel: PropertiesPanelViewModel,
     selectedNode: CodeNode?,
     selectedConnection: Connection? = null,
+    selectedIPType: InformationPacketType? = null,
     flowGraph: FlowGraph? = null,
     propertyDefinitions: List<PropertyDefinition> = emptyList(),
     ipTypeRegistry: IPTypeRegistry? = null,
@@ -1170,8 +1282,14 @@ fun CompactPropertiesPanelWithViewModel(
         }
     }
 
-    // Show connection properties if a connection is selected
-    if (selectedConnection != null && flowGraph != null) {
+    // Show IP type properties if an IP type is selected and no node/connection is selected
+    if (selectedIPType != null && selectedNode == null && selectedConnection == null && ipTypeRegistry != null) {
+        IPTypePropertiesPanel(
+            ipType = selectedIPType,
+            ipTypeRegistry = ipTypeRegistry,
+            modifier = modifier.width(280.dp)
+        )
+    } else if (selectedConnection != null && flowGraph != null) {
         ConnectionPropertiesPanel(
             connection = selectedConnection,
             flowGraph = flowGraph,

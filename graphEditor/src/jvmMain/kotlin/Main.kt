@@ -828,11 +828,19 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                                     graphState.clearSelection()
                                     graphState.selectNode(nodeId)
                                     graphState.hideConnectionContextMenu()
+                                    // Clear IP type selection when selecting a node
+                                    if (nodeId != null) {
+                                        selectedIPType = null
+                                        ipPaletteViewModel.clearSelection()
+                                    }
                                     statusMessage = if (nodeId != null) "Selected node" else ""
                                 },
                                 onConnectionSelected = { connectionId ->
                                     if (connectionId != null) {
                                         graphState.selectConnection(connectionId)
+                                        // Clear IP type selection when selecting a connection
+                                        selectedIPType = null
+                                        ipPaletteViewModel.clearSelection()
                                         statusMessage = "Selected connection"
                                     } else if (graphState.selectedConnectionIds.isNotEmpty()) {
                                         graphState.clearSelection()
@@ -954,6 +962,7 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                         viewModel = propertiesPanelViewModel,
                         selectedNode = selectedNode,
                         selectedConnection = selectedConnection,
+                        selectedIPType = selectedIPType,
                         flowGraph = graphState.flowGraph,
                         propertyDefinitions = selectedNode?.let { node ->
                             // Derive property definitions from node type or use defaults
