@@ -88,7 +88,7 @@ private fun IPGeneratorPanelContent(
 ) {
     Column(
         modifier = modifier
-            .width(250.dp)
+            .width(220.dp)
             .background(Color(0xFFF5F5F5))
             .border(1.dp, Color(0xFFE0E0E0))
             .padding(12.dp),

@@ -94,10 +94,10 @@ _(No setup tasks required — all dependencies and build configuration are in pl
 
 **Purpose**: Tests and final verification across all user stories.
 
-- [ ] T016 [P] Create FileIPTypeRepositoryTest with tests: save and load round-trip preserves all fields, load from missing file returns empty list, load from corrupt file returns empty list gracefully, save creates parent directories, multiple types with properties serialize correctly, in `graphEditor/src/jvmTest/kotlin/repository/FileIPTypeRepositoryTest.kt`
-- [ ] T017 [P] Create IPGeneratorViewModelTest with tests: initial state has empty name and no properties, setTypeName updates state, createType registers type in registry and saves to repository and resets form, createType with properties maps IPPropertyState to IPProperty correctly, reset clears form but preserves isExpanded, addProperty adds row with defaults, removeProperty removes correct row, validation: isValid false when name blank, isValid false when name conflicts, isValid false when property name empty, isValid false when duplicate property names, isValid true when all valid, in `graphEditor/src/jvmTest/kotlin/viewmodel/IPGeneratorViewModelTest.kt`
-- [ ] T018 Run full test suite: `./gradlew :graphEditor:jvmTest`
-- [ ] T019 Run full compilation across all modules: `./gradlew compileKotlinJvm`
+- [X] T016 [P] Create FileIPTypeRepositoryTest with tests: save and load round-trip preserves all fields, load from missing file returns empty list, load from corrupt file returns empty list gracefully, save creates parent directories, multiple types with properties serialize correctly, in `graphEditor/src/jvmTest/kotlin/repository/FileIPTypeRepositoryTest.kt`
+- [X] T017 [P] Create IPGeneratorViewModelTest with tests: initial state has empty name and no properties, setTypeName updates state, createType registers type in registry and saves to repository and resets form, createType with properties maps IPPropertyState to IPProperty correctly, reset clears form but preserves isExpanded, addProperty adds row with defaults, removeProperty removes correct row, validation: isValid false when name blank, isValid false when name conflicts, isValid false when property name empty, isValid false when duplicate property names, isValid true when all valid, in `graphEditor/src/jvmTest/kotlin/viewmodel/IPGeneratorViewModelTest.kt`
+- [X] T018 Run full test suite: `./gradlew :graphEditor:jvmTest`
+- [X] T019 Run full compilation across all modules: `./gradlew compileKotlinJvm`
 
 ---
 

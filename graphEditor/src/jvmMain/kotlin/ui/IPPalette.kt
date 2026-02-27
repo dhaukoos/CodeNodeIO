@@ -83,7 +83,7 @@ private fun IPPaletteContent(
 
     Column(
         modifier = modifier
-            .width(200.dp)
+            .width(220.dp)
             .fillMaxHeight()
             .background(Color(0xFFFAFAFA))
             .border(1.dp, Color(0xFFE0E0E0))

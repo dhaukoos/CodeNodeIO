@@ -338,6 +338,7 @@ fun PropertiesPanel(
     state: PropertiesPanelState,
     onStateChange: (PropertiesPanelState) -> Unit,
     ipTypeRegistry: IPTypeRegistry? = null,
+    portIPTypeNames: Map<String, String> = emptyMap(),
     modifier: Modifier = Modifier
 ) {
     Surface(
@@ -383,6 +384,7 @@ fun PropertiesPanel(
                         state.updatePortType(portId, typeName)
                     },
                     ipTypeRegistry = ipTypeRegistry,
+                    portIPTypeNames = portIPTypeNames,
                     modifier = Modifier.weight(1f)
                 )
 
@@ -614,6 +616,7 @@ private fun PropertiesContent(
     onPortNameChange: (String, String) -> Unit = { _, _ -> },
     onPortTypeChange: (String, String) -> Unit = { _, _ -> },
     ipTypeRegistry: IPTypeRegistry? = null,
+    portIPTypeNames: Map<String, String> = emptyMap(),
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -664,7 +667,7 @@ private fun PropertiesContent(
                     PortEditorRow(
                         label = "Input ${inputPorts.indexOf(port) + 1}",
                         portName = port.name,
-                        portDataTypeName = port.dataType.simpleName ?: "Any",
+                        portDataTypeName = portIPTypeNames[port.id] ?: port.dataType.simpleName ?: "Any",
                         ipTypes = ipTypes,
                         onNameChange = { onPortNameChange(port.id, it) },
                         onTypeChange = { onPortTypeChange(port.id, it) }
@@ -688,7 +691,7 @@ private fun PropertiesContent(
                     PortEditorRow(
                         label = "Output ${outputPorts.indexOf(port) + 1}",
                         portName = port.name,
-                        portDataTypeName = port.dataType.simpleName ?: "Any",
+                        portDataTypeName = portIPTypeNames[port.id] ?: port.dataType.simpleName ?: "Any",
                         ipTypes = ipTypes,
                         onNameChange = { onPortNameChange(port.id, it) },
                         onTypeChange = { onPortTypeChange(port.id, it) }
@@ -1179,6 +1182,29 @@ fun CompactPropertiesPanelWithViewModel(
             modifier = modifier.width(280.dp)
         )
     } else {
+        // Build port IP type name map from connections for display
+        val portIPTypeNames = remember(flowGraph?.connections, ipTypeRegistry, selectedNode?.id) {
+            if (flowGraph == null || ipTypeRegistry == null || selectedNode == null) {
+                emptyMap()
+            } else {
+                val map = mutableMapOf<String, String>()
+                val allPortIds = (selectedNode.inputPorts + selectedNode.outputPorts).map { it.id }.toSet()
+                flowGraph.connections.forEach { connection ->
+                    connection.ipTypeId?.let { typeId ->
+                        ipTypeRegistry.getById(typeId)?.let { ipType ->
+                            if (connection.sourcePortId in allPortIds) {
+                                map[connection.sourcePortId] = ipType.typeName
+                            }
+                            if (connection.targetPortId in allPortIds) {
+                                map[connection.targetPortId] = ipType.typeName
+                            }
+                        }
+                    }
+                }
+                map
+            }
+        }
+
         // Bridge ViewModel state to legacy PropertiesPanelState for UI rendering
         val legacyState = remember(vmState, selectedNode, propertyDefinitions) {
             if (selectedNode != null) {
@@ -1214,6 +1240,7 @@ fun CompactPropertiesPanelWithViewModel(
                 }
             },
             ipTypeRegistry = ipTypeRegistry,
+            portIPTypeNames = portIPTypeNames,
             modifier = modifier.width(280.dp)
         )
     }
