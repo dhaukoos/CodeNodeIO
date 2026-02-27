@@ -40,6 +40,8 @@ Auto-generated from all feature plans. Last updated: 2026-01-13
 - Filesystem (generated KMP module directories) (029-grapheditor-save)
 - Kotlin 2.1.21 (Kotlin Multiplatform) + Compose Multiplatform 1.7.3, kotlinx-coroutines 1.8.0, kotlinx-serialization 1.6.0, lifecycle-viewmodel-compose 2.8.0 (030-stopwatch-module-refactor)
 - Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + Compose Desktop 1.7.3, kotlinx-coroutines 1.8.0, lifecycle-viewmodel-compose 2.8.0 (031-grapheditor-runtime-preview)
+- Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + Compose Desktop 1.7.3 + kotlinx-coroutines 1.8.0, Compose Material (OutlinedTextField, DropdownMenu, Checkbox, Button) (032-ip-generator)
+- N/A (in-memory IPTypeRegistry, transient for current session) (032-ip-generator)
 
 - Kotlin 1.9+, Go 1.21+ (001-ide-plugin-platform)
 
@@ -59,9 +61,9 @@ tests/
 Kotlin 1.9+, Go 1.21+: Follow standard conventions
 
 ## Recent Changes
+- 032-ip-generator: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + Compose Desktop 1.7.3 + kotlinx-coroutines 1.8.0, Compose Material (OutlinedTextField, DropdownMenu, Checkbox, Button)
 - 031-grapheditor-runtime-preview: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + Compose Desktop 1.7.3, kotlinx-coroutines 1.8.0, lifecycle-viewmodel-compose 2.8.0
 - 030-stopwatch-module-refactor: Added Kotlin 2.1.21 (Kotlin Multiplatform) + Compose Multiplatform 1.7.3, kotlinx-coroutines 1.8.0, kotlinx-serialization 1.6.0, lifecycle-viewmodel-compose 2.8.0
-- 029-grapheditor-save: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + Compose Desktop 1.7.3 + kotlinx-coroutines 1.8.0, kotlinx-serialization 1.6.0, lifecycle-viewmodel-compose 2.8.0
 
 
 <!-- MANUAL ADDITIONS START -->
