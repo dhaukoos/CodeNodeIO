@@ -64,9 +64,9 @@ _(No setup tasks required — all dependencies and build configuration are in pl
 
 ### Implementation for User Story 2
 
-- [ ] T010 [US2] Add IPPropertyState data class (id: UUID, name, selectedTypeId defaulting to "ip_any", isRequired defaulting to true) to IPGeneratorPanelState, add properties: List<IPPropertyState> field to state, add ViewModel methods: addProperty(), removeProperty(id), updatePropertyName(id, name), updatePropertyType(id, typeId), updatePropertyRequired(id, isRequired), update createType() to map IPPropertyState list to IPProperty list in created definition, update reset() to clear properties, in `graphEditor/src/jvmMain/kotlin/viewmodel/IPGeneratorViewModel.kt`
-- [ ] T011 [US2] Add property management UI to IPGeneratorPanel: "+" IconButton below name field to call addProperty(), for each property in state.properties render a Row with name OutlinedTextField, type OutlinedButton+DropdownMenu populated from IPTypeRegistry.getAllTypes() with color swatches, required Checkbox defaulting checked, and "-" IconButton to call removeProperty(id), in `graphEditor/src/jvmMain/kotlin/ui/IPGeneratorPanel.kt`
-- [ ] T012 [US2] Compile and verify US2: `./gradlew :graphEditor:compileKotlinJvm`
+- [X] T010 [US2] Add IPPropertyState data class (id: UUID, name, selectedTypeId defaulting to "ip_any", isRequired defaulting to true) to IPGeneratorPanelState, add properties: List<IPPropertyState> field to state, add ViewModel methods: addProperty(), removeProperty(id), updatePropertyName(id, name), updatePropertyType(id, typeId), updatePropertyRequired(id, isRequired), update createType() to map IPPropertyState list to IPProperty list in created definition, update reset() to clear properties, in `graphEditor/src/jvmMain/kotlin/viewmodel/IPGeneratorViewModel.kt`
+- [X] T011 [US2] Add property management UI to IPGeneratorPanel: "+" IconButton below name field to call addProperty(), for each property in state.properties render a Row with name OutlinedTextField, type OutlinedButton+DropdownMenu populated from IPTypeRegistry.getAllTypes() with color swatches, required Checkbox defaulting checked, and "-" IconButton to call removeProperty(id), in `graphEditor/src/jvmMain/kotlin/ui/IPGeneratorPanel.kt`
+- [X] T012 [US2] Compile and verify US2: `./gradlew :graphEditor:compileKotlinJvm`
 
 **Checkpoint**: Full property management works — add, edit, remove properties with type selection and required/optional toggle.
 
@@ -82,9 +82,9 @@ _(No setup tasks required — all dependencies and build configuration are in pl
 
 ### Implementation for User Story 3
 
-- [ ] T013 [US3] Add validation computed properties to IPGeneratorPanelState: hasNameConflict (check IPTypeRegistry.getByTypeName case-insensitively, requires passing existingTypeNames: Set<String> into state or a validation lambda), hasDuplicatePropertyNames (group by name, any count > 1), hasEmptyPropertyNames (any property.name.isBlank()), update isValid to incorporate all four checks (name not blank AND no name conflict AND no empty property names AND no duplicate property names), in `graphEditor/src/jvmMain/kotlin/viewmodel/IPGeneratorViewModel.kt`
-- [ ] T014 [US3] Add validation UI to IPGeneratorPanel: show "Name already exists" error text below name field when hasNameConflict is true with isError on OutlinedTextField, highlight duplicate property name rows with isError on their OutlinedTextFields, show error text below property list when hasDuplicatePropertyNames, style Create button as disabled with visual feedback when !isValid, in `graphEditor/src/jvmMain/kotlin/ui/IPGeneratorPanel.kt`
-- [ ] T015 [US3] Compile and verify US3: `./gradlew :graphEditor:compileKotlinJvm`
+- [X] T013 [US3] Add validation computed properties to IPGeneratorPanelState: hasNameConflict (check IPTypeRegistry.getByTypeName case-insensitively, requires passing existingTypeNames: Set<String> into state or a validation lambda), hasDuplicatePropertyNames (group by name, any count > 1), hasEmptyPropertyNames (any property.name.isBlank()), update isValid to incorporate all four checks (name not blank AND no name conflict AND no empty property names AND no duplicate property names), in `graphEditor/src/jvmMain/kotlin/viewmodel/IPGeneratorViewModel.kt`
+- [X] T014 [US3] Add validation UI to IPGeneratorPanel: show "Name already exists" error text below name field when hasNameConflict is true with isError on OutlinedTextField, highlight duplicate property name rows with isError on their OutlinedTextFields, show error text below property list when hasDuplicatePropertyNames, style Create button as disabled with visual feedback when !isValid, in `graphEditor/src/jvmMain/kotlin/ui/IPGeneratorPanel.kt`
+- [X] T015 [US3] Compile and verify US3: `./gradlew :graphEditor:compileKotlinJvm`
 
 **Checkpoint**: All validation rules enforced — invalid types cannot be created and clear visual feedback is provided.
 

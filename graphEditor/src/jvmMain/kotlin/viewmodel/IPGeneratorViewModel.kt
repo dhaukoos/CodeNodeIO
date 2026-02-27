@@ -18,22 +18,64 @@ import kotlinx.coroutines.flow.update
 import java.util.UUID
 
 /**
+ * UI state for a single property row in the IP Generator form.
+ *
+ * @param id Unique identifier for the row (for list operations)
+ * @param name Property name entered by user
+ * @param selectedTypeId Selected IP type ID from dropdown
+ * @param isRequired Whether property is required or optional
+ */
+data class IPPropertyState(
+    val id: String = UUID.randomUUID().toString(),
+    val name: String = "",
+    val selectedTypeId: String = "ip_any",
+    val isRequired: Boolean = true
+)
+
+/**
  * State data class for the IP Generator Panel.
  * Contains form fields for defining a custom IP type.
  *
  * @param typeName User-entered type name
+ * @param properties Current property rows in the form
  * @param isExpanded Whether the panel is expanded
+ * @param existingTypeNames Set of existing type names for conflict detection (case-insensitive)
  */
 data class IPGeneratorPanelState(
     val typeName: String = "",
-    val isExpanded: Boolean = false
+    val properties: List<IPPropertyState> = emptyList(),
+    val isExpanded: Boolean = false,
+    val existingTypeNames: Set<String> = emptySet()
 ) : BaseState {
-    /**
-     * Computed property: form is valid when type name is non-blank.
-     * Additional validation (name conflicts, property validation) will be added in US3.
-     */
+    val hasNameConflict: Boolean
+        get() = typeName.isNotBlank() && existingTypeNames.any {
+            it.equals(typeName.trim(), ignoreCase = true)
+        }
+
+    val hasEmptyPropertyNames: Boolean
+        get() = properties.any { it.name.isBlank() }
+
+    val hasDuplicatePropertyNames: Boolean
+        get() = properties
+            .filter { it.name.isNotBlank() }
+            .groupBy { it.name.trim().lowercase() }
+            .any { it.value.size > 1 }
+
+    val duplicatePropertyNameIds: Set<String>
+        get() {
+            val grouped = properties
+                .filter { it.name.isNotBlank() }
+                .groupBy { it.name.trim().lowercase() }
+            return grouped.filter { it.value.size > 1 }
+                .flatMap { it.value.map { p -> p.id } }
+                .toSet()
+        }
+
     val isValid: Boolean
-        get() = typeName.isNotBlank()
+        get() = typeName.isNotBlank() &&
+                !hasNameConflict &&
+                !hasEmptyPropertyNames &&
+                !hasDuplicatePropertyNames
 }
 
 /**
@@ -48,7 +90,9 @@ class IPGeneratorViewModel(
     private val repository: FileIPTypeRepository
 ) : ViewModel() {
 
-    private val _state = MutableStateFlow(IPGeneratorPanelState())
+    private val _state = MutableStateFlow(IPGeneratorPanelState(
+        existingTypeNames = ipTypeRegistry.getAllTypes().map { it.typeName }.toSet()
+    ))
     val state: StateFlow<IPGeneratorPanelState> = _state.asStateFlow()
 
     /**
@@ -68,6 +112,64 @@ class IPGeneratorViewModel(
     }
 
     /**
+     * Adds a new empty property row to the form.
+     */
+    fun addProperty() {
+        _state.update { it.copy(properties = it.properties + IPPropertyState()) }
+    }
+
+    /**
+     * Removes a property row by its unique ID.
+     *
+     * @param id The property row ID to remove
+     */
+    fun removeProperty(id: String) {
+        _state.update { it.copy(properties = it.properties.filter { p -> p.id != id }) }
+    }
+
+    /**
+     * Updates the name of a property row.
+     *
+     * @param id The property row ID
+     * @param name The new property name
+     */
+    fun updatePropertyName(id: String, name: String) {
+        _state.update { state ->
+            state.copy(properties = state.properties.map { p ->
+                if (p.id == id) p.copy(name = name) else p
+            })
+        }
+    }
+
+    /**
+     * Updates the selected type of a property row.
+     *
+     * @param id The property row ID
+     * @param typeId The new IP type ID
+     */
+    fun updatePropertyType(id: String, typeId: String) {
+        _state.update { state ->
+            state.copy(properties = state.properties.map { p ->
+                if (p.id == id) p.copy(selectedTypeId = typeId) else p
+            })
+        }
+    }
+
+    /**
+     * Updates the required flag of a property row.
+     *
+     * @param id The property row ID
+     * @param isRequired Whether the property is required
+     */
+    fun updatePropertyRequired(id: String, isRequired: Boolean) {
+        _state.update { state ->
+            state.copy(properties = state.properties.map { p ->
+                if (p.id == id) p.copy(isRequired = isRequired) else p
+            })
+        }
+    }
+
+    /**
      * Creates a new custom IP type from the current form state.
      * Only creates if the state is valid. After successful creation,
      * the type is registered in the IPTypeRegistry, persisted via the repository,
@@ -79,16 +181,29 @@ class IPGeneratorViewModel(
         val currentState = _state.value
         if (!currentState.isValid) return null
 
+        val properties = currentState.properties.map { propertyState ->
+            IPProperty(
+                name = propertyState.name.trim(),
+                typeId = propertyState.selectedTypeId,
+                isRequired = propertyState.isRequired
+            )
+        }
+
         val definition = CustomIPTypeDefinition(
             id = "ip_${currentState.typeName.lowercase().replace(" ", "_")}_${UUID.randomUUID().toString().take(8)}",
             typeName = currentState.typeName.trim(),
-            properties = emptyList(),
+            properties = properties,
             color = CustomIPTypeDefinition.nextColor(ipTypeRegistry.customTypeCount())
         )
 
         ipTypeRegistry.registerCustomType(definition)
         repository.add(definition)
-        reset()
+        _state.update {
+            IPGeneratorPanelState(
+                isExpanded = it.isExpanded,
+                existingTypeNames = ipTypeRegistry.getAllTypes().map { t -> t.typeName }.toSet()
+            )
+        }
         return definition
     }
 
@@ -98,7 +213,16 @@ class IPGeneratorViewModel(
      */
     fun reset() {
         _state.update {
-            IPGeneratorPanelState(isExpanded = it.isExpanded)
+            IPGeneratorPanelState(
+                isExpanded = it.isExpanded,
+                existingTypeNames = it.existingTypeNames
+            )
+        }
+    }
+
+    fun refreshExistingTypeNames() {
+        _state.update {
+            it.copy(existingTypeNames = ipTypeRegistry.getAllTypes().map { t -> t.typeName }.toSet())
         }
     }
 }

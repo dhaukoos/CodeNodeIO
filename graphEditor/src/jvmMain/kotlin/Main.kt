@@ -718,7 +718,8 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                             onTypeCreated = { definition ->
                                 ipTypesVersion++
                                 statusMessage = "Created IP type: ${definition.typeName}"
-                            }
+                            },
+                            ipTypes = ipTypes
                         )
                         IPPalette(
                             viewModel = ipPaletteViewModel,
