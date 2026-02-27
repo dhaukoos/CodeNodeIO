@@ -12,6 +12,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import io.codenode.fbpdsl.model.InformationPacketType
+import io.codenode.grapheditor.repository.FileIPTypeRepository
+import io.codenode.grapheditor.state.IPTypeRegistry
 
 /**
  * State data class for the IP Palette Panel.
@@ -22,7 +24,8 @@ import io.codenode.fbpdsl.model.InformationPacketType
  */
 data class IPPaletteState(
     val searchQuery: String = "",
-    val selectedTypeId: String? = null
+    val selectedTypeId: String? = null,
+    val deletableTypeIds: Set<String> = emptySet()
 ) : BaseState
 
 /**
@@ -36,6 +39,9 @@ data class IPPaletteState(
  * @param onTypeSelected Optional callback when a type is selected (for external coordination)
  */
 class IPPaletteViewModel(
+    private val ipTypeRegistry: IPTypeRegistry? = null,
+    private val ipTypeRepository: FileIPTypeRepository? = null,
+    private val onCustomTypesChanged: () -> Unit = {},
     private val onTypeSelected: (InformationPacketType?) -> Unit = {}
 ) : ViewModel() {
 
@@ -103,5 +109,38 @@ class IPPaletteViewModel(
         if (query.isBlank()) return true
         return ipType.typeName.contains(query, ignoreCase = true) ||
                ipType.description?.contains(query, ignoreCase = true) == true
+    }
+
+    /**
+     * Updates the set of deletable type IDs.
+     * Called when the list of custom IP types changes.
+     *
+     * @param ids Set of type IDs that can be deleted
+     */
+    fun updateDeletableTypeIds(ids: Set<String>) {
+        _state.update { it.copy(deletableTypeIds = ids) }
+    }
+
+    /**
+     * Deletes a custom IP type by its ID.
+     * Unregisters from the registry, removes from the repository, and notifies listeners.
+     *
+     * @param id The ID of the type to delete
+     * @return true if the type was found and deleted, false otherwise
+     */
+    fun deleteCustomType(id: String): Boolean {
+        val registry = ipTypeRegistry ?: return false
+        val repository = ipTypeRepository ?: return false
+
+        val removed = registry.unregister(id)
+        return if (removed != null) {
+            repository.remove(id)
+            val updatedIds = registry.getCustomTypeIds()
+            _state.update { it.copy(deletableTypeIds = updatedIds) }
+            onCustomTypesChanged()
+            true
+        } else {
+            false
+        }
     }
 }

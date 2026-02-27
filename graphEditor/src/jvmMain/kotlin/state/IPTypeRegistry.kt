@@ -57,6 +57,7 @@ class IPTypeRegistry {
      * @return The removed type, or null if not found
      */
     fun unregister(id: String): InformationPacketType? {
+        customTypeProperties.remove(id)
         return types.remove(id)
     }
 
@@ -165,6 +166,13 @@ class IPTypeRegistry {
      * @return The count of custom types
      */
     fun customTypeCount(): Int = customTypeProperties.size
+
+    /**
+     * Gets the IDs of all registered custom types.
+     *
+     * @return Set of custom type IDs
+     */
+    fun getCustomTypeIds(): Set<String> = customTypeProperties.keys.toSet()
 
     companion object {
         /**

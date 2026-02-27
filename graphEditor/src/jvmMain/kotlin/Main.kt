@@ -369,6 +369,12 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
     // IPPaletteViewModel for the IP Palette
     val ipPaletteViewModel = remember {
         IPPaletteViewModel(
+            ipTypeRegistry = ipTypeRegistry,
+            ipTypeRepository = ipTypeRepository,
+            onCustomTypesChanged = {
+                ipTypesVersion++
+                ipGeneratorViewModel.refreshExistingTypeNames()
+            },
             onTypeSelected = { ipType ->
                 selectedIPType = ipType
                 if (ipType != null) {
@@ -377,6 +383,12 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
             }
         )
     }
+
+    // Update IPPaletteViewModel with deletable type IDs when custom IP types change
+    LaunchedEffect(ipTypesVersion) {
+        ipPaletteViewModel.updateDeletableTypeIds(ipTypeRegistry.getCustomTypeIds())
+    }
+
     val compilationService = remember { CompilationService() }
     val moduleSaveService = remember { ModuleSaveService() }
 
