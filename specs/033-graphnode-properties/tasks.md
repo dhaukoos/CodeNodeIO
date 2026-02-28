@@ -17,10 +17,10 @@
 
 **Purpose**: Generalize state management to support both CodeNode and GraphNode before any UI work begins
 
-- [ ] T001 Generalize `updateNodeName()` to handle both CodeNode and GraphNode via `when` block in `graphEditor/src/jvmMain/kotlin/state/GraphState.kt`
-- [ ] T002 Extract `SharedNodeProperties` composable (name TextField + port sections) from `PropertiesContent` into a new private composable in `graphEditor/src/jvmMain/kotlin/ui/PropertiesPanel.kt`
-- [ ] T003 Refactor `PropertiesContent` to call `SharedNodeProperties` as its uppermost element, keeping CodeNode-specific sections (generic type config, configuration properties) below, in `graphEditor/src/jvmMain/kotlin/ui/PropertiesPanel.kt`
-- [ ] T004 Compile and verify no regressions: `./gradlew :graphEditor:compileKotlinJvm`
+- [x] T001 Generalize `updateNodeName()` to handle both CodeNode and GraphNode via `when` block in `graphEditor/src/jvmMain/kotlin/state/GraphState.kt`
+- [x] T002 Extract `SharedNodeProperties` composable (name TextField + port sections) from `PropertiesContent` into a new private composable in `graphEditor/src/jvmMain/kotlin/ui/PropertiesPanel.kt`
+- [x] T003 Refactor `PropertiesContent` to call `SharedNodeProperties` as its uppermost element, keeping CodeNode-specific sections (generic type config, configuration properties) below, in `graphEditor/src/jvmMain/kotlin/ui/PropertiesPanel.kt`
+- [x] T004 Compile and verify no regressions: `./gradlew :graphEditor:compileKotlinJvm`
 
 **Checkpoint**: Foundation ready — `SharedNodeProperties` is extracted, CodeNode panel behavior unchanged, `updateNodeName` works for both node types
 
@@ -34,10 +34,10 @@
 
 ### Implementation for User Story 1
 
-- [ ] T005 [US1] Add `GraphNodePropertiesPanel` composable in `graphEditor/src/jvmMain/kotlin/ui/PropertiesPanel.kt` — header "GraphNode Properties", calls `SharedNodeProperties` for name and ports
-- [ ] T006 [US1] Add `selectedGraphNode: GraphNode?` parameter to `CompactPropertiesPanelWithViewModel` and route to `GraphNodePropertiesPanel` when a GraphNode is selected (priority: IP type > connection > GraphNode > CodeNode > empty) in `graphEditor/src/jvmMain/kotlin/ui/PropertiesPanel.kt`
-- [ ] T007 [US1] Derive `selectedGraphNode: GraphNode?` alongside existing `selectedNode: CodeNode?` in `graphEditor/src/jvmMain/kotlin/Main.kt` and pass it to `CompactPropertiesPanelWithViewModel`, wiring name/port change callbacks to `graphState.updateNodeName()` / `graphState.updatePortName()` / `graphState.updatePortType()`
-- [ ] T008 [US1] Compile and verify: `./gradlew :graphEditor:compileKotlinJvm`
+- [x] T005 [US1] Add `GraphNodePropertiesPanel` composable in `graphEditor/src/jvmMain/kotlin/ui/PropertiesPanel.kt` — header "GraphNode Properties", calls `SharedNodeProperties` for name and ports
+- [x] T006 [US1] Add `selectedGraphNode: GraphNode?` parameter to `CompactPropertiesPanelWithViewModel` and route to `GraphNodePropertiesPanel` when a GraphNode is selected (priority: IP type > connection > GraphNode > CodeNode > empty) in `graphEditor/src/jvmMain/kotlin/ui/PropertiesPanel.kt`
+- [x] T007 [US1] Derive `selectedGraphNode: GraphNode?` alongside existing `selectedNode: CodeNode?` in `graphEditor/src/jvmMain/kotlin/Main.kt` and pass it to `CompactPropertiesPanelWithViewModel`, wiring name/port change callbacks to `graphState.updateNodeName()` / `graphState.updatePortName()` / `graphState.updatePortType()`
+- [x] T008 [US1] Compile and verify: `./gradlew :graphEditor:compileKotlinJvm`
 
 **Checkpoint**: Selecting a GraphNode shows its name (editable) and ports in the Properties Panel. Selecting a CodeNode, connection, or IP type still works as before.
 
@@ -51,8 +51,8 @@
 
 ### Implementation for User Story 2
 
-- [ ] T009 [US2] Add "Child Nodes" section to `GraphNodePropertiesPanel` in `graphEditor/src/jvmMain/kotlin/ui/PropertiesPanel.kt` — read-only list of `graphNode.childNodes` names with section header, and empty state message when no child nodes exist
-- [ ] T010 [US2] Compile and verify: `./gradlew :graphEditor:compileKotlinJvm`
+- [x] T009 [US2] Add "Child Nodes" section to `GraphNodePropertiesPanel` in `graphEditor/src/jvmMain/kotlin/ui/PropertiesPanel.kt` — read-only list of `graphNode.childNodes` names with section header, and empty state message when no child nodes exist
+- [x] T010 [US2] Compile and verify: `./gradlew :graphEditor:compileKotlinJvm`
 
 **Checkpoint**: GraphNode Properties Panel shows name, ports, and child node names. All selection types (CodeNode, GraphNode, connection, IP type) display correctly.
 

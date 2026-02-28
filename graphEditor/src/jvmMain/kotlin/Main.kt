@@ -64,6 +64,7 @@ import io.codenode.fbpdsl.model.Port
 import io.codenode.fbpdsl.model.CodeNode
 import io.codenode.fbpdsl.model.CodeNodeType
 import io.codenode.fbpdsl.factory.getCommonGenericNodeTypes
+import io.codenode.fbpdsl.model.GraphNode
 import io.codenode.fbpdsl.model.InformationPacketType
 import io.codenode.grapheditor.state.IPTypeRegistry
 import io.codenode.grapheditor.ui.IPPalette
@@ -952,6 +953,12 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                         }
                     } else null
 
+                    val selectedGraphNode = if (hasSingleSelection) {
+                        graphState.selectedNodeId?.let { nodeId ->
+                            graphState.flowGraph.findNode(nodeId) as? GraphNode
+                        }
+                    } else null
+
                     val selectedConnection = if (hasSingleSelection) {
                         graphState.selectedConnectionIds.firstOrNull()?.let { connectionId ->
                             graphState.getConnectionsInCurrentContext().find { it.id == connectionId }
@@ -963,6 +970,7 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                         selectedNode = selectedNode,
                         selectedConnection = selectedConnection,
                         selectedIPType = selectedIPType,
+                        selectedGraphNode = selectedGraphNode,
                         flowGraph = graphState.flowGraph,
                         propertyDefinitions = selectedNode?.let { node ->
                             // Derive property definitions from node type or use defaults
@@ -975,7 +983,25 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                                 PropertiesPanelState.derivePropertyDefinitions(nodeType)
                             } ?: emptyList()
                         } ?: emptyList(),
-                        ipTypeRegistry = ipTypeRegistry
+                        ipTypeRegistry = ipTypeRegistry,
+                        onGraphNodeNameChanged = { newName ->
+                            graphState.selectedNodeId?.let { nodeId ->
+                                graphState.updateNodeName(nodeId, newName)
+                                statusMessage = "Renamed node to: $newName"
+                            }
+                        },
+                        onGraphNodePortNameChanged = { portId, newName ->
+                            graphState.selectedNodeId?.let { nodeId ->
+                                graphState.updatePortName(nodeId, portId, newName)
+                                statusMessage = "Renamed port to: $newName"
+                            }
+                        },
+                        onGraphNodePortTypeChanged = { portId, typeName ->
+                            graphState.selectedNodeId?.let { nodeId ->
+                                graphState.updatePortType(nodeId, portId, typeName, ipTypeRegistry)
+                                statusMessage = "Changed port type to: $typeName"
+                            }
+                        }
                     )
 
                     // Runtime Preview Panel (right side, after properties)

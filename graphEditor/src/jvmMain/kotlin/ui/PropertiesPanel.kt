@@ -33,7 +33,9 @@ import io.codenode.grapheditor.state.IPTypeRegistry
 import io.codenode.grapheditor.viewmodel.PropertiesPanelViewModel
 import io.codenode.grapheditor.viewmodel.PropertiesPanelViewModelState
 import io.codenode.fbpdsl.model.IPColor
+import io.codenode.fbpdsl.model.GraphNode
 import io.codenode.fbpdsl.model.InformationPacketType
+import io.codenode.fbpdsl.model.Port
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.contentOrNull
@@ -607,6 +609,94 @@ private fun PortEditorRow(
 }
 
 /**
+ * Shared node properties composable for name and port editing.
+ * Used by both CodeNode and GraphNode properties panels.
+ */
+@Composable
+private fun SharedNodeProperties(
+    nodeName: String,
+    inputPorts: List<Port<*>>,
+    outputPorts: List<Port<*>>,
+    onNameChange: (String) -> Unit,
+    onPortNameChange: (String, String) -> Unit,
+    onPortTypeChange: (String, String) -> Unit,
+    ipTypeRegistry: IPTypeRegistry?,
+    portIPTypeNames: Map<String, String>
+) {
+    // Node Name - always at the top
+    PropertyEditorRow(
+        definition = PropertyDefinition(
+            name = "Name",
+            type = PropertyType.STRING,
+            required = true,
+            description = "Display name for this node"
+        ),
+        value = nodeName,
+        error = if (nodeName.isBlank()) "Name is required" else null,
+        onValueChange = onNameChange
+    )
+    Spacer(modifier = Modifier.height(8.dp))
+
+    // Port sections
+    if (inputPorts.isNotEmpty() || outputPorts.isNotEmpty()) {
+        Divider(modifier = Modifier.padding(vertical = 4.dp))
+
+        Text(
+            text = "Port Names",
+            fontSize = 11.sp,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colors.primary,
+            modifier = Modifier.padding(vertical = 4.dp)
+        )
+
+        val ipTypes = ipTypeRegistry?.getAllTypes() ?: emptyList()
+
+        if (inputPorts.isNotEmpty()) {
+            Text(
+                text = "Input Ports",
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colors.onSurface.copy(alpha = 0.7f),
+                modifier = Modifier.padding(vertical = 4.dp)
+            )
+            inputPorts.forEach { port ->
+                PortEditorRow(
+                    label = "Input ${inputPorts.indexOf(port) + 1}",
+                    portName = port.name,
+                    portDataTypeName = portIPTypeNames[port.id] ?: port.dataType.simpleName ?: "Any",
+                    ipTypes = ipTypes,
+                    onNameChange = { onPortNameChange(port.id, it) },
+                    onTypeChange = { onPortTypeChange(port.id, it) }
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+            }
+            Spacer(modifier = Modifier.height(4.dp))
+        }
+
+        if (outputPorts.isNotEmpty()) {
+            Text(
+                text = "Output Ports",
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colors.onSurface.copy(alpha = 0.7f),
+                modifier = Modifier.padding(vertical = 4.dp)
+            )
+            outputPorts.forEach { port ->
+                PortEditorRow(
+                    label = "Output ${outputPorts.indexOf(port) + 1}",
+                    portName = port.name,
+                    portDataTypeName = portIPTypeNames[port.id] ?: port.dataType.simpleName ?: "Any",
+                    ipTypes = ipTypes,
+                    onNameChange = { onPortNameChange(port.id, it) },
+                    onTypeChange = { onPortTypeChange(port.id, it) }
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+            }
+        }
+    }
+}
+
+/**
  * Scrollable content area with property editors
  */
 @Composable
@@ -625,82 +715,17 @@ private fun PropertiesContent(
             .fillMaxWidth()
             .verticalScroll(rememberScrollState())
     ) {
-        // Node Name - always at the top
-        PropertyEditorRow(
-            definition = PropertyDefinition(
-                name = "Name",
-                type = PropertyType.STRING,
-                required = true,
-                description = "Display name for this node"
-            ),
-            value = state.nodeName,
-            error = if (state.nodeName.isBlank()) "Name is required" else null,
-            onValueChange = onNameChange
+        // Shared name and port sections
+        SharedNodeProperties(
+            nodeName = state.nodeName,
+            inputPorts = if (state.isGenericNode) state.selectedNode?.inputPorts ?: emptyList() else emptyList(),
+            outputPorts = if (state.isGenericNode) state.selectedNode?.outputPorts ?: emptyList() else emptyList(),
+            onNameChange = onNameChange,
+            onPortNameChange = onPortNameChange,
+            onPortTypeChange = onPortTypeChange,
+            ipTypeRegistry = ipTypeRegistry,
+            portIPTypeNames = portIPTypeNames
         )
-        Spacer(modifier = Modifier.height(8.dp))
-
-        // Generic Node specific properties (port names)
-        if (state.isGenericNode) {
-            Divider(modifier = Modifier.padding(vertical = 4.dp))
-
-            // Section header
-            Text(
-                text = "Port Names",
-                fontSize = 11.sp,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colors.primary,
-                modifier = Modifier.padding(vertical = 4.dp)
-            )
-
-            val ipTypes = ipTypeRegistry?.getAllTypes() ?: emptyList()
-
-            // Input Port Names
-            val inputPorts = state.selectedNode?.inputPorts ?: emptyList()
-            if (inputPorts.isNotEmpty()) {
-                Text(
-                    text = "Input Ports",
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = MaterialTheme.colors.onSurface.copy(alpha = 0.7f),
-                    modifier = Modifier.padding(vertical = 4.dp)
-                )
-                inputPorts.forEach { port ->
-                    PortEditorRow(
-                        label = "Input ${inputPorts.indexOf(port) + 1}",
-                        portName = port.name,
-                        portDataTypeName = portIPTypeNames[port.id] ?: port.dataType.simpleName ?: "Any",
-                        ipTypes = ipTypes,
-                        onNameChange = { onPortNameChange(port.id, it) },
-                        onTypeChange = { onPortTypeChange(port.id, it) }
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                }
-                Spacer(modifier = Modifier.height(4.dp))
-            }
-
-            // Output Port Names
-            val outputPorts = state.selectedNode?.outputPorts ?: emptyList()
-            if (outputPorts.isNotEmpty()) {
-                Text(
-                    text = "Output Ports",
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = MaterialTheme.colors.onSurface.copy(alpha = 0.7f),
-                    modifier = Modifier.padding(vertical = 4.dp)
-                )
-                outputPorts.forEach { port ->
-                    PortEditorRow(
-                        label = "Output ${outputPorts.indexOf(port) + 1}",
-                        portName = port.name,
-                        portDataTypeName = portIPTypeNames[port.id] ?: port.dataType.simpleName ?: "Any",
-                        ipTypes = ipTypes,
-                        onNameChange = { onPortNameChange(port.id, it) },
-                        onTypeChange = { onPortTypeChange(port.id, it) }
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                }
-            }
-        }
 
         // Required Properties section for GENERIC nodes
         if (state.isGenericNode) {
@@ -1247,6 +1272,94 @@ fun IPTypePropertiesPanel(
 }
 
 /**
+ * Properties panel for displaying selected GraphNode information.
+ * Shows name (editable), ports, and child nodes list.
+ */
+@Composable
+fun GraphNodePropertiesPanel(
+    graphNode: GraphNode,
+    onNameChanged: (String) -> Unit,
+    onPortNameChanged: (String, String) -> Unit = { _, _ -> },
+    onPortTypeChanged: (String, String) -> Unit = { _, _ -> },
+    ipTypeRegistry: IPTypeRegistry? = null,
+    portIPTypeNames: Map<String, String> = emptyMap(),
+    modifier: Modifier = Modifier
+) {
+    var nodeName by remember(graphNode.id, graphNode.name) { mutableStateOf(graphNode.name) }
+
+    Surface(
+        modifier = modifier.fillMaxHeight(),
+        color = MaterialTheme.colors.surface,
+        elevation = 4.dp
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(8.dp)
+        ) {
+            // Header
+            Text(
+                text = "GraphNode Properties",
+                fontWeight = FontWeight.Bold,
+                fontSize = 14.sp
+            )
+
+            Divider(modifier = Modifier.padding(vertical = 8.dp))
+
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState())
+            ) {
+                // Shared name and port sections
+                SharedNodeProperties(
+                    nodeName = nodeName,
+                    inputPorts = graphNode.inputPorts,
+                    outputPorts = graphNode.outputPorts,
+                    onNameChange = { newName ->
+                        nodeName = newName
+                        onNameChanged(newName)
+                    },
+                    onPortNameChange = onPortNameChanged,
+                    onPortTypeChange = onPortTypeChanged,
+                    ipTypeRegistry = ipTypeRegistry,
+                    portIPTypeNames = portIPTypeNames
+                )
+
+                // Child Nodes section
+                Divider(modifier = Modifier.padding(vertical = 4.dp))
+
+                Text(
+                    text = "Child Nodes",
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colors.primary
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+
+                val childNodes = graphNode.childNodes
+                if (childNodes.isEmpty()) {
+                    Text(
+                        text = "No child nodes",
+                        fontSize = 11.sp,
+                        color = MaterialTheme.colors.onSurface.copy(alpha = 0.5f),
+                        modifier = Modifier.padding(vertical = 4.dp)
+                    )
+                } else {
+                    childNodes.forEach { childNode ->
+                        Text(
+                            text = childNode.name,
+                            fontSize = 11.sp,
+                            modifier = Modifier.padding(vertical = 2.dp)
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+/**
  * ViewModel-based Compact Properties Panel for integration with main editor.
  * Uses PropertiesPanelViewModel for state management.
  *
@@ -1266,9 +1379,13 @@ fun CompactPropertiesPanelWithViewModel(
     selectedNode: CodeNode?,
     selectedConnection: Connection? = null,
     selectedIPType: InformationPacketType? = null,
+    selectedGraphNode: GraphNode? = null,
     flowGraph: FlowGraph? = null,
     propertyDefinitions: List<PropertyDefinition> = emptyList(),
     ipTypeRegistry: IPTypeRegistry? = null,
+    onGraphNodeNameChanged: (String) -> Unit = {},
+    onGraphNodePortNameChanged: (String, String) -> Unit = { _, _ -> },
+    onGraphNodePortTypeChanged: (String, String) -> Unit = { _, _ -> },
     modifier: Modifier = Modifier
 ) {
     val vmState by viewModel.state.collectAsState()
@@ -1283,7 +1400,7 @@ fun CompactPropertiesPanelWithViewModel(
     }
 
     // Show IP type properties if an IP type is selected and no node/connection is selected
-    if (selectedIPType != null && selectedNode == null && selectedConnection == null && ipTypeRegistry != null) {
+    if (selectedIPType != null && selectedNode == null && selectedConnection == null && selectedGraphNode == null && ipTypeRegistry != null) {
         IPTypePropertiesPanel(
             ipType = selectedIPType,
             ipTypeRegistry = ipTypeRegistry,
@@ -1297,6 +1414,39 @@ fun CompactPropertiesPanelWithViewModel(
             onIPTypeChanged = { connectionId, ipTypeId ->
                 viewModel.updateConnectionIPType(connectionId, ipTypeId)
             },
+            modifier = modifier.width(280.dp)
+        )
+    } else if (selectedGraphNode != null) {
+        // Build port IP type name map for GraphNode
+        val graphNodePortIPTypeNames = remember(flowGraph?.connections, ipTypeRegistry, selectedGraphNode.id) {
+            if (flowGraph == null || ipTypeRegistry == null) {
+                emptyMap()
+            } else {
+                val map = mutableMapOf<String, String>()
+                val allPortIds = (selectedGraphNode.inputPorts + selectedGraphNode.outputPorts).map { it.id }.toSet()
+                flowGraph.connections.forEach { connection ->
+                    connection.ipTypeId?.let { typeId ->
+                        ipTypeRegistry.getById(typeId)?.let { ipType ->
+                            if (connection.sourcePortId in allPortIds) {
+                                map[connection.sourcePortId] = ipType.typeName
+                            }
+                            if (connection.targetPortId in allPortIds) {
+                                map[connection.targetPortId] = ipType.typeName
+                            }
+                        }
+                    }
+                }
+                map
+            }
+        }
+
+        GraphNodePropertiesPanel(
+            graphNode = selectedGraphNode,
+            onNameChanged = onGraphNodeNameChanged,
+            onPortNameChanged = onGraphNodePortNameChanged,
+            onPortTypeChanged = onGraphNodePortTypeChanged,
+            ipTypeRegistry = ipTypeRegistry,
+            portIPTypeNames = graphNodePortIPTypeNames,
             modifier = modifier.width(280.dp)
         )
     } else {

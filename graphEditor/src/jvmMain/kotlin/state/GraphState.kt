@@ -330,9 +330,12 @@ class GraphState(initialGraph: FlowGraph = flowGraph(
      * @param newName The new display name for the node
      */
     fun updateNodeName(nodeId: String, newName: String) {
-        val node = flowGraph.findNode(nodeId) as? CodeNode ?: return
+        val node = flowGraph.findNode(nodeId) ?: return
 
-        val updatedNode = node.copy(name = newName)
+        val updatedNode = when (node) {
+            is CodeNode -> node.copy(name = newName)
+            is GraphNode -> node.copy(name = newName)
+        }
 
         // Replace the node in the graph
         flowGraph = flowGraph.removeNode(nodeId).addNode(updatedNode)
