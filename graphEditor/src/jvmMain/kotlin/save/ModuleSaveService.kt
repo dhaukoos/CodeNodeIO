@@ -6,12 +6,10 @@
 
 package io.codenode.grapheditor.save
 
-import io.codenode.fbpdsl.model.CodeNode
 import io.codenode.fbpdsl.model.FlowGraph
 import io.codenode.kotlincompiler.generator.FlowKtGenerator
 import io.codenode.kotlincompiler.generator.ModuleGenerator
 import io.codenode.kotlincompiler.generator.ProcessingLogicStubGenerator
-import io.codenode.kotlincompiler.generator.StatePropertiesGenerator
 import io.codenode.kotlincompiler.generator.RuntimeFlowGenerator
 import io.codenode.kotlincompiler.generator.RuntimeControllerGenerator
 import io.codenode.kotlincompiler.generator.RuntimeControllerInterfaceGenerator
@@ -45,8 +43,12 @@ data class ModuleSaveResult(
  *
  * The unified [saveModule] creates the full module in a single call:
  * module directory, gradle files, .flow.kt in the base package source set,
- * 5 runtime files under generated/, ProcessingLogic stubs under processingLogic/,
- * and StateProperties stubs under stateProperties/. Orphaned stubs are deleted.
+ * 4 runtime files under generated/, a ViewModel stub in the base package,
+ * and ProcessingLogic stubs under processingLogic/. Orphaned stubs are deleted.
+ *
+ * The ViewModel stub contains a marker-delineated Module Properties section
+ * that is selectively regenerated on re-save while preserving user code
+ * outside the markers.
  */
 class ModuleSaveService {
 
@@ -54,13 +56,11 @@ class ModuleSaveService {
         const val DEFAULT_PACKAGE_PREFIX = "io.codenode"
         const val GENERATED_SUBPACKAGE = "generated"
         const val PROCESSING_LOGIC_SUBPACKAGE = "processingLogic"
-        const val STATE_PROPERTIES_SUBPACKAGE = "stateProperties"
     }
 
     private val moduleGenerator = ModuleGenerator()
     private val flowKtGenerator = FlowKtGenerator()
     private val stubGenerator = ProcessingLogicStubGenerator()
-    private val statePropertiesGenerator = StatePropertiesGenerator()
     private val runtimeFlowGenerator = RuntimeFlowGenerator()
     private val runtimeControllerGenerator = RuntimeControllerGenerator()
     private val runtimeControllerInterfaceGenerator = RuntimeControllerInterfaceGenerator()
@@ -71,14 +71,14 @@ class ModuleSaveService {
      * Saves a FlowGraph as a complete KMP module.
      *
      * Creates the full module in a single call: module directory, gradle files,
-     * .flow.kt in the base package source set, 5 runtime files, ProcessingLogic stubs, and
-     * StateProperties stubs. On re-save, .flow.kt and runtime files are always
-     * overwritten, existing stubs are preserved, new stubs are created for added
-     * nodes, and orphaned stubs are deleted for removed nodes.
+     * .flow.kt in the base package source set, 4 runtime files, ProcessingLogic stubs,
+     * and a ViewModel stub in the base package. On re-save, .flow.kt and runtime files
+     * are always overwritten, existing stubs are preserved, new stubs are created for
+     * added nodes, orphaned stubs are deleted for removed nodes, and the ViewModel's
+     * Module Properties section is selectively regenerated while preserving user code.
      *
      * When [regenerateStubs] is true, ProcessingLogic stubs are selectively regenerated
-     * (boilerplate updated with current port names/types while preserving the lambda body),
-     * and StateProperties stubs are fully overwritten with fresh generation.
+     * (boilerplate updated with current port names/types while preserving the lambda body).
      *
      * @param flowGraph The flow graph to save
      * @param outputDir Parent directory where the module will be created
@@ -100,7 +100,6 @@ class ModuleSaveService {
             val basePackage = packageName ?: "$DEFAULT_PACKAGE_PREFIX.${effectiveModuleName.lowercase()}"
             val generatedPackage = "$basePackage.$GENERATED_SUBPACKAGE"
             val processingLogicPackage = "$basePackage.$PROCESSING_LOGIC_SUBPACKAGE"
-            val statePropertiesPackage = "$basePackage.$STATE_PROPERTIES_SUBPACKAGE"
 
             // Create module directory
             val moduleDir = File(outputDir, effectiveModuleName)
@@ -116,7 +115,6 @@ class ModuleSaveService {
             createDirectoryStructure(moduleDir, basePackage, flowGraph)
             createDirectoryStructure(moduleDir, generatedPackage, flowGraph)
             createDirectoryStructure(moduleDir, processingLogicPackage, flowGraph)
-            createDirectoryStructure(moduleDir, statePropertiesPackage, flowGraph)
 
             // Write gradle files (only if they don't exist)
             writeFileIfNew(
@@ -144,21 +142,26 @@ class ModuleSaveService {
                 filesOverwritten
             )
 
-            // Generate 5 runtime files (always overwrite)
+            // Generate 4 runtime files in generated/ (always overwrite)
             generateRuntimeFilesTracked(
-                flowGraph, moduleDir, generatedPackage, processingLogicPackage,
-                statePropertiesPackage, effectiveModuleName, filesCreated, filesOverwritten
+                flowGraph, moduleDir, basePackage, generatedPackage, processingLogicPackage,
+                effectiveModuleName, filesCreated, filesOverwritten
+            )
+
+            // Generate ViewModel stub in base package (selective regeneration)
+            generateViewModelStub(
+                flowGraph, moduleDir, basePackage, generatedPackage,
+                effectiveModuleName, filesCreated, filesOverwritten
             )
 
             // Generate processing logic stubs (don't overwrite existing, unless regenerating)
-            generateProcessingLogicStubs(flowGraph, moduleDir, processingLogicPackage, statePropertiesPackage, filesCreated, filesOverwritten, regenerateStubs)
-
-            // Generate state properties files (don't overwrite existing, unless regenerating)
-            generateStatePropertiesFiles(flowGraph, moduleDir, statePropertiesPackage, filesCreated, filesOverwritten, regenerateStubs)
+            generateProcessingLogicStubs(
+                flowGraph, moduleDir, processingLogicPackage,
+                filesCreated, filesOverwritten, regenerateStubs
+            )
 
             // Delete orphaned stubs
             deleteOrphanedComponents(flowGraph, moduleDir, processingLogicPackage, filesDeleted)
-            deleteOrphanedStateProperties(flowGraph, moduleDir, statePropertiesPackage, filesDeleted)
 
             ModuleSaveResult(
                 success = true,
@@ -245,6 +248,72 @@ class ModuleSaveService {
     }
 
     /**
+     * Generates the ViewModel stub file in the base package.
+     *
+     * On first save, generates the full ViewModel stub with Module Properties section
+     * and ViewModel class. On re-save, performs selective regeneration: reads the
+     * existing file, replaces the content between MODULE PROPERTIES START/END markers
+     * with freshly generated module properties, and preserves all user code outside
+     * the markers. If markers are missing in an existing file, treats it as fresh generation.
+     *
+     * @param flowGraph The flow graph
+     * @param moduleDir The module root directory
+     * @param basePackage The base package name
+     * @param generatedPackage The generated package name (for ControllerInterface import)
+     * @param effectiveModuleName The module name
+     * @param filesCreated List to track created files
+     * @param filesOverwritten List to track overwritten files
+     */
+    private fun generateViewModelStub(
+        flowGraph: FlowGraph,
+        moduleDir: File,
+        basePackage: String,
+        generatedPackage: String,
+        effectiveModuleName: String,
+        filesCreated: MutableList<String>,
+        filesOverwritten: MutableList<String>
+    ) {
+        val basePackagePath = basePackage.replace(".", "/")
+        val viewModelFileName = "${effectiveModuleName}ViewModel.kt"
+        val viewModelFile = File(moduleDir, "src/commonMain/kotlin/$basePackagePath/$viewModelFileName")
+        val relativePath = "src/commonMain/kotlin/$basePackagePath/$viewModelFileName"
+
+        if (!viewModelFile.exists()) {
+            // First save: generate full ViewModel stub
+            val content = runtimeViewModelGenerator.generate(flowGraph, basePackage, generatedPackage)
+            viewModelFile.writeText(content)
+            filesCreated.add(relativePath)
+        } else {
+            // Re-save: selective regeneration of Module Properties section
+            val existingContent = viewModelFile.readText()
+            val startMarker = RuntimeViewModelGenerator.MODULE_PROPERTIES_START
+            val endMarker = RuntimeViewModelGenerator.MODULE_PROPERTIES_END
+
+            val startIndex = existingContent.indexOf(startMarker)
+            val endIndex = existingContent.indexOf(endMarker)
+
+            if (startIndex >= 0 && endIndex >= 0 && endIndex > startIndex) {
+                // Find the end of the endMarker line (include trailing newline)
+                val endOfMarkerLine = existingContent.indexOf('\n', endIndex)
+                val effectiveEnd = if (endOfMarkerLine >= 0) endOfMarkerLine + 1 else existingContent.length
+
+                // Replace the section between markers (inclusive) with regenerated content
+                val newModuleProperties = runtimeViewModelGenerator.generateModulePropertiesSection(flowGraph)
+                val newContent = existingContent.substring(0, startIndex) +
+                    newModuleProperties +
+                    existingContent.substring(effectiveEnd)
+                viewModelFile.writeText(newContent)
+                filesOverwritten.add(relativePath)
+            } else {
+                // Markers missing: treat as fresh generation
+                val content = runtimeViewModelGenerator.generate(flowGraph, basePackage, generatedPackage)
+                viewModelFile.writeText(content)
+                filesOverwritten.add(relativePath)
+            }
+        }
+    }
+
+    /**
      * Generates ProcessingLogic stub files for each CodeNode in the FlowGraph.
      *
      * Creates one stub file per CodeNode, only if the file doesn't already exist
@@ -256,7 +325,6 @@ class ModuleSaveService {
      * @param flowGraph The flow graph containing CodeNodes
      * @param moduleDir The module root directory
      * @param packageName The package name for generated files
-     * @param statePropertiesPackage The stateProperties package for import in stubs
      * @param filesCreated List to track created files
      * @param filesOverwritten List to track overwritten files
      * @param regenerateStubs When true, selectively regenerate existing stubs
@@ -265,7 +333,6 @@ class ModuleSaveService {
         flowGraph: FlowGraph,
         moduleDir: File,
         packageName: String,
-        statePropertiesPackage: String,
         filesCreated: MutableList<String>,
         filesOverwritten: MutableList<String>,
         regenerateStubs: Boolean
@@ -283,7 +350,7 @@ class ModuleSaveService {
 
             if (!stubFile.exists()) {
                 // New stub: generate fresh
-                val stubContent = stubGenerator.generateStub(codeNode, packageName, statePropertiesPackage)
+                val stubContent = stubGenerator.generateStub(codeNode, packageName)
                 stubFile.writeText(stubContent)
                 filesCreated.add(relativePath)
             } else if (regenerateStubs) {
@@ -292,64 +359,16 @@ class ModuleSaveService {
                 val preservedBody = stubGenerator.extractLambdaBody(existingContent)
                 val newContent = if (preservedBody != null) {
                     stubGenerator.generateStubWithPreservedBody(
-                        codeNode, packageName, statePropertiesPackage, preservedBody
+                        codeNode, packageName, preservedBody
                     )
                 } else {
                     // Could not parse lambda body — regenerate fresh
-                    stubGenerator.generateStub(codeNode, packageName, statePropertiesPackage)
+                    stubGenerator.generateStub(codeNode, packageName)
                 }
                 stubFile.writeText(newContent)
                 filesOverwritten.add(relativePath)
             }
             // else: existing stub + no regenerate flag → preserve as-is (do nothing)
-        }
-    }
-
-    /**
-     * Generates state properties files for each CodeNode in the FlowGraph.
-     *
-     * Creates one state properties file per CodeNode that has ports,
-     * only if the file doesn't already exist (to preserve user modifications).
-     * When [regenerateStubs] is true, existing files are fully overwritten
-     * (since port names are embedded in property names and cannot be selectively updated).
-     *
-     * @param flowGraph The flow graph containing CodeNodes
-     * @param moduleDir The module root directory
-     * @param packageName The package name for state properties files
-     * @param filesCreated List to track created files
-     * @param filesOverwritten List to track overwritten files
-     * @param regenerateStubs When true, overwrite existing state properties files
-     */
-    private fun generateStatePropertiesFiles(
-        flowGraph: FlowGraph,
-        moduleDir: File,
-        packageName: String,
-        filesCreated: MutableList<String>,
-        filesOverwritten: MutableList<String>,
-        regenerateStubs: Boolean
-    ) {
-        val packagePath = packageName.replace(".", "/")
-        val sourceDir = File(moduleDir, "src/commonMain/kotlin/$packagePath")
-
-        val codeNodes = flowGraph.getAllCodeNodes()
-
-        for (codeNode in codeNodes) {
-            if (!statePropertiesGenerator.shouldGenerate(codeNode)) continue
-
-            val fileName = statePropertiesGenerator.getStatePropertiesFileName(codeNode)
-            val file = File(sourceDir, fileName)
-            val relativePath = "src/commonMain/kotlin/$packagePath/$fileName"
-
-            if (!file.exists()) {
-                val content = statePropertiesGenerator.generateStateProperties(codeNode, packageName)
-                file.writeText(content)
-                filesCreated.add(relativePath)
-            } else if (regenerateStubs) {
-                val content = statePropertiesGenerator.generateStateProperties(codeNode, packageName)
-                file.writeText(content)
-                filesOverwritten.add(relativePath)
-            }
-            // else: existing file + no regenerate flag → preserve as-is
         }
     }
 
@@ -386,15 +405,15 @@ class ModuleSaveService {
     }
 
     /**
-     * Generates the 5 runtime files with proper overwrite tracking.
+     * Generates the 4 runtime files with proper overwrite tracking.
      * Files are always written; tracked as overwritten if they existed, created if new.
      */
     private fun generateRuntimeFilesTracked(
         flowGraph: FlowGraph,
         moduleDir: File,
+        basePackage: String,
         generatedPackage: String,
         processingLogicPackage: String,
-        statePropertiesPackage: String,
         effectiveModuleName: String,
         filesCreated: MutableList<String>,
         filesOverwritten: MutableList<String>
@@ -403,11 +422,10 @@ class ModuleSaveService {
         val generatedDir = File(moduleDir, "src/commonMain/kotlin/$generatedPath")
 
         val runtimeFiles = listOf(
-            "${effectiveModuleName}Flow.kt" to runtimeFlowGenerator.generate(flowGraph, generatedPackage, processingLogicPackage, statePropertiesPackage),
+            "${effectiveModuleName}Flow.kt" to runtimeFlowGenerator.generate(flowGraph, generatedPackage, processingLogicPackage, basePackage),
             "${effectiveModuleName}Controller.kt" to runtimeControllerGenerator.generate(flowGraph, generatedPackage, processingLogicPackage),
             "${effectiveModuleName}ControllerInterface.kt" to runtimeControllerInterfaceGenerator.generate(flowGraph, generatedPackage),
-            "${effectiveModuleName}ControllerAdapter.kt" to runtimeControllerAdapterGenerator.generate(flowGraph, generatedPackage),
-            "${effectiveModuleName}ViewModel.kt" to runtimeViewModelGenerator.generate(flowGraph, generatedPackage)
+            "${effectiveModuleName}ControllerAdapter.kt" to runtimeControllerAdapterGenerator.generate(flowGraph, generatedPackage)
         )
 
         for ((fileName, content) in runtimeFiles) {
@@ -440,40 +458,6 @@ class ModuleSaveService {
             ?: emptyList()
 
         for (file in existingComponentFiles) {
-            if (file.name !in expectedFiles) {
-                val relativePath = "src/commonMain/kotlin/$packagePath/${file.name}"
-                file.delete()
-                filesDeleted.add(relativePath)
-            }
-        }
-    }
-
-    /**
-     * Deletes orphaned StateProperties files (for nodes that no longer exist).
-     * Tracks deleted files in [filesDeleted].
-     */
-    private fun deleteOrphanedStateProperties(
-        flowGraph: FlowGraph,
-        moduleDir: File,
-        packageName: String,
-        filesDeleted: MutableList<String>
-    ) {
-        val packagePath = packageName.replace(".", "/")
-        val sourceDir = File(moduleDir, "src/commonMain/kotlin/$packagePath")
-
-        if (!sourceDir.exists()) return
-
-        val codeNodes = flowGraph.getAllCodeNodes()
-        val expectedFiles = codeNodes
-            .filter { statePropertiesGenerator.shouldGenerate(it) }
-            .map { statePropertiesGenerator.getStatePropertiesFileName(it) }
-            .toSet()
-
-        val existingFiles = sourceDir.listFiles()
-            ?.filter { it.isFile && it.name.endsWith("StateProperties.kt") }
-            ?: emptyList()
-
-        for (file in existingFiles) {
             if (file.name !in expectedFiles) {
                 val relativePath = "src/commonMain/kotlin/$packagePath/${file.name}"
                 file.delete()

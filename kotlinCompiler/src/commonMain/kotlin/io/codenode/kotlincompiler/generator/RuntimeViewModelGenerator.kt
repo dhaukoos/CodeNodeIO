@@ -1,6 +1,6 @@
 /*
  * RuntimeViewModelGenerator
- * Generates {Name}ViewModel.kt from FlowGraph
+ * Generates {Name}ViewModel.kt stub with Module State object from FlowGraph
  * License: Apache 2.0
  */
 
@@ -9,48 +9,94 @@ package io.codenode.kotlincompiler.generator
 import io.codenode.fbpdsl.model.FlowGraph
 
 /**
- * Generates a {Name}ViewModel.kt file extending ViewModel and delegating
- * to the ControllerInterface.
+ * Generates a {Name}ViewModel.kt stub file in the base package containing:
+ * 1. A marker-delineated {ModuleName}State object with MutableStateFlow/StateFlow pairs
+ *    derived from sink input ports via ObservableStateResolver
+ * 2. A {ModuleName}ViewModel class extending ViewModel with state delegation from
+ *    {ModuleName}State and control method delegation from {ModuleName}ControllerInterface
  *
- * The generated ViewModel:
- * - Extends androidx.lifecycle.ViewModel
- * - Takes {Name}ControllerInterface as constructor param
- * - Delegates all StateFlow properties and control methods to the controller
+ * The Module Properties section (the State object) is delineated by marker comments
+ * and can be selectively regenerated while preserving user code outside the markers.
  */
 class RuntimeViewModelGenerator {
 
     private val observableStateResolver = ObservableStateResolver()
 
+    companion object {
+        const val MODULE_PROPERTIES_START = "// ===== MODULE PROPERTIES START ====="
+        const val MODULE_PROPERTIES_END = "// ===== MODULE PROPERTIES END ====="
+    }
+
     /**
-     * Generates the {Name}ViewModel.kt file content from a FlowGraph.
+     * Generates the full {Name}ViewModel.kt stub file content from a FlowGraph.
      *
      * @param flowGraph The flow graph to generate from
-     * @param generatedPackage The package name for the generated file
+     * @param basePackage The base package for the ViewModel stub file
+     * @param generatedPackage The generated package (for ControllerInterface import)
      * @return Generated Kotlin source code
      */
-    fun generate(flowGraph: FlowGraph, generatedPackage: String): String {
+    fun generate(flowGraph: FlowGraph, basePackage: String, generatedPackage: String): String {
         val flowName = flowGraph.name.pascalCase()
         val observableProps = observableStateResolver.getObservableStateProperties(flowGraph)
 
         return buildString {
             generateHeader(flowName)
-            generatePackage(generatedPackage)
-            generateImports()
+            generatePackage(basePackage)
+            generateImports(flowName, generatedPackage, observableProps.isNotEmpty())
             appendLine()
-            generateKDoc(flowName)
-            appendLine("class ${flowName}ViewModel(")
-            appendLine("    private val controller: ${flowName}ControllerInterface")
-            appendLine(") : ViewModel() {")
+
+            // Module Properties section (marker-delineated, regenerated on save)
+            append(generateModulePropertiesSection(flowName, observableProps))
+
+            // ViewModel class section (user-editable, preserved across regenerations)
+            generateViewModelSection(flowName, observableProps)
+        }
+    }
+
+    /**
+     * Generates only the Module Properties section (between markers) for a FlowGraph.
+     * Used for selective regeneration: the caller reads the existing file, replaces
+     * the content between markers with this regenerated section, and preserves
+     * everything outside the markers.
+     *
+     * @param flowGraph The flow graph to generate from
+     * @return The Module Properties section including start/end markers
+     */
+    fun generateModulePropertiesSection(flowGraph: FlowGraph): String {
+        val flowName = flowGraph.name.pascalCase()
+        val observableProps = observableStateResolver.getObservableStateProperties(flowGraph)
+        return generateModulePropertiesSection(flowName, observableProps)
+    }
+
+    private fun generateModulePropertiesSection(
+        flowName: String,
+        observableProps: List<ObservableProperty>
+    ): String {
+        return buildString {
+            appendLine(MODULE_PROPERTIES_START)
+            appendLine("// Auto-generated from sink node input ports. Do not edit this section manually.")
+            appendLine("// Changes here will be overwritten on next code generation.")
             appendLine()
+            appendLine("object ${flowName}State {")
 
             if (observableProps.isNotEmpty()) {
-                generateObservableStateDelegation(observableProps)
+                observableProps.forEach { prop ->
+                    appendLine()
+                    appendLine("    internal val _${prop.name} = MutableStateFlow(${prop.defaultValue})")
+                    appendLine("    val ${prop.name}Flow: StateFlow<${prop.typeName}> = _${prop.name}.asStateFlow()")
+                }
+
+                appendLine()
+                appendLine("    fun reset() {")
+                observableProps.forEach { prop ->
+                    appendLine("        _${prop.name}.value = ${prop.defaultValue}")
+                }
+                appendLine("    }")
             }
 
-            generateExecutionStateDelegation()
-            generateMethodDelegations()
-
             appendLine("}")
+            appendLine()
+            appendLine(MODULE_PROPERTIES_END)
             appendLine()
         }
     }
@@ -64,19 +110,39 @@ class RuntimeViewModelGenerator {
         appendLine()
     }
 
-    private fun StringBuilder.generatePackage(generatedPackage: String) {
-        appendLine("package $generatedPackage")
+    private fun StringBuilder.generatePackage(basePackage: String) {
+        appendLine("package $basePackage")
         appendLine()
     }
 
-    private fun StringBuilder.generateImports() {
+    private fun StringBuilder.generateImports(
+        flowName: String,
+        generatedPackage: String,
+        hasObservableState: Boolean
+    ) {
         appendLine("import androidx.lifecycle.ViewModel")
         appendLine("import io.codenode.fbpdsl.model.ExecutionState")
         appendLine("import io.codenode.fbpdsl.model.FlowGraph")
-        appendLine("import kotlinx.coroutines.flow.StateFlow")
+        if (hasObservableState) {
+            appendLine("import kotlinx.coroutines.flow.MutableStateFlow")
+            appendLine("import kotlinx.coroutines.flow.StateFlow")
+            appendLine("import kotlinx.coroutines.flow.asStateFlow")
+        } else {
+            appendLine("import kotlinx.coroutines.flow.StateFlow")
+        }
+        appendLine("import $generatedPackage.${flowName}ControllerInterface")
     }
 
-    private fun StringBuilder.generateKDoc(flowName: String) {
+    private fun StringBuilder.generateViewModelSection(
+        flowName: String,
+        observableProps: List<ObservableProperty>
+    ) {
+        appendLine("// ============================================================")
+        appendLine("// ViewModel")
+        appendLine("// Binding interface between composable UI and FlowGraph.")
+        appendLine("// User-editable section below — preserved across regenerations.")
+        appendLine("// ============================================================")
+        appendLine()
         appendLine("/**")
         appendLine(" * ViewModel for the $flowName composable.")
         appendLine(" * Bridges FlowGraph domain logic with Compose UI.")
@@ -84,21 +150,24 @@ class RuntimeViewModelGenerator {
         appendLine(" * @param controller The ${flowName}ControllerInterface that manages FlowGraph execution")
         appendLine(" * @generated by CodeNodeIO RuntimeViewModelGenerator")
         appendLine(" */")
-    }
-
-    private fun StringBuilder.generateObservableStateDelegation(observableProps: List<ObservableProperty>) {
-        observableProps.forEach { prop ->
-            appendLine("    val ${prop.name}: StateFlow<${prop.typeName}> = controller.${prop.name}")
-        }
+        appendLine("class ${flowName}ViewModel(")
+        appendLine("    private val controller: ${flowName}ControllerInterface")
+        appendLine(") : ViewModel() {")
         appendLine()
-    }
 
-    private fun StringBuilder.generateExecutionStateDelegation() {
+        if (observableProps.isNotEmpty()) {
+            appendLine("    // Observable state from module properties")
+            observableProps.forEach { prop ->
+                appendLine("    val ${prop.name}: StateFlow<${prop.typeName}> = ${flowName}State.${prop.name}Flow")
+            }
+            appendLine()
+        }
+
+        appendLine("    // Execution state from controller")
         appendLine("    val executionState: StateFlow<ExecutionState> = controller.executionState")
         appendLine()
-    }
 
-    private fun StringBuilder.generateMethodDelegations() {
+        appendLine("    // Control methods")
         appendLine("    fun start(): FlowGraph = controller.start()")
         appendLine()
         appendLine("    fun stop(): FlowGraph = controller.stop()")
@@ -108,5 +177,7 @@ class RuntimeViewModelGenerator {
         appendLine("    fun pause(): FlowGraph = controller.pause()")
         appendLine()
         appendLine("    fun resume(): FlowGraph = controller.resume()")
+        appendLine("}")
+        appendLine()
     }
 }

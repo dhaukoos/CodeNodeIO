@@ -1,6 +1,6 @@
 /*
  * RuntimeViewModelGenerator Test
- * Tests for generating {Name}ViewModel.kt from FlowGraph
+ * Tests for generating {Name}ViewModel.kt stub with Module State object from FlowGraph
  * License: Apache 2.0
  */
 
@@ -10,8 +10,9 @@ import io.codenode.fbpdsl.model.*
 import kotlin.test.*
 
 /**
- * Tests for RuntimeViewModelGenerator - generates {Name}ViewModel.kt
- * extending ViewModel, delegating to Controller Interface.
+ * Tests for RuntimeViewModelGenerator - generates {Name}ViewModel.kt stub
+ * containing a marker-delineated {ModuleName}State object and a
+ * {ModuleName}ViewModel class.
  */
 class RuntimeViewModelGeneratorTest {
 
@@ -70,96 +71,23 @@ class RuntimeViewModelGeneratorTest {
     }
 
     private val generator = RuntimeViewModelGenerator()
+    private val basePackage = "io.codenode.testapp"
     private val generatedPackage = "io.codenode.testapp.generated"
 
-    // ========== Test 1: StopWatch-like flow ==========
+    // ========== Package and Imports ==========
 
     @Test
-    fun `StopWatch-like flow generates ViewModel extending ViewModel`() {
+    fun `generates package declaration with base package`() {
         val flowGraph = createStopWatchLikeFlow()
-        val result = generator.generate(flowGraph, generatedPackage)
+        val result = generator.generate(flowGraph, basePackage, generatedPackage)
 
-        assertTrue(result.contains("class StopWatch2ViewModel("))
-        assertTrue(result.contains(") : ViewModel()"))
+        assertTrue(result.contains("package io.codenode.testapp"))
     }
 
     @Test
-    fun `StopWatch-like flow generates ControllerInterface constructor param`() {
+    fun `generates required imports`() {
         val flowGraph = createStopWatchLikeFlow()
-        val result = generator.generate(flowGraph, generatedPackage)
-
-        assertTrue(result.contains("private val controller: StopWatch2ControllerInterface"))
-    }
-
-    @Test
-    fun `StopWatch-like flow generates package declaration`() {
-        val flowGraph = createStopWatchLikeFlow()
-        val result = generator.generate(flowGraph, generatedPackage)
-
-        assertTrue(result.contains("package io.codenode.testapp.generated"))
-    }
-
-    @Test
-    fun `StopWatch-like flow delegates observable state`() {
-        val flowGraph = createStopWatchLikeFlow()
-        val result = generator.generate(flowGraph, generatedPackage)
-
-        assertTrue(result.contains("val seconds: StateFlow<Int> = controller.seconds"))
-        assertTrue(result.contains("val minutes: StateFlow<Int> = controller.minutes"))
-    }
-
-    @Test
-    fun `StopWatch-like flow delegates executionState`() {
-        val flowGraph = createStopWatchLikeFlow()
-        val result = generator.generate(flowGraph, generatedPackage)
-
-        assertTrue(result.contains("val executionState: StateFlow<ExecutionState> = controller.executionState"))
-    }
-
-    @Test
-    fun `StopWatch-like flow delegates start method`() {
-        val flowGraph = createStopWatchLikeFlow()
-        val result = generator.generate(flowGraph, generatedPackage)
-
-        assertTrue(result.contains("fun start(): FlowGraph = controller.start()"))
-    }
-
-    @Test
-    fun `StopWatch-like flow delegates stop method`() {
-        val flowGraph = createStopWatchLikeFlow()
-        val result = generator.generate(flowGraph, generatedPackage)
-
-        assertTrue(result.contains("fun stop(): FlowGraph = controller.stop()"))
-    }
-
-    @Test
-    fun `StopWatch-like flow delegates reset method`() {
-        val flowGraph = createStopWatchLikeFlow()
-        val result = generator.generate(flowGraph, generatedPackage)
-
-        assertTrue(result.contains("fun reset(): FlowGraph = controller.reset()"))
-    }
-
-    @Test
-    fun `StopWatch-like flow delegates pause method`() {
-        val flowGraph = createStopWatchLikeFlow()
-        val result = generator.generate(flowGraph, generatedPackage)
-
-        assertTrue(result.contains("fun pause(): FlowGraph = controller.pause()"))
-    }
-
-    @Test
-    fun `StopWatch-like flow delegates resume method`() {
-        val flowGraph = createStopWatchLikeFlow()
-        val result = generator.generate(flowGraph, generatedPackage)
-
-        assertTrue(result.contains("fun resume(): FlowGraph = controller.resume()"))
-    }
-
-    @Test
-    fun `StopWatch-like flow generates required imports`() {
-        val flowGraph = createStopWatchLikeFlow()
-        val result = generator.generate(flowGraph, generatedPackage)
+        val result = generator.generate(flowGraph, basePackage, generatedPackage)
 
         assertTrue(result.contains("import androidx.lifecycle.ViewModel"))
         assertTrue(result.contains("import io.codenode.fbpdsl.model.ExecutionState"))
@@ -167,19 +95,150 @@ class RuntimeViewModelGeneratorTest {
         assertTrue(result.contains("import kotlinx.coroutines.flow.StateFlow"))
     }
 
-    // ========== Test 2: No sink nodes → only executionState delegation ==========
+    @Test
+    fun `generates MutableStateFlow imports when observable state exists`() {
+        val flowGraph = createStopWatchLikeFlow()
+        val result = generator.generate(flowGraph, basePackage, generatedPackage)
+
+        assertTrue(result.contains("import kotlinx.coroutines.flow.MutableStateFlow"))
+        assertTrue(result.contains("import kotlinx.coroutines.flow.asStateFlow"))
+    }
 
     @Test
-    fun `no sink nodes delegates only executionState`() {
+    fun `generates ControllerInterface import from generated package`() {
+        val flowGraph = createStopWatchLikeFlow()
+        val result = generator.generate(flowGraph, basePackage, generatedPackage)
+
+        assertTrue(result.contains("import io.codenode.testapp.generated.StopWatch2ControllerInterface"))
+    }
+
+    @Test
+    fun `no sink nodes omits MutableStateFlow imports`() {
         val gen = createTestCodeNode(
             "gen", "ValueGenerator", CodeNodeType.GENERATOR,
             outputPorts = listOf(outputPort("g_out", "value", Int::class, "gen"))
         )
         val flowGraph = createFlowGraph(nodes = listOf(gen))
-        val result = generator.generate(flowGraph, generatedPackage)
+        val result = generator.generate(flowGraph, basePackage, generatedPackage)
+
+        assertFalse(result.contains("import kotlinx.coroutines.flow.MutableStateFlow"))
+        assertFalse(result.contains("import kotlinx.coroutines.flow.asStateFlow"))
+        assertTrue(result.contains("import kotlinx.coroutines.flow.StateFlow"))
+    }
+
+    // ========== Module Properties Section (State Object) ==========
+
+    @Test
+    fun `generates MODULE PROPERTIES START marker`() {
+        val flowGraph = createStopWatchLikeFlow()
+        val result = generator.generate(flowGraph, basePackage, generatedPackage)
+
+        assertTrue(result.contains("// ===== MODULE PROPERTIES START ====="))
+    }
+
+    @Test
+    fun `generates MODULE PROPERTIES END marker`() {
+        val flowGraph = createStopWatchLikeFlow()
+        val result = generator.generate(flowGraph, basePackage, generatedPackage)
+
+        assertTrue(result.contains("// ===== MODULE PROPERTIES END ====="))
+    }
+
+    @Test
+    fun `generates State object with flow name`() {
+        val flowGraph = createStopWatchLikeFlow()
+        val result = generator.generate(flowGraph, basePackage, generatedPackage)
+
+        assertTrue(result.contains("object StopWatch2State {"))
+    }
+
+    @Test
+    fun `generates internal MutableStateFlow for sink input ports`() {
+        val flowGraph = createStopWatchLikeFlow()
+        val result = generator.generate(flowGraph, basePackage, generatedPackage)
+
+        assertTrue(result.contains("internal val _seconds = MutableStateFlow(0)"))
+        assertTrue(result.contains("internal val _minutes = MutableStateFlow(0)"))
+    }
+
+    @Test
+    fun `generates public StateFlow accessors for sink input ports`() {
+        val flowGraph = createStopWatchLikeFlow()
+        val result = generator.generate(flowGraph, basePackage, generatedPackage)
+
+        assertTrue(result.contains("val secondsFlow: StateFlow<Int> = _seconds.asStateFlow()"))
+        assertTrue(result.contains("val minutesFlow: StateFlow<Int> = _minutes.asStateFlow()"))
+    }
+
+    @Test
+    fun `generates reset method in State object`() {
+        val flowGraph = createStopWatchLikeFlow()
+        val result = generator.generate(flowGraph, basePackage, generatedPackage)
+
+        assertTrue(result.contains("fun reset()"))
+        assertTrue(result.contains("_seconds.value = 0"))
+        assertTrue(result.contains("_minutes.value = 0"))
+    }
+
+    @Test
+    fun `no sink nodes generates empty State object`() {
+        val gen = createTestCodeNode(
+            "gen", "ValueGenerator", CodeNodeType.GENERATOR,
+            outputPorts = listOf(outputPort("g_out", "value", Int::class, "gen"))
+        )
+        val flowGraph = createFlowGraph(nodes = listOf(gen))
+        val result = generator.generate(flowGraph, basePackage, generatedPackage)
+
+        assertTrue(result.contains("object TestFlowState {"))
+        assertFalse(result.contains("MutableStateFlow("))
+    }
+
+    // ========== ViewModel Class ==========
+
+    @Test
+    fun `generates ViewModel class extending ViewModel`() {
+        val flowGraph = createStopWatchLikeFlow()
+        val result = generator.generate(flowGraph, basePackage, generatedPackage)
+
+        assertTrue(result.contains("class StopWatch2ViewModel("))
+        assertTrue(result.contains(") : ViewModel()"))
+    }
+
+    @Test
+    fun `generates ControllerInterface constructor param`() {
+        val flowGraph = createStopWatchLikeFlow()
+        val result = generator.generate(flowGraph, basePackage, generatedPackage)
+
+        assertTrue(result.contains("private val controller: StopWatch2ControllerInterface"))
+    }
+
+    @Test
+    fun `delegates observable state from State object`() {
+        val flowGraph = createStopWatchLikeFlow()
+        val result = generator.generate(flowGraph, basePackage, generatedPackage)
+
+        assertTrue(result.contains("val seconds: StateFlow<Int> = StopWatch2State.secondsFlow"))
+        assertTrue(result.contains("val minutes: StateFlow<Int> = StopWatch2State.minutesFlow"))
+    }
+
+    @Test
+    fun `delegates executionState from controller`() {
+        val flowGraph = createStopWatchLikeFlow()
+        val result = generator.generate(flowGraph, basePackage, generatedPackage)
 
         assertTrue(result.contains("val executionState: StateFlow<ExecutionState> = controller.executionState"))
-        assertFalse(result.contains("val value"))
+    }
+
+    @Test
+    fun `delegates control methods`() {
+        val flowGraph = createStopWatchLikeFlow()
+        val result = generator.generate(flowGraph, basePackage, generatedPackage)
+
+        assertTrue(result.contains("fun start(): FlowGraph = controller.start()"))
+        assertTrue(result.contains("fun stop(): FlowGraph = controller.stop()"))
+        assertTrue(result.contains("fun reset(): FlowGraph = controller.reset()"))
+        assertTrue(result.contains("fun pause(): FlowGraph = controller.pause()"))
+        assertTrue(result.contains("fun resume(): FlowGraph = controller.resume()"))
     }
 
     @Test
@@ -189,13 +248,85 @@ class RuntimeViewModelGeneratorTest {
             outputPorts = listOf(outputPort("g_out", "value", Int::class, "gen"))
         )
         val flowGraph = createFlowGraph(nodes = listOf(gen))
-        val result = generator.generate(flowGraph, generatedPackage)
+        val result = generator.generate(flowGraph, basePackage, generatedPackage)
 
         assertTrue(result.contains("fun start(): FlowGraph = controller.start()"))
         assertTrue(result.contains("fun stop(): FlowGraph = controller.stop()"))
         assertTrue(result.contains("fun reset(): FlowGraph = controller.reset()"))
         assertTrue(result.contains("fun pause(): FlowGraph = controller.pause()"))
         assertTrue(result.contains("fun resume(): FlowGraph = controller.resume()"))
+    }
+
+    @Test
+    fun `no sink nodes omits observable state delegation in ViewModel`() {
+        val gen = createTestCodeNode(
+            "gen", "ValueGenerator", CodeNodeType.GENERATOR,
+            outputPorts = listOf(outputPort("g_out", "value", Int::class, "gen"))
+        )
+        val flowGraph = createFlowGraph(nodes = listOf(gen))
+        val result = generator.generate(flowGraph, basePackage, generatedPackage)
+
+        assertFalse(result.contains("val value"))
+        assertTrue(result.contains("val executionState: StateFlow<ExecutionState> = controller.executionState"))
+    }
+
+    // ========== generateModulePropertiesSection (Selective Regeneration) ==========
+
+    @Test
+    fun `generateModulePropertiesSection returns section with markers`() {
+        val flowGraph = createStopWatchLikeFlow()
+        val section = generator.generateModulePropertiesSection(flowGraph)
+
+        assertTrue(section.startsWith("// ===== MODULE PROPERTIES START ====="))
+        assertTrue(section.contains("// ===== MODULE PROPERTIES END ====="))
+    }
+
+    @Test
+    fun `generateModulePropertiesSection contains State object`() {
+        val flowGraph = createStopWatchLikeFlow()
+        val section = generator.generateModulePropertiesSection(flowGraph)
+
+        assertTrue(section.contains("object StopWatch2State {"))
+        assertTrue(section.contains("internal val _seconds = MutableStateFlow(0)"))
+        assertTrue(section.contains("val secondsFlow: StateFlow<Int> = _seconds.asStateFlow()"))
+        assertTrue(section.contains("internal val _minutes = MutableStateFlow(0)"))
+        assertTrue(section.contains("val minutesFlow: StateFlow<Int> = _minutes.asStateFlow()"))
+    }
+
+    @Test
+    fun `generateModulePropertiesSection contains reset method`() {
+        val flowGraph = createStopWatchLikeFlow()
+        val section = generator.generateModulePropertiesSection(flowGraph)
+
+        assertTrue(section.contains("fun reset()"))
+        assertTrue(section.contains("_seconds.value = 0"))
+        assertTrue(section.contains("_minutes.value = 0"))
+    }
+
+    @Test
+    fun `generateModulePropertiesSection with no sinks generates empty State object`() {
+        val gen = createTestCodeNode(
+            "gen", "ValueGenerator", CodeNodeType.GENERATOR,
+            outputPorts = listOf(outputPort("g_out", "value", Int::class, "gen"))
+        )
+        val flowGraph = createFlowGraph(nodes = listOf(gen))
+        val section = generator.generateModulePropertiesSection(flowGraph)
+
+        assertTrue(section.contains("object TestFlowState {"))
+        assertTrue(section.contains("}"))
+        assertFalse(section.contains("MutableStateFlow("))
+    }
+
+    // ========== ViewModel Section Markers ==========
+
+    @Test
+    fun `generates ViewModel section comment block`() {
+        val flowGraph = createStopWatchLikeFlow()
+        val result = generator.generate(flowGraph, basePackage, generatedPackage)
+
+        assertTrue(result.contains("// ViewModel"))
+        assertTrue(result.contains("// Binding interface between composable UI and FlowGraph."))
+        assertTrue(result.contains("// User-editable section below"))
     }
 
     // ========== Helper: StopWatch-like FlowGraph ==========

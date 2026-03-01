@@ -11,13 +11,14 @@ import io.codenode.fbpdsl.model.FlowGraph
 
 /**
  * Generates a {Name}Flow.kt file that directly creates runtime instances
- * via CodeNodeFactory, wires connections, and owns MutableStateFlow
- * properties for sink input ports.
+ * via CodeNodeFactory, wires connections, and delegates observable state
+ * to {ModuleName}State from the viewModel package.
  *
  * The generated Flow class:
  * - Imports tick vals from the processingLogic package
+ * - Imports {ModuleName}State from the viewModel package
  * - Creates runtime instances using CodeNodeFactory.create*() methods
- * - Wraps sink consume blocks to update MutableStateFlow + call user tick
+ * - Wraps sink consume blocks to update {ModuleName}State + call user tick
  * - Provides start(scope)/stop()/reset()/wireConnections() methods
  */
 class RuntimeFlowGenerator {
@@ -32,14 +33,14 @@ class RuntimeFlowGenerator {
      * @param flowGraph The flow graph to generate from
      * @param generatedPackage The package name for the generated file
      * @param usecasesPackage The package name for user-written tick stubs
-     * @param statePropertiesPackage The stateProperties package for delegation (null for legacy behavior)
+     * @param viewModelPackage The base package where {ModuleName}State object lives
      * @return Generated Kotlin source code
      */
     fun generate(
         flowGraph: FlowGraph,
         generatedPackage: String,
         usecasesPackage: String,
-        statePropertiesPackage: String? = null
+        viewModelPackage: String
     ): String {
         val flowName = flowGraph.name.pascalCase()
         val codeNodes = flowGraph.getAllCodeNodes()
@@ -49,20 +50,20 @@ class RuntimeFlowGenerator {
         return buildString {
             generateHeader(flowGraph, flowName)
             generatePackage(generatedPackage)
-            generateImports(codeNodes, usecasesPackage, observableProps.isNotEmpty(), statePropertiesPackage)
+            generateImports(codeNodes, usecasesPackage, observableProps.isNotEmpty(), viewModelPackage, flowName)
             appendLine()
             generateKDoc(flowGraph, flowName)
             appendLine("class ${flowName}Flow {")
             appendLine()
 
             if (observableProps.isNotEmpty()) {
-                generateObservableState(observableProps, statePropertiesPackage)
+                generateObservableState(observableProps, flowName)
             }
 
-            generateRuntimeInstances(codeNodes, observableProps, flowGraph, statePropertiesPackage)
+            generateRuntimeInstances(codeNodes, observableProps, flowGraph, flowName)
             generateStartMethod(codeNodes)
             generateStopMethod(codeNodes)
-            generateResetMethod(observableProps, codeNodes, statePropertiesPackage)
+            generateResetMethod(flowName, observableProps.isNotEmpty())
             generateWireConnectionsMethod(wiringStatements)
 
             appendLine("}")
@@ -88,7 +89,8 @@ class RuntimeFlowGenerator {
         codeNodes: List<CodeNode>,
         usecasesPackage: String,
         hasObservableState: Boolean,
-        statePropertiesPackage: String? = null
+        viewModelPackage: String,
+        flowName: String
     ) {
         // Tick function imports from user stubs
         codeNodes.forEach { node ->
@@ -96,29 +98,17 @@ class RuntimeFlowGenerator {
         }
         appendLine()
 
-        // State properties imports (for all nodes with ports)
-        if (statePropertiesPackage != null) {
-            val nodesWithPorts = codeNodes.filter { it.inputPorts.isNotEmpty() || it.outputPorts.isNotEmpty() }
-            nodesWithPorts.forEach { node ->
-                val objectName = "${node.name.pascalCase()}StateProperties"
-                appendLine("import $statePropertiesPackage.$objectName")
-            }
-            if (nodesWithPorts.isNotEmpty()) appendLine()
+        // Import {ModuleName}State from viewModel package
+        if (hasObservableState) {
+            appendLine("import $viewModelPackage.${flowName}State")
+            appendLine()
         }
 
         // Framework imports
         appendLine("import io.codenode.fbpdsl.model.CodeNodeFactory")
         appendLine("import kotlinx.coroutines.CoroutineScope")
         if (hasObservableState) {
-            if (statePropertiesPackage == null) {
-                // Legacy: Flow owns MutableStateFlow
-                appendLine("import kotlinx.coroutines.flow.MutableStateFlow")
-                appendLine("import kotlinx.coroutines.flow.StateFlow")
-                appendLine("import kotlinx.coroutines.flow.asStateFlow")
-            } else {
-                // Delegated: Flow references StateFlow from state properties
-                appendLine("import kotlinx.coroutines.flow.StateFlow")
-            }
+            appendLine("import kotlinx.coroutines.flow.StateFlow")
         }
     }
 
@@ -141,21 +131,11 @@ class RuntimeFlowGenerator {
 
     private fun StringBuilder.generateObservableState(
         observableProps: List<ObservableProperty>,
-        statePropertiesPackage: String? = null
+        flowName: String
     ) {
-        if (statePropertiesPackage != null) {
-            appendLine("    // Observable state delegated from state properties")
-            observableProps.forEach { prop ->
-                val objectName = "${prop.sourceNodeName.pascalCase()}StateProperties"
-                val stateFlowName = "${prop.sourcePortName.camelCase()}Flow"
-                appendLine("    val ${prop.name}Flow: StateFlow<${prop.typeName}> = $objectName.$stateFlowName")
-            }
-        } else {
-            appendLine("    // Observable state for sink ports")
-            observableProps.forEach { prop ->
-                appendLine("    private val _${prop.name} = MutableStateFlow(${prop.defaultValue})")
-                appendLine("    val ${prop.name}Flow: StateFlow<${prop.typeName}> = _${prop.name}.asStateFlow()")
-            }
+        appendLine("    // Observable state delegated from module state")
+        observableProps.forEach { prop ->
+            appendLine("    val ${prop.name}Flow: StateFlow<${prop.typeName}> = ${flowName}State.${prop.name}Flow")
         }
         appendLine()
     }
@@ -164,7 +144,7 @@ class RuntimeFlowGenerator {
         codeNodes: List<CodeNode>,
         observableProps: List<ObservableProperty>,
         flowGraph: FlowGraph,
-        statePropertiesPackage: String? = null
+        flowName: String
     ) {
         appendLine("    // Runtime instances")
         codeNodes.forEach { node ->
@@ -183,7 +163,7 @@ class RuntimeFlowGenerator {
                 appendLine("        tickIntervalMs = $tickInterval,")
                 appendLine("        $tickParamName = ${varName}Tick")
             } else if (isSink) {
-                generateSinkConsumeBlock(node, varName, tickParamName, observableProps, flowGraph, statePropertiesPackage)
+                generateSinkConsumeBlock(node, varName, tickParamName, observableProps, flowName)
             } else {
                 appendLine("        $tickParamName = ${varName}Tick")
             }
@@ -198,8 +178,7 @@ class RuntimeFlowGenerator {
         varName: String,
         tickParamName: String,
         observableProps: List<ObservableProperty>,
-        flowGraph: FlowGraph,
-        statePropertiesPackage: String? = null
+        flowName: String
     ) {
         val portNames = node.inputPorts.map { it.name.camelCase() }
         val portNamesStr = portNames.joinToString(", ")
@@ -212,16 +191,10 @@ class RuntimeFlowGenerator {
         }
 
         appendLine("        $tickParamName = { $portNamesStr ->")
-        if (statePropertiesPackage != null) {
-            val objectName = "${node.name.pascalCase()}StateProperties"
-            node.inputPorts.forEachIndexed { index, port ->
-                appendLine("            $objectName._${port.name.camelCase()}.value = ${portNames[index]}")
-            }
-        } else {
-            sinkProps.forEachIndexed { index, prop ->
-                if (prop != null) {
-                    appendLine("            _${prop.name}.value = ${portNames[index]}")
-                }
+        val stateName = "${flowName}State"
+        sinkProps.forEachIndexed { index, prop ->
+            if (prop != null) {
+                appendLine("            $stateName._${prop.name}.value = ${portNames[index]}")
             }
         }
         appendLine("            ${varName}Tick($portNamesStr)")
@@ -266,25 +239,15 @@ class RuntimeFlowGenerator {
     }
 
     private fun StringBuilder.generateResetMethod(
-        observableProps: List<ObservableProperty>,
-        codeNodes: List<CodeNode> = emptyList(),
-        statePropertiesPackage: String? = null
+        flowName: String,
+        hasObservableState: Boolean
     ) {
         appendLine("    /**")
         appendLine("     * Resets all observable state.")
         appendLine("     */")
         appendLine("    fun reset() {")
-        if (statePropertiesPackage != null) {
-            // Call reset() on each node's state properties object
-            val nodesWithPorts = codeNodes.filter { it.inputPorts.isNotEmpty() || it.outputPorts.isNotEmpty() }
-            nodesWithPorts.forEach { node ->
-                val objectName = "${node.name.pascalCase()}StateProperties"
-                appendLine("        $objectName.reset()")
-            }
-        } else {
-            observableProps.forEach { prop ->
-                appendLine("        _${prop.name}.value = ${prop.defaultValue}")
-            }
+        if (hasObservableState) {
+            appendLine("        ${flowName}State.reset()")
         }
         appendLine("    }")
         appendLine()
