@@ -28,7 +28,8 @@ data class CustomNodeDefinition(
     val inputCount: Int,
     val outputCount: Int,
     val genericType: String,
-    val createdAt: Long
+    val createdAt: Long,
+    val anyInput: Boolean = false
 ) {
     companion object {
         /**
@@ -37,15 +38,18 @@ data class CustomNodeDefinition(
          * @param name User-provided display name
          * @param inputCount Number of input ports (0-3)
          * @param outputCount Number of output ports (0-3)
+         * @param anyInput Whether the node uses any-input trigger mode
          * @return New CustomNodeDefinition instance
          */
-        fun create(name: String, inputCount: Int, outputCount: Int): CustomNodeDefinition {
+        fun create(name: String, inputCount: Int, outputCount: Int, anyInput: Boolean = false): CustomNodeDefinition {
+            val anyPrefix = if (anyInput) "any" else ""
             return CustomNodeDefinition(
                 id = "custom_node_${UUID.randomUUID()}",
                 name = name,
                 inputCount = inputCount,
                 outputCount = outputCount,
-                genericType = "in${inputCount}out${outputCount}",
+                genericType = "in${inputCount}${anyPrefix}out${outputCount}",
+                anyInput = anyInput,
                 createdAt = System.currentTimeMillis()
             )
         }
@@ -61,7 +65,8 @@ data class CustomNodeDefinition(
         return createGenericNodeType(
             numInputs = inputCount,
             numOutputs = outputCount,
-            customName = name
+            customName = name,
+            anyInput = anyInput
         )
     }
 }

@@ -48,6 +48,7 @@ fun NodeGeneratorPanel(
         onOutputCountChange = { viewModel.setOutputCount(it) },
         onInputDropdownExpandedChange = { viewModel.setInputDropdownExpanded(it) },
         onOutputDropdownExpandedChange = { viewModel.setOutputDropdownExpanded(it) },
+        onAnyInputChange = { viewModel.setAnyInput(it) },
         onCancel = { viewModel.reset() },
         onCreate = {
             viewModel.createNode()?.let { node ->
@@ -71,6 +72,7 @@ private fun NodeGeneratorPanelContent(
     onOutputCountChange: (Int) -> Unit,
     onInputDropdownExpandedChange: (Boolean) -> Unit,
     onOutputDropdownExpandedChange: (Boolean) -> Unit,
+    onAnyInputChange: (Boolean) -> Unit,
     onCancel: () -> Unit,
     onCreate: () -> Unit,
     modifier: Modifier = Modifier
@@ -194,6 +196,28 @@ private fun NodeGeneratorPanelContent(
                             }
                         }
                     }
+                }
+            }
+
+            // Any Input toggle (visible only with 2+ inputs)
+            if (state.showAnyInputToggle) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = "Any Input",
+                        fontSize = 12.sp,
+                        color = Color(0xFF757575)
+                    )
+                    Switch(
+                        checked = state.anyInput,
+                        onCheckedChange = onAnyInputChange,
+                        colors = SwitchDefaults.colors(
+                            checkedThumbColor = Color(0xFF2196F3)
+                        )
+                    )
                 }
             }
 

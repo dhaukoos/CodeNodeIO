@@ -31,7 +31,8 @@ data class NodeGeneratorPanelState(
     val outputCount: Int = 1,
     val isExpanded: Boolean = false,
     val inputDropdownExpanded: Boolean = false,
-    val outputDropdownExpanded: Boolean = false
+    val outputDropdownExpanded: Boolean = false,
+    val anyInput: Boolean = false
 ) : BaseState {
     /**
      * Computed property: form is valid when name is non-blank AND
@@ -41,11 +42,21 @@ data class NodeGeneratorPanelState(
         get() = name.isNotBlank() && !(inputCount == 0 && outputCount == 0)
 
     /**
+     * Computed property: whether the "Any Input" toggle should be visible.
+     * Only meaningful with 2 or more inputs.
+     */
+    val showAnyInputToggle: Boolean
+        get() = inputCount >= 2
+
+    /**
      * Computed property: genericType string following the pattern "inXoutY"
-     * where X is the number of inputs and Y is the number of outputs.
+     * or "inXanyoutY" when anyInput is enabled.
      */
     val genericType: String
-        get() = "in${inputCount}out${outputCount}"
+        get() {
+            val anyPrefix = if (anyInput) "any" else ""
+            return "in${inputCount}${anyPrefix}out${outputCount}"
+        }
 }
 
 /**
@@ -75,11 +86,18 @@ class NodeGeneratorViewModel(
 
     /**
      * Updates the input count, coerced to valid range [0, 3].
+     * Auto-disables anyInput when the new count is less than 2.
      *
      * @param count The new input count
      */
     fun setInputCount(count: Int) {
-        _state.update { it.copy(inputCount = count.coerceIn(0, 3)) }
+        val coerced = count.coerceIn(0, 3)
+        _state.update {
+            it.copy(
+                inputCount = coerced,
+                anyInput = if (coerced < 2) false else it.anyInput
+            )
+        }
     }
 
     /**
@@ -117,6 +135,15 @@ class NodeGeneratorViewModel(
     }
 
     /**
+     * Sets the any-input trigger mode.
+     *
+     * @param anyInput Whether to enable any-input trigger mode
+     */
+    fun setAnyInput(anyInput: Boolean) {
+        _state.update { it.copy(anyInput = anyInput) }
+    }
+
+    /**
      * Creates a new custom node definition from the current form state.
      * Only creates if the state is valid. After successful creation,
      * the node is added to the repository and the form is reset.
@@ -130,7 +157,8 @@ class NodeGeneratorViewModel(
         val node = CustomNodeDefinition.create(
             name = currentState.name.trim(),
             inputCount = currentState.inputCount,
-            outputCount = currentState.outputCount
+            outputCount = currentState.outputCount,
+            anyInput = currentState.anyInput
         )
         customNodeRepository.add(node)
         reset()

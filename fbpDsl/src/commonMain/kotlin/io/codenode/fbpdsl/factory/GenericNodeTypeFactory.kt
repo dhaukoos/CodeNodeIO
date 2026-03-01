@@ -72,7 +72,8 @@ fun createGenericNodeType(
     iconResource: String? = null,
     useCaseClassName: String? = null,
     inputNames: List<String>? = null,
-    outputNames: List<String>? = null
+    outputNames: List<String>? = null,
+    anyInput: Boolean = false
 ): NodeTypeDefinition {
     // Validate port counts
     require(numInputs in 0..5) {
@@ -95,7 +96,8 @@ fun createGenericNodeType(
     }
 
     // Generate default name pattern
-    val defaultName = "in${numInputs}out${numOutputs}"
+    val anyPrefix = if (anyInput) "any" else ""
+    val defaultName = "in${numInputs}${anyPrefix}out${numOutputs}"
     val name = customName ?: defaultName
 
     // Generate ID
@@ -139,7 +141,7 @@ fun createGenericNodeType(
 
     // Build default configuration
     val defaultConfiguration = buildMap {
-        put("_genericType", "in${numInputs}out${numOutputs}")
+        put("_genericType", "in${numInputs}${anyPrefix}out${numOutputs}")
         if (iconResource != null) {
             put("_iconResource", iconResource)
         }
@@ -158,7 +160,7 @@ fun createGenericNodeType(
         description = description,
         portTemplates = portTemplates,
         defaultConfiguration = defaultConfiguration,
-        configurationSchema = generateConfigurationSchema(numInputs, numOutputs),
+        configurationSchema = generateConfigurationSchema(numInputs, numOutputs, anyInput),
         codeTemplates = mapOf("KMP" to kmpCodeTemplate)
     )
 }
@@ -287,14 +289,15 @@ private fun generateKmpCodeTemplate(
 /**
  * Generates a JSON Schema for the generic node configuration.
  */
-private fun generateConfigurationSchema(numInputs: Int, numOutputs: Int): String {
+private fun generateConfigurationSchema(numInputs: Int, numOutputs: Int, anyInput: Boolean = false): String {
+    val anyPrefix = if (anyInput) "any" else ""
     return """
         {
             "type": "object",
             "properties": {
                 "_genericType": {
                     "type": "string",
-                    "const": "in${numInputs}out${numOutputs}"
+                    "const": "in${numInputs}${anyPrefix}out${numOutputs}"
                 },
                 "_iconResource": {
                     "type": "string"
