@@ -466,6 +466,102 @@ class RuntimeFlowGeneratorTest {
         assertTrue(result.contains("Version: 1.0.0"))
     }
 
+    // ========== Test: Any-input node ==========
+
+    @Test
+    fun `any-input node uses createIn2AnyOut1Processor factory method`() {
+        val anyProcessor = CodeNode(
+            id = "proc",
+            name = "AnyAdder",
+            codeNodeType = CodeNodeType.TRANSFORMER,
+            position = Node.Position(100.0, 200.0),
+            inputPorts = listOf(
+                inputPort("p_a", "first", Int::class, "proc"),
+                inputPort("p_b", "second", Int::class, "proc")
+            ),
+            outputPorts = listOf(outputPort("p_r", "result", Int::class, "proc")),
+            configuration = mapOf("_genericType" to "in2anyout1")
+        )
+        val flowGraph = createFlowGraph(nodes = listOf(anyProcessor))
+        val result = generator.generate(flowGraph, generatedPackage, usecasesPackage, viewModelPackage)
+
+        assertTrue(result.contains("CodeNodeFactory.createIn2AnyOut1Processor<Int, Int, Int>("),
+            "Should use any-input factory method")
+        assertTrue(result.contains("process = anyAdderTick"),
+            "Should pass process parameter")
+    }
+
+    @Test
+    fun `any-input node generates initialValue parameters`() {
+        val anyProcessor = CodeNode(
+            id = "proc",
+            name = "AnyAdder",
+            codeNodeType = CodeNodeType.TRANSFORMER,
+            position = Node.Position(100.0, 200.0),
+            inputPorts = listOf(
+                inputPort("p_a", "first", Int::class, "proc"),
+                inputPort("p_b", "second", String::class, "proc")
+            ),
+            outputPorts = listOf(outputPort("p_r", "result", Int::class, "proc")),
+            configuration = mapOf("_genericType" to "in2anyout1")
+        )
+        val flowGraph = createFlowGraph(nodes = listOf(anyProcessor))
+        val result = generator.generate(flowGraph, generatedPackage, usecasesPackage, viewModelPackage)
+
+        assertTrue(result.contains("initialValue1 = 0,"),
+            "Should generate initialValue1 for Int type")
+        assertTrue(result.contains("initialValue2 = \"\","),
+            "Should generate initialValue2 for String type")
+    }
+
+    @Test
+    fun `any-input sink uses createIn2AnySink factory method`() {
+        val anySink = CodeNode(
+            id = "sink",
+            name = "AnySink",
+            codeNodeType = CodeNodeType.SINK,
+            position = Node.Position(100.0, 200.0),
+            inputPorts = listOf(
+                inputPort("s_a", "data", Int::class, "sink"),
+                inputPort("s_b", "label", String::class, "sink")
+            ),
+            outputPorts = emptyList(),
+            configuration = mapOf("_genericType" to "in2anyout0")
+        )
+        val flowGraph = createFlowGraph(nodes = listOf(anySink))
+        val result = generator.generate(flowGraph, generatedPackage, usecasesPackage, viewModelPackage)
+
+        assertTrue(result.contains("CodeNodeFactory.createIn2AnySink<Int, String>("),
+            "Should use any-input sink factory method")
+        assertTrue(result.contains("initialValue1 = 0,"),
+            "Should generate initialValue1 for Int type")
+        assertTrue(result.contains("initialValue2 = \"\","),
+            "Should generate initialValue2 for String type")
+    }
+
+    @Test
+    fun `non-any node with genericType config uses standard factory method`() {
+        val processor = CodeNode(
+            id = "proc",
+            name = "Adder",
+            codeNodeType = CodeNodeType.TRANSFORMER,
+            position = Node.Position(100.0, 200.0),
+            inputPorts = listOf(
+                inputPort("p_a", "first", Int::class, "proc"),
+                inputPort("p_b", "second", Int::class, "proc")
+            ),
+            outputPorts = listOf(outputPort("p_r", "result", Int::class, "proc")),
+            configuration = mapOf("_genericType" to "in2out1")
+        )
+        val flowGraph = createFlowGraph(nodes = listOf(processor))
+        val result = generator.generate(flowGraph, generatedPackage, usecasesPackage, viewModelPackage)
+
+        assertTrue(result.contains("CodeNodeFactory.createIn2Out1Processor<Int, Int, Int>("),
+            "Should use standard factory method for non-any node")
+        assertFalse(result.contains("initialValue"),
+            "Should not generate initialValue for standard nodes")
+    }
+
     // ========== Helper: StopWatch-like FlowGraph ==========
 
     private fun createStopWatchLikeFlow(): FlowGraph {

@@ -481,4 +481,119 @@ class ProcessingLogicStubGeneratorTest {
         val result = generator.generateStub(node, "io.codenode.generated")
         assertTrue(result.contains("0.0"))
     }
+
+    // ========== Any-Input Tick Type Aliases ==========
+
+    @Test
+    fun `any-input 2 in 1 out produces In2AnyOut1TickBlock`() {
+        val node = CodeNode(
+            id = "proc",
+            name = "AnyAdder",
+            codeNodeType = CodeNodeType.TRANSFORMER,
+            position = Node.Position(100.0, 200.0),
+            inputPorts = listOf(
+                inputPort("p_a", "first", Int::class, "proc"),
+                inputPort("p_b", "second", Int::class, "proc")
+            ),
+            outputPorts = listOf(outputPort("p_r", "result", Int::class, "proc")),
+            configuration = mapOf("_genericType" to "in2anyout1")
+        )
+        val generator = ProcessingLogicStubGenerator()
+
+        assertEquals("In2AnyOut1TickBlock<Int, Int, Int>", generator.getTickTypeAlias(node, anyInput = true))
+
+        val result = generator.generateStub(node, "io.codenode.generated")
+        assertTrue(result.contains("import io.codenode.fbpdsl.runtime.In2AnyOut1TickBlock"),
+            "Should import any-input tick type alias")
+        assertTrue(result.contains("val anyAdderTick: In2AnyOut1TickBlock<Int, Int, Int>"),
+            "Should use any-input tick type alias in val declaration")
+    }
+
+    @Test
+    fun `any-input 2 in 0 out produces In2AnySinkTickBlock`() {
+        val node = CodeNode(
+            id = "sink",
+            name = "AnySink",
+            codeNodeType = CodeNodeType.SINK,
+            position = Node.Position(100.0, 200.0),
+            inputPorts = listOf(
+                inputPort("s_a", "data", Int::class, "sink"),
+                inputPort("s_b", "label", String::class, "sink")
+            ),
+            outputPorts = emptyList(),
+            configuration = mapOf("_genericType" to "in2anyout0")
+        )
+        val generator = ProcessingLogicStubGenerator()
+
+        assertEquals("In2AnySinkTickBlock<Int, String>", generator.getTickTypeAlias(node, anyInput = true))
+    }
+
+    @Test
+    fun `any-input 3 in 3 out produces In3AnyOut3TickBlock`() {
+        val node = CodeNode(
+            id = "proc",
+            name = "AnyFull",
+            codeNodeType = CodeNodeType.TRANSFORMER,
+            position = Node.Position(100.0, 200.0),
+            inputPorts = listOf(
+                inputPort("i1", "a", Int::class, "proc"),
+                inputPort("i2", "b", String::class, "proc"),
+                inputPort("i3", "c", Boolean::class, "proc")
+            ),
+            outputPorts = listOf(
+                outputPort("o1", "x", Double::class, "proc"),
+                outputPort("o2", "y", Float::class, "proc"),
+                outputPort("o3", "z", Long::class, "proc")
+            ),
+            configuration = mapOf("_genericType" to "in3anyout3")
+        )
+        val generator = ProcessingLogicStubGenerator()
+
+        assertEquals("In3AnyOut3TickBlock<Int, String, Boolean, Double, Float, Long>",
+            generator.getTickTypeAlias(node, anyInput = true))
+    }
+
+    @Test
+    fun `generateStub auto-detects anyInput from genericType configuration`() {
+        val node = CodeNode(
+            id = "proc",
+            name = "AnyMerger",
+            codeNodeType = CodeNodeType.TRANSFORMER,
+            position = Node.Position(100.0, 200.0),
+            inputPorts = listOf(
+                inputPort("p_a", "first", Int::class, "proc"),
+                inputPort("p_b", "second", String::class, "proc")
+            ),
+            outputPorts = listOf(outputPort("p_r", "result", Int::class, "proc")),
+            configuration = mapOf("_genericType" to "in2anyout1")
+        )
+        val generator = ProcessingLogicStubGenerator()
+
+        val result = generator.generateStub(node, "io.codenode.generated")
+        assertTrue(result.contains("In2AnyOut1TickBlock"),
+            "generateStub should auto-detect anyInput from _genericType")
+    }
+
+    @Test
+    fun `generateStubWithPreservedBody auto-detects anyInput from genericType`() {
+        val node = CodeNode(
+            id = "proc",
+            name = "AnyMerger",
+            codeNodeType = CodeNodeType.TRANSFORMER,
+            position = Node.Position(100.0, 200.0),
+            inputPorts = listOf(
+                inputPort("p_a", "first", Int::class, "proc"),
+                inputPort("p_b", "second", String::class, "proc")
+            ),
+            outputPorts = listOf(outputPort("p_r", "result", Int::class, "proc")),
+            configuration = mapOf("_genericType" to "in2anyout1")
+        )
+        val generator = ProcessingLogicStubGenerator()
+
+        val result = generator.generateStubWithPreservedBody(node, "io.codenode.generated", "    first.length")
+        assertTrue(result.contains("In2AnyOut1TickBlock"),
+            "generateStubWithPreservedBody should auto-detect anyInput from _genericType")
+        assertTrue(result.contains("first.length"),
+            "Should preserve the body")
+    }
 }

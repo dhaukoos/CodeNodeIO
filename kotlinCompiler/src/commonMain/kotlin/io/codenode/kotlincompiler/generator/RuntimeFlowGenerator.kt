@@ -149,9 +149,10 @@ class RuntimeFlowGenerator {
         appendLine("    // Runtime instances")
         codeNodes.forEach { node ->
             val varName = node.name.camelCase()
-            val factoryMethod = runtimeTypeResolver.getFactoryMethodName(node)
+            val anyInput = node.configuration["_genericType"]?.contains("any") == true
+            val factoryMethod = runtimeTypeResolver.getFactoryMethodName(node, anyInput)
             val typeParams = getFactoryTypeParams(node)
-            val tickParamName = runtimeTypeResolver.getTickParamName(node)
+            val tickParamName = runtimeTypeResolver.getTickParamName(node, anyInput)
             val isSink = node.inputPorts.isNotEmpty() && node.outputPorts.isEmpty()
             val isGenerator = node.inputPorts.isEmpty() && node.outputPorts.isNotEmpty()
 
@@ -162,6 +163,13 @@ class RuntimeFlowGenerator {
                 val tickInterval = node.configuration["tickIntervalMs"] ?: "1000L"
                 appendLine("        tickIntervalMs = $tickInterval,")
                 appendLine("        $tickParamName = ${varName}Tick")
+            } else if (anyInput && node.inputPorts.size >= 2) {
+                generateInitialValues(node)
+                if (isSink) {
+                    generateSinkConsumeBlock(node, varName, tickParamName, observableProps, flowName)
+                } else {
+                    appendLine("        $tickParamName = ${varName}Tick")
+                }
             } else if (isSink) {
                 generateSinkConsumeBlock(node, varName, tickParamName, observableProps, flowName)
             } else {
@@ -171,6 +179,24 @@ class RuntimeFlowGenerator {
             appendLine("    )")
             appendLine()
         }
+    }
+
+    private fun StringBuilder.generateInitialValues(node: CodeNode) {
+        node.inputPorts.forEachIndexed { index, port ->
+            val typeName = port.dataType.simpleName ?: "Any"
+            val defaultVal = defaultForType(typeName)
+            appendLine("        initialValue${index + 1} = $defaultVal,")
+        }
+    }
+
+    private fun defaultForType(typeName: String): String = when (typeName) {
+        "Int" -> "0"
+        "Long" -> "0L"
+        "Double" -> "0.0"
+        "Float" -> "0.0f"
+        "String" -> "\"\""
+        "Boolean" -> "false"
+        else -> "TODO(\"Provide initial value for $typeName\")"
     }
 
     private fun StringBuilder.generateSinkConsumeBlock(

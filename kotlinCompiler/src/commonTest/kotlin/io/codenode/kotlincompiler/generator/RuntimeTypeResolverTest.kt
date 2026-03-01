@@ -320,4 +320,168 @@ class RuntimeTypeResolverTest {
 
         assertEquals("Int, Boolean", resolver.getTypeParams(node))
     }
+
+    // ========== Any-Input Variant Tests ==========
+
+    @Test
+    fun `2 in 0 out anyInput returns createIn2AnySink`() {
+        val node = createTestCodeNode(
+            id = "sink", name = "AnySink", type = CodeNodeType.SINK,
+            inputPorts = listOf(
+                inputPort("i1", "a", Int::class, "sink"),
+                inputPort("i2", "b", Int::class, "sink")
+            )
+        )
+
+        assertEquals("createIn2AnySink", resolver.getFactoryMethodName(node, anyInput = true))
+        assertEquals("consume", resolver.getTickParamName(node, anyInput = true))
+        assertEquals("In2AnySinkRuntime<Int, Int>", resolver.getRuntimeTypeName(node, anyInput = true))
+    }
+
+    @Test
+    fun `2 in 1 out anyInput returns createIn2AnyOut1Processor`() {
+        val node = createTestCodeNode(
+            id = "proc", name = "AnyAdder",
+            inputPorts = listOf(
+                inputPort("i1", "a", Int::class, "proc"),
+                inputPort("i2", "b", Int::class, "proc")
+            ),
+            outputPorts = listOf(outputPort("o1", "result", Int::class, "proc"))
+        )
+
+        assertEquals("createIn2AnyOut1Processor", resolver.getFactoryMethodName(node, anyInput = true))
+        assertEquals("process", resolver.getTickParamName(node, anyInput = true))
+        assertEquals("In2AnyOut1Runtime<Int, Int, Int>", resolver.getRuntimeTypeName(node, anyInput = true))
+    }
+
+    @Test
+    fun `2 in 2 out anyInput returns createIn2AnyOut2Processor`() {
+        val node = createTestCodeNode(
+            id = "proc", name = "AnyDual",
+            inputPorts = listOf(
+                inputPort("i1", "a", Int::class, "proc"),
+                inputPort("i2", "b", String::class, "proc")
+            ),
+            outputPorts = listOf(
+                outputPort("o1", "x", Double::class, "proc"),
+                outputPort("o2", "y", Boolean::class, "proc")
+            )
+        )
+
+        assertEquals("createIn2AnyOut2Processor", resolver.getFactoryMethodName(node, anyInput = true))
+        assertEquals("In2AnyOut2Runtime<Int, String, Double, Boolean>", resolver.getRuntimeTypeName(node, anyInput = true))
+    }
+
+    @Test
+    fun `2 in 3 out anyInput returns createIn2AnyOut3Processor`() {
+        val node = createTestCodeNode(
+            id = "proc", name = "AnyTriOut",
+            inputPorts = listOf(
+                inputPort("i1", "a", Int::class, "proc"),
+                inputPort("i2", "b", String::class, "proc")
+            ),
+            outputPorts = listOf(
+                outputPort("o1", "x", Int::class, "proc"),
+                outputPort("o2", "y", String::class, "proc"),
+                outputPort("o3", "z", Boolean::class, "proc")
+            )
+        )
+
+        assertEquals("createIn2AnyOut3Processor", resolver.getFactoryMethodName(node, anyInput = true))
+        assertEquals("In2AnyOut3Runtime<Int, String, Int, String, Boolean>", resolver.getRuntimeTypeName(node, anyInput = true))
+    }
+
+    @Test
+    fun `3 in 0 out anyInput returns createIn3AnySink`() {
+        val node = createTestCodeNode(
+            id = "sink", name = "AnyTriSink", type = CodeNodeType.SINK,
+            inputPorts = listOf(
+                inputPort("i1", "a", Int::class, "sink"),
+                inputPort("i2", "b", String::class, "sink"),
+                inputPort("i3", "c", Boolean::class, "sink")
+            )
+        )
+
+        assertEquals("createIn3AnySink", resolver.getFactoryMethodName(node, anyInput = true))
+        assertEquals("In3AnySinkRuntime<Int, String, Boolean>", resolver.getRuntimeTypeName(node, anyInput = true))
+    }
+
+    @Test
+    fun `3 in 1 out anyInput returns createIn3AnyOut1Processor`() {
+        val node = createTestCodeNode(
+            id = "proc", name = "AnyTriMerger",
+            inputPorts = listOf(
+                inputPort("i1", "a", Int::class, "proc"),
+                inputPort("i2", "b", String::class, "proc"),
+                inputPort("i3", "c", Boolean::class, "proc")
+            ),
+            outputPorts = listOf(outputPort("o1", "result", Int::class, "proc"))
+        )
+
+        assertEquals("createIn3AnyOut1Processor", resolver.getFactoryMethodName(node, anyInput = true))
+        assertEquals("In3AnyOut1Runtime<Int, String, Boolean, Int>", resolver.getRuntimeTypeName(node, anyInput = true))
+    }
+
+    @Test
+    fun `3 in 2 out anyInput returns createIn3AnyOut2Processor`() {
+        val node = createTestCodeNode(
+            id = "proc", name = "AnyTriDual",
+            inputPorts = listOf(
+                inputPort("i1", "a", Int::class, "proc"),
+                inputPort("i2", "b", String::class, "proc"),
+                inputPort("i3", "c", Boolean::class, "proc")
+            ),
+            outputPorts = listOf(
+                outputPort("o1", "x", Double::class, "proc"),
+                outputPort("o2", "y", Float::class, "proc")
+            )
+        )
+
+        assertEquals("createIn3AnyOut2Processor", resolver.getFactoryMethodName(node, anyInput = true))
+        assertEquals("In3AnyOut2Runtime<Int, String, Boolean, Double, Float>", resolver.getRuntimeTypeName(node, anyInput = true))
+    }
+
+    @Test
+    fun `3 in 3 out anyInput returns createIn3AnyOut3Processor`() {
+        val node = createTestCodeNode(
+            id = "proc", name = "AnyFullProcessor",
+            inputPorts = listOf(
+                inputPort("i1", "a", Int::class, "proc"),
+                inputPort("i2", "b", String::class, "proc"),
+                inputPort("i3", "c", Boolean::class, "proc")
+            ),
+            outputPorts = listOf(
+                outputPort("o1", "x", Double::class, "proc"),
+                outputPort("o2", "y", Float::class, "proc"),
+                outputPort("o3", "z", Long::class, "proc")
+            )
+        )
+
+        assertEquals("createIn3AnyOut3Processor", resolver.getFactoryMethodName(node, anyInput = true))
+        assertEquals("In3AnyOut3Runtime<Int, String, Boolean, Double, Float, Long>", resolver.getRuntimeTypeName(node, anyInput = true))
+    }
+
+    @Test
+    fun `anyInput has no effect on single-input nodes`() {
+        val node = createTestCodeNode(
+            id = "trans", name = "Transformer",
+            inputPorts = listOf(inputPort("in", "input", String::class, "trans")),
+            outputPorts = listOf(outputPort("out", "output", Int::class, "trans"))
+        )
+
+        // anyInput=true should have no effect for 1-input nodes
+        assertEquals("createContinuousTransformer", resolver.getFactoryMethodName(node, anyInput = true))
+        assertEquals("TransformerRuntime<String, Int>", resolver.getRuntimeTypeName(node, anyInput = true))
+    }
+
+    @Test
+    fun `anyInput has no effect on generators`() {
+        val node = createTestCodeNode(
+            id = "gen", name = "Generator", type = CodeNodeType.GENERATOR,
+            outputPorts = listOf(outputPort("out", "value", Int::class, "gen"))
+        )
+
+        assertEquals("createTimedGenerator", resolver.getFactoryMethodName(node, anyInput = true))
+        assertEquals("GeneratorRuntime<Int>", resolver.getRuntimeTypeName(node, anyInput = true))
+    }
 }

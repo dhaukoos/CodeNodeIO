@@ -61,14 +61,17 @@ class ProcessingLogicStubGenerator {
      * Gets the fully parameterized tick type alias for a node.
      *
      * Maps (inputCount, outputCount) to the correct tick type alias with
-     * type parameters resolved from port data types.
+     * type parameters resolved from port data types. When anyInput is true,
+     * returns any-input variant names (e.g., "In2AnyOut1TickBlock" instead of "In2Out1TickBlock").
      *
      * @param codeNode The code node
+     * @param anyInput When true, returns any-input tick type alias variant
      * @return Tick type alias string (e.g., "Out2TickBlock<Int, Int>")
      */
-    fun getTickTypeAlias(codeNode: CodeNode): String {
+    fun getTickTypeAlias(codeNode: CodeNode, anyInput: Boolean = false): String {
         val inputCount = codeNode.inputPorts.size
         val outputCount = codeNode.outputPorts.size
+        val any = if (anyInput && inputCount >= 2) "Any" else ""
 
         return when {
             // Generators (0 inputs)
@@ -89,9 +92,9 @@ class ProcessingLogicStubGenerator {
 
             // Multi-input, single-output processors
             inputCount == 2 && outputCount == 1 ->
-                "In2Out1TickBlock<${inType(codeNode, 0)}, ${inType(codeNode, 1)}, ${outType(codeNode, 0)}>"
+                "In2${any}Out1TickBlock<${inType(codeNode, 0)}, ${inType(codeNode, 1)}, ${outType(codeNode, 0)}>"
             inputCount == 3 && outputCount == 1 ->
-                "In3Out1TickBlock<${inType(codeNode, 0)}, ${inType(codeNode, 1)}, ${inType(codeNode, 2)}, ${outType(codeNode, 0)}>"
+                "In3${any}Out1TickBlock<${inType(codeNode, 0)}, ${inType(codeNode, 1)}, ${inType(codeNode, 2)}, ${outType(codeNode, 0)}>"
 
             // Single-input, multi-output processors
             inputCount == 1 && outputCount == 2 ->
@@ -101,21 +104,21 @@ class ProcessingLogicStubGenerator {
 
             // Multi-input, multi-output processors
             inputCount == 2 && outputCount == 2 ->
-                "In2Out2TickBlock<${inType(codeNode, 0)}, ${inType(codeNode, 1)}, ${outType(codeNode, 0)}, ${outType(codeNode, 1)}>"
+                "In2${any}Out2TickBlock<${inType(codeNode, 0)}, ${inType(codeNode, 1)}, ${outType(codeNode, 0)}, ${outType(codeNode, 1)}>"
             inputCount == 2 && outputCount == 3 ->
-                "In2Out3TickBlock<${inType(codeNode, 0)}, ${inType(codeNode, 1)}, ${outType(codeNode, 0)}, ${outType(codeNode, 1)}, ${outType(codeNode, 2)}>"
+                "In2${any}Out3TickBlock<${inType(codeNode, 0)}, ${inType(codeNode, 1)}, ${outType(codeNode, 0)}, ${outType(codeNode, 1)}, ${outType(codeNode, 2)}>"
             inputCount == 3 && outputCount == 2 ->
-                "In3Out2TickBlock<${inType(codeNode, 0)}, ${inType(codeNode, 1)}, ${inType(codeNode, 2)}, ${outType(codeNode, 0)}, ${outType(codeNode, 1)}>"
+                "In3${any}Out2TickBlock<${inType(codeNode, 0)}, ${inType(codeNode, 1)}, ${inType(codeNode, 2)}, ${outType(codeNode, 0)}, ${outType(codeNode, 1)}>"
             inputCount == 3 && outputCount == 3 ->
-                "In3Out3TickBlock<${inType(codeNode, 0)}, ${inType(codeNode, 1)}, ${inType(codeNode, 2)}, ${outType(codeNode, 0)}, ${outType(codeNode, 1)}, ${outType(codeNode, 2)}>"
+                "In3${any}Out3TickBlock<${inType(codeNode, 0)}, ${inType(codeNode, 1)}, ${inType(codeNode, 2)}, ${outType(codeNode, 0)}, ${outType(codeNode, 1)}, ${outType(codeNode, 2)}>"
 
             // Sinks (0 outputs)
             inputCount == 1 && outputCount == 0 ->
                 "SinkTickBlock<${inType(codeNode, 0)}>"
             inputCount == 2 && outputCount == 0 ->
-                "In2SinkTickBlock<${inType(codeNode, 0)}, ${inType(codeNode, 1)}>"
+                "In2${any}SinkTickBlock<${inType(codeNode, 0)}, ${inType(codeNode, 1)}>"
             inputCount == 3 && outputCount == 0 ->
-                "In3SinkTickBlock<${inType(codeNode, 0)}, ${inType(codeNode, 1)}, ${inType(codeNode, 2)}>"
+                "In3${any}SinkTickBlock<${inType(codeNode, 0)}, ${inType(codeNode, 1)}, ${inType(codeNode, 2)}>"
 
             else -> ""
         }
@@ -131,7 +134,8 @@ class ProcessingLogicStubGenerator {
     fun generateStub(codeNode: CodeNode, packageName: String): String {
         if (!shouldGenerateStub(codeNode)) return ""
 
-        val tickTypeAlias = getTickTypeAlias(codeNode)
+        val anyInput = codeNode.configuration["_genericType"]?.contains("any") == true
+        val tickTypeAlias = getTickTypeAlias(codeNode, anyInput)
         val tickValName = getTickValName(codeNode)
         val typeAliasName = tickTypeAlias.substringBefore("<")
         val inputCount = codeNode.inputPorts.size
@@ -303,7 +307,8 @@ class ProcessingLogicStubGenerator {
     ): String {
         if (!shouldGenerateStub(codeNode)) return ""
 
-        val tickTypeAlias = getTickTypeAlias(codeNode)
+        val anyInput = codeNode.configuration["_genericType"]?.contains("any") == true
+        val tickTypeAlias = getTickTypeAlias(codeNode, anyInput)
         val tickValName = getTickValName(codeNode)
         val typeAliasName = tickTypeAlias.substringBefore("<")
         val inputCount = codeNode.inputPorts.size

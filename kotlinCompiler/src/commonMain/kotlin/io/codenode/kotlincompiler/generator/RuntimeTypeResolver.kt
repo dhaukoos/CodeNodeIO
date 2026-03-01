@@ -23,11 +23,13 @@ class RuntimeTypeResolver {
      * Gets the CodeNodeFactory method name for creating a runtime instance.
      *
      * @param node The code node
+     * @param anyInput When true, returns any-input factory variant (e.g., "createIn2AnyOut1Processor")
      * @return Factory method name (e.g., "createTimedOut2Generator", "createIn2Sink")
      */
-    fun getFactoryMethodName(node: CodeNode): String {
+    fun getFactoryMethodName(node: CodeNode, anyInput: Boolean = false): String {
         val inputs = node.inputPorts.size
         val outputs = node.outputPorts.size
+        val any = if (anyInput && inputs >= 2) "Any" else ""
 
         return when {
             // Generators (0 inputs)
@@ -37,8 +39,8 @@ class RuntimeTypeResolver {
 
             // Sinks (0 outputs)
             inputs == 1 && outputs == 0 -> "createContinuousSink"
-            inputs == 2 && outputs == 0 -> "createIn2Sink"
-            inputs == 3 && outputs == 0 -> "createIn3Sink"
+            inputs == 2 && outputs == 0 -> "createIn2${any}Sink"
+            inputs == 3 && outputs == 0 -> "createIn3${any}Sink"
 
             // Filter vs Transformer (1 in, 1 out)
             inputs == 1 && outputs == 1 -> {
@@ -48,18 +50,18 @@ class RuntimeTypeResolver {
             }
 
             // Multi-input processors
-            inputs == 2 && outputs == 1 -> "createIn2Out1Processor"
-            inputs == 3 && outputs == 1 -> "createIn3Out1Processor"
+            inputs == 2 && outputs == 1 -> "createIn2${any}Out1Processor"
+            inputs == 3 && outputs == 1 -> "createIn3${any}Out1Processor"
 
             // Single-input, multi-output processors
             inputs == 1 && outputs == 2 -> "createIn1Out2Processor"
             inputs == 1 && outputs == 3 -> "createIn1Out3Processor"
 
             // Multi-input, multi-output processors
-            inputs == 2 && outputs == 2 -> "createIn2Out2Processor"
-            inputs == 2 && outputs == 3 -> "createIn2Out3Processor"
-            inputs == 3 && outputs == 2 -> "createIn3Out2Processor"
-            inputs == 3 && outputs == 3 -> "createIn3Out3Processor"
+            inputs == 2 && outputs == 2 -> "createIn2${any}Out2Processor"
+            inputs == 2 && outputs == 3 -> "createIn2${any}Out3Processor"
+            inputs == 3 && outputs == 2 -> "createIn3${any}Out2Processor"
+            inputs == 3 && outputs == 3 -> "createIn3${any}Out3Processor"
 
             else -> "createContinuousGenerator" // fallback
         }
@@ -69,11 +71,13 @@ class RuntimeTypeResolver {
      * Gets the runtime type name with generic type parameters.
      *
      * @param node The code node
+     * @param anyInput When true, returns any-input runtime variant (e.g., "In2AnyOut1Runtime<Int, Int, Int>")
      * @return Runtime type string (e.g., "Out2GeneratorRuntime<Int, Int>")
      */
-    fun getRuntimeTypeName(node: CodeNode): String {
+    fun getRuntimeTypeName(node: CodeNode, anyInput: Boolean = false): String {
         val inputs = node.inputPorts.size
         val outputs = node.outputPorts.size
+        val any = if (anyInput && inputs >= 2) "Any" else ""
 
         val typeParams = buildTypeParams(node)
 
@@ -83,8 +87,8 @@ class RuntimeTypeResolver {
             inputs == 0 && outputs == 3 -> "Out3GeneratorRuntime<$typeParams>"
 
             inputs == 1 && outputs == 0 -> "SinkRuntime<$typeParams>"
-            inputs == 2 && outputs == 0 -> "In2SinkRuntime<$typeParams>"
-            inputs == 3 && outputs == 0 -> "In3SinkRuntime<$typeParams>"
+            inputs == 2 && outputs == 0 -> "In2${any}SinkRuntime<$typeParams>"
+            inputs == 3 && outputs == 0 -> "In3${any}SinkRuntime<$typeParams>"
 
             inputs == 1 && outputs == 1 -> {
                 val inType = node.inputPorts[0].dataType.simpleName ?: "Any"
@@ -92,14 +96,14 @@ class RuntimeTypeResolver {
                 if (inType == outType) "FilterRuntime<$inType>" else "TransformerRuntime<$typeParams>"
             }
 
-            inputs == 2 && outputs == 1 -> "In2Out1Runtime<$typeParams>"
-            inputs == 3 && outputs == 1 -> "In3Out1Runtime<$typeParams>"
+            inputs == 2 && outputs == 1 -> "In2${any}Out1Runtime<$typeParams>"
+            inputs == 3 && outputs == 1 -> "In3${any}Out1Runtime<$typeParams>"
             inputs == 1 && outputs == 2 -> "In1Out2Runtime<$typeParams>"
             inputs == 1 && outputs == 3 -> "In1Out3Runtime<$typeParams>"
-            inputs == 2 && outputs == 2 -> "In2Out2Runtime<$typeParams>"
-            inputs == 2 && outputs == 3 -> "In2Out3Runtime<$typeParams>"
-            inputs == 3 && outputs == 2 -> "In3Out2Runtime<$typeParams>"
-            inputs == 3 && outputs == 3 -> "In3Out3Runtime<$typeParams>"
+            inputs == 2 && outputs == 2 -> "In2${any}Out2Runtime<$typeParams>"
+            inputs == 2 && outputs == 3 -> "In2${any}Out3Runtime<$typeParams>"
+            inputs == 3 && outputs == 2 -> "In3${any}Out2Runtime<$typeParams>"
+            inputs == 3 && outputs == 3 -> "In3${any}Out3Runtime<$typeParams>"
 
             else -> "GeneratorRuntime<Any>"
         }
@@ -109,9 +113,10 @@ class RuntimeTypeResolver {
      * Gets the tick/consume/transform parameter name for the factory method.
      *
      * @param node The code node
+     * @param anyInput When true, uses any-input variant (parameter names are the same)
      * @return Parameter name ("tick", "consume", "transform", "filter", "process")
      */
-    fun getTickParamName(node: CodeNode): String {
+    fun getTickParamName(node: CodeNode, anyInput: Boolean = false): String {
         val inputs = node.inputPorts.size
         val outputs = node.outputPorts.size
 
