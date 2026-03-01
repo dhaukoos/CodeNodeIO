@@ -1029,6 +1029,400 @@ object CodeNodeFactory {
         return io.codenode.fbpdsl.runtime.In3Out3Runtime(codeNode, channelCapacity, process)
     }
 
+    // ========== Any-Input Processor Factory Methods ==========
+
+    /**
+     * Creates a continuous any-input processor with 2 inputs and 1 output.
+     *
+     * Uses `select` expression to fire the process block as soon as ANY input
+     * channel delivers data. Cached last values are provided for non-triggered inputs.
+     *
+     * @param A Type of first input
+     * @param B Type of second input
+     * @param R Type of output
+     * @param name Human-readable name
+     * @param initialValue1 Initial/default value for input 1 (used before first receive)
+     * @param initialValue2 Initial/default value for input 2 (used before first receive)
+     * @param position Canvas position
+     * @param description Optional documentation
+     * @param process Processing function that combines both inputs
+     * @return In2AnyOut1Runtime configured for any-input processing
+     */
+    inline fun <reified A : Any, reified B : Any, reified R : Any> createIn2AnyOut1Processor(
+        name: String,
+        initialValue1: A,
+        initialValue2: B,
+        position: Node.Position = Node.Position.ORIGIN,
+        description: String? = null,
+        noinline process: io.codenode.fbpdsl.runtime.In2AnyOut1ProcessBlock<A, B, R>
+    ): io.codenode.fbpdsl.runtime.In2AnyOut1Runtime<A, B, R> {
+        val nodeId = NodeIdGenerator.generateId("codenode")
+
+        val codeNode = CodeNode(
+            id = nodeId,
+            name = name,
+            codeNodeType = CodeNodeType.TRANSFORMER,
+            description = description,
+            position = position,
+            inputPorts = listOf(
+                PortFactory.input<A>("input1", nodeId, required = true),
+                PortFactory.input<B>("input2", nodeId, required = true)
+            ),
+            outputPorts = listOf(
+                PortFactory.output<R>("output", nodeId)
+            )
+        )
+
+        return io.codenode.fbpdsl.runtime.In2AnyOut1Runtime(codeNode, initialValue1, initialValue2, process)
+    }
+
+    /**
+     * Creates a continuous any-input processor with 2 inputs and 2 outputs.
+     *
+     * Uses `select` expression to fire the process block as soon as ANY input
+     * channel delivers data. Returns ProcessResult2 for selective output.
+     *
+     * @param A Type of first input
+     * @param B Type of second input
+     * @param U Type of first output
+     * @param V Type of second output
+     * @param name Human-readable name
+     * @param initialValue1 Initial/default value for input 1
+     * @param initialValue2 Initial/default value for input 2
+     * @param channelCapacity Buffer capacity for output channels (default: BUFFERED = 64)
+     * @param position Canvas position
+     * @param description Optional documentation
+     * @param process Processing function that produces ProcessResult2
+     * @return In2AnyOut2Runtime configured for any-input processing
+     */
+    inline fun <reified A : Any, reified B : Any, reified U : Any, reified V : Any> createIn2AnyOut2Processor(
+        name: String,
+        initialValue1: A,
+        initialValue2: B,
+        channelCapacity: Int = Channel.BUFFERED,
+        position: Node.Position = Node.Position.ORIGIN,
+        description: String? = null,
+        noinline process: io.codenode.fbpdsl.runtime.In2AnyOut2ProcessBlock<A, B, U, V>
+    ): io.codenode.fbpdsl.runtime.In2AnyOut2Runtime<A, B, U, V> {
+        val nodeId = NodeIdGenerator.generateId("codenode")
+
+        val codeNode = CodeNode(
+            id = nodeId,
+            name = name,
+            codeNodeType = CodeNodeType.TRANSFORMER,
+            description = description,
+            position = position,
+            inputPorts = listOf(
+                PortFactory.input<A>("input1", nodeId, required = true),
+                PortFactory.input<B>("input2", nodeId, required = true)
+            ),
+            outputPorts = listOf(
+                PortFactory.output<U>("output1", nodeId),
+                PortFactory.output<V>("output2", nodeId)
+            )
+        )
+
+        return io.codenode.fbpdsl.runtime.In2AnyOut2Runtime(codeNode, channelCapacity, initialValue1, initialValue2, process)
+    }
+
+    /**
+     * Creates a continuous any-input processor with 2 inputs and 3 outputs.
+     *
+     * Uses `select` expression to fire the process block as soon as ANY input
+     * channel delivers data. Returns ProcessResult3 for selective output.
+     *
+     * @param A Type of first input
+     * @param B Type of second input
+     * @param U Type of first output
+     * @param V Type of second output
+     * @param W Type of third output
+     * @param name Human-readable name
+     * @param initialValue1 Initial/default value for input 1
+     * @param initialValue2 Initial/default value for input 2
+     * @param channelCapacity Buffer capacity for output channels (default: BUFFERED = 64)
+     * @param position Canvas position
+     * @param description Optional documentation
+     * @param process Processing function that produces ProcessResult3
+     * @return In2AnyOut3Runtime configured for any-input processing
+     */
+    inline fun <reified A : Any, reified B : Any, reified U : Any, reified V : Any, reified W : Any> createIn2AnyOut3Processor(
+        name: String,
+        initialValue1: A,
+        initialValue2: B,
+        channelCapacity: Int = Channel.BUFFERED,
+        position: Node.Position = Node.Position.ORIGIN,
+        description: String? = null,
+        noinline process: io.codenode.fbpdsl.runtime.In2AnyOut3ProcessBlock<A, B, U, V, W>
+    ): io.codenode.fbpdsl.runtime.In2AnyOut3Runtime<A, B, U, V, W> {
+        val nodeId = NodeIdGenerator.generateId("codenode")
+
+        val codeNode = CodeNode(
+            id = nodeId,
+            name = name,
+            codeNodeType = CodeNodeType.TRANSFORMER,
+            description = description,
+            position = position,
+            inputPorts = listOf(
+                PortFactory.input<A>("input1", nodeId, required = true),
+                PortFactory.input<B>("input2", nodeId, required = true)
+            ),
+            outputPorts = listOf(
+                PortFactory.output<U>("output1", nodeId),
+                PortFactory.output<V>("output2", nodeId),
+                PortFactory.output<W>("output3", nodeId)
+            )
+        )
+
+        return io.codenode.fbpdsl.runtime.In2AnyOut3Runtime(codeNode, channelCapacity, initialValue1, initialValue2, process)
+    }
+
+    /**
+     * Creates a continuous any-input processor with 3 inputs and 1 output.
+     *
+     * Uses `select` expression to fire the process block as soon as ANY input
+     * channel delivers data. Cached last values are provided for non-triggered inputs.
+     *
+     * @param A Type of first input
+     * @param B Type of second input
+     * @param C Type of third input
+     * @param R Type of output
+     * @param name Human-readable name
+     * @param initialValue1 Initial/default value for input 1
+     * @param initialValue2 Initial/default value for input 2
+     * @param initialValue3 Initial/default value for input 3
+     * @param position Canvas position
+     * @param description Optional documentation
+     * @param process Processing function that combines all three inputs
+     * @return In3AnyOut1Runtime configured for any-input processing
+     */
+    inline fun <reified A : Any, reified B : Any, reified C : Any, reified R : Any> createIn3AnyOut1Processor(
+        name: String,
+        initialValue1: A,
+        initialValue2: B,
+        initialValue3: C,
+        position: Node.Position = Node.Position.ORIGIN,
+        description: String? = null,
+        noinline process: io.codenode.fbpdsl.runtime.In3AnyOut1ProcessBlock<A, B, C, R>
+    ): io.codenode.fbpdsl.runtime.In3AnyOut1Runtime<A, B, C, R> {
+        val nodeId = NodeIdGenerator.generateId("codenode")
+
+        val codeNode = CodeNode(
+            id = nodeId,
+            name = name,
+            codeNodeType = CodeNodeType.TRANSFORMER,
+            description = description,
+            position = position,
+            inputPorts = listOf(
+                PortFactory.input<A>("input1", nodeId, required = true),
+                PortFactory.input<B>("input2", nodeId, required = true),
+                PortFactory.input<C>("input3", nodeId, required = true)
+            ),
+            outputPorts = listOf(
+                PortFactory.output<R>("output", nodeId)
+            )
+        )
+
+        return io.codenode.fbpdsl.runtime.In3AnyOut1Runtime(codeNode, initialValue1, initialValue2, initialValue3, process)
+    }
+
+    /**
+     * Creates a continuous any-input processor with 3 inputs and 2 outputs.
+     *
+     * Uses `select` expression to fire the process block as soon as ANY input
+     * channel delivers data. Returns ProcessResult2 for selective output.
+     *
+     * @param A Type of first input
+     * @param B Type of second input
+     * @param C Type of third input
+     * @param U Type of first output
+     * @param V Type of second output
+     * @param name Human-readable name
+     * @param initialValue1 Initial/default value for input 1
+     * @param initialValue2 Initial/default value for input 2
+     * @param initialValue3 Initial/default value for input 3
+     * @param channelCapacity Buffer capacity for output channels (default: BUFFERED = 64)
+     * @param position Canvas position
+     * @param description Optional documentation
+     * @param process Processing function that produces ProcessResult2
+     * @return In3AnyOut2Runtime configured for any-input processing
+     */
+    inline fun <reified A : Any, reified B : Any, reified C : Any, reified U : Any, reified V : Any> createIn3AnyOut2Processor(
+        name: String,
+        initialValue1: A,
+        initialValue2: B,
+        initialValue3: C,
+        channelCapacity: Int = Channel.BUFFERED,
+        position: Node.Position = Node.Position.ORIGIN,
+        description: String? = null,
+        noinline process: io.codenode.fbpdsl.runtime.In3AnyOut2ProcessBlock<A, B, C, U, V>
+    ): io.codenode.fbpdsl.runtime.In3AnyOut2Runtime<A, B, C, U, V> {
+        val nodeId = NodeIdGenerator.generateId("codenode")
+
+        val codeNode = CodeNode(
+            id = nodeId,
+            name = name,
+            codeNodeType = CodeNodeType.TRANSFORMER,
+            description = description,
+            position = position,
+            inputPorts = listOf(
+                PortFactory.input<A>("input1", nodeId, required = true),
+                PortFactory.input<B>("input2", nodeId, required = true),
+                PortFactory.input<C>("input3", nodeId, required = true)
+            ),
+            outputPorts = listOf(
+                PortFactory.output<U>("output1", nodeId),
+                PortFactory.output<V>("output2", nodeId)
+            )
+        )
+
+        return io.codenode.fbpdsl.runtime.In3AnyOut2Runtime(codeNode, channelCapacity, initialValue1, initialValue2, initialValue3, process)
+    }
+
+    /**
+     * Creates a continuous any-input processor with 3 inputs and 3 outputs.
+     *
+     * Uses `select` expression to fire the process block as soon as ANY input
+     * channel delivers data. Returns ProcessResult3 for selective output.
+     *
+     * @param A Type of first input
+     * @param B Type of second input
+     * @param C Type of third input
+     * @param U Type of first output
+     * @param V Type of second output
+     * @param W Type of third output
+     * @param name Human-readable name
+     * @param initialValue1 Initial/default value for input 1
+     * @param initialValue2 Initial/default value for input 2
+     * @param initialValue3 Initial/default value for input 3
+     * @param channelCapacity Buffer capacity for output channels (default: BUFFERED = 64)
+     * @param position Canvas position
+     * @param description Optional documentation
+     * @param process Processing function that produces ProcessResult3
+     * @return In3AnyOut3Runtime configured for any-input processing
+     */
+    inline fun <reified A : Any, reified B : Any, reified C : Any, reified U : Any, reified V : Any, reified W : Any> createIn3AnyOut3Processor(
+        name: String,
+        initialValue1: A,
+        initialValue2: B,
+        initialValue3: C,
+        channelCapacity: Int = Channel.BUFFERED,
+        position: Node.Position = Node.Position.ORIGIN,
+        description: String? = null,
+        noinline process: io.codenode.fbpdsl.runtime.In3AnyOut3ProcessBlock<A, B, C, U, V, W>
+    ): io.codenode.fbpdsl.runtime.In3AnyOut3Runtime<A, B, C, U, V, W> {
+        val nodeId = NodeIdGenerator.generateId("codenode")
+
+        val codeNode = CodeNode(
+            id = nodeId,
+            name = name,
+            codeNodeType = CodeNodeType.TRANSFORMER,
+            description = description,
+            position = position,
+            inputPorts = listOf(
+                PortFactory.input<A>("input1", nodeId, required = true),
+                PortFactory.input<B>("input2", nodeId, required = true),
+                PortFactory.input<C>("input3", nodeId, required = true)
+            ),
+            outputPorts = listOf(
+                PortFactory.output<U>("output1", nodeId),
+                PortFactory.output<V>("output2", nodeId),
+                PortFactory.output<W>("output3", nodeId)
+            )
+        )
+
+        return io.codenode.fbpdsl.runtime.In3AnyOut3Runtime(codeNode, channelCapacity, initialValue1, initialValue2, initialValue3, process)
+    }
+
+    // ========== Any-Input Sink Factory Methods ==========
+
+    /**
+     * Creates a continuous any-input sink with 2 inputs.
+     *
+     * Uses `select` expression to fire the consume block as soon as ANY input
+     * channel delivers data. Cached last values are provided for non-triggered inputs.
+     *
+     * @param A Type of first input
+     * @param B Type of second input
+     * @param name Human-readable name
+     * @param initialValue1 Initial/default value for input 1
+     * @param initialValue2 Initial/default value for input 2
+     * @param position Canvas position
+     * @param description Optional documentation
+     * @param consume Sink function that processes both inputs
+     * @return In2AnySinkRuntime configured for any-input consumption
+     */
+    inline fun <reified A : Any, reified B : Any> createIn2AnySink(
+        name: String,
+        initialValue1: A,
+        initialValue2: B,
+        position: Node.Position = Node.Position.ORIGIN,
+        description: String? = null,
+        noinline consume: io.codenode.fbpdsl.runtime.In2AnySinkBlock<A, B>
+    ): io.codenode.fbpdsl.runtime.In2AnySinkRuntime<A, B> {
+        val nodeId = NodeIdGenerator.generateId("codenode")
+
+        val codeNode = CodeNode(
+            id = nodeId,
+            name = name,
+            codeNodeType = CodeNodeType.SINK,
+            description = description,
+            position = position,
+            inputPorts = listOf(
+                PortFactory.input<A>("input1", nodeId, required = true),
+                PortFactory.input<B>("input2", nodeId, required = true)
+            ),
+            outputPorts = emptyList()
+        )
+
+        return io.codenode.fbpdsl.runtime.In2AnySinkRuntime(codeNode, initialValue1, initialValue2, consume)
+    }
+
+    /**
+     * Creates a continuous any-input sink with 3 inputs.
+     *
+     * Uses `select` expression to fire the consume block as soon as ANY input
+     * channel delivers data. Cached last values are provided for non-triggered inputs.
+     *
+     * @param A Type of first input
+     * @param B Type of second input
+     * @param C Type of third input
+     * @param name Human-readable name
+     * @param initialValue1 Initial/default value for input 1
+     * @param initialValue2 Initial/default value for input 2
+     * @param initialValue3 Initial/default value for input 3
+     * @param position Canvas position
+     * @param description Optional documentation
+     * @param consume Sink function that processes all three inputs
+     * @return In3AnySinkRuntime configured for any-input consumption
+     */
+    inline fun <reified A : Any, reified B : Any, reified C : Any> createIn3AnySink(
+        name: String,
+        initialValue1: A,
+        initialValue2: B,
+        initialValue3: C,
+        position: Node.Position = Node.Position.ORIGIN,
+        description: String? = null,
+        noinline consume: io.codenode.fbpdsl.runtime.In3AnySinkBlock<A, B, C>
+    ): io.codenode.fbpdsl.runtime.In3AnySinkRuntime<A, B, C> {
+        val nodeId = NodeIdGenerator.generateId("codenode")
+
+        val codeNode = CodeNode(
+            id = nodeId,
+            name = name,
+            codeNodeType = CodeNodeType.SINK,
+            description = description,
+            position = position,
+            inputPorts = listOf(
+                PortFactory.input<A>("input1", nodeId, required = true),
+                PortFactory.input<B>("input2", nodeId, required = true),
+                PortFactory.input<C>("input3", nodeId, required = true)
+            ),
+            outputPorts = emptyList()
+        )
+
+        return io.codenode.fbpdsl.runtime.In3AnySinkRuntime(codeNode, initialValue1, initialValue2, initialValue3, consume)
+    }
+
     // ========== Timed Processor Factory Methods ==========
 
     /**
