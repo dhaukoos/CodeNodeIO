@@ -23,14 +23,14 @@
 
 ### Implementation for User Story 1
 
-- [ ] T001 [US1] Copy `StopWatch/` directory to `StopWatchV2/` at the project root
-- [ ] T002 [US1] Update all package declarations from `io.codenode.stopwatch` to `io.codenode.stopwatchv2` in all source files under `StopWatchV2/src/`
-- [ ] T003 [US1] Rename all `StopWatch`-prefixed class names, object names, and val names to `StopWatchV2` prefix in all source files under `StopWatchV2/src/` (e.g., `StopWatchFlow` → `StopWatchV2Flow`, `stopWatchFlowGraph` → `stopWatchV2FlowGraph`, `StopWatchState` or `StopWatchViewModel` → `StopWatchV2*`)
-- [ ] T004 [US1] Update `StopWatchV2/build.gradle.kts` — change module name references if any, and verify Gradle plugin/dependency declarations are correct for the renamed module
-- [ ] T005 [P] [US1] Update `settings.gradle.kts` (root) — replace `include(":StopWatch")` with `include(":StopWatchV2")` (keep any existing `:StopWatchOriginal` entry)
-- [ ] T006 [P] [US1] Update `KMPMobileApp/build.gradle.kts` — change dependency from `project(":StopWatch")` to `project(":StopWatchV2")`
-- [ ] T007 [US1] Update `KMPMobileApp/src/commonMain/kotlin/io/codenode/mobileapp/App.kt` — change all imports from `io.codenode.stopwatch.*` to `io.codenode.stopwatchv2.*` and update class references (`StopWatchController` → `StopWatchV2Controller`, `StopWatchViewModel` → `StopWatchV2ViewModel`, `StopWatchControllerAdapter` → `StopWatchV2ControllerAdapter`, `stopWatchFlowGraph` → `stopWatchV2FlowGraph`, `StopWatchScreen` → `StopWatchV2Screen`)
-- [ ] T008 [US1] Compile and verify: `./gradlew :StopWatchV2:compileKotlinJvm :KMPMobileApp:compileKotlinJvm`
+- [X] T001 [US1] Copy `StopWatch/` directory to `StopWatchV2/` at the project root
+- [X] T002 [US1] Update all package declarations from `io.codenode.stopwatch` to `io.codenode.stopwatchv2` in all source files under `StopWatchV2/src/`
+- [X] T003 [US1] Rename all `StopWatch`-prefixed class names, object names, and val names to `StopWatchV2` prefix in all source files under `StopWatchV2/src/` (e.g., `StopWatchFlow` → `StopWatchV2Flow`, `stopWatchFlowGraph` → `stopWatchV2FlowGraph`, `StopWatchState` or `StopWatchViewModel` → `StopWatchV2*`)
+- [X] T004 [US1] Update `StopWatchV2/build.gradle.kts` — change module name references if any, and verify Gradle plugin/dependency declarations are correct for the renamed module
+- [X] T005 [P] [US1] Update `settings.gradle.kts` (root) — replace `include(":StopWatch")` with `include(":StopWatchV2")` (keep any existing `:StopWatchOriginal` entry)
+- [X] T006 [P] [US1] Update `KMPMobileApp/build.gradle.kts` — change dependency from `project(":StopWatch")` to `project(":StopWatchV2")`
+- [X] T007 [US1] Update `KMPMobileApp/src/commonMain/kotlin/io/codenode/mobileapp/App.kt` — change all imports from `io.codenode.stopwatch.*` to `io.codenode.stopwatchv2.*` and update class references (`StopWatchController` → `StopWatchV2Controller`, `StopWatchViewModel` → `StopWatchV2ViewModel`, `StopWatchControllerAdapter` → `StopWatchV2ControllerAdapter`, `stopWatchFlowGraph` → `stopWatchV2FlowGraph`, `StopWatchScreen` → `StopWatchV2Screen`)
+- [X] T008 [US1] Compile and verify: `./gradlew :StopWatchV2:compileKotlinJvm :KMPMobileApp:compileKotlinJvm`
 
 **Checkpoint**: StopWatchV2 compiles and KMPMobileApp uses it successfully. Baseline preserved.
 

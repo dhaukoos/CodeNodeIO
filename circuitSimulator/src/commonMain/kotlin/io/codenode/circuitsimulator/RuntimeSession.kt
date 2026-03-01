@@ -1,16 +1,16 @@
 /*
  * RuntimeSession - Orchestrates runtime preview execution
- * Manages StopWatch lifecycle, attenuation propagation, and execution state
+ * Manages StopWatchV2 lifecycle, attenuation propagation, and execution state
  * License: Apache 2.0
  */
 
 package io.codenode.circuitsimulator
 
 import io.codenode.fbpdsl.model.ExecutionState
-import io.codenode.stopwatch.generated.StopWatchController
-import io.codenode.stopwatch.generated.StopWatchControllerAdapter
-import io.codenode.stopwatch.generated.StopWatchViewModel
-import io.codenode.stopwatch.stopWatchFlowGraph
+import io.codenode.stopwatchv2.generated.StopWatchV2Controller
+import io.codenode.stopwatchv2.generated.StopWatchV2ControllerAdapter
+import io.codenode.stopwatchv2.generated.StopWatchV2ViewModel
+import io.codenode.stopwatchv2.stopWatchV2FlowGraph
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -19,18 +19,18 @@ import kotlinx.coroutines.flow.asStateFlow
  * Orchestrates runtime preview execution within the graphEditor.
  *
  * Manages:
- * - StopWatchController creation and lifecycle
- * - StopWatchViewModel for UI binding
+ * - StopWatchV2Controller creation and lifecycle
+ * - StopWatchV2ViewModel for UI binding
  * - Attenuation delay propagation to generator runtimes
  * - Execution state transitions (IDLE, RUNNING, PAUSED)
  */
 class RuntimeSession {
 
-    private val controller = StopWatchController(stopWatchFlowGraph)
-    private val adapter = StopWatchControllerAdapter(controller)
+    private val controller = StopWatchV2Controller(stopWatchV2FlowGraph)
+    private val adapter = StopWatchV2ControllerAdapter(controller)
 
-    /** ViewModel for binding to the StopWatch UI composable */
-    val viewModel = StopWatchViewModel(adapter)
+    /** ViewModel for binding to the StopWatchV2 UI composable */
+    val viewModel = StopWatchV2ViewModel(adapter)
 
     private val _executionState = MutableStateFlow(ExecutionState.IDLE)
     /** Current execution state of the runtime session */

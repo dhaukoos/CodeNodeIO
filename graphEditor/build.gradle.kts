@@ -21,7 +21,7 @@ kotlin {
                 implementation(libs.serialization.json)
                 implementation(project(":fbpDsl"))
                 implementation(project(":circuitSimulator"))
-                implementation(project(":StopWatch"))
+                implementation(project(":StopWatchV2"))
                 // Compose Multiplatform dependencies (using compose DSL)
                 implementation(compose.ui)
                 implementation(compose.foundation)
