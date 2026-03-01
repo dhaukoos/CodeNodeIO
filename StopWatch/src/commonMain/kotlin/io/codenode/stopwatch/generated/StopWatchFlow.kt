@@ -8,9 +8,9 @@ package io.codenode.stopwatch.generated
 
 import io.codenode.stopwatch.processingLogic.timerEmitterTick
 import io.codenode.stopwatch.processingLogic.displayReceiverTick
+import io.codenode.stopwatch.processingLogic.resetTimerEmitterState
 
-import io.codenode.stopwatch.stateProperties.TimerEmitterStateProperties
-import io.codenode.stopwatch.stateProperties.DisplayReceiverStateProperties
+import io.codenode.stopwatch.StopWatchState
 
 import io.codenode.fbpdsl.model.CodeNodeFactory
 import kotlinx.coroutines.CoroutineScope
@@ -28,9 +28,9 @@ import kotlinx.coroutines.flow.StateFlow
  */
 class StopWatchFlow {
 
-    // Observable state delegated from state properties
-    val secondsFlow: StateFlow<Int> = DisplayReceiverStateProperties.secondsFlow
-    val minutesFlow: StateFlow<Int> = DisplayReceiverStateProperties.minutesFlow
+    // Observable state delegated from module state
+    val secondsFlow: StateFlow<Int> = StopWatchState.secondsFlow
+    val minutesFlow: StateFlow<Int> = StopWatchState.minutesFlow
 
     // Runtime instances
     internal val timerEmitter = CodeNodeFactory.createTimedOut2Generator<Int, Int>(
@@ -42,10 +42,11 @@ class StopWatchFlow {
     internal val displayReceiver = CodeNodeFactory.createIn2Sink<Int, Int>(
         name = "DisplayReceiver",
         consume = { seconds, minutes ->
-            DisplayReceiverStateProperties._seconds.value = seconds
-            DisplayReceiverStateProperties._minutes.value = minutes
+            StopWatchState._seconds.value = seconds
+            StopWatchState._minutes.value = minutes
             displayReceiverTick(seconds, minutes)
-        }    )
+        }
+    )
 
     /**
      * Starts the flow with the given coroutine scope.
@@ -68,8 +69,8 @@ class StopWatchFlow {
      * Resets all observable state.
      */
     fun reset() {
-        TimerEmitterStateProperties.reset()
-        DisplayReceiverStateProperties.reset()
+        resetTimerEmitterState()
+        StopWatchState.reset()
     }
 
     /**
@@ -80,4 +81,3 @@ class StopWatchFlow {
         displayReceiver.inputChannel2 = timerEmitter.outputChannel2
     }
 }
-

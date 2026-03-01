@@ -1,7 +1,6 @@
 package io.codenode.stopwatch.processingLogic
 
 import io.codenode.fbpdsl.runtime.In2SinkTickBlock
-import io.codenode.stopwatch.stateProperties.DisplayReceiverStateProperties
 
 /**
  * Tick function for the DisplayReceiver node.
@@ -12,8 +11,11 @@ import io.codenode.stopwatch.stateProperties.DisplayReceiverStateProperties
  *   - seconds: Int
  *   - minutes: Int
  *
+ * Note: State updates (StopWatchState._seconds, StopWatchState._minutes) are
+ * handled by the Flow's consume block. This tick is a passthrough for any
+ * additional display-side processing logic.
  */
 val displayReceiverTick: In2SinkTickBlock<Int, Int> = { seconds, minutes ->
-    DisplayReceiverStateProperties._seconds.value = seconds
-    DisplayReceiverStateProperties._minutes.value = minutes
+    // No-op: observable state updates are handled by the Flow's consume block
+    // via StopWatchState._seconds.value and StopWatchState._minutes.value
 }

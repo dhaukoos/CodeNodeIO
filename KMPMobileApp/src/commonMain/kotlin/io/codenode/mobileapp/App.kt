@@ -17,11 +17,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import io.codenode.stopwatchv2.generated.StopWatchV2ControllerAdapter
-import io.codenode.stopwatchv2.generated.StopWatchV2ViewModel
-import io.codenode.stopwatchv2.generated.StopWatchV2Controller
-import io.codenode.stopwatchv2.stopWatchV2FlowGraph
-import io.codenode.stopwatchv2.userInterface.StopWatchV2Screen
+import io.codenode.stopwatch.generated.StopWatchControllerAdapter
+import io.codenode.stopwatch.StopWatchViewModel
+import io.codenode.stopwatch.generated.StopWatchController
+import io.codenode.stopwatch.stopWatchFlowGraph
+import io.codenode.stopwatch.userInterface.StopWatchScreen
 
 /**
  * Main application composable.
@@ -45,11 +45,11 @@ fun App() {
  */
 @Composable
 fun MainContent() {
-    // Create Controller from StopWatchV2 module's flow graph
-    val controller = remember { StopWatchV2Controller(stopWatchV2FlowGraph) }
+    // Create Controller from StopWatch module's flow graph
+    val controller = remember { StopWatchController(stopWatchFlowGraph) }
 
     // Create ViewModel wrapping the controller via adapter
-    val viewModel = remember { StopWatchV2ViewModel(StopWatchV2ControllerAdapter(controller)) }
+    val viewModel = remember { StopWatchViewModel(StopWatchControllerAdapter(controller)) }
 
     Column(
         modifier = Modifier
@@ -67,7 +67,7 @@ fun MainContent() {
             style = MaterialTheme.typography.bodyLarge,
             modifier = Modifier.padding(top = 8.dp)
         )
-        StopWatchV2Screen(
+        StopWatchScreen(
             viewModel = viewModel,
             modifier = Modifier.padding(top = 32.dp),
             minSize = 400.dp
