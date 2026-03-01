@@ -1,7 +1,6 @@
 package io.codenode.repositorypattern.processingLogic
 
 import io.codenode.fbpdsl.runtime.In3Out1TickBlock
-import io.codenode.repositorypattern.stateProperties.FilterSortStateProperties
 
 /**
  * Tick function for the FilterSort node.

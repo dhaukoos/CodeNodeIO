@@ -1,7 +1,6 @@
 package io.codenode.repositorypattern.processingLogic
 
 import io.codenode.fbpdsl.runtime.SinkTickBlock
-import io.codenode.repositorypattern.stateProperties.RepoDisplayStateProperties
 
 /**
  * Tick function for the RepoDisplay node.

@@ -1,7 +1,6 @@
 package io.codenode.repositorypattern.processingLogic
 
 import io.codenode.fbpdsl.runtime.In3Out1TickBlock
-import io.codenode.repositorypattern.stateProperties.GenericRepositoryStateProperties
 
 /**
  * Tick function for the GenericRepository node.

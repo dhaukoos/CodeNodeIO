@@ -2,7 +2,6 @@ package io.codenode.repositorypattern.processingLogic
 
 import io.codenode.fbpdsl.runtime.Out3TickBlock
 import io.codenode.fbpdsl.runtime.ProcessResult3
-import io.codenode.repositorypattern.stateProperties.RepoInputsStateProperties
 
 /**
  * Tick function for the RepoInputs node.
