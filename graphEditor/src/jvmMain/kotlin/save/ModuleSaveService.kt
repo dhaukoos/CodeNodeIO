@@ -15,6 +15,9 @@ import io.codenode.kotlincompiler.generator.RuntimeControllerGenerator
 import io.codenode.kotlincompiler.generator.RuntimeControllerInterfaceGenerator
 import io.codenode.kotlincompiler.generator.RuntimeControllerAdapterGenerator
 import io.codenode.kotlincompiler.generator.RuntimeViewModelGenerator
+import io.codenode.kotlincompiler.generator.RepositoryCodeGenerator
+import io.codenode.kotlincompiler.generator.EntityProperty
+import io.codenode.kotlincompiler.generator.EntityInfo
 import java.io.File
 
 /**
@@ -56,6 +59,7 @@ class ModuleSaveService {
         const val DEFAULT_PACKAGE_PREFIX = "io.codenode"
         const val GENERATED_SUBPACKAGE = "generated"
         const val PROCESSING_LOGIC_SUBPACKAGE = "processingLogic"
+        const val PERSISTENCE_SUBPACKAGE = "persistence"
     }
 
     private val moduleGenerator = ModuleGenerator()
@@ -66,6 +70,7 @@ class ModuleSaveService {
     private val runtimeControllerInterfaceGenerator = RuntimeControllerInterfaceGenerator()
     private val runtimeControllerAdapterGenerator = RuntimeControllerAdapterGenerator()
     private val runtimeViewModelGenerator = RuntimeViewModelGenerator()
+    private val repositoryCodeGenerator = RepositoryCodeGenerator()
 
     /**
      * Saves a FlowGraph as a complete KMP module.
@@ -92,7 +97,8 @@ class ModuleSaveService {
         outputDir: File,
         packageName: String? = null,
         moduleName: String? = null,
-        regenerateStubs: Boolean = false
+        regenerateStubs: Boolean = false,
+        ipTypeProperties: Map<String, List<EntityProperty>> = emptyMap()
     ): ModuleSaveResult {
         return try {
             val effectiveModuleName = moduleName ?: deriveModuleName(flowGraph.name)
@@ -158,6 +164,12 @@ class ModuleSaveService {
             generateProcessingLogicStubs(
                 flowGraph, moduleDir, processingLogicPackage,
                 filesCreated, filesOverwritten, regenerateStubs
+            )
+
+            // Generate persistence layer for repository nodes
+            generatePersistenceFiles(
+                flowGraph, moduleDir, basePackage, ipTypeProperties,
+                filesCreated, filesOverwritten
             )
 
             // Delete orphaned stubs
@@ -432,6 +444,136 @@ class ModuleSaveService {
             val file = File(generatedDir, fileName)
             val relativePath = "src/commonMain/kotlin/$generatedPath/$fileName"
             writeFileAlways(file, content, relativePath, filesCreated, filesOverwritten)
+        }
+    }
+
+    /**
+     * Generates persistence layer files for repository nodes in the FlowGraph.
+     * Detects repository nodes via `_repository` configuration, generates Entity, DAO,
+     * Repository, BaseDao, AppDatabase, DatabaseModule, and platform-specific builders.
+     */
+    private fun generatePersistenceFiles(
+        flowGraph: FlowGraph,
+        moduleDir: File,
+        basePackage: String,
+        ipTypeProperties: Map<String, List<EntityProperty>>,
+        filesCreated: MutableList<String>,
+        filesOverwritten: MutableList<String>
+    ) {
+        val repositoryNodes = flowGraph.getAllCodeNodes()
+            .filter { it.configuration["_repository"] == "true" }
+
+        if (repositoryNodes.isEmpty()) return
+
+        val persistencePackage = "$basePackage.$PERSISTENCE_SUBPACKAGE"
+        val persistencePath = persistencePackage.replace(".", "/")
+
+        // Ensure persistence directories exist
+        File(moduleDir, "src/commonMain/kotlin/$persistencePath").mkdirs()
+        File(moduleDir, "src/jvmMain/kotlin/$persistencePath").mkdirs()
+        if (flowGraph.targetsPlatform(FlowGraph.TargetPlatform.KMP_ANDROID)) {
+            File(moduleDir, "src/androidMain/kotlin/$persistencePath").mkdirs()
+        }
+        if (flowGraph.targetsPlatform(FlowGraph.TargetPlatform.KMP_IOS)) {
+            File(moduleDir, "src/iosMain/kotlin/$persistencePath").mkdirs()
+        }
+
+        // Generate BaseDao.kt
+        writeFileAlways(
+            File(moduleDir, "src/commonMain/kotlin/$persistencePath/BaseDao.kt"),
+            repositoryCodeGenerator.generateBaseDao(persistencePackage),
+            "src/commonMain/kotlin/$persistencePath/BaseDao.kt",
+            filesCreated, filesOverwritten
+        )
+
+        // Generate per-entity files and collect EntityInfo for database
+        val entityInfos = mutableListOf<EntityInfo>()
+
+        for (node in repositoryNodes) {
+            val sourceIPTypeName = node.configuration["_sourceIPTypeName"] ?: continue
+            val sourceIPTypeId = node.configuration["_sourceIPTypeId"] ?: continue
+
+            val tableName = sourceIPTypeName.lowercase() + "s"
+            val entityInfo = EntityInfo(
+                entityName = sourceIPTypeName,
+                tableName = tableName,
+                daoName = "${sourceIPTypeName}Dao"
+            )
+            entityInfos.add(entityInfo)
+
+            // Get properties from IP type registry data
+            val properties = ipTypeProperties[sourceIPTypeId] ?: emptyList()
+
+            // Entity
+            writeFileAlways(
+                File(moduleDir, "src/commonMain/kotlin/$persistencePath/${sourceIPTypeName}Entity.kt"),
+                repositoryCodeGenerator.generateEntity(sourceIPTypeName, properties, persistencePackage),
+                "src/commonMain/kotlin/$persistencePath/${sourceIPTypeName}Entity.kt",
+                filesCreated, filesOverwritten
+            )
+
+            // DAO
+            writeFileAlways(
+                File(moduleDir, "src/commonMain/kotlin/$persistencePath/${sourceIPTypeName}Dao.kt"),
+                repositoryCodeGenerator.generateDao(sourceIPTypeName, tableName, persistencePackage),
+                "src/commonMain/kotlin/$persistencePath/${sourceIPTypeName}Dao.kt",
+                filesCreated, filesOverwritten
+            )
+
+            // Repository
+            writeFileAlways(
+                File(moduleDir, "src/commonMain/kotlin/$persistencePath/${sourceIPTypeName}Repository.kt"),
+                repositoryCodeGenerator.generateRepository(sourceIPTypeName, persistencePackage),
+                "src/commonMain/kotlin/$persistencePath/${sourceIPTypeName}Repository.kt",
+                filesCreated, filesOverwritten
+            )
+        }
+
+        // Generate shared AppDatabase.kt
+        writeFileAlways(
+            File(moduleDir, "src/commonMain/kotlin/$persistencePath/AppDatabase.kt"),
+            repositoryCodeGenerator.generateDatabase(entityInfos, persistencePackage),
+            "src/commonMain/kotlin/$persistencePath/AppDatabase.kt",
+            filesCreated, filesOverwritten
+        )
+
+        // Generate DatabaseModule.kt
+        writeFileAlways(
+            File(moduleDir, "src/commonMain/kotlin/$persistencePath/DatabaseModule.kt"),
+            repositoryCodeGenerator.generateDatabaseModule(persistencePackage),
+            "src/commonMain/kotlin/$persistencePath/DatabaseModule.kt",
+            filesCreated, filesOverwritten
+        )
+
+        // Generate platform-specific DatabaseBuilder files
+        val dbFileName = "app.db"
+
+        // JVM (always included)
+        writeFileAlways(
+            File(moduleDir, "src/jvmMain/kotlin/$persistencePath/DatabaseBuilder.jvm.kt"),
+            repositoryCodeGenerator.generateDatabaseBuilder("jvm", persistencePackage, dbFileName),
+            "src/jvmMain/kotlin/$persistencePath/DatabaseBuilder.jvm.kt",
+            filesCreated, filesOverwritten
+        )
+
+        // Android
+        if (flowGraph.targetsPlatform(FlowGraph.TargetPlatform.KMP_ANDROID)) {
+            writeFileAlways(
+                File(moduleDir, "src/androidMain/kotlin/$persistencePath/DatabaseBuilder.android.kt"),
+                repositoryCodeGenerator.generateDatabaseBuilder("android", persistencePackage, dbFileName),
+                "src/androidMain/kotlin/$persistencePath/DatabaseBuilder.android.kt",
+                filesCreated, filesOverwritten
+            )
+        }
+
+        // iOS
+        if (flowGraph.targetsPlatform(FlowGraph.TargetPlatform.KMP_IOS)) {
+            writeFileAlways(
+                File(moduleDir, "src/iosMain/kotlin/$persistencePath/DatabaseBuilder.ios.kt"),
+                repositoryCodeGenerator.generateDatabaseBuilder("ios", persistencePackage, dbFileName),
+                "src/iosMain/kotlin/$persistencePath/DatabaseBuilder.ios.kt",
+                filesCreated, filesOverwritten
+            )
         }
     }
 

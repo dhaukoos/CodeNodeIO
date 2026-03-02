@@ -156,4 +156,148 @@ class RepositoryCodeGenerator {
             appendLine("}")
         }
     }
+
+    /**
+     * Generates the @Database class with all entities registered and DAO accessor methods.
+     *
+     * @param entities List of entity metadata for database registration
+     * @param packageName Package name for the generated file
+     * @return Complete Kotlin source file content for AppDatabase.kt
+     */
+    fun generateDatabase(
+        entities: List<EntityInfo>,
+        packageName: String
+    ): String {
+        val entityList = entities.joinToString(", ") { "${it.entityName}Entity::class" }
+        return buildString {
+            appendLine("package $packageName")
+            appendLine()
+            appendLine("import androidx.room.Database")
+            appendLine("import androidx.room.RoomDatabase")
+            appendLine("import androidx.room.RoomDatabaseConstructor")
+            appendLine("import androidx.room.ConstructedBy")
+            appendLine()
+            appendLine("@Database(entities = [$entityList], version = 1)")
+            appendLine("@ConstructedBy(AppDatabaseConstructor::class)")
+            appendLine("abstract class AppDatabase : RoomDatabase() {")
+            entities.forEach { entity ->
+                val daoMethod = entity.entityName.replaceFirstChar { it.lowercase() } + "Dao"
+                appendLine("    abstract fun $daoMethod(): ${entity.daoName}")
+            }
+            appendLine("}")
+            appendLine()
+            appendLine("expect object AppDatabaseConstructor : RoomDatabaseConstructor<AppDatabase>")
+        }
+    }
+
+    /**
+     * Generates the singleton DatabaseModule object with lazy database initialization.
+     *
+     * @param packageName Package name for the generated file
+     * @return Complete Kotlin source file content for DatabaseModule.kt
+     */
+    fun generateDatabaseModule(packageName: String): String {
+        return buildString {
+            appendLine("package $packageName")
+            appendLine()
+            appendLine("import androidx.room.RoomDatabase")
+            appendLine("import androidx.sqlite.driver.bundled.BundledSQLiteDriver")
+            appendLine()
+            appendLine("object DatabaseModule {")
+            appendLine("    private var instance: AppDatabase? = null")
+            appendLine()
+            appendLine("    fun getDatabase(): AppDatabase = instance ?: synchronized(this) {")
+            appendLine("        instance ?: getRoomDatabase(getDatabaseBuilder()).also { instance = it }")
+            appendLine("    }")
+            appendLine("}")
+            appendLine()
+            appendLine("fun getRoomDatabase(builder: RoomDatabase.Builder<AppDatabase>): AppDatabase {")
+            appendLine("    return builder")
+            appendLine("        .setDriver(BundledSQLiteDriver())")
+            appendLine("        .build()")
+            appendLine("}")
+            appendLine()
+            appendLine("expect fun getDatabaseBuilder(): RoomDatabase.Builder<AppDatabase>")
+        }
+    }
+
+    /**
+     * Generates platform-specific getDatabaseBuilder() implementations.
+     *
+     * @param platform Target platform: "jvm", "android", or "ios"
+     * @param packageName Package name for the generated file
+     * @param dbFileName Database file name (e.g., "app.db")
+     * @return Complete Kotlin source file content for the platform-specific builder
+     */
+    fun generateDatabaseBuilder(
+        platform: String,
+        packageName: String,
+        dbFileName: String
+    ): String {
+        return when (platform) {
+            "jvm" -> generateJvmDatabaseBuilder(packageName, dbFileName)
+            "android" -> generateAndroidDatabaseBuilder(packageName, dbFileName)
+            "ios" -> generateIosDatabaseBuilder(packageName, dbFileName)
+            else -> throw IllegalArgumentException("Unsupported platform: $platform")
+        }
+    }
+
+    private fun generateJvmDatabaseBuilder(packageName: String, dbFileName: String): String {
+        return buildString {
+            appendLine("package $packageName")
+            appendLine()
+            appendLine("import androidx.room.Room")
+            appendLine("import androidx.room.RoomDatabase")
+            appendLine("import java.io.File")
+            appendLine()
+            appendLine("actual fun getDatabaseBuilder(): RoomDatabase.Builder<AppDatabase> {")
+            appendLine("    val dbDir = File(System.getProperty(\"user.home\"), \".codenode/data\")")
+            appendLine("    dbDir.mkdirs()")
+            appendLine("    val dbFile = File(dbDir, \"$dbFileName\")")
+            appendLine("    return Room.databaseBuilder<AppDatabase>(name = dbFile.absolutePath)")
+            appendLine("}")
+        }
+    }
+
+    private fun generateAndroidDatabaseBuilder(packageName: String, dbFileName: String): String {
+        return buildString {
+            appendLine("package $packageName")
+            appendLine()
+            appendLine("import android.content.Context")
+            appendLine("import androidx.room.Room")
+            appendLine("import androidx.room.RoomDatabase")
+            appendLine()
+            appendLine("fun getDatabaseBuilder(context: Context): RoomDatabase.Builder<AppDatabase> {")
+            appendLine("    val dbFile = context.getDatabasePath(\"$dbFileName\")")
+            appendLine("    return Room.databaseBuilder<AppDatabase>(")
+            appendLine("        context = context.applicationContext,")
+            appendLine("        name = dbFile.absolutePath")
+            appendLine("    )")
+            appendLine("}")
+        }
+    }
+
+    private fun generateIosDatabaseBuilder(packageName: String, dbFileName: String): String {
+        return buildString {
+            appendLine("package $packageName")
+            appendLine()
+            appendLine("import androidx.room.Room")
+            appendLine("import androidx.room.RoomDatabase")
+            appendLine("import platform.Foundation.NSDocumentDirectory")
+            appendLine("import platform.Foundation.NSFileManager")
+            appendLine("import platform.Foundation.NSUserDomainMask")
+            appendLine()
+            appendLine("actual fun getDatabaseBuilder(): RoomDatabase.Builder<AppDatabase> {")
+            appendLine("    val documentDirectory = NSFileManager.defaultManager.URLForDirectory(")
+            appendLine("        directory = NSDocumentDirectory,")
+            appendLine("        inDomain = NSUserDomainMask,")
+            appendLine("        appropriateForURL = null,")
+            appendLine("        create = false,")
+            appendLine("        error = null")
+            appendLine("    )!!.path!!")
+            appendLine("    val dbFilePath = documentDirectory + \"/$dbFileName\"")
+            appendLine("    return Room.databaseBuilder<AppDatabase>(name = dbFilePath)")
+            appendLine("}")
+        }
+    }
 }

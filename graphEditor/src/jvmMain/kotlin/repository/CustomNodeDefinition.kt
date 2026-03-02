@@ -95,6 +95,9 @@ data class CustomNodeDefinition(
                 inputNames = listOf("save", "update", "remove"),
                 outputNames = listOf("result", "error")
             )
+                .addConfigurationDefault("_repository", "true")
+                .addConfigurationDefault("_sourceIPTypeId", sourceIPTypeId!!)
+                .addConfigurationDefault("_sourceIPTypeName", sourceIPTypeName)
         }
         return createGenericNodeType(
             numInputs = inputCount,

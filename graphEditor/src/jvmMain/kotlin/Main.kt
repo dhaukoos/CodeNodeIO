@@ -1133,10 +1133,34 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
 
                 if (outputDir != null) {
                     val shouldRegenerate = regenerateStubsOnSave
+                    // Build IP type properties map for repository code generation
+                    val ipTypePropertiesMap = buildMap {
+                        for (customNode in customNodes) {
+                            if (customNode.isRepository && customNode.sourceIPTypeId != null) {
+                                val props = ipTypeRegistry.getCustomTypeProperties(customNode.sourceIPTypeId)
+                                if (props != null) {
+                                    put(customNode.sourceIPTypeId, props.map { prop ->
+                                        io.codenode.kotlincompiler.generator.EntityProperty(
+                                            name = prop.name,
+                                            kotlinType = when (prop.typeId) {
+                                                "ip_int" -> "Int"
+                                                "ip_double" -> "Double"
+                                                "ip_boolean" -> "Boolean"
+                                                "ip_string" -> "String"
+                                                else -> "String" // ip_any and custom types → String
+                                            },
+                                            isRequired = prop.isRequired
+                                        )
+                                    })
+                                }
+                            }
+                        }
+                    }
                     val result = moduleSaveService.saveModule(
                         flowGraph = graphState.flowGraph,
                         outputDir = outputDir,
-                        regenerateStubs = shouldRegenerate
+                        regenerateStubs = shouldRegenerate,
+                        ipTypeProperties = ipTypePropertiesMap
                     )
                     if (result.success) {
                         saveLocationRegistry[flowGraphName] = outputDir

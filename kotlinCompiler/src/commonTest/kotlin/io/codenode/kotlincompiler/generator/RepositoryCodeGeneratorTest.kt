@@ -231,4 +231,121 @@ class RepositoryCodeGeneratorTest {
         assertTrue(result.contains("suspend fun save(item: OrderEntity)"))
         assertTrue(result.contains("fun observeAll(): Flow<List<OrderEntity>>"))
     }
+
+    // ========== generateDatabase Tests ==========
+
+    @Test
+    fun `generateDatabase contains Database annotation with entity list`() {
+        val entities = listOf(
+            EntityInfo("User", "users", "UserDao"),
+            EntityInfo("Order", "orders", "OrderDao")
+        )
+        val result = generator.generateDatabase(entities, testPackage)
+        assertTrue(result.contains("@Database(entities = [UserEntity::class, OrderEntity::class], version = 1)"))
+    }
+
+    @Test
+    fun `generateDatabase contains ConstructedBy annotation`() {
+        val entities = listOf(EntityInfo("User", "users", "UserDao"))
+        val result = generator.generateDatabase(entities, testPackage)
+        assertTrue(result.contains("@ConstructedBy(AppDatabaseConstructor::class)"))
+    }
+
+    @Test
+    fun `generateDatabase contains abstract DAO methods`() {
+        val entities = listOf(
+            EntityInfo("User", "users", "UserDao"),
+            EntityInfo("Order", "orders", "OrderDao")
+        )
+        val result = generator.generateDatabase(entities, testPackage)
+        assertTrue(result.contains("abstract fun userDao(): UserDao"))
+        assertTrue(result.contains("abstract fun orderDao(): OrderDao"))
+    }
+
+    @Test
+    fun `generateDatabase contains expect object constructor`() {
+        val entities = listOf(EntityInfo("User", "users", "UserDao"))
+        val result = generator.generateDatabase(entities, testPackage)
+        assertTrue(result.contains("expect object AppDatabaseConstructor : RoomDatabaseConstructor<AppDatabase>"))
+    }
+
+    @Test
+    fun `generateDatabase extends RoomDatabase`() {
+        val entities = listOf(EntityInfo("User", "users", "UserDao"))
+        val result = generator.generateDatabase(entities, testPackage)
+        assertTrue(result.contains("abstract class AppDatabase : RoomDatabase()"))
+    }
+
+    @Test
+    fun `generateDatabase contains required imports`() {
+        val entities = listOf(EntityInfo("User", "users", "UserDao"))
+        val result = generator.generateDatabase(entities, testPackage)
+        assertTrue(result.contains("import androidx.room.Database"))
+        assertTrue(result.contains("import androidx.room.RoomDatabase"))
+        assertTrue(result.contains("import androidx.room.ConstructedBy"))
+    }
+
+    // ========== generateDatabaseModule Tests ==========
+
+    @Test
+    fun `generateDatabaseModule contains singleton object`() {
+        val result = generator.generateDatabaseModule(testPackage)
+        assertTrue(result.contains("object DatabaseModule"))
+    }
+
+    @Test
+    fun `generateDatabaseModule contains lazy initialization`() {
+        val result = generator.generateDatabaseModule(testPackage)
+        assertTrue(result.contains("private var instance: AppDatabase? = null"))
+        assertTrue(result.contains("fun getDatabase(): AppDatabase"))
+        assertTrue(result.contains("synchronized(this)"))
+    }
+
+    @Test
+    fun `generateDatabaseModule contains getRoomDatabase helper`() {
+        val result = generator.generateDatabaseModule(testPackage)
+        assertTrue(result.contains("fun getRoomDatabase(builder: RoomDatabase.Builder<AppDatabase>): AppDatabase"))
+        assertTrue(result.contains("setDriver(BundledSQLiteDriver())"))
+    }
+
+    @Test
+    fun `generateDatabaseModule contains expect getDatabaseBuilder`() {
+        val result = generator.generateDatabaseModule(testPackage)
+        assertTrue(result.contains("expect fun getDatabaseBuilder(): RoomDatabase.Builder<AppDatabase>"))
+    }
+
+    // ========== generateDatabaseBuilder Tests ==========
+
+    @Test
+    fun `generateDatabaseBuilder jvm uses File-based path`() {
+        val result = generator.generateDatabaseBuilder("jvm", testPackage, "app.db")
+        assertTrue(result.contains("actual fun getDatabaseBuilder()"))
+        assertTrue(result.contains("System.getProperty(\"user.home\")"))
+        assertTrue(result.contains(".codenode/data"))
+        assertTrue(result.contains("app.db"))
+        assertTrue(result.contains("Room.databaseBuilder<AppDatabase>"))
+    }
+
+    @Test
+    fun `generateDatabaseBuilder android uses context`() {
+        val result = generator.generateDatabaseBuilder("android", testPackage, "app.db")
+        assertTrue(result.contains("fun getDatabaseBuilder(context: Context)"))
+        assertTrue(result.contains("context.getDatabasePath"))
+        assertTrue(result.contains("app.db"))
+    }
+
+    @Test
+    fun `generateDatabaseBuilder ios uses NSDocumentDirectory`() {
+        val result = generator.generateDatabaseBuilder("ios", testPackage, "app.db")
+        assertTrue(result.contains("actual fun getDatabaseBuilder()"))
+        assertTrue(result.contains("NSDocumentDirectory"))
+        assertTrue(result.contains("app.db"))
+    }
+
+    @Test
+    fun `generateDatabaseBuilder throws for unsupported platform`() {
+        assertFailsWith<IllegalArgumentException> {
+            generator.generateDatabaseBuilder("web", testPackage, "app.db")
+        }
+    }
 }
