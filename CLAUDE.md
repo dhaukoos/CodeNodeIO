@@ -45,6 +45,8 @@ Auto-generated from all feature plans. Last updated: 2026-01-13
 - Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + Compose Desktop 1.7.3 + Compose Material (OutlinedTextField, Text, Surface, Column, Row), kotlinx-coroutines 1.8.0 (033-graphnode-properties)
 - Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + Compose Desktop 1.7.3, kotlinx-coroutines 1.8.0 (`select` expression), kotlinx-serialization 1.6.0, lifecycle-viewmodel-compose 2.8.0 (035-any-input-trigger)
 - JSON file via kotlinx-serialization (CustomNodeRepository persistence) (035-any-input-trigger)
+- Kotlin 2.1.21 (Kotlin Multiplatform) + Compose Desktop 1.7.3, kotlinx-coroutines 1.8.0, kotlinx-serialization 1.6.0, Room 2.8.4, KSP 2.1.21-2.0.1, SQLite Bundled 2.6.2 (036-entity-repository-nodes)
+- Room (KMP) with BundledSQLiteDriver — persisted to `~/.codenode/data/app.db` (JVM) (036-entity-repository-nodes)
 
 - Kotlin 1.9+, Go 1.21+ (001-ide-plugin-platform)
 
@@ -64,9 +66,9 @@ tests/
 Kotlin 1.9+, Go 1.21+: Follow standard conventions
 
 ## Recent Changes
+- 036-entity-repository-nodes: Added Kotlin 2.1.21 (Kotlin Multiplatform) + Compose Desktop 1.7.3, kotlinx-coroutines 1.8.0, kotlinx-serialization 1.6.0, Room 2.8.4, KSP 2.1.21-2.0.1, SQLite Bundled 2.6.2
 - 035-any-input-trigger: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + Compose Desktop 1.7.3, kotlinx-coroutines 1.8.0 (`select` expression), kotlinx-serialization 1.6.0, lifecycle-viewmodel-compose 2.8.0
 - 034-refine-viewmodel-binding: Added Kotlin 2.1.21 (Kotlin Multiplatform) + Compose Multiplatform 1.7.3, kotlinx-coroutines 1.8.0, kotlinx-serialization 1.6.0, lifecycle-viewmodel-compose 2.8.0
-- 033-graphnode-properties: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + Compose Desktop 1.7.3 + Compose Material (OutlinedTextField, Text, Surface, Column, Row), kotlinx-coroutines 1.8.0
 
 
 <!-- MANUAL ADDITIONS START -->
