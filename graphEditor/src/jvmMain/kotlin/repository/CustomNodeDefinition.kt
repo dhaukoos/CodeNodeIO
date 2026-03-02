@@ -29,7 +29,10 @@ data class CustomNodeDefinition(
     val outputCount: Int,
     val genericType: String,
     val createdAt: Long,
-    val anyInput: Boolean = false
+    val anyInput: Boolean = false,
+    val isRepository: Boolean = false,
+    val sourceIPTypeId: String? = null,
+    val sourceIPTypeName: String? = null
 ) {
     companion object {
         /**
@@ -53,6 +56,27 @@ data class CustomNodeDefinition(
                 createdAt = System.currentTimeMillis()
             )
         }
+
+        /**
+         * Factory method to create a repository node definition from a custom IP type.
+         *
+         * @param ipTypeName Name of the source IP type (e.g., "User")
+         * @param sourceIPTypeId ID of the source custom IP type
+         * @return CustomNodeDefinition configured as a repository node with 3 inputs and 2 outputs
+         */
+        fun createRepository(ipTypeName: String, sourceIPTypeId: String): CustomNodeDefinition {
+            return CustomNodeDefinition(
+                id = "custom_node_${UUID.randomUUID()}",
+                name = "${ipTypeName}Repository",
+                inputCount = 3,
+                outputCount = 2,
+                genericType = "in3out2",
+                createdAt = System.currentTimeMillis(),
+                isRepository = true,
+                sourceIPTypeId = sourceIPTypeId,
+                sourceIPTypeName = ipTypeName
+            )
+        }
     }
 
     /**
@@ -62,6 +86,16 @@ data class CustomNodeDefinition(
      * @return NodeTypeDefinition for use in the graph editor
      */
     fun toNodeTypeDefinition(): NodeTypeDefinition {
+        if (isRepository && sourceIPTypeName != null) {
+            return createGenericNodeType(
+                numInputs = inputCount,
+                numOutputs = outputCount,
+                customName = name,
+                customDescription = "${sourceIPTypeName} repository with save/update/remove operations",
+                inputNames = listOf("save", "update", "remove"),
+                outputNames = listOf("result", "error")
+            )
+        }
         return createGenericNodeType(
             numInputs = inputCount,
             numOutputs = outputCount,

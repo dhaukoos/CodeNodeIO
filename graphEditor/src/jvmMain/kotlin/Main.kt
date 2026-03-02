@@ -51,6 +51,7 @@ import io.codenode.grapheditor.ui.CompactPropertiesPanelWithViewModel
 import io.codenode.grapheditor.ui.RuntimePreviewPanel
 import io.codenode.circuitsimulator.RuntimeSession
 import io.codenode.grapheditor.ui.PropertiesPanelState
+import io.codenode.grapheditor.repository.CustomNodeDefinition
 import io.codenode.grapheditor.repository.FileCustomNodeRepository
 import io.codenode.grapheditor.repository.FileIPTypeRepository
 import io.codenode.grapheditor.viewmodel.IPGeneratorViewModel
@@ -1001,7 +1002,24 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                                 graphState.updatePortType(nodeId, portId, typeName, ipTypeRegistry)
                                 statusMessage = "Changed port type to: $typeName"
                             }
-                        }
+                        },
+                        onCreateRepositoryNode = selectedIPType?.let { ipType ->
+                            val props = ipTypeRegistry.getCustomTypeProperties(ipType.id)
+                            if (props != null && props.isNotEmpty()) {
+                                {
+                                    val repoDef = CustomNodeDefinition.createRepository(
+                                        ipTypeName = ipType.typeName,
+                                        sourceIPTypeId = ipType.id
+                                    )
+                                    customNodeRepository.add(repoDef)
+                                    customNodes = customNodeRepository.getAll()
+                                    statusMessage = "Created ${repoDef.name} node"
+                                }
+                            } else null
+                        },
+                        repositoryExists = selectedIPType?.let { ipType ->
+                            customNodes.any { it.isRepository && it.sourceIPTypeId == ipType.id }
+                        } ?: false
                     )
 
                     // Runtime Preview Panel (right side, after properties)

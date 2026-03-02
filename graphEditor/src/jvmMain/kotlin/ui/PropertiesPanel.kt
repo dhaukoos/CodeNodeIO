@@ -1168,6 +1168,8 @@ private fun ConnectionInfoRow(
 fun IPTypePropertiesPanel(
     ipType: InformationPacketType,
     ipTypeRegistry: IPTypeRegistry,
+    onCreateRepositoryNode: (() -> Unit)? = null,
+    repositoryExists: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     Surface(
@@ -1264,6 +1266,22 @@ fun IPTypePropertiesPanel(
                                 )
                             }
                         }
+                    }
+                }
+
+                // Create Repository Node button (visible only for custom types with properties)
+                if (onCreateRepositoryNode != null) {
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Button(
+                        onClick = { onCreateRepositoryNode() },
+                        enabled = !repositoryExists,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(
+                            text = if (repositoryExists) "Repository exists" else "Create Repository Node",
+                            fontSize = 12.sp
+                        )
                     }
                 }
             }
@@ -1386,6 +1404,8 @@ fun CompactPropertiesPanelWithViewModel(
     onGraphNodeNameChanged: (String) -> Unit = {},
     onGraphNodePortNameChanged: (String, String) -> Unit = { _, _ -> },
     onGraphNodePortTypeChanged: (String, String) -> Unit = { _, _ -> },
+    onCreateRepositoryNode: (() -> Unit)? = null,
+    repositoryExists: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     val vmState by viewModel.state.collectAsState()
@@ -1404,6 +1424,8 @@ fun CompactPropertiesPanelWithViewModel(
         IPTypePropertiesPanel(
             ipType = selectedIPType,
             ipTypeRegistry = ipTypeRegistry,
+            onCreateRepositoryNode = onCreateRepositoryNode,
+            repositoryExists = repositoryExists,
             modifier = modifier.width(280.dp)
         )
     } else if (selectedConnection != null && flowGraph != null) {
