@@ -9,25 +9,22 @@ val userProfilesFlowGraph = flowGraph("UserProfiles", version = "1.0.0") {
     targetPlatform(FlowGraph.TargetPlatform.KMP_IOS)
 
     val userProfileRepository = codeNode("UserProfileRepository", nodeType = "GENERIC") {
-        description = "UserProfile repository with save/update/remove operations"
         position(445.75, 398.0)
-        input("save", Any::class)
-        input("update", Any::class)
-        input("remove", Any::class)
+        input("save", UserProfile::class)
+        input("update", UserProfile::class)
+        input("remove", UserProfile::class)
         output("result", Any::class)
         output("error", Any::class)
     }
 
     val userProfileCUD = codeNode("UserProfileCUD", nodeType = "GENERIC") {
-        description = "Generic processing node with no inputs and 3 outputs"
         position(118.0, 394.25)
-        output("save", Any::class)
-        output("update", Any::class)
-        output("remove", Any::class)
+        output("save", UserProfile::class)
+        output("update", UserProfile::class)
+        output("remove", UserProfile::class)
     }
 
     val userProfilesDisplay = codeNode("UserProfilesDisplay", nodeType = "GENERIC") {
-        description = "Generic processing node with 2 inputs and no outputs"
         position(799.5, 398.0)
         input("result", Any::class)
         input("error", Any::class)

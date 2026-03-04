@@ -1156,11 +1156,18 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                             }
                         }
                     }
+                    // Build IP type id→name map for .flow.kt port type resolution
+                    val ipTypeNamesMap = buildMap {
+                        for (ipType in ipTypeRegistry.getAllTypes()) {
+                            put(ipType.id, ipType.typeName)
+                        }
+                    }
                     val result = moduleSaveService.saveModule(
                         flowGraph = graphState.flowGraph,
                         outputDir = outputDir,
                         regenerateStubs = shouldRegenerate,
-                        ipTypeProperties = ipTypePropertiesMap
+                        ipTypeProperties = ipTypePropertiesMap,
+                        ipTypeNames = ipTypeNamesMap
                     )
                     if (result.success) {
                         saveLocationRegistry[flowGraphName] = outputDir

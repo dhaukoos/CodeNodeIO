@@ -33,7 +33,22 @@ class FlowKtGenerator {
      * @param usecasesPackage Optional package name for usecases (for separate package structure)
      * @return Generated Kotlin source code
      */
-    fun generateFlowKt(flowGraph: FlowGraph, packageName: String, usecasesPackage: String? = null): String {
+    fun generateFlowKt(
+        flowGraph: FlowGraph,
+        packageName: String,
+        usecasesPackage: String? = null,
+        ipTypeNames: Map<String, String> = emptyMap()
+    ): String {
+        // Build portId → typeName map from connections with IP type assignments
+        val portTypeOverrides = buildMap<String, String> {
+            for (connection in flowGraph.connections) {
+                val typeId = connection.ipTypeId ?: continue
+                val typeName = ipTypeNames[typeId] ?: continue
+                put(connection.sourcePortId, typeName)
+                put(connection.targetPortId, typeName)
+            }
+        }
+
         val builder = StringBuilder()
         val indent = " ".repeat(INDENT_SIZE)
 
@@ -87,8 +102,8 @@ class FlowKtGenerator {
             allNodes[node.id] = node
 
             when (node) {
-                is CodeNode -> generateCodeNode(node, varName, builder, indent)
-                is GraphNode -> generateGraphNode(node, varName, builder, indent, flowGraph.connections, nodeVariables, allNodes)
+                is CodeNode -> generateCodeNode(node, varName, builder, indent, portTypeOverrides)
+                is GraphNode -> generateGraphNode(node, varName, builder, indent, flowGraph.connections, nodeVariables, allNodes, portTypeOverrides)
                 else -> builder.appendLine("${indent}// Unknown node type: ${node::class.simpleName}")
             }
             builder.appendLine()
@@ -113,7 +128,8 @@ class FlowKtGenerator {
         node: CodeNode,
         varName: String,
         builder: StringBuilder,
-        indent: String
+        indent: String,
+        portTypeOverrides: Map<String, String> = emptyMap()
     ) {
         builder.append("${indent}val $varName = codeNode(\"${escapeString(node.name)}\"")
         builder.append(", nodeType = \"${node.codeNodeType.name}\"")
@@ -131,7 +147,7 @@ class FlowKtGenerator {
 
         // Add input ports
         node.inputPorts.forEach { port ->
-            builder.append("${innerIndent}input(\"${escapeString(port.name)}\", ${getTypeName(port)}::class")
+            builder.append("${innerIndent}input(\"${escapeString(port.name)}\", ${getTypeName(port, portTypeOverrides)}::class")
             if (port.required) {
                 builder.append(", required = true")
             }
@@ -140,7 +156,7 @@ class FlowKtGenerator {
 
         // Add output ports
         node.outputPorts.forEach { port ->
-            builder.append("${innerIndent}output(\"${escapeString(port.name)}\", ${getTypeName(port)}::class")
+            builder.append("${innerIndent}output(\"${escapeString(port.name)}\", ${getTypeName(port, portTypeOverrides)}::class")
             if (port.required) {
                 builder.append(", required = true")
             }
@@ -165,7 +181,8 @@ class FlowKtGenerator {
         indent: String,
         externalConnections: List<Connection>,
         parentNodeVariables: MutableMap<String, String>,
-        parentAllNodes: MutableMap<String, Node>
+        parentAllNodes: MutableMap<String, Node>,
+        portTypeOverrides: Map<String, String> = emptyMap()
     ) {
         builder.appendLine("${indent}val $varName = graphNode(\"${escapeString(node.name)}\") {")
 
@@ -193,10 +210,10 @@ class FlowKtGenerator {
                 val childVarName = childVariables[childNode.id]!!
 
                 when (childNode) {
-                    is CodeNode -> generateCodeNode(childNode, childVarName, builder, innerIndent)
+                    is CodeNode -> generateCodeNode(childNode, childVarName, builder, innerIndent, portTypeOverrides)
                     is GraphNode -> generateGraphNode(
                         childNode, childVarName, builder, innerIndent,
-                        node.internalConnections, childVariables, mutableMapOf()
+                        node.internalConnections, childVariables, mutableMapOf(), portTypeOverrides
                     )
                     else -> builder.appendLine("${innerIndent}// Unknown child node type")
                 }
@@ -215,12 +232,12 @@ class FlowKtGenerator {
         // Exposed ports
         if (node.inputPorts.isNotEmpty()) {
             node.inputPorts.forEach { port ->
-                builder.appendLine("${innerIndent}exposeInput(\"${escapeString(port.name)}\", ${getTypeName(port)}::class)")
+                builder.appendLine("${innerIndent}exposeInput(\"${escapeString(port.name)}\", ${getTypeName(port, portTypeOverrides)}::class)")
             }
         }
         if (node.outputPorts.isNotEmpty()) {
             node.outputPorts.forEach { port ->
-                builder.appendLine("${innerIndent}exposeOutput(\"${escapeString(port.name)}\", ${getTypeName(port)}::class)")
+                builder.appendLine("${innerIndent}exposeOutput(\"${escapeString(port.name)}\", ${getTypeName(port, portTypeOverrides)}::class)")
             }
         }
 
@@ -288,10 +305,10 @@ class FlowKtGenerator {
     }
 
     /**
-     * Gets the simple type name for a port's data type.
+     * Gets the type name for a port, checking overrides from IP type assignments first.
      */
-    private fun getTypeName(port: Port<*>): String {
-        return port.dataType.simpleName ?: "Any"
+    private fun getTypeName(port: Port<*>, portTypeOverrides: Map<String, String> = emptyMap()): String {
+        return portTypeOverrides[port.id] ?: port.dataType.simpleName ?: "Any"
     }
 
     /**

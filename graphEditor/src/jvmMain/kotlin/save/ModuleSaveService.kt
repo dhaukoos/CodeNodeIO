@@ -98,7 +98,8 @@ class ModuleSaveService {
         packageName: String? = null,
         moduleName: String? = null,
         regenerateStubs: Boolean = false,
-        ipTypeProperties: Map<String, List<EntityProperty>> = emptyMap()
+        ipTypeProperties: Map<String, List<EntityProperty>> = emptyMap(),
+        ipTypeNames: Map<String, String> = emptyMap()
     ): ModuleSaveResult {
         return try {
             val effectiveModuleName = moduleName ?: deriveModuleName(flowGraph.name)
@@ -142,7 +143,7 @@ class ModuleSaveService {
             val flowKtRelativePath = "src/commonMain/kotlin/$basePackagePath/$flowKtFileName"
             writeFileAlways(
                 File(moduleDir, flowKtRelativePath),
-                flowKtGenerator.generateFlowKt(flowGraph, basePackage, processingLogicPackage),
+                flowKtGenerator.generateFlowKt(flowGraph, basePackage, processingLogicPackage, ipTypeNames),
                 flowKtRelativePath,
                 filesCreated,
                 filesOverwritten
