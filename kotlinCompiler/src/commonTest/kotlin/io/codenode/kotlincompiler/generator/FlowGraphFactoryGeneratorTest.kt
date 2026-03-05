@@ -204,14 +204,14 @@ class FlowGraphFactoryGeneratorTest {
     // ========== Factory Method Calls ==========
 
     @Test
-    fun `factory calls createOut2Generator for 0-in-2-out node`() {
+    fun `factory calls createSourceOut2 for 0-in-2-out node`() {
         val flowGraph = createTestFlowGraph("StopWatch")
         val generator = FlowGraphFactoryGenerator()
 
         val result = generator.generateFactory(flowGraph, "io.codenode.generated.stopwatch")
 
-        assertTrue(result.contains("CodeNodeFactory.createOut2Generator<Int, Int>"),
-            "Should call createOut2Generator for 0-in-2-out source node")
+        assertTrue(result.contains("CodeNodeFactory.createSourceOut2<Int, Int>"),
+            "Should call createSourceOut2 for 0-in-2-out source node")
     }
 
     @Test

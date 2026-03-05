@@ -65,8 +65,8 @@ class FlowGraphFactoryGenerator {
 
         return when {
             inputCount == 0 && outputCount == 1 -> "createContinuousSource"
-            inputCount == 0 && outputCount == 2 -> "createOut2Generator"
-            inputCount == 0 && outputCount == 3 -> "createOut3Generator"
+            inputCount == 0 && outputCount == 2 -> "createSourceOut2"
+            inputCount == 0 && outputCount == 3 -> "createSourceOut3"
 
             inputCount == 1 && outputCount == 1 -> {
                 val inType = node.inputPorts[0].dataType.simpleName ?: "Any"

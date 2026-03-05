@@ -1,8 +1,8 @@
 /*
- * TimedGeneratorTest - Tests for timed tick mode in Out2GeneratorRuntime
+ * TimedGeneratorTest - Tests for timed tick mode in SourceOut2Runtime
  * Verifies interval emission, pause/resume, stop/close, zero interval, and selective output
  *
- * Note: Tests use createOut2Generator with test-defined timed loops to ensure delay()
+ * Note: Tests use createSourceOut2 with test-defined timed loops to ensure delay()
  * correctly interacts with the TestDispatcher's virtual time.
  *
  * License: Apache 2.0
@@ -31,7 +31,7 @@ class TimedGeneratorTest {
     @Test
     fun `timed Out2Generator emits tick results at configured interval`() = runTest {
         var counter = 0
-        val generator = CodeNodeFactory.createOut2Generator<Int, Int>(
+        val generator = CodeNodeFactory.createSourceOut2<Int, Int>(
             name = "IntervalTicker",
             generate = { emit ->
                 while (currentCoroutineContext().isActive) {
@@ -72,7 +72,7 @@ class TimedGeneratorTest {
     @Test
     fun `timed Out2Generator pauses tick loop when PAUSED`() = runTest {
         var counter = 0
-        val generator = CodeNodeFactory.createOut2Generator<Int, Int>(
+        val generator = CodeNodeFactory.createSourceOut2<Int, Int>(
             name = "PauseTicker",
             generate = { emit ->
                 while (currentCoroutineContext().isActive) {
@@ -110,7 +110,7 @@ class TimedGeneratorTest {
     @Test
     fun `timed Out2Generator resumes ticking after resume`() = runTest {
         var counter = 0
-        val generator = CodeNodeFactory.createOut2Generator<Int, Int>(
+        val generator = CodeNodeFactory.createSourceOut2<Int, Int>(
             name = "ResumeTicker",
             generate = { emit ->
                 while (currentCoroutineContext().isActive) {
@@ -147,7 +147,7 @@ class TimedGeneratorTest {
     @Test
     fun `timed Out2Generator stops cleanly and closes channels`() = runTest {
         var counter = 0
-        val generator = CodeNodeFactory.createOut2Generator<Int, Int>(
+        val generator = CodeNodeFactory.createSourceOut2<Int, Int>(
             name = "StopTicker",
             generate = { emit ->
                 while (currentCoroutineContext().isActive) {
@@ -188,7 +188,7 @@ class TimedGeneratorTest {
     @Test
     fun `timed Out2Generator with zero interval emits without delay`() = runTest {
         var counter = 0
-        val generator = CodeNodeFactory.createOut2Generator<Int, Int>(
+        val generator = CodeNodeFactory.createSourceOut2<Int, Int>(
             name = "ZeroIntervalTicker",
             generate = { emit ->
                 while (currentCoroutineContext().isActive) {
@@ -216,7 +216,7 @@ class TimedGeneratorTest {
     @Test
     fun `timed Out2Generator distributes selective ProcessResult2 to channels`() = runTest {
         var counter = 0
-        val generator = CodeNodeFactory.createOut2Generator<Int, String>(
+        val generator = CodeNodeFactory.createSourceOut2<Int, String>(
             name = "SelectiveTicker",
             generate = { emit ->
                 while (currentCoroutineContext().isActive) {

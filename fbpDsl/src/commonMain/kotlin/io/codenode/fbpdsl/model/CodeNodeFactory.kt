@@ -499,11 +499,11 @@ object CodeNodeFactory {
      * @param position Canvas position
      * @param description Optional documentation
      * @param generate Generator function that emits ProcessResult2 values
-     * @return Out2GeneratorRuntime configured for continuous generation
+     * @return SourceOut2Runtime configured for continuous generation
      *
      * @sample
      * ```kotlin
-     * val pairGenerator = CodeNodeFactory.createOut2Generator<Int, String>(
+     * val pairGenerator = CodeNodeFactory.createSourceOut2<Int, String>(
      *     name = "PairGenerator"
      * ) { emit ->
      *     var count = 0
@@ -517,13 +517,13 @@ object CodeNodeFactory {
      * pairGenerator.start(scope) { }
      * ```
      */
-    inline fun <reified U : Any, reified V : Any> createOut2Generator(
+    inline fun <reified U : Any, reified V : Any> createSourceOut2(
         name: String,
         channelCapacity: Int = Channel.BUFFERED,
         position: Node.Position = Node.Position.ORIGIN,
         description: String? = null,
-        noinline generate: io.codenode.fbpdsl.runtime.Out2GeneratorBlock<U, V>
-    ): io.codenode.fbpdsl.runtime.Out2GeneratorRuntime<U, V> {
+        noinline generate: io.codenode.fbpdsl.runtime.SourceOut2Block<U, V>
+    ): io.codenode.fbpdsl.runtime.SourceOut2Runtime<U, V> {
         val nodeId = NodeIdGenerator.generateId("codenode")
 
         val codeNode = CodeNode(
@@ -539,7 +539,7 @@ object CodeNodeFactory {
             )
         )
 
-        return io.codenode.fbpdsl.runtime.Out2GeneratorRuntime(codeNode, channelCapacity, generate)
+        return io.codenode.fbpdsl.runtime.SourceOut2Runtime(codeNode, channelCapacity, generate)
     }
 
     /**
@@ -557,11 +557,11 @@ object CodeNodeFactory {
      * @param position Canvas position
      * @param description Optional documentation
      * @param generate Generator function that emits ProcessResult3 values
-     * @return Out3GeneratorRuntime configured for continuous generation
+     * @return SourceOut3Runtime configured for continuous generation
      *
      * @sample
      * ```kotlin
-     * val tripleGenerator = CodeNodeFactory.createOut3Generator<Int, String, Boolean>(
+     * val tripleGenerator = CodeNodeFactory.createSourceOut3<Int, String, Boolean>(
      *     name = "TripleGenerator"
      * ) { emit ->
      *     emit(ProcessResult3(1, "a", true))
@@ -574,13 +574,13 @@ object CodeNodeFactory {
      * tripleGenerator.start(scope) { }
      * ```
      */
-    inline fun <reified U : Any, reified V : Any, reified W : Any> createOut3Generator(
+    inline fun <reified U : Any, reified V : Any, reified W : Any> createSourceOut3(
         name: String,
         channelCapacity: Int = Channel.BUFFERED,
         position: Node.Position = Node.Position.ORIGIN,
         description: String? = null,
-        noinline generate: io.codenode.fbpdsl.runtime.Out3GeneratorBlock<U, V, W>
-    ): io.codenode.fbpdsl.runtime.Out3GeneratorRuntime<U, V, W> {
+        noinline generate: io.codenode.fbpdsl.runtime.SourceOut3Block<U, V, W>
+    ): io.codenode.fbpdsl.runtime.SourceOut3Runtime<U, V, W> {
         val nodeId = NodeIdGenerator.generateId("codenode")
 
         val codeNode = CodeNode(
@@ -597,7 +597,7 @@ object CodeNodeFactory {
             )
         )
 
-        return io.codenode.fbpdsl.runtime.Out3GeneratorRuntime(codeNode, channelCapacity, generate)
+        return io.codenode.fbpdsl.runtime.SourceOut3Runtime(codeNode, channelCapacity, generate)
     }
 
     // ========== Multi-Output Processor Factory Methods ==========

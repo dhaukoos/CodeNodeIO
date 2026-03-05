@@ -34,8 +34,8 @@ class RuntimeTypeResolver {
         return when {
             // Sources (0 inputs)
             inputs == 0 && outputs == 1 -> "createContinuousSource"
-            inputs == 0 && outputs == 2 -> "createOut2Generator"
-            inputs == 0 && outputs == 3 -> "createOut3Generator"
+            inputs == 0 && outputs == 2 -> "createSourceOut2"
+            inputs == 0 && outputs == 3 -> "createSourceOut3"
 
             // Sinks (0 outputs)
             inputs == 1 && outputs == 0 -> "createContinuousSink"
@@ -72,7 +72,7 @@ class RuntimeTypeResolver {
      *
      * @param node The code node
      * @param anyInput When true, returns any-input runtime variant (e.g., "In2AnyOut1Runtime<Int, Int, Int>")
-     * @return Runtime type string (e.g., "SourceRuntime<Int>", "Out2GeneratorRuntime<Int, Int>")
+     * @return Runtime type string (e.g., "SourceRuntime<Int>", "SourceOut2Runtime<Int, Int>")
      */
     fun getRuntimeTypeName(node: CodeNode, anyInput: Boolean = false): String {
         val inputs = node.inputPorts.size
@@ -83,8 +83,8 @@ class RuntimeTypeResolver {
 
         return when {
             inputs == 0 && outputs == 1 -> "SourceRuntime<$typeParams>"
-            inputs == 0 && outputs == 2 -> "Out2GeneratorRuntime<$typeParams>"
-            inputs == 0 && outputs == 3 -> "Out3GeneratorRuntime<$typeParams>"
+            inputs == 0 && outputs == 2 -> "SourceOut2Runtime<$typeParams>"
+            inputs == 0 && outputs == 3 -> "SourceOut3Runtime<$typeParams>"
 
             inputs == 1 && outputs == 0 -> "SinkRuntime<$typeParams>"
             inputs == 2 && outputs == 0 -> "In2${any}SinkRuntime<$typeParams>"

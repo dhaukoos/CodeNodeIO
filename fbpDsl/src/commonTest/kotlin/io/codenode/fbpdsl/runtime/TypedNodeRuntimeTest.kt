@@ -394,10 +394,10 @@ class TypedNodeRuntimeTest {
     }
 
     @Test
-    fun `Out2GeneratorRuntime emits ProcessResult2 to two output channels`() = runTest {
+    fun `SourceOut2Runtime emits ProcessResult2 to two output channels`() = runTest {
         // Given: A generator that emits pairs
         var count = 0
-        val generator = CodeNodeFactory.createOut2Generator<Int, String>(
+        val generator = CodeNodeFactory.createSourceOut2<Int, String>(
             name = "PairGenerator"
         ) { emit ->
             emit(ProcessResult2(1, "one"))
@@ -424,9 +424,9 @@ class TypedNodeRuntimeTest {
     }
 
     @Test
-    fun `Out3GeneratorRuntime emits ProcessResult3 to three output channels`() = runTest {
+    fun `SourceOut3Runtime emits ProcessResult3 to three output channels`() = runTest {
         // Given: A generator that emits triples
-        val generator = CodeNodeFactory.createOut3Generator<Int, String, Boolean>(
+        val generator = CodeNodeFactory.createSourceOut3<Int, String, Boolean>(
             name = "TripleGenerator"
         ) { emit ->
             emit(ProcessResult3(1, "a", true))
@@ -621,7 +621,7 @@ class TypedNodeRuntimeTest {
             name = "MyCollector"
         ) { _, _ -> }
 
-        val generator = CodeNodeFactory.createOut2Generator<Int, String>(
+        val generator = CodeNodeFactory.createSourceOut2<Int, String>(
             name = "MyGenerator"
         ) { emit -> emit(ProcessResult2(1, "one")) }
 
@@ -674,7 +674,7 @@ class TypedNodeRuntimeTest {
         assertTrue(sink.codeNode.inputPorts.isNotEmpty())
         assertTrue(sink.codeNode.outputPorts.isEmpty())
 
-        val generator = CodeNodeFactory.createOut2Generator<Int, Int>(name = "MinGen") { emit ->
+        val generator = CodeNodeFactory.createSourceOut2<Int, Int>(name = "MinGen") { emit ->
             emit(ProcessResult2(1, 2))
         }
         assertTrue(generator.codeNode.inputPorts.isEmpty())

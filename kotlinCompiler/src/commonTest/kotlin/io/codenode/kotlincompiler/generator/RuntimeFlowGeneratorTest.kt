@@ -159,7 +159,7 @@ class RuntimeFlowGeneratorTest {
         val flowGraph = createStopWatchLikeFlow()
         val result = generator.generate(flowGraph, generatedPackage, usecasesPackage, viewModelPackage)
 
-        assertTrue(result.contains("internal val timerEmitter = CodeNodeFactory.createOut2Generator<Int, Int>("))
+        assertTrue(result.contains("internal val timerEmitter = CodeNodeFactory.createSourceOut2<Int, Int>("))
         assertTrue(result.contains("name = \"TimerEmitter\""))
         assertTrue(result.contains("generate = { _ -> kotlinx.coroutines.awaitCancellation() }"),
             "Source nodes should use generate with awaitCancellation")

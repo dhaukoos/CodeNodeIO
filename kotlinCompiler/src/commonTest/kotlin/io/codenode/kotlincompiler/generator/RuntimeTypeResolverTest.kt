@@ -56,10 +56,10 @@ class RuntimeTypeResolverTest {
 
     private val resolver = RuntimeTypeResolver()
 
-    // ========== Test: 0 in, 2 out → createOut2Generator ==========
+    // ========== Test: 0 in, 2 out → createSourceOut2 ==========
 
     @Test
-    fun `0 in 2 out returns createOut2Generator`() {
+    fun `0 in 2 out returns createSourceOut2`() {
         val node = createTestCodeNode(
             id = "gen", name = "TimerEmitter", type = CodeNodeType.SOURCE,
             outputPorts = listOf(
@@ -68,9 +68,9 @@ class RuntimeTypeResolverTest {
             )
         )
 
-        assertEquals("createOut2Generator", resolver.getFactoryMethodName(node))
+        assertEquals("createSourceOut2", resolver.getFactoryMethodName(node))
         assertEquals("generate", resolver.getTickParamName(node))
-        assertEquals("Out2GeneratorRuntime<Int, Int>", resolver.getRuntimeTypeName(node))
+        assertEquals("SourceOut2Runtime<Int, Int>", resolver.getRuntimeTypeName(node))
     }
 
     // ========== Test: 2 in, 0 out → createIn2Sink ==========
@@ -148,10 +148,10 @@ class RuntimeTypeResolverTest {
         assertEquals("FilterRuntime<Int>", resolver.getRuntimeTypeName(node))
     }
 
-    // ========== Test: 0 in, 3 out → createOut3Generator ==========
+    // ========== Test: 0 in, 3 out → createSourceOut3 ==========
 
     @Test
-    fun `0 in 3 out returns createOut3Generator`() {
+    fun `0 in 3 out returns createSourceOut3`() {
         val node = createTestCodeNode(
             id = "gen", name = "TriGenerator", type = CodeNodeType.SOURCE,
             outputPorts = listOf(
@@ -161,9 +161,9 @@ class RuntimeTypeResolverTest {
             )
         )
 
-        assertEquals("createOut3Generator", resolver.getFactoryMethodName(node))
+        assertEquals("createSourceOut3", resolver.getFactoryMethodName(node))
         assertEquals("generate", resolver.getTickParamName(node))
-        assertEquals("Out3GeneratorRuntime<Int, String, Boolean>", resolver.getRuntimeTypeName(node))
+        assertEquals("SourceOut3Runtime<Int, String, Boolean>", resolver.getRuntimeTypeName(node))
     }
 
     // ========== Test: 3 in, 0 out → createIn3Sink ==========

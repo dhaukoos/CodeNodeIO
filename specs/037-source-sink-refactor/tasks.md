@@ -111,14 +111,14 @@
 
 ### Implementation for User Story 4
 
-- [ ] T033 [P] [US4] Rename `Out2GeneratorRuntime.kt` → `SourceOut2Runtime.kt`: create new file with class renamed to `SourceOut2Runtime`, delete old file in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/`
-- [ ] T034 [P] [US4] Rename `Out3GeneratorRuntime.kt` → `SourceOut3Runtime.kt`: create new file with class renamed to `SourceOut3Runtime`, delete old file in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/`
-- [ ] T035 [US4] Rename multi-output source factory methods (`createOut2Generator` → `createSourceOut2`, `createOut3Generator` → `createSourceOut3`) in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/CodeNodeFactory.kt`
-- [ ] T036 [US4] Rename multi-output source type aliases (`Out2GeneratorBlock` → `SourceOut2Block`, `Out3GeneratorBlock` → `SourceOut3Block`) in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/ContinuousTypes.kt`
-- [ ] T037 [US4] Update `RuntimeTypeResolver.kt` to return `SourceOut2Runtime`/`SourceOut3Runtime` and `createSourceOut2`/`createSourceOut3` for multi-output source nodes in `kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/RuntimeTypeResolver.kt`
-- [ ] T038 [US4] Update `FlowGraphFactoryGenerator.kt` for multi-output source naming in `kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/FlowGraphFactoryGenerator.kt`
-- [ ] T039 [US4] Update tests for multi-output source renaming: `TypedNodeRuntimeTest.kt` in `fbpDsl/src/commonTest/`, `RuntimeTypeResolverTest.kt`, `RuntimeFlowGeneratorTest.kt`, `FlowGraphFactoryGeneratorTest.kt` in `kotlinCompiler/src/commonTest/`
-- [ ] T040 [US4] Compile and run tests: `./gradlew :fbpDsl:jvmTest :kotlinCompiler:jvmTest`
+- [X] T033 [P] [US4] Rename `Out2GeneratorRuntime.kt` → `SourceOut2Runtime.kt`: create new file with class renamed to `SourceOut2Runtime`, delete old file in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/`
+- [X] T034 [P] [US4] Rename `Out3GeneratorRuntime.kt` → `SourceOut3Runtime.kt`: create new file with class renamed to `SourceOut3Runtime`, delete old file in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/`
+- [X] T035 [US4] Rename multi-output source factory methods (`createOut2Generator` → `createSourceOut2`, `createOut3Generator` → `createSourceOut3`) in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/CodeNodeFactory.kt`
+- [X] T036 [US4] Rename multi-output source type aliases (`Out2GeneratorBlock` → `SourceOut2Block`, `Out3GeneratorBlock` → `SourceOut3Block`) in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/ContinuousTypes.kt`
+- [X] T037 [US4] Update `RuntimeTypeResolver.kt` to return `SourceOut2Runtime`/`SourceOut3Runtime` and `createSourceOut2`/`createSourceOut3` for multi-output source nodes in `kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/RuntimeTypeResolver.kt`
+- [X] T038 [US4] Update `FlowGraphFactoryGenerator.kt` for multi-output source naming in `kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/FlowGraphFactoryGenerator.kt`
+- [X] T039 [US4] Update tests for multi-output source renaming: `TypedNodeRuntimeTest.kt` in `fbpDsl/src/commonTest/`, `RuntimeTypeResolverTest.kt`, `RuntimeFlowGeneratorTest.kt`, `FlowGraphFactoryGeneratorTest.kt` in `kotlinCompiler/src/commonTest/`
+- [X] T040 [US4] Compile and run tests: `./gradlew :fbpDsl:jvmTest :kotlinCompiler:jvmTest`
 
 **Checkpoint**: Multi-output source classes follow `SourceOut{N}Runtime` naming convention. Tests pass.
 
