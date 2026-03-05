@@ -9,8 +9,8 @@ package io.codenode.stopwatch.usecases
 import io.codenode.fbpdsl.model.CodeNode
 import io.codenode.fbpdsl.model.CodeNodeFactory
 import io.codenode.fbpdsl.model.ExecutionState
-import io.codenode.fbpdsl.runtime.In2SinkBlock
-import io.codenode.fbpdsl.runtime.In2SinkRuntime
+import io.codenode.fbpdsl.runtime.SinkIn2Block
+import io.codenode.fbpdsl.runtime.SinkIn2Runtime
 import io.codenode.fbpdsl.runtime.RuntimeRegistry
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.ReceiveChannel
@@ -21,8 +21,8 @@ import kotlinx.coroutines.flow.asStateFlow
 /**
  * DisplayReceiver UseCase - Sink node that receives time values for UI rendering.
  *
- * This component uses CodeNodeFactory.createIn2Sink to create an
- * In2SinkRuntime that manages the receive loop lifecycle with two typed input channels.
+ * This component uses CodeNodeFactory.createSinkIn2 to create an
+ * SinkIn2Runtime that manages the receive loop lifecycle with two typed input channels.
  *
  * Features:
  * - Receives elapsed seconds from inputChannel (first input)
@@ -45,17 +45,17 @@ class DisplayReceiverComponent {
      * Consumer function - business logic for processing received timer values.
      * Updates StateFlows for UI observation.
      */
-    val consumer: In2SinkBlock<Int, Int> = { seconds, minutes ->
+    val consumer: SinkIn2Block<Int, Int> = { seconds, minutes ->
         _seconds.value = seconds
         _minutes.value = minutes
     }
 
     /**
-     * In2SinkRuntime created via factory method.
+     * SinkIn2Runtime created via factory method.
      * Manages the receive loop lifecycle with proper dual-channel handling.
      * inputChannel: seconds (Int), inputChannel2: minutes (Int)
      */
-    private val sinkRuntime: In2SinkRuntime<Int, Int> = CodeNodeFactory.createIn2Sink(
+    private val sinkRuntime: SinkIn2Runtime<Int, Int> = CodeNodeFactory.createSinkIn2(
         name = "DisplayReceiver",
         description = "Receives timer values on two typed channels and exposes them for UI rendering",
         consume = consumer

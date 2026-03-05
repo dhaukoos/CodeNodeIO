@@ -28,8 +28,8 @@ class StopWatchFlow {
     internal val timerEmitter = TimerEmitterComponent()
     internal val displayReceiver = DisplayReceiverComponent()
 
-    // Out2GeneratorRuntime creates its own output channels internally,
-    // so we wire the sink inputs directly to the generator outputs.
+    // SourceOut2Runtime creates its own output channels internally,
+    // so we wire the sink inputs directly to the source outputs.
 
     /**
      * Starts the flow with the given coroutine scope.

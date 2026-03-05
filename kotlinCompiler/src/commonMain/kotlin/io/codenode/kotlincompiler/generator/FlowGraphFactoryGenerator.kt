@@ -57,7 +57,7 @@ class FlowGraphFactoryGenerator {
      * Gets the CodeNodeFactory method name for a node based on its port configuration.
      *
      * @param node The code node
-     * @return Factory method name (e.g., "createTimedOut2Generator")
+     * @return Factory method name (e.g., "createSourceOut2")
      */
     fun getFactoryMethodName(node: CodeNode): String {
         val inputCount = node.inputPorts.size

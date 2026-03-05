@@ -151,15 +151,15 @@
 
 **Purpose**: Update existing generated modules and perform final verification across the entire project.
 
-- [ ] T051 [P] Update StopWatch module: rename `GeneratorTickBlock`/`SinkTickBlock` references in processing logic stubs in `StopWatch/src/commonMain/kotlin/io/codenode/stopwatch/processingLogic/`
-- [ ] T052 [P] Update StopWatchV2 module: rename `GeneratorTickBlock`/`SinkTickBlock` references in processing logic stubs in `StopWatchV2/src/commonMain/kotlin/io/codenode/stopwatchv2/processingLogic/`
-- [ ] T053 [P] Update UserProfiles module: rename tick block and factory references in processing logic stubs in `UserProfiles/src/commonMain/kotlin/io/codenode/userprofiles/processingLogic/`
-- [ ] T054 [P] Update RepositoryPattern module: rename tick block and factory references in processing logic stubs in `RepositoryPattern/src/commonMain/kotlin/io/codenode/repositorypattern/processingLogic/`
-- [ ] T055 [P] Update StopWatchOriginal components: rename `GeneratorRuntime`/`SinkRuntime` references in `StopWatchOriginal/src/commonMain/kotlin/io/codenode/stopwatch/usecases/`
-- [ ] T056 [P] Update KMPMobileApp integration test: rename `CodeNodeType.GENERATOR` references in `KMPMobileApp/src/androidUnitTest/kotlin/io/codenode/mobileapp/StopWatchIntegrationTest.kt`
-- [ ] T057 [P] Update RegenerateStopWatch tool: rename references in `kotlinCompiler/src/jvmMain/kotlin/io/codenode/kotlincompiler/tools/RegenerateStopWatch.kt`
-- [ ] T058 Full build verification: `./gradlew build`
-- [ ] T059 Zero-reference check: search active source code for `GeneratorRuntime`, `GENERATOR`, `createTimedGenerator`, `Out2GeneratorRuntime`, `In2SinkRuntime`, `createIn2Sink` — confirm zero matches outside specs/ documentation
+- [X] T051 [P] Update StopWatch module: rename `GeneratorTickBlock`/`SinkTickBlock` references in processing logic stubs in `StopWatch/src/commonMain/kotlin/io/codenode/stopwatch/processingLogic/`
+- [X] T052 [P] Update StopWatchV2 module: rename `GeneratorTickBlock`/`SinkTickBlock` references in processing logic stubs in `StopWatchV2/src/commonMain/kotlin/io/codenode/stopwatchv2/processingLogic/`
+- [X] T053 [P] Update UserProfiles module: rename tick block and factory references in processing logic stubs in `UserProfiles/src/commonMain/kotlin/io/codenode/userprofiles/processingLogic/`
+- [X] T054 [P] Update RepositoryPattern module: rename tick block and factory references in processing logic stubs in `RepositoryPattern/src/commonMain/kotlin/io/codenode/repositorypattern/processingLogic/`
+- [X] T055 [P] Update StopWatchOriginal components: rename `GeneratorRuntime`/`SinkRuntime` references in `StopWatchOriginal/src/commonMain/kotlin/io/codenode/stopwatch/usecases/`
+- [X] T056 [P] Update KMPMobileApp integration test: rename `CodeNodeType.GENERATOR` references in `KMPMobileApp/src/androidUnitTest/kotlin/io/codenode/mobileapp/StopWatchIntegrationTest.kt`
+- [X] T057 [P] Update RegenerateStopWatch tool: rename references in `kotlinCompiler/src/jvmMain/kotlin/io/codenode/kotlincompiler/tools/RegenerateStopWatch.kt`
+- [X] T058 Full build verification: `./gradlew build`
+- [X] T059 Zero-reference check: search active source code for `GeneratorRuntime`, `GENERATOR`, `createTimedGenerator`, `Out2GeneratorRuntime`, `In2SinkRuntime`, `createIn2Sink` — confirm zero matches outside specs/ documentation
 
 ---
 

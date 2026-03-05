@@ -9,22 +9,25 @@ package io.codenode.stopwatch.usecases
 import io.codenode.fbpdsl.model.CodeNode
 import io.codenode.fbpdsl.model.CodeNodeFactory
 import io.codenode.fbpdsl.model.ExecutionState
-import io.codenode.fbpdsl.runtime.Out2GeneratorRuntime
-import io.codenode.fbpdsl.runtime.Out2TickBlock
 import io.codenode.fbpdsl.runtime.ProcessResult2
 import io.codenode.fbpdsl.runtime.RuntimeRegistry
+import io.codenode.fbpdsl.runtime.SourceOut2Block
+import io.codenode.fbpdsl.runtime.SourceOut2Runtime
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.isActive
 
 /**
  * TimerEmitter UseCase - Generator node that emits elapsed time at regular intervals.
  *
- * This component uses CodeNodeFactory.createTimedOut2Generator to create an
- * Out2GeneratorRuntime with a tick function that handles the timer increment logic.
- * The runtime manages the timed loop lifecycle, pause/resume, and channel distribution.
+ * This component uses CodeNodeFactory.createSourceOut2 to create a
+ * SourceOut2Runtime with a generate block that handles the timer increment logic.
+ * The runtime manages the loop lifecycle, pause/resume, and channel distribution.
  *
  * Features:
  * - Emits elapsedSeconds on outputChannel1 every speedAttenuation milliseconds
@@ -33,7 +36,7 @@ import kotlinx.coroutines.flow.asStateFlow
  * - Pause/resume handled by the runtime's emit hook
  * - Exposes StateFlows for UI observation
  *
- * Type: GENERATOR (0 inputs, 2 outputs: Int for seconds, Int for minutes)
+ * Type: SOURCE (0 inputs, 2 outputs: Int for seconds, Int for minutes)
  *
  * @param speedAttenuation Tick interval in milliseconds (default: 1000ms = 1 second)
  * @param initialSeconds Initial seconds value (for testing)
@@ -53,35 +56,31 @@ class TimerEmitterComponent(
     val elapsedMinutesFlow: StateFlow<Int> = _elapsedMinutes.asStateFlow()
 
     /**
-     * Tick function - pure business logic for each timer tick.
-     * Increments seconds with rollover at 60, updates StateFlows,
-     * and returns the result for channel distribution.
-     */
-    private val tick: Out2TickBlock<Int, Int> = {
-        var newSeconds = _elapsedSeconds.value + 1
-        var newMinutes = _elapsedMinutes.value
-
-        if (newSeconds >= 60) {
-            newSeconds = 0
-            newMinutes += 1
-        }
-
-        _elapsedSeconds.value = newSeconds
-        _elapsedMinutes.value = newMinutes
-
-        ProcessResult2.both(newSeconds, newMinutes)
-    }
-
-    /**
-     * Out2GeneratorRuntime created via timed factory method.
-     * The runtime manages the timed loop, pause/resume hooks, and channel distribution.
+     * SourceOut2Runtime created via factory method.
+     * The runtime manages the loop, pause/resume hooks, and channel distribution.
      * outputChannel1: seconds (Int), outputChannel2: minutes (Int)
      */
-    private val generatorRuntime: Out2GeneratorRuntime<Int, Int> = CodeNodeFactory.createTimedOut2Generator(
+    private val generatorRuntime: SourceOut2Runtime<Int, Int> = CodeNodeFactory.createSourceOut2(
         name = "TimerEmitter",
-        tickIntervalMs = speedAttenuation,
         description = "Emits elapsed time at regular intervals on two typed channels",
-        tick = tick
+        generate = { emit ->
+            while (currentCoroutineContext().isActive) {
+                delay(speedAttenuation)
+
+                var newSeconds = _elapsedSeconds.value + 1
+                var newMinutes = _elapsedMinutes.value
+
+                if (newSeconds >= 60) {
+                    newSeconds = 0
+                    newMinutes += 1
+                }
+
+                _elapsedSeconds.value = newSeconds
+                _elapsedMinutes.value = newMinutes
+
+                emit(ProcessResult2.both(newSeconds, newMinutes))
+            }
+        }
     )
 
     val codeNode: CodeNode

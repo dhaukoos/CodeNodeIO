@@ -6,14 +6,11 @@
 
 package io.codenode.stopwatch.generated
 
-import io.codenode.stopwatch.processingLogic.timerEmitterTick
-import io.codenode.stopwatch.processingLogic.displayReceiverTick
-import io.codenode.stopwatch.processingLogic.resetTimerEmitterState
-
 import io.codenode.stopwatch.StopWatchState
 
 import io.codenode.fbpdsl.model.CodeNodeFactory
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.flow.StateFlow
 
 /**
@@ -33,18 +30,16 @@ class StopWatchFlow {
     val minutesFlow: StateFlow<Int> = StopWatchState.minutesFlow
 
     // Runtime instances
-    internal val timerEmitter = CodeNodeFactory.createTimedOut2Generator<Int, Int>(
+    internal val timerEmitter = CodeNodeFactory.createSourceOut2<Int, Int>(
         name = "TimerEmitter",
-        tickIntervalMs = 1000L,
-        tick = timerEmitterTick
+        generate = { _ -> awaitCancellation() }
     )
 
-    internal val displayReceiver = CodeNodeFactory.createIn2Sink<Int, Int>(
+    internal val displayReceiver = CodeNodeFactory.createSinkIn2<Int, Int>(
         name = "DisplayReceiver",
         consume = { seconds, minutes ->
             StopWatchState._seconds.value = seconds
             StopWatchState._minutes.value = minutes
-            displayReceiverTick(seconds, minutes)
         }
     )
 
@@ -69,7 +64,6 @@ class StopWatchFlow {
      * Resets all observable state.
      */
     fun reset() {
-        resetTimerEmitterState()
         StopWatchState.reset()
     }
 
