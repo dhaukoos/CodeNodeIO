@@ -529,6 +529,17 @@ class ConnectionBuilder(
 }
 
 /**
+ * Infix function to set the IP type on a connection.
+ * Used in generated .flow.kt DSL files to assign IP types to connections.
+ *
+ * @param typeId The InformationPacketType ID to assign
+ * @return New Connection with the specified IP type
+ */
+infix fun Connection.withType(typeId: String): Connection {
+    return this.withIPType(typeId)
+}
+
+/**
  * DSL marker for port configuration
  */
 @FlowGraphDslMarker

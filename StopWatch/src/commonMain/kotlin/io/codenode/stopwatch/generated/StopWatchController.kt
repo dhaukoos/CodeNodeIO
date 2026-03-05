@@ -51,6 +51,8 @@ class StopWatchController(
 
     private var wasRunningBeforePause: Boolean = false
 
+    val elapsedSeconds: StateFlow<Int> = flow.elapsedSecondsFlow
+    val elapsedMinutes: StateFlow<Int> = flow.elapsedMinutesFlow
     val seconds: StateFlow<Int> = flow.secondsFlow
     val minutes: StateFlow<Int> = flow.minutesFlow
 
@@ -151,16 +153,16 @@ class StopWatchController(
         })
     }
 
-    val currentFlowGraph: FlowGraph
-        get() = flowGraph
-
     /**
-     * Sets the attenuation delay on the timer generator runtime.
+     * Sets the attenuation delay on all generator runtimes.
      * When non-null, replaces tickIntervalMs as the delay between ticks.
      * When null, reverts to the original tickIntervalMs.
      */
     fun setAttenuationDelay(ms: Long?) {
         flow.timerEmitter.attenuationDelayMs = ms
     }
+
+    val currentFlowGraph: FlowGraph
+        get() = flowGraph
 }
 

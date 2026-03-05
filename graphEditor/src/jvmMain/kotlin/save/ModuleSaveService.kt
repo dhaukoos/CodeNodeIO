@@ -142,13 +142,18 @@ class ModuleSaveService {
                 filesCreated
             )
 
+            // Only include processingLogic import if any nodes need stubs
+            val hasProcessingLogicNodes = flowGraph.getAllCodeNodes()
+                .any { stubGenerator.shouldGenerateStub(it) }
+            val flowKtProcessingLogicPackage = if (hasProcessingLogicNodes) processingLogicPackage else null
+
             // Write .flow.kt in source set (always overwrite)
             val basePackagePath = basePackage.replace(".", "/")
             val flowKtFileName = "${effectiveModuleName}.flow.kt"
             val flowKtRelativePath = "src/commonMain/kotlin/$basePackagePath/$flowKtFileName"
             writeFileAlways(
                 File(moduleDir, flowKtRelativePath),
-                flowKtGenerator.generateFlowKt(flowGraph, basePackage, processingLogicPackage, ipTypeNames),
+                flowKtGenerator.generateFlowKt(flowGraph, basePackage, flowKtProcessingLogicPackage, ipTypeNames),
                 flowKtRelativePath,
                 filesCreated,
                 filesOverwritten

@@ -19,6 +19,6 @@ val stopWatchFlowGraph = flowGraph("StopWatch", version = "1.0.0") {
         input("minutes", Int::class)
     }
 
-    timerEmitter.output("elapsedSeconds") connect displayReceiver.input("seconds")
-    timerEmitter.output("elapsedMinutes") connect displayReceiver.input("minutes")
+    timerEmitter.output("elapsedSeconds") connect displayReceiver.input("seconds") withType "ip_int"
+    timerEmitter.output("elapsedMinutes") connect displayReceiver.input("minutes") withType "ip_int"
 }

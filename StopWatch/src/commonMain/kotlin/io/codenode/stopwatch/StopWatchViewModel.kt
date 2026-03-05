@@ -15,10 +15,16 @@ import kotlinx.coroutines.flow.asStateFlow
 import io.codenode.stopwatch.generated.StopWatchControllerInterface
 
 // ===== MODULE PROPERTIES START =====
-// Auto-generated from sink node input ports. Do not edit this section manually.
+// Auto-generated from source output ports and sink input ports. Do not edit this section manually.
 // Changes here will be overwritten on next code generation.
 
 object StopWatchState {
+
+    internal val _elapsedSeconds = MutableStateFlow(0)
+    val elapsedSecondsFlow: StateFlow<Int> = _elapsedSeconds.asStateFlow()
+
+    internal val _elapsedMinutes = MutableStateFlow(0)
+    val elapsedMinutesFlow: StateFlow<Int> = _elapsedMinutes.asStateFlow()
 
     internal val _seconds = MutableStateFlow(0)
     val secondsFlow: StateFlow<Int> = _seconds.asStateFlow()
@@ -27,12 +33,15 @@ object StopWatchState {
     val minutesFlow: StateFlow<Int> = _minutes.asStateFlow()
 
     fun reset() {
+        _elapsedSeconds.value = 0
+        _elapsedMinutes.value = 0
         _seconds.value = 0
         _minutes.value = 0
     }
 }
 
 // ===== MODULE PROPERTIES END =====
+
 
 // ============================================================
 // ViewModel

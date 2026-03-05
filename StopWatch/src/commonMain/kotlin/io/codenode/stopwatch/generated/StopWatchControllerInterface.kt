@@ -20,6 +20,8 @@ import kotlinx.coroutines.flow.StateFlow
  */
 interface StopWatchControllerInterface {
 
+    val elapsedSeconds: StateFlow<Int>
+    val elapsedMinutes: StateFlow<Int>
     val seconds: StateFlow<Int>
     val minutes: StateFlow<Int>
 

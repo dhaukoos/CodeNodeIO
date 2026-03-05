@@ -6,11 +6,11 @@
 
 package io.codenode.stopwatch.generated
 
+
 import io.codenode.stopwatch.StopWatchState
 
 import io.codenode.fbpdsl.model.CodeNodeFactory
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.flow.StateFlow
 
 /**
@@ -26,13 +26,15 @@ import kotlinx.coroutines.flow.StateFlow
 class StopWatchFlow {
 
     // Observable state delegated from module state
+    val elapsedSecondsFlow: StateFlow<Int> = StopWatchState.elapsedSecondsFlow
+    val elapsedMinutesFlow: StateFlow<Int> = StopWatchState.elapsedMinutesFlow
     val secondsFlow: StateFlow<Int> = StopWatchState.secondsFlow
     val minutesFlow: StateFlow<Int> = StopWatchState.minutesFlow
 
     // Runtime instances
     internal val timerEmitter = CodeNodeFactory.createSourceOut2<Int, Int>(
         name = "TimerEmitter",
-        generate = { _ -> awaitCancellation() }
+        generate = { _ -> kotlinx.coroutines.awaitCancellation() }
     )
 
     internal val displayReceiver = CodeNodeFactory.createSinkIn2<Int, Int>(
@@ -40,8 +42,7 @@ class StopWatchFlow {
         consume = { seconds, minutes ->
             StopWatchState._seconds.value = seconds
             StopWatchState._minutes.value = minutes
-        }
-    )
+        }    )
 
     /**
      * Starts the flow with the given coroutine scope.
@@ -75,3 +76,4 @@ class StopWatchFlow {
         displayReceiver.inputChannel2 = timerEmitter.outputChannel2
     }
 }
+
