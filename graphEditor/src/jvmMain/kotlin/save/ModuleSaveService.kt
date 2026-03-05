@@ -15,6 +15,7 @@ import io.codenode.kotlincompiler.generator.RuntimeControllerGenerator
 import io.codenode.kotlincompiler.generator.RuntimeControllerInterfaceGenerator
 import io.codenode.kotlincompiler.generator.RuntimeControllerAdapterGenerator
 import io.codenode.kotlincompiler.generator.RuntimeViewModelGenerator
+import io.codenode.kotlincompiler.generator.UserInterfaceStubGenerator
 import io.codenode.kotlincompiler.generator.RepositoryCodeGenerator
 import io.codenode.kotlincompiler.generator.EntityProperty
 import io.codenode.kotlincompiler.generator.EntityInfo
@@ -60,6 +61,7 @@ class ModuleSaveService {
         const val GENERATED_SUBPACKAGE = "generated"
         const val PROCESSING_LOGIC_SUBPACKAGE = "processingLogic"
         const val PERSISTENCE_SUBPACKAGE = "persistence"
+        const val USER_INTERFACE_SUBPACKAGE = "userInterface"
     }
 
     private val moduleGenerator = ModuleGenerator()
@@ -70,6 +72,7 @@ class ModuleSaveService {
     private val runtimeControllerInterfaceGenerator = RuntimeControllerInterfaceGenerator()
     private val runtimeControllerAdapterGenerator = RuntimeControllerAdapterGenerator()
     private val runtimeViewModelGenerator = RuntimeViewModelGenerator()
+    private val userInterfaceStubGenerator = UserInterfaceStubGenerator()
     private val repositoryCodeGenerator = RepositoryCodeGenerator()
 
     /**
@@ -107,6 +110,7 @@ class ModuleSaveService {
             val basePackage = packageName ?: "$DEFAULT_PACKAGE_PREFIX.${effectiveModuleName.lowercase()}"
             val generatedPackage = "$basePackage.$GENERATED_SUBPACKAGE"
             val processingLogicPackage = "$basePackage.$PROCESSING_LOGIC_SUBPACKAGE"
+            val userInterfacePackage = "$basePackage.$USER_INTERFACE_SUBPACKAGE"
 
             // Create module directory
             val moduleDir = File(outputDir, effectiveModuleName)
@@ -122,6 +126,7 @@ class ModuleSaveService {
             createDirectoryStructure(moduleDir, basePackage, flowGraph)
             createDirectoryStructure(moduleDir, generatedPackage, flowGraph)
             createDirectoryStructure(moduleDir, processingLogicPackage, flowGraph)
+            createDirectoryStructure(moduleDir, userInterfacePackage, flowGraph)
 
             // Write gradle files (only if they don't exist)
             writeFileIfNew(
@@ -159,6 +164,12 @@ class ModuleSaveService {
             generateViewModelStub(
                 flowGraph, moduleDir, basePackage, generatedPackage,
                 effectiveModuleName, filesCreated, filesOverwritten
+            )
+
+            // Generate user interface stub (write-once, preserves existing UI code)
+            generateUserInterfaceStub(
+                flowGraph, moduleDir, userInterfacePackage, generatedPackage,
+                filesCreated
             )
 
             // Generate processing logic stubs (don't overwrite existing, unless regenerating)
@@ -323,6 +334,37 @@ class ModuleSaveService {
                 viewModelFile.writeText(content)
                 filesOverwritten.add(relativePath)
             }
+        }
+    }
+
+    /**
+     * Generates the user interface Composable stub file in the userInterface subpackage.
+     *
+     * Write-once: only creates the file if it doesn't already exist, preserving
+     * any user-implemented UI code on re-save.
+     *
+     * @param flowGraph The flow graph
+     * @param moduleDir The module root directory
+     * @param userInterfacePackage The userInterface subpackage name
+     * @param generatedPackage The generated package name (for ViewModel import)
+     * @param filesCreated List to track created files
+     */
+    private fun generateUserInterfaceStub(
+        flowGraph: FlowGraph,
+        moduleDir: File,
+        userInterfacePackage: String,
+        generatedPackage: String,
+        filesCreated: MutableList<String>
+    ) {
+        val uiPackagePath = userInterfacePackage.replace(".", "/")
+        val stubFileName = userInterfaceStubGenerator.getStubFileName(flowGraph)
+        val stubFile = File(moduleDir, "src/commonMain/kotlin/$uiPackagePath/$stubFileName")
+        val relativePath = "src/commonMain/kotlin/$uiPackagePath/$stubFileName"
+
+        if (!stubFile.exists()) {
+            val content = userInterfaceStubGenerator.generate(flowGraph, userInterfacePackage, generatedPackage)
+            stubFile.writeText(content)
+            filesCreated.add(relativePath)
         }
     }
 
