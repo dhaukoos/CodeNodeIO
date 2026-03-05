@@ -51,7 +51,5 @@ include(":idePlugin")
 include(":KMPMobileApp")
 
 // Generated modules (from FlowGraph compilation)
-include(":StopWatchOriginal")
-include(":StopWatchV2")
 include(":StopWatch")
 

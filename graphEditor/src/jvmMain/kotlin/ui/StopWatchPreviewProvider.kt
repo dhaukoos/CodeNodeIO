@@ -12,8 +12,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import io.codenode.circuitsimulator.RuntimeSession
 import io.codenode.fbpdsl.model.ExecutionState
-import io.codenode.stopwatchv2.userInterface.StopWatchV2
-import io.codenode.stopwatchv2.userInterface.StopWatchV2Screen
+import io.codenode.stopwatch.userInterface.StopWatch
+import io.codenode.stopwatch.userInterface.StopWatchScreen
 
 /**
  * Provides preview composables that render StopWatch components,
@@ -39,7 +39,7 @@ object StopWatchPreviewProvider {
         val executionState by viewModel.executionState.collectAsState()
         val isRunning = executionState == ExecutionState.RUNNING
 
-        StopWatchV2(
+        StopWatch(
             modifier = modifier,
             minSize = 200.dp,
             seconds = seconds,
@@ -59,7 +59,7 @@ object StopWatchPreviewProvider {
         runtimeSession: RuntimeSession,
         modifier: Modifier = Modifier
     ) {
-        StopWatchV2Screen(
+        StopWatchScreen(
             viewModel = runtimeSession.viewModel,
             modifier = modifier,
             minSize = 200.dp
