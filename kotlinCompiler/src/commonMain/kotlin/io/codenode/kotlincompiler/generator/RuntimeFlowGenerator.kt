@@ -92,8 +92,8 @@ class RuntimeFlowGenerator {
         viewModelPackage: String,
         flowName: String
     ) {
-        // Tick function imports from user stubs (source nodes have no stubs)
-        codeNodes.filter { it.inputPorts.isNotEmpty() || it.outputPorts.isEmpty() }.forEach { node ->
+        // Tick function imports from user stubs (source and sink nodes have no stubs)
+        codeNodes.filter { it.inputPorts.isNotEmpty() && it.outputPorts.isNotEmpty() }.forEach { node ->
             appendLine("import $usecasesPackage.${node.name.camelCase()}Tick")
         }
         appendLine()
@@ -221,7 +221,6 @@ class RuntimeFlowGenerator {
                 appendLine("            $stateName._${prop.name}.value = ${portNames[index]}")
             }
         }
-        appendLine("            ${varName}Tick($portNamesStr)")
         append("        }")
     }
 

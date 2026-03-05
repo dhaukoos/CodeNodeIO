@@ -36,6 +36,8 @@ class ProcessingLogicStubGenerator {
         if (inputCount > 3 || outputCount > 3) return false
         // Source nodes (0 inputs) are ViewModel-driven — no processing logic stub
         if (inputCount == 0) return false
+        // Sink nodes (0 outputs) are pure state bridges — no processing logic stub
+        if (outputCount == 0) return false
         return true
     }
 
@@ -109,13 +111,8 @@ class ProcessingLogicStubGenerator {
             inputCount == 3 && outputCount == 3 ->
                 "In3${any}Out3TickBlock<${inType(codeNode, 0)}, ${inType(codeNode, 1)}, ${inType(codeNode, 2)}, ${outType(codeNode, 0)}, ${outType(codeNode, 1)}, ${outType(codeNode, 2)}>"
 
-            // Sinks (0 outputs)
-            inputCount == 1 && outputCount == 0 ->
-                "SinkTickBlock<${inType(codeNode, 0)}>"
-            inputCount == 2 && outputCount == 0 ->
-                "In2${any}SinkTickBlock<${inType(codeNode, 0)}, ${inType(codeNode, 1)}>"
-            inputCount == 3 && outputCount == 0 ->
-                "In3${any}SinkTickBlock<${inType(codeNode, 0)}, ${inType(codeNode, 1)}, ${inType(codeNode, 2)}>"
+            // Sinks (0 outputs) — no tick type alias, pure state bridges
+            outputCount == 0 -> ""
 
             else -> ""
         }

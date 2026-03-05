@@ -91,13 +91,13 @@
 
 ### Implementation for User Story 3
 
-- [ ] T026 [US3] Update `ProcessingLogicStubGenerator.shouldGenerateStub()` to return `false` for `CodeNodeType.SINK` nodes in `kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/ProcessingLogicStubGenerator.kt`
-- [ ] T027 [US3] Remove tick call from sink consume blocks in `RuntimeFlowGenerator.kt` — keep only `{FlowName}State._prop.value = value` updates in `kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/RuntimeFlowGenerator.kt`
-- [ ] T028 [US3] Remove timed sink factory methods (`createTimedSink`, `createTimedIn2Sink`, `createTimedIn3Sink`) from `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/CodeNodeFactory.kt`
-- [ ] T029 [US3] Remove sink tick type aliases (`SinkTickBlock`, `In2SinkTickBlock`, `In3SinkTickBlock`, `In2AnySinkTickBlock`, `In3AnySinkTickBlock`) from `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/ContinuousTypes.kt`
-- [ ] T030 [US3] Update orphan detection in `ModuleSaveService.kt` to delete source and sink processing logic stub files on re-save in `graphEditor/src/jvmMain/kotlin/save/ModuleSaveService.kt`
-- [ ] T031 [US3] Update tests for sink stub removal: `ProcessingLogicStubGeneratorTest.kt`, `RuntimeFlowGeneratorTest.kt`, `ModuleSaveServiceTest.kt` in `kotlinCompiler/src/commonTest/` and `graphEditor/src/jvmTest/`
-- [ ] T032 [US3] Compile and run tests: `./gradlew :fbpDsl:jvmTest :kotlinCompiler:jvmTest :graphEditor:jvmTest`
+- [X] T026 [US3] Update `ProcessingLogicStubGenerator.shouldGenerateStub()` to return `false` for `CodeNodeType.SINK` nodes in `kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/ProcessingLogicStubGenerator.kt`
+- [X] T027 [US3] Remove tick call from sink consume blocks in `RuntimeFlowGenerator.kt` — keep only `{FlowName}State._prop.value = value` updates in `kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/RuntimeFlowGenerator.kt`
+- [X] T028 [US3] Remove timed sink factory methods (`createTimedSink`, `createTimedIn2Sink`, `createTimedIn3Sink`) from `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/CodeNodeFactory.kt`
+- [X] T029 [US3] Remove sink tick type aliases (`SinkTickBlock`, `In2SinkTickBlock`, `In3SinkTickBlock`, `In2AnySinkTickBlock`, `In3AnySinkTickBlock`) from `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/ContinuousTypes.kt`
+- [X] T030 [US3] Update orphan detection in `ModuleSaveService.kt` to delete source and sink processing logic stub files on re-save in `graphEditor/src/jvmMain/kotlin/save/ModuleSaveService.kt`
+- [X] T031 [US3] Update tests for sink stub removal: `ProcessingLogicStubGeneratorTest.kt`, `RuntimeFlowGeneratorTest.kt`, `ModuleSaveServiceTest.kt` in `kotlinCompiler/src/commonTest/` and `graphEditor/src/jvmTest/`
+- [X] T032 [US3] Compile and run tests: `./gradlew :fbpDsl:jvmTest :kotlinCompiler:jvmTest :graphEditor:jvmTest`
 
 **Checkpoint**: Sink nodes are pure state bridges — no stubs, no tick calls, no timed factories. Tests pass.
 

@@ -78,13 +78,14 @@ class RuntimeFlowGeneratorTest {
     // ========== Test 1: StopWatch-like flow ==========
 
     @Test
-    fun `StopWatch-like flow generates tick imports for non-source nodes only`() {
+    fun `StopWatch-like flow generates tick imports only for nodes with both inputs and outputs`() {
         val flowGraph = createStopWatchLikeFlow()
         val result = generator.generate(flowGraph, generatedPackage, usecasesPackage, viewModelPackage)
 
         assertFalse(result.contains("import io.codenode.testapp.usecases.timerEmitterTick"),
             "Source nodes should not have tick stub imports")
-        assertTrue(result.contains("import io.codenode.testapp.usecases.displayReceiverTick"))
+        assertFalse(result.contains("import io.codenode.testapp.usecases.displayReceiverTick"),
+            "Sink nodes should not have tick stub imports")
     }
 
     @Test
@@ -205,12 +206,12 @@ class RuntimeFlowGeneratorTest {
     }
 
     @Test
-    fun `StopWatch-like flow sink consume block still calls user tick`() {
+    fun `StopWatch-like flow sink consume block does not call tick function`() {
         val flowGraph = createStopWatchLikeFlow()
         val result = generator.generate(flowGraph, generatedPackage, usecasesPackage, viewModelPackage)
 
-        assertTrue(result.contains("displayReceiverTick(seconds, minutes)"),
-            "Consume block should still call user tick function")
+        assertFalse(result.contains("displayReceiverTick(seconds, minutes)"),
+            "Sink consume block should not call tick function — only updates observable state")
     }
 
     @Test
@@ -415,7 +416,8 @@ class RuntimeFlowGeneratorTest {
         assertTrue(result.contains("consume = { message ->"))
         assertTrue(result.contains("TestFlowState._message.value = message"),
             "Consume block should reference TestFlowState._message")
-        assertTrue(result.contains("loggerTick(message)"))
+        assertFalse(result.contains("loggerTick(message)"),
+            "Sink consume block should not call tick function — only updates observable state")
     }
 
     @Test

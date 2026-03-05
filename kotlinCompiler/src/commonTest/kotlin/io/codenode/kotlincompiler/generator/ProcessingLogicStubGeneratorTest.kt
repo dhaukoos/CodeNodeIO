@@ -180,7 +180,7 @@ class ProcessingLogicStubGeneratorTest {
     // ========== Sink Nodes (0 outputs) ==========
 
     @Test
-    fun `sink node 1 in 0 out produces SinkTickBlock`() {
+    fun `sink node 1 in 0 out shouldGenerateStub returns false`() {
         val node = createTestCodeNode(
             "sink", "DataSink",
             type = CodeNodeType.SINK,
@@ -188,20 +188,16 @@ class ProcessingLogicStubGeneratorTest {
         )
         val generator = ProcessingLogicStubGenerator()
 
-        val typeAlias = generator.getTickTypeAlias(node)
-        assertEquals("SinkTickBlock<String>", typeAlias)
-
-        val result = generator.generateStub(node, "io.codenode.generated")
-        assertTrue(result.contains("import io.codenode.fbpdsl.runtime.SinkTickBlock"))
-        assertTrue(result.contains("val dataSinkTick: SinkTickBlock<String>"))
-        assertTrue(result.contains("Sink (1 inputs, 0 outputs)"))
-        assertTrue(result.contains("data ->"))
-        // Sink has no return value — no ProcessResult import
-        assertFalse(result.contains("ProcessResult"))
+        assertFalse(generator.shouldGenerateStub(node),
+            "Sink nodes (0 outputs) should not generate stubs")
+        assertEquals("", generator.getTickTypeAlias(node),
+            "Sink nodes should return empty tick type alias")
+        assertEquals("", generator.generateStub(node, "io.codenode.generated"),
+            "Sink nodes should return empty stub")
     }
 
     @Test
-    fun `sink node 2 in 0 out produces In2SinkTickBlock`() {
+    fun `sink node 2 in 0 out shouldGenerateStub returns false`() {
         val node = createTestCodeNode(
             "display", "DisplayReceiver",
             type = CodeNodeType.SINK,
@@ -212,16 +208,16 @@ class ProcessingLogicStubGeneratorTest {
         )
         val generator = ProcessingLogicStubGenerator()
 
-        val typeAlias = generator.getTickTypeAlias(node)
-        assertEquals("In2SinkTickBlock<Int, Int>", typeAlias)
-
-        val result = generator.generateStub(node, "io.codenode.generated")
-        assertTrue(result.contains("val displayReceiverTick: In2SinkTickBlock<Int, Int>"))
-        assertTrue(result.contains("seconds, minutes ->"))
+        assertFalse(generator.shouldGenerateStub(node),
+            "Sink nodes (0 outputs) should not generate stubs")
+        assertEquals("", generator.getTickTypeAlias(node),
+            "Sink nodes should return empty tick type alias")
+        assertEquals("", generator.generateStub(node, "io.codenode.generated"),
+            "Sink nodes should return empty stub")
     }
 
     @Test
-    fun `sink node 3 in 0 out produces In3SinkTickBlock`() {
+    fun `sink node 3 in 0 out shouldGenerateStub returns false`() {
         val node = createTestCodeNode(
             "tri", "TriSink",
             type = CodeNodeType.SINK,
@@ -233,7 +229,12 @@ class ProcessingLogicStubGeneratorTest {
         )
         val generator = ProcessingLogicStubGenerator()
 
-        assertEquals("In3SinkTickBlock<Int, String, Boolean>", generator.getTickTypeAlias(node))
+        assertFalse(generator.shouldGenerateStub(node),
+            "Sink nodes (0 outputs) should not generate stubs")
+        assertEquals("", generator.getTickTypeAlias(node),
+            "Sink nodes should return empty tick type alias")
+        assertEquals("", generator.generateStub(node, "io.codenode.generated"),
+            "Sink nodes should return empty stub")
     }
 
     // ========== Transformer and Filter (1 in, 1 out) ==========
@@ -506,7 +507,7 @@ class ProcessingLogicStubGeneratorTest {
     }
 
     @Test
-    fun `any-input 2 in 0 out produces In2AnySinkTickBlock`() {
+    fun `any-input 2 in 0 out shouldGenerateStub returns false`() {
         val node = CodeNode(
             id = "sink",
             name = "AnySink",
@@ -521,7 +522,12 @@ class ProcessingLogicStubGeneratorTest {
         )
         val generator = ProcessingLogicStubGenerator()
 
-        assertEquals("In2AnySinkTickBlock<Int, String>", generator.getTickTypeAlias(node, anyInput = true))
+        assertFalse(generator.shouldGenerateStub(node),
+            "Any-input sink nodes (0 outputs) should not generate stubs")
+        assertEquals("", generator.getTickTypeAlias(node, anyInput = true),
+            "Any-input sink nodes should return empty tick type alias")
+        assertEquals("", generator.generateStub(node, "io.codenode.generated"),
+            "Any-input sink nodes should return empty stub")
     }
 
     @Test

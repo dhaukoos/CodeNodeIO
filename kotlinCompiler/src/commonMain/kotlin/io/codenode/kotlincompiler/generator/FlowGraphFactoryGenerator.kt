@@ -83,9 +83,9 @@ class FlowGraphFactoryGenerator {
             inputCount == 3 && outputCount == 2 -> "createTimedIn3Out2Processor"
             inputCount == 3 && outputCount == 3 -> "createTimedIn3Out3Processor"
 
-            inputCount == 1 && outputCount == 0 -> "createTimedSink"
-            inputCount == 2 && outputCount == 0 -> "createTimedIn2Sink"
-            inputCount == 3 && outputCount == 0 -> "createTimedIn3Sink"
+            inputCount == 1 && outputCount == 0 -> "createContinuousSink"
+            inputCount == 2 && outputCount == 0 -> "createIn2Sink"
+            inputCount == 3 && outputCount == 0 -> "createIn3Sink"
 
             else -> "createTimed"
         }
@@ -138,8 +138,8 @@ class FlowGraphFactoryGenerator {
             // Imports
             appendLine("import io.codenode.fbpdsl.model.CodeNodeFactory")
 
-            // Import tick functions from logicmethods (skip source nodes — they are ViewModel-driven)
-            allCodeNodes.filter { it.inputPorts.isNotEmpty() || it.outputPorts.isEmpty() }.forEach { node ->
+            // Import tick functions from logicmethods (skip source and sink nodes — no stubs)
+            allCodeNodes.filter { it.inputPorts.isNotEmpty() && it.outputPorts.isNotEmpty() }.forEach { node ->
                 appendLine("import ${getTickImport(node, logicMethodsBase)}")
             }
             appendLine()
@@ -165,11 +165,14 @@ class FlowGraphFactoryGenerator {
                 val factoryMethod = getFactoryMethodName(node)
                 val typeParams = getTypeParams(node)
                 val isSource = node.inputPorts.isEmpty() && node.outputPorts.isNotEmpty()
+                val isSink = node.inputPorts.isNotEmpty() && node.outputPorts.isEmpty()
 
                 appendLine("${indent}val $varName = CodeNodeFactory.$factoryMethod<$typeParams>(")
                 appendLine("${indent}${indent}name = \"${node.name}\",")
                 if (isSource) {
                     appendLine("${indent}${indent}generate = { _ -> kotlinx.coroutines.awaitCancellation() }")
+                } else if (isSink) {
+                    appendLine("${indent}${indent}consume = { /* state bridge — updates handled by ViewModel */ }")
                 } else {
                     val tickValName = getTickValName(node)
                     val tickInterval = node.configuration["tickIntervalMs"] ?: "1000"

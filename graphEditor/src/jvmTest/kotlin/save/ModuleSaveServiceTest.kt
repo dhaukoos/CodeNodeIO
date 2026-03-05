@@ -637,7 +637,7 @@ class ModuleSaveServiceTest {
     // ========== ProcessingLogic Stub Generation ==========
 
     @Test
-    fun `saveModule generates stub for each CodeNode`() {
+    fun `saveModule does not generate stubs for pure source and sink nodes`() {
         val node1 = CodeNode(
             id = "node1",
             name = "FirstNode",
@@ -682,8 +682,10 @@ class ModuleSaveServiceTest {
 
         assertTrue(result.success)
         val packageDir = File(result.moduleDir, "src/commonMain/kotlin/io/codenode/multinodetest/processingLogic")
-        assertTrue(File(packageDir, "FirstNodeProcessLogic.kt").exists(), "Stub for FirstNode should be created")
-        assertTrue(File(packageDir, "SecondNodeProcessLogic.kt").exists(), "Stub for SecondNode should be created")
+        assertFalse(File(packageDir, "FirstNodeProcessLogic.kt").exists(),
+            "Source node (no inputs) should NOT get a processing logic stub")
+        assertFalse(File(packageDir, "SecondNodeProcessLogic.kt").exists(),
+            "Sink node (no outputs) should NOT get a processing logic stub")
     }
 
     @Test
@@ -1032,13 +1034,15 @@ class ModuleSaveServiceTest {
         assertTrue(result.filesCreated.any { it.contains("StopWatch4ControllerAdapter.kt") })
         // ViewModel stub in base package
         assertTrue(result.filesCreated.any { it.contains("StopWatch4ViewModel.kt") })
-        // Processing logic stubs
-        assertTrue(result.filesCreated.any { it.contains("TimerEmitterProcessLogic.kt") })
-        assertTrue(result.filesCreated.any { it.contains("DisplayReceiverProcessLogic.kt") })
+        // Processing logic stubs: source and sink nodes do NOT get stubs
+        assertFalse(result.filesCreated.any { it.contains("TimerEmitterProcessLogic.kt") },
+            "Source node should NOT get a processing logic stub")
+        assertFalse(result.filesCreated.any { it.contains("DisplayReceiverProcessLogic.kt") },
+            "Sink node should NOT get a processing logic stub")
         // UI stub
         assertTrue(result.filesCreated.any { it.contains("StopWatch4.kt") && it.contains("userInterface") })
-        // Total: 2 gradle + 1 flow.kt + 4 runtime + 1 ViewModel + 2 stubs + 1 UI stub = 11
-        assertEquals(11, result.filesCreated.size, "First save should create 11 files")
+        // Total: 2 gradle + 1 flow.kt + 4 runtime + 1 ViewModel + 0 stubs + 1 UI stub = 9
+        assertEquals(9, result.filesCreated.size, "First save should create 9 files")
     }
 
     // ========== End-to-End Quickstart Validation ==========
@@ -1069,11 +1073,11 @@ class ModuleSaveServiceTest {
         assertTrue(viewModelContent.contains("val minutesFlow: StateFlow<Int>"),
             "State object should have minutes StateFlow accessor")
 
-        // Verify processing logic stubs exist
+        // Verify processing logic stubs: source and sink nodes do NOT get stubs
         val timerStub = File(processingLogicDir, "TimerEmitterProcessLogic.kt")
-        assertTrue(timerStub.exists(), "TimerEmitter stub should exist")
+        assertFalse(timerStub.exists(), "Source node (TimerEmitter) should NOT get a processing logic stub")
         val displayStub = File(processingLogicDir, "DisplayReceiverProcessLogic.kt")
-        assertTrue(displayStub.exists(), "DisplayReceiver stub should exist")
+        assertFalse(displayStub.exists(), "Sink node (DisplayReceiver) should NOT get a processing logic stub")
 
         // Verify Flow class delegates from State object
         val flowFile = File(generatedDir, "StopWatch4Flow.kt")
@@ -1207,14 +1211,16 @@ class ModuleSaveServiceTest {
         assertFalse(File(generatedDir, "StopWatch3ViewModel.kt").exists(),
             "StopWatch3ViewModel.kt should NOT be in generated/")
 
-        // 4. Processing logic stubs in processingLogic/
+        // 4. Processing logic stubs: source and sink nodes do NOT get stubs
         val processingLogicDir = File(moduleDir, "$basePackagePath/processingLogic")
-        assertTrue(File(processingLogicDir, "TimerEmitterProcessLogic.kt").exists(), "TimerEmitter stub should exist")
-        assertTrue(File(processingLogicDir, "DisplayReceiverProcessLogic.kt").exists(), "DisplayReceiver stub should exist")
+        assertFalse(File(processingLogicDir, "TimerEmitterProcessLogic.kt").exists(),
+            "Source node (TimerEmitter) should NOT get a processing logic stub")
+        assertFalse(File(processingLogicDir, "DisplayReceiverProcessLogic.kt").exists(),
+            "Sink node (DisplayReceiver) should NOT get a processing logic stub")
 
-        // 5. filesCreated includes all 11 files
-        assertEquals(11, result.filesCreated.size,
-            "First save should report 11 files created (2 gradle + 1 flow.kt + 4 runtime + 1 ViewModel + 2 stubs + 1 UI stub)")
+        // 5. filesCreated includes all 9 files (no stubs for source/sink)
+        assertEquals(9, result.filesCreated.size,
+            "First save should report 9 files created (2 gradle + 1 flow.kt + 4 runtime + 1 ViewModel + 0 stubs + 1 UI stub)")
 
         // 6. No overwrites or deletions on first save
         assertTrue(result.filesOverwritten.isEmpty(), "First save should have 0 overwritten")
@@ -1317,25 +1323,30 @@ class ModuleSaveServiceTest {
 
     @Test
     fun `T008 - re-save preserves existing processing logic stubs`() {
-        val timerEmitter = CodeNode(
-            id = "timer", name = "TimerEmitter", codeNodeType = CodeNodeType.SOURCE,
+        // Use transformer nodes (both inputs AND outputs) so stubs are generated
+        val transformer1 = CodeNode(
+            id = "trans1", name = "Formatter", codeNodeType = CodeNodeType.TRANSFORMER,
             position = Node.Position(100.0, 200.0),
-            inputPorts = emptyList(),
+            inputPorts = listOf(
+                Port(id = "trans1_in", name = "input", direction = Port.Direction.INPUT, dataType = Int::class, owningNodeId = "trans1")
+            ),
             outputPorts = listOf(
-                Port(id = "timer_sec", name = "elapsedSeconds", direction = Port.Direction.OUTPUT, dataType = Int::class, owningNodeId = "timer")
+                Port(id = "trans1_out", name = "output", direction = Port.Direction.OUTPUT, dataType = String::class, owningNodeId = "trans1")
             )
         )
-        val displayReceiver = CodeNode(
-            id = "display", name = "DisplayReceiver", codeNodeType = CodeNodeType.SINK,
+        val transformer2 = CodeNode(
+            id = "trans2", name = "Converter", codeNodeType = CodeNodeType.TRANSFORMER,
             position = Node.Position(400.0, 200.0),
             inputPorts = listOf(
-                Port(id = "display_sec", name = "seconds", direction = Port.Direction.INPUT, dataType = Int::class, owningNodeId = "display")
+                Port(id = "trans2_in", name = "input", direction = Port.Direction.INPUT, dataType = String::class, owningNodeId = "trans2")
             ),
-            outputPorts = emptyList()
+            outputPorts = listOf(
+                Port(id = "trans2_out", name = "output", direction = Port.Direction.OUTPUT, dataType = Int::class, owningNodeId = "trans2")
+            )
         )
         val flowGraph = FlowGraph(
             id = "flow_resave", name = "ReSaveTest", version = "1.0.0",
-            rootNodes = listOf(timerEmitter, displayReceiver)
+            rootNodes = listOf(transformer1, transformer2)
         )
         val saveService = ModuleSaveService()
 
@@ -1344,62 +1355,67 @@ class ModuleSaveServiceTest {
 
         // Simulate user editing the stubs
         val procDir = File(result1.moduleDir, "src/commonMain/kotlin/io/codenode/resavetest/processingLogic")
-        val timerStub = File(procDir, "TimerEmitterProcessLogic.kt")
-        val displayStub = File(procDir, "DisplayReceiverProcessLogic.kt")
-        timerStub.writeText("// USER CODE: TimerEmitter\n" + timerStub.readText())
-        displayStub.writeText("// USER CODE: DisplayReceiver\n" + displayStub.readText())
+        val formatterStub = File(procDir, "FormatterProcessLogic.kt")
+        val converterStub = File(procDir, "ConverterProcessLogic.kt")
+        formatterStub.writeText("// USER CODE: Formatter\n" + formatterStub.readText())
+        converterStub.writeText("// USER CODE: Converter\n" + converterStub.readText())
 
         // Re-save
         val result2 = saveService.saveModule(flowGraph, tempDir)
 
         assertTrue(result2.success)
-        assertTrue(timerStub.readText().startsWith("// USER CODE: TimerEmitter"),
-            "TimerEmitter processing logic should be preserved")
-        assertTrue(displayStub.readText().startsWith("// USER CODE: DisplayReceiver"),
-            "DisplayReceiver processing logic should be preserved")
-        assertFalse(result2.filesCreated.any { it.contains("TimerEmitterProcessLogic.kt") },
+        assertTrue(formatterStub.readText().startsWith("// USER CODE: Formatter"),
+            "Formatter processing logic should be preserved")
+        assertTrue(converterStub.readText().startsWith("// USER CODE: Converter"),
+            "Converter processing logic should be preserved")
+        assertFalse(result2.filesCreated.any { it.contains("FormatterProcessLogic.kt") },
             "Existing stub should not be in filesCreated")
     }
 
     @Test
     fun `T008 - re-save creates new stubs for added nodes`() {
-        val timerEmitter = CodeNode(
-            id = "timer", name = "TimerEmitter", codeNodeType = CodeNodeType.SOURCE,
+        // Use transformer node (has both inputs and outputs) so stub is generated
+        val transformer = CodeNode(
+            id = "trans1", name = "Formatter", codeNodeType = CodeNodeType.TRANSFORMER,
             position = Node.Position(100.0, 200.0),
-            inputPorts = emptyList(),
+            inputPorts = listOf(
+                Port(id = "trans1_in", name = "input", direction = Port.Direction.INPUT, dataType = Int::class, owningNodeId = "trans1")
+            ),
             outputPorts = listOf(
-                Port(id = "timer_sec", name = "elapsedSeconds", direction = Port.Direction.OUTPUT, dataType = Int::class, owningNodeId = "timer")
+                Port(id = "trans1_out", name = "output", direction = Port.Direction.OUTPUT, dataType = String::class, owningNodeId = "trans1")
             )
         )
         val flowGraph1 = FlowGraph(
             id = "flow_resave", name = "ReSaveTest", version = "1.0.0",
-            rootNodes = listOf(timerEmitter)
+            rootNodes = listOf(transformer)
         )
         val saveService = ModuleSaveService()
 
         saveService.saveModule(flowGraph1, tempDir)
 
-        // Add a Logger node
-        val logger = CodeNode(
-            id = "logger", name = "Logger", codeNodeType = CodeNodeType.SINK,
+        // Add a new transformer node
+        val converter = CodeNode(
+            id = "conv1", name = "Converter", codeNodeType = CodeNodeType.TRANSFORMER,
             position = Node.Position(400.0, 400.0),
             inputPorts = listOf(
-                Port(id = "logger_in", name = "message", direction = Port.Direction.INPUT, dataType = String::class, owningNodeId = "logger")
+                Port(id = "conv1_in", name = "input", direction = Port.Direction.INPUT, dataType = String::class, owningNodeId = "conv1")
             ),
-            outputPorts = emptyList()
+            outputPorts = listOf(
+                Port(id = "conv1_out", name = "output", direction = Port.Direction.OUTPUT, dataType = Int::class, owningNodeId = "conv1")
+            )
         )
-        val flowGraph2 = flowGraph1.copy(rootNodes = listOf(timerEmitter, logger))
+        val flowGraph2 = flowGraph1.copy(rootNodes = listOf(transformer, converter))
 
         // Re-save with new node
         val result2 = saveService.saveModule(flowGraph2, tempDir)
 
         assertTrue(result2.success)
         // New processing logic stub created
-        assertTrue(result2.filesCreated.any { it.contains("LoggerProcessLogic.kt") },
-            "New LoggerProcessLogic stub should be in filesCreated")
+        assertTrue(result2.filesCreated.any { it.contains("ConverterProcessLogic.kt") },
+            "New ConverterProcessLogic stub should be in filesCreated")
         // Existing stubs NOT in filesCreated
-        assertFalse(result2.filesCreated.any { it.contains("TimerEmitterProcessLogic.kt") },
-            "Existing TimerEmitter stub should not be in filesCreated")
+        assertFalse(result2.filesCreated.any { it.contains("FormatterProcessLogic.kt") },
+            "Existing Formatter stub should not be in filesCreated")
     }
 
     @Test
@@ -1432,12 +1448,13 @@ class ModuleSaveServiceTest {
         )
         val saveService = ModuleSaveService()
 
-        // Step 1: First save
+        // Step 1: First save (source and sink nodes do NOT get stubs)
         val result1 = saveService.saveModule(flowGraph1, tempDir)
         assertTrue(result1.success)
-        assertEquals(11, result1.filesCreated.size, "Step 1: 11 files created")
+        assertEquals(9, result1.filesCreated.size,
+            "Step 1: 9 files created (2 gradle + 1 flow.kt + 4 runtime + 1 ViewModel + 0 stubs + 1 UI stub)")
 
-        // Step 2: Add Logger node, re-save
+        // Step 2: Add Logger node (SINK — no stub generated), re-save
         val logger = CodeNode(
             id = "logger", name = "Logger", codeNodeType = CodeNodeType.SINK,
             position = Node.Position(400.0, 400.0),
@@ -1451,16 +1468,13 @@ class ModuleSaveServiceTest {
         val result2 = saveService.saveModule(flowGraph2, tempDir)
 
         assertTrue(result2.success)
-        // Step 2: 1 file created, 6 files overwritten, 0 deleted
-        assertEquals(1, result2.filesCreated.size,
-            "Step 2: 1 new file created (LoggerProcessLogic)")
+        // Step 2: 0 files created (sink node gets no stub), 6 files overwritten, 0 deleted
+        assertEquals(0, result2.filesCreated.size,
+            "Step 2: 0 new files created (sink nodes do not get stubs)")
         assertEquals(6, result2.filesOverwritten.size,
             "Step 2: 6 files overwritten (flow.kt + 4 runtime + 1 ViewModel)")
         assertEquals(0, result2.filesDeleted.size,
             "Step 2: 0 files deleted")
-
-        // Verify the 1 created file is Logger stub
-        assertTrue(result2.filesCreated.any { it.contains("LoggerProcessLogic.kt") })
 
         // Verify the 6 overwritten files are flow.kt + 4 runtime + ViewModel
         assertTrue(result2.filesOverwritten.any { it.contains("StopWatch3.flow.kt") })
@@ -1475,74 +1489,75 @@ class ModuleSaveServiceTest {
 
     @Test
     fun `T009 - re-save after removing node deletes orphaned stubs and preserves remaining`() {
-        val timerEmitter = CodeNode(
-            id = "timer", name = "TimerEmitter", codeNodeType = CodeNodeType.SOURCE,
+        // Use transformer nodes (both inputs AND outputs) so stubs are generated
+        val formatter = CodeNode(
+            id = "formatter", name = "Formatter", codeNodeType = CodeNodeType.TRANSFORMER,
             position = Node.Position(100.0, 200.0),
-            inputPorts = emptyList(),
+            inputPorts = listOf(
+                Port(id = "fmt_in", name = "input", direction = Port.Direction.INPUT, dataType = Int::class, owningNodeId = "formatter")
+            ),
             outputPorts = listOf(
-                Port(id = "timer_sec", name = "elapsedSeconds", direction = Port.Direction.OUTPUT, dataType = Int::class, owningNodeId = "timer"),
-                Port(id = "timer_min", name = "elapsedMinutes", direction = Port.Direction.OUTPUT, dataType = Int::class, owningNodeId = "timer")
+                Port(id = "fmt_out", name = "output", direction = Port.Direction.OUTPUT, dataType = String::class, owningNodeId = "formatter")
             )
         )
-        val displayReceiver = CodeNode(
-            id = "display", name = "DisplayReceiver", codeNodeType = CodeNodeType.SINK,
+        val converter = CodeNode(
+            id = "converter", name = "Converter", codeNodeType = CodeNodeType.TRANSFORMER,
             position = Node.Position(400.0, 200.0),
             inputPorts = listOf(
-                Port(id = "display_sec", name = "seconds", direction = Port.Direction.INPUT, dataType = Int::class, owningNodeId = "display"),
-                Port(id = "display_min", name = "minutes", direction = Port.Direction.INPUT, dataType = Int::class, owningNodeId = "display")
+                Port(id = "conv_in", name = "input", direction = Port.Direction.INPUT, dataType = String::class, owningNodeId = "converter")
             ),
-            outputPorts = emptyList()
+            outputPorts = listOf(
+                Port(id = "conv_out", name = "output", direction = Port.Direction.OUTPUT, dataType = Int::class, owningNodeId = "converter")
+            )
         )
-        val logger = CodeNode(
-            id = "logger", name = "Logger", codeNodeType = CodeNodeType.SINK,
+        val removable = CodeNode(
+            id = "removable", name = "Removable", codeNodeType = CodeNodeType.TRANSFORMER,
             position = Node.Position(400.0, 400.0),
             inputPorts = listOf(
-                Port(id = "logger_in", name = "message", direction = Port.Direction.INPUT, dataType = String::class, owningNodeId = "logger")
+                Port(id = "rem_in", name = "input", direction = Port.Direction.INPUT, dataType = String::class, owningNodeId = "removable")
             ),
-            outputPorts = emptyList()
+            outputPorts = listOf(
+                Port(id = "rem_out", name = "output", direction = Port.Direction.OUTPUT, dataType = String::class, owningNodeId = "removable")
+            )
         )
         val flowGraph1 = FlowGraph(
             id = "flow_qs3", name = "StopWatch3", version = "1.0.0",
-            rootNodes = listOf(timerEmitter, displayReceiver, logger),
-            connections = listOf(
-                Connection("c1", "timer", "timer_sec", "display", "display_sec"),
-                Connection("c2", "timer", "timer_min", "display", "display_min")
-            )
+            rootNodes = listOf(formatter, converter, removable)
         )
         val saveService = ModuleSaveService()
 
-        // Step 1: First save with 3 nodes
+        // Step 1: First save with 3 transformer nodes
         val result1 = saveService.saveModule(flowGraph1, tempDir)
         assertTrue(result1.success)
 
         val moduleDir = result1.moduleDir!!
         val processingLogicDir = File(moduleDir, "src/commonMain/kotlin/io/codenode/stopwatch3/processingLogic")
 
-        // Verify all 3 nodes have processing logic stubs
-        assertTrue(File(processingLogicDir, "TimerEmitterProcessLogic.kt").exists())
-        assertTrue(File(processingLogicDir, "DisplayReceiverProcessLogic.kt").exists())
-        assertTrue(File(processingLogicDir, "LoggerProcessLogic.kt").exists())
+        // Verify all 3 transformer nodes have processing logic stubs
+        assertTrue(File(processingLogicDir, "FormatterProcessLogic.kt").exists())
+        assertTrue(File(processingLogicDir, "ConverterProcessLogic.kt").exists())
+        assertTrue(File(processingLogicDir, "RemovableProcessLogic.kt").exists())
 
-        // Step 3: Remove Logger node, re-save
-        val flowGraph3 = flowGraph1.copy(rootNodes = listOf(timerEmitter, displayReceiver))
+        // Step 3: Remove Removable node, re-save
+        val flowGraph3 = flowGraph1.copy(rootNodes = listOf(formatter, converter))
 
         val result3 = saveService.saveModule(flowGraph3, tempDir)
 
         assertTrue(result3.success)
 
-        // Logger processing logic stub deleted
-        assertFalse(File(processingLogicDir, "LoggerProcessLogic.kt").exists(),
-            "Logger processing logic stub should be deleted")
+        // Removable processing logic stub deleted
+        assertFalse(File(processingLogicDir, "RemovableProcessLogic.kt").exists(),
+            "Removable processing logic stub should be deleted")
 
-        // TimerEmitter and DisplayReceiver stubs preserved
-        assertTrue(File(processingLogicDir, "TimerEmitterProcessLogic.kt").exists(),
-            "TimerEmitter processing logic stub should be preserved")
-        assertTrue(File(processingLogicDir, "DisplayReceiverProcessLogic.kt").exists(),
-            "DisplayReceiver processing logic stub should be preserved")
+        // Formatter and Converter stubs preserved
+        assertTrue(File(processingLogicDir, "FormatterProcessLogic.kt").exists(),
+            "Formatter processing logic stub should be preserved")
+        assertTrue(File(processingLogicDir, "ConverterProcessLogic.kt").exists(),
+            "Converter processing logic stub should be preserved")
 
         // filesDeleted contains the deleted file path
-        assertTrue(result3.filesDeleted.any { it.contains("LoggerProcessLogic.kt") },
-            "filesDeleted should include LoggerProcessLogic.kt")
+        assertTrue(result3.filesDeleted.any { it.contains("RemovableProcessLogic.kt") },
+            "filesDeleted should include RemovableProcessLogic.kt")
 
         // Counts: 0 created, 6 overwritten, 1 deleted
         assertEquals(0, result3.filesCreated.size,
@@ -1550,7 +1565,7 @@ class ModuleSaveServiceTest {
         assertEquals(6, result3.filesOverwritten.size,
             "Step 3: 6 files overwritten (flow.kt + 4 runtime + 1 ViewModel)")
         assertEquals(1, result3.filesDeleted.size,
-            "Step 3: 1 file deleted (Logger processing logic)")
+            "Step 3: 1 file deleted (Removable processing logic)")
     }
 
     // ========== T010: Name Change Integration (Quickstart Step 4) ==========
@@ -1670,14 +1685,16 @@ class ModuleSaveServiceTest {
         val result1 = saveService.saveModule(flowGraph1, tempDir)
         assertTrue(result1.success)
 
-        // Add a new node and regenerate
+        // Add a new transformer node (has both inputs and outputs) and regenerate
         val node2 = CodeNode(
-            id = "node2", name = "NewNode", codeNodeType = CodeNodeType.SINK,
+            id = "node2", name = "NewNode", codeNodeType = CodeNodeType.TRANSFORMER,
             position = Node.Position(300.0, 0.0),
             inputPorts = listOf(
                 Port(id = "p3", name = "data", direction = Port.Direction.INPUT, dataType = Int::class, owningNodeId = "node2")
             ),
-            outputPorts = emptyList()
+            outputPorts = listOf(
+                Port(id = "p4", name = "result", direction = Port.Direction.OUTPUT, dataType = String::class, owningNodeId = "node2")
+            )
         )
         val flowGraph2 = createTestFlowGraph("MixedRegenTest", listOf(node1, node2))
 
@@ -1702,13 +1719,13 @@ class ModuleSaveServiceTest {
         assertTrue(result1.success)
         assertEquals(0, result1.filesOverwritten.size, "First save should have 0 overwritten")
 
-        // Re-save with regenerate
+        // Re-save with regenerate (source and sink nodes have no stubs to regenerate)
         val result2 = saveService.saveModule(flowGraph, tempDir, regenerateStubs = true)
 
         assertTrue(result2.success)
-        // 6 always-overwritten (flow.kt + 4 runtime + 1 ViewModel) + 2 processing logic = 8
-        assertEquals(8, result2.filesOverwritten.size,
-            "Should have 8 overwritten files (6 always + 2 proc logic)")
+        // 6 always-overwritten (flow.kt + 4 runtime + 1 ViewModel) + 0 processing logic (no stubs for source/sink)
+        assertEquals(6, result2.filesOverwritten.size,
+            "Should have 6 overwritten files (6 always + 0 proc logic for source/sink)")
         // No new files created
         assertEquals(0, result2.filesCreated.size, "No new files on re-save with regen")
     }
@@ -1776,8 +1793,11 @@ class ModuleSaveServiceTest {
         assertTrue(File(betaDir, "settings.gradle.kts").exists(), "Beta settings.gradle.kts should exist")
         assertTrue(File(betaDir, "src/commonMain/kotlin/io/codenode/beta/generated/BetaFlow.kt").exists(),
             "Beta runtime files should exist")
-        assertTrue(File(betaDir, "src/commonMain/kotlin/io/codenode/beta/processingLogic/TimerEmitterProcessLogic.kt").exists(),
-            "Beta processing logic stubs should exist")
+        // Source and sink nodes do not get processing logic stubs
+        assertFalse(File(betaDir, "src/commonMain/kotlin/io/codenode/beta/processingLogic/TimerEmitterProcessLogic.kt").exists(),
+            "Source node (TimerEmitter) should NOT get a processing logic stub")
+        assertFalse(File(betaDir, "src/commonMain/kotlin/io/codenode/beta/processingLogic/DisplayReceiverProcessLogic.kt").exists(),
+            "Sink node (DisplayReceiver) should NOT get a processing logic stub")
         assertTrue(File(betaDir, "src/commonMain/kotlin/io/codenode/beta/BetaViewModel.kt").exists(),
             "Beta ViewModel stub should exist in base package")
 

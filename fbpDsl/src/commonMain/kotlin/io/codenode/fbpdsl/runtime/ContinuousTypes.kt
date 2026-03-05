@@ -302,35 +302,6 @@ typealias In3Out2TickBlock<A, B, C, U, V> = suspend (A, B, C) -> ProcessResult2<
  */
 typealias In3Out3TickBlock<A, B, C, U, V, W> = suspend (A, B, C) -> ProcessResult3<U, V, W>
 
-// --- Sink Tick Blocks ---
-
-/**
- * Type alias for timed single-input sink tick block.
- * Called once per tick interval after receiving input.
- *
- * @param T Type of input value
- */
-typealias SinkTickBlock<T> = suspend (T) -> Unit
-
-/**
- * Type alias for timed 2-input sink tick block.
- * Called once per tick interval after receiving both inputs.
- *
- * @param A Type of first input
- * @param B Type of second input
- */
-typealias In2SinkTickBlock<A, B> = suspend (A, B) -> Unit
-
-/**
- * Type alias for timed 3-input sink tick block.
- * Called once per tick interval after receiving all three inputs.
- *
- * @param A Type of first input
- * @param B Type of second input
- * @param C Type of third input
- */
-typealias In3SinkTickBlock<A, B, C> = suspend (A, B, C) -> Unit
-
 // ========== Any-Input Process Blocks ==========
 // These fire when ANY single input receives data (vs waiting for ALL inputs).
 
@@ -358,12 +329,8 @@ typealias In2AnyOut2TickBlock<A, B, U, V> = suspend (A, B) -> ProcessResult2<U, 
 
 typealias In2AnyOut3TickBlock<A, B, U, V, W> = suspend (A, B) -> ProcessResult3<U, V, W>
 
-typealias In2AnySinkTickBlock<A, B> = suspend (A, B) -> Unit
-
 typealias In3AnyOut1TickBlock<A, B, C, R> = suspend (A, B, C) -> R
 
 typealias In3AnyOut2TickBlock<A, B, C, U, V> = suspend (A, B, C) -> ProcessResult2<U, V>
 
 typealias In3AnyOut3TickBlock<A, B, C, U, V, W> = suspend (A, B, C) -> ProcessResult3<U, V, W>
-
-typealias In3AnySinkTickBlock<A, B, C> = suspend (A, B, C) -> Unit

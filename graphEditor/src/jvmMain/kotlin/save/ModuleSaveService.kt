@@ -395,8 +395,9 @@ class ModuleSaveService {
         val packagePath = packageName.replace(".", "/")
         val sourceDir = File(moduleDir, "src/commonMain/kotlin/$packagePath")
 
-        // Get all CodeNodes from the flow graph (including nested ones)
+        // Get CodeNodes that need processing logic stubs (excludes sources and sinks)
         val codeNodes = flowGraph.getAllCodeNodes()
+            .filter { stubGenerator.shouldGenerateStub(it) }
 
         for (codeNode in codeNodes) {
             val stubFileName = stubGenerator.getStubFileName(codeNode)
@@ -636,7 +637,10 @@ class ModuleSaveService {
         if (!sourceDir.exists()) return
 
         val codeNodes = flowGraph.getAllCodeNodes()
-        val expectedFiles = codeNodes.map { stubGenerator.getStubFileName(it) }.toSet()
+        val expectedFiles = codeNodes
+            .filter { stubGenerator.shouldGenerateStub(it) }
+            .map { stubGenerator.getStubFileName(it) }
+            .toSet()
 
         val existingComponentFiles = sourceDir.listFiles()
             ?.filter { it.isFile && it.name.endsWith("ProcessLogic.kt") }
