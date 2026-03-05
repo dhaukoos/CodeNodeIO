@@ -68,8 +68,9 @@ class StopWatchController(
         val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
         flowScope = scope
 
-        flow.timerEmitter.registry = registry
+        flow.timeIncrementer.registry = registry
         flow.displayReceiver.registry = registry
+        flow.timerEmitter.registry = registry
 
         flow.timerEmitter.executionState = ExecutionState.RUNNING
         scope.launch {

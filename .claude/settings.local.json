@@ -5,7 +5,8 @@
       "Bash(.specify/scripts/bash/setup-plan.sh:*)",
       "Bash(.specify/scripts/bash/update-agent-context.sh:*)",
       "Bash(.specify/scripts/bash/check-prerequisites.sh:*)",
-      "Bash(./gradlew:*)"
+      "Bash(./gradlew:*)",
+      "Bash(git -C /Users/dhaukoos/CodeNodeIO show 9dc49f1:fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/CodeNodeFactory.kt)"
     ]
   }
 }
