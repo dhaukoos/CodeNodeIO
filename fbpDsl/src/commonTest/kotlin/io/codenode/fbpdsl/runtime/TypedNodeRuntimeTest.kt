@@ -319,10 +319,10 @@ class TypedNodeRuntimeTest {
     // ========== User Story 3: Generator and Sink Node Variants ==========
 
     @Test
-    fun `In2SinkRuntime consumes from two inputs continuously`() = runTest {
+    fun `SinkIn2Runtime consumes from two inputs continuously`() = runTest {
         // Given: A sink that collects pairs
         val collected = mutableListOf<Pair<Int, String>>()
-        val sink = CodeNodeFactory.createIn2Sink<Int, String>(
+        val sink = CodeNodeFactory.createSinkIn2<Int, String>(
             name = "PairCollector"
         ) { a, b -> collected.add(Pair(a, b)) }
 
@@ -357,10 +357,10 @@ class TypedNodeRuntimeTest {
     }
 
     @Test
-    fun `In3SinkRuntime consumes from three inputs continuously`() = runTest {
+    fun `SinkIn3Runtime consumes from three inputs continuously`() = runTest {
         // Given: A sink that collects triples
         val collected = mutableListOf<Triple<Int, Int, Int>>()
-        val sink = CodeNodeFactory.createIn3Sink<Int, Int, Int>(
+        val sink = CodeNodeFactory.createSinkIn3<Int, Int, Int>(
             name = "TripleCollector"
         ) { a, b, c -> collected.add(Triple(a, b, c)) }
 
@@ -617,7 +617,7 @@ class TypedNodeRuntimeTest {
             name = "MySplitter"
         ) { v -> ProcessResult2(v, v.toString()) }
 
-        val sink = CodeNodeFactory.createIn2Sink<Int, String>(
+        val sink = CodeNodeFactory.createSinkIn2<Int, String>(
             name = "MyCollector"
         ) { _, _ -> }
 
@@ -662,7 +662,7 @@ class TypedNodeRuntimeTest {
     @Test
     fun `typed factories prevent 0x0 configuration by design`() = runTest {
         // The typed factory methods inherently prevent 0-input AND 0-output configurations:
-        // - Sinks: In2Sink, In3Sink have inputs, no outputs
+        // - Sinks: SinkIn2, SinkIn3 have inputs, no outputs
         // - Generators: Out2Generator, Out3Generator have outputs, no inputs
         // - Processors: In2Out1, In1Out2, etc. have both inputs and outputs
         //
@@ -670,7 +670,7 @@ class TypedNodeRuntimeTest {
         // the type system enforces valid configurations.
 
         // Verify minimum configurations exist and work:
-        val sink = CodeNodeFactory.createIn2Sink<Int, Int>(name = "MinSink") { _, _ -> }
+        val sink = CodeNodeFactory.createSinkIn2<Int, Int>(name = "MinSink") { _, _ -> }
         assertTrue(sink.codeNode.inputPorts.isNotEmpty())
         assertTrue(sink.codeNode.outputPorts.isEmpty())
 

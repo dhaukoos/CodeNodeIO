@@ -24,7 +24,7 @@ class RuntimeTypeResolver {
      *
      * @param node The code node
      * @param anyInput When true, returns any-input factory variant (e.g., "createIn2AnyOut1Processor")
-     * @return Factory method name (e.g., "createContinuousSource", "createIn2Sink")
+     * @return Factory method name (e.g., "createContinuousSource", "createSinkIn2")
      */
     fun getFactoryMethodName(node: CodeNode, anyInput: Boolean = false): String {
         val inputs = node.inputPorts.size
@@ -39,8 +39,8 @@ class RuntimeTypeResolver {
 
             // Sinks (0 outputs)
             inputs == 1 && outputs == 0 -> "createContinuousSink"
-            inputs == 2 && outputs == 0 -> "createIn2${any}Sink"
-            inputs == 3 && outputs == 0 -> "createIn3${any}Sink"
+            inputs == 2 && outputs == 0 -> "createSinkIn2${any}"
+            inputs == 3 && outputs == 0 -> "createSinkIn3${any}"
 
             // Filter vs Transformer (1 in, 1 out)
             inputs == 1 && outputs == 1 -> {
@@ -87,8 +87,8 @@ class RuntimeTypeResolver {
             inputs == 0 && outputs == 3 -> "SourceOut3Runtime<$typeParams>"
 
             inputs == 1 && outputs == 0 -> "SinkRuntime<$typeParams>"
-            inputs == 2 && outputs == 0 -> "In2${any}SinkRuntime<$typeParams>"
-            inputs == 3 && outputs == 0 -> "In3${any}SinkRuntime<$typeParams>"
+            inputs == 2 && outputs == 0 -> "SinkIn2${any}Runtime<$typeParams>"
+            inputs == 3 && outputs == 0 -> "SinkIn3${any}Runtime<$typeParams>"
 
             inputs == 1 && outputs == 1 -> {
                 val inType = node.inputPorts[0].dataType.simpleName ?: "Any"

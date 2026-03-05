@@ -132,16 +132,16 @@
 
 ### Implementation for User Story 5
 
-- [ ] T041 [P] [US5] Rename `In2SinkRuntime.kt` → `SinkIn2Runtime.kt`: create new file with class renamed to `SinkIn2Runtime`, delete old file in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/`
-- [ ] T042 [P] [US5] Rename `In3SinkRuntime.kt` → `SinkIn3Runtime.kt`: create new file with class renamed to `SinkIn3Runtime`, delete old file in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/`
-- [ ] T043 [P] [US5] Rename `In2AnySinkRuntime.kt` → `SinkIn2AnyRuntime.kt`: create new file with class renamed to `SinkIn2AnyRuntime`, delete old file in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/`
-- [ ] T044 [P] [US5] Rename `In3AnySinkRuntime.kt` → `SinkIn3AnyRuntime.kt`: create new file with class renamed to `SinkIn3AnyRuntime`, delete old file in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/`
-- [ ] T045 [US5] Rename multi-input sink factory methods (`createIn2Sink` → `createSinkIn2`, `createIn3Sink` → `createSinkIn3`, `createIn2AnySink` → `createSinkIn2Any`, `createIn3AnySink` → `createSinkIn3Any`) in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/CodeNodeFactory.kt`
-- [ ] T046 [US5] Rename multi-input sink type aliases (`In2SinkBlock` → `SinkIn2Block`, `In3SinkBlock` → `SinkIn3Block`, `In2AnySinkBlock` → `SinkIn2AnyBlock`, `In3AnySinkBlock` → `SinkIn3AnyBlock`) in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/ContinuousTypes.kt`
-- [ ] T047 [US5] Update `RuntimeTypeResolver.kt` to return `SinkIn2Runtime`/`SinkIn3Runtime`/`SinkIn2AnyRuntime`/`SinkIn3AnyRuntime` and `createSinkIn2`/`createSinkIn3`/`createSinkIn2Any`/`createSinkIn3Any` in `kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/RuntimeTypeResolver.kt`
-- [ ] T048 [US5] Update `FlowGraphFactoryGenerator.kt` for multi-input sink naming in `kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/FlowGraphFactoryGenerator.kt`
-- [ ] T049 [US5] Update tests for multi-input sink renaming: `TypedNodeRuntimeTest.kt`, `AnyInputRuntimeTest.kt`, `PauseResumeTest.kt` in `fbpDsl/src/commonTest/`, `RuntimeTypeResolverTest.kt`, `RuntimeFlowGeneratorTest.kt`, `FlowGraphFactoryGeneratorTest.kt` in `kotlinCompiler/src/commonTest/`
-- [ ] T050 [US5] Compile and run tests: `./gradlew :fbpDsl:jvmTest :kotlinCompiler:jvmTest`
+- [X] T041 [P] [US5] Rename `In2SinkRuntime.kt` → `SinkIn2Runtime.kt`: create new file with class renamed to `SinkIn2Runtime`, delete old file in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/`
+- [X] T042 [P] [US5] Rename `In3SinkRuntime.kt` → `SinkIn3Runtime.kt`: create new file with class renamed to `SinkIn3Runtime`, delete old file in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/`
+- [X] T043 [P] [US5] Rename `In2AnySinkRuntime.kt` → `SinkIn2AnyRuntime.kt`: create new file with class renamed to `SinkIn2AnyRuntime`, delete old file in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/`
+- [X] T044 [P] [US5] Rename `In3AnySinkRuntime.kt` → `SinkIn3AnyRuntime.kt`: create new file with class renamed to `SinkIn3AnyRuntime`, delete old file in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/`
+- [X] T045 [US5] Rename multi-input sink factory methods (`createIn2Sink` → `createSinkIn2`, `createIn3Sink` → `createSinkIn3`, `createIn2AnySink` → `createSinkIn2Any`, `createIn3AnySink` → `createSinkIn3Any`) in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/CodeNodeFactory.kt`
+- [X] T046 [US5] Rename multi-input sink type aliases (`In2SinkBlock` → `SinkIn2Block`, `In3SinkBlock` → `SinkIn3Block`, `In2AnySinkBlock` → `SinkIn2AnyBlock`, `In3AnySinkBlock` → `SinkIn3AnyBlock`) in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/ContinuousTypes.kt`
+- [X] T047 [US5] Update `RuntimeTypeResolver.kt` to return `SinkIn2Runtime`/`SinkIn3Runtime`/`SinkIn2AnyRuntime`/`SinkIn3AnyRuntime` and `createSinkIn2`/`createSinkIn3`/`createSinkIn2Any`/`createSinkIn3Any` in `kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/RuntimeTypeResolver.kt`
+- [X] T048 [US5] Update `FlowGraphFactoryGenerator.kt` for multi-input sink naming in `kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/FlowGraphFactoryGenerator.kt`
+- [X] T049 [US5] Update tests for multi-input sink renaming: `TypedNodeRuntimeTest.kt`, `AnyInputRuntimeTest.kt`, `PauseResumeTest.kt` in `fbpDsl/src/commonTest/`, `RuntimeTypeResolverTest.kt`, `RuntimeFlowGeneratorTest.kt`, `FlowGraphFactoryGeneratorTest.kt` in `kotlinCompiler/src/commonTest/`
+- [X] T050 [US5] Compile and run tests: `./gradlew :fbpDsl:jvmTest :kotlinCompiler:jvmTest`
 
 **Checkpoint**: Multi-input sink classes follow `SinkIn{N}Runtime` naming convention. Tests pass.
 

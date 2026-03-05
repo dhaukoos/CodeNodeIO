@@ -221,13 +221,13 @@ class AnyInputRuntimeTest {
         processor.stop()
     }
 
-    // ========== In2AnySinkRuntime ==========
+    // ========== SinkIn2AnyRuntime ==========
 
     @Test
-    fun `In2AnySinkRuntime fires when any input receives data`() = runTest {
+    fun `SinkIn2AnyRuntime fires when any input receives data`() = runTest {
         val received = mutableListOf<Pair<Int, String>>()
 
-        val sink = CodeNodeFactory.createIn2AnySink<Int, String>(
+        val sink = CodeNodeFactory.createSinkIn2Any<Int, String>(
             name = "AnySink",
             initialValue1 = 0,
             initialValue2 = ""
@@ -421,13 +421,13 @@ class AnyInputRuntimeTest {
         processor.stop()
     }
 
-    // ========== In3AnySinkRuntime ==========
+    // ========== SinkIn3AnyRuntime ==========
 
     @Test
-    fun `In3AnySinkRuntime fires when any of 3 inputs receives data`() = runTest {
+    fun `SinkIn3AnyRuntime fires when any of 3 inputs receives data`() = runTest {
         val received = mutableListOf<Triple<Int, Int, Int>>()
 
-        val sink = CodeNodeFactory.createIn3AnySink<Int, Int, Int>(
+        val sink = CodeNodeFactory.createSinkIn3Any<Int, Int, Int>(
             name = "AnyTripleSink",
             initialValue1 = 0,
             initialValue2 = 0,

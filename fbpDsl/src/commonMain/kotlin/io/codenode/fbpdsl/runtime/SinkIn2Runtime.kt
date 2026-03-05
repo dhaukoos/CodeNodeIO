@@ -1,5 +1,5 @@
 /*
- * In2SinkRuntime - Runtime for sink nodes with 2 inputs
+ * SinkIn2Runtime - Runtime for sink nodes with 2 inputs
  * Manages synchronous receive from two input channels
  * License: Apache 2.0
  */
@@ -29,9 +29,9 @@ import kotlinx.coroutines.launch
  * @param codeNode The underlying CodeNode model
  * @param consume The sink function that processes both inputs
  */
-class In2SinkRuntime<A : Any, B : Any>(
+class SinkIn2Runtime<A : Any, B : Any>(
     codeNode: CodeNode,
-    private val consume: In2SinkBlock<A, B>
+    private val consume: SinkIn2Block<A, B>
 ) : NodeRuntime(codeNode) {
 
     /**

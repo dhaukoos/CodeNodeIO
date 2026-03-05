@@ -73,10 +73,10 @@ class RuntimeTypeResolverTest {
         assertEquals("SourceOut2Runtime<Int, Int>", resolver.getRuntimeTypeName(node))
     }
 
-    // ========== Test: 2 in, 0 out → createIn2Sink ==========
+    // ========== Test: 2 in, 0 out → createSinkIn2 ==========
 
     @Test
-    fun `2 in 0 out returns createIn2Sink`() {
+    fun `2 in 0 out returns createSinkIn2`() {
         val node = createTestCodeNode(
             id = "sink", name = "DisplayReceiver", type = CodeNodeType.SINK,
             inputPorts = listOf(
@@ -85,9 +85,9 @@ class RuntimeTypeResolverTest {
             )
         )
 
-        assertEquals("createIn2Sink", resolver.getFactoryMethodName(node))
+        assertEquals("createSinkIn2", resolver.getFactoryMethodName(node))
         assertEquals("consume", resolver.getTickParamName(node))
-        assertEquals("In2SinkRuntime<Int, Int>", resolver.getRuntimeTypeName(node))
+        assertEquals("SinkIn2Runtime<Int, Int>", resolver.getRuntimeTypeName(node))
     }
 
     // ========== Test: 1 in, 1 out (different types) → createContinuousTransformer ==========
@@ -166,10 +166,10 @@ class RuntimeTypeResolverTest {
         assertEquals("SourceOut3Runtime<Int, String, Boolean>", resolver.getRuntimeTypeName(node))
     }
 
-    // ========== Test: 3 in, 0 out → createIn3Sink ==========
+    // ========== Test: 3 in, 0 out → createSinkIn3 ==========
 
     @Test
-    fun `3 in 0 out returns createIn3Sink`() {
+    fun `3 in 0 out returns createSinkIn3`() {
         val node = createTestCodeNode(
             id = "sink", name = "TriSink", type = CodeNodeType.SINK,
             inputPorts = listOf(
@@ -179,9 +179,9 @@ class RuntimeTypeResolverTest {
             )
         )
 
-        assertEquals("createIn3Sink", resolver.getFactoryMethodName(node))
+        assertEquals("createSinkIn3", resolver.getFactoryMethodName(node))
         assertEquals("consume", resolver.getTickParamName(node))
-        assertEquals("In3SinkRuntime<Int, String, Boolean>", resolver.getRuntimeTypeName(node))
+        assertEquals("SinkIn3Runtime<Int, String, Boolean>", resolver.getRuntimeTypeName(node))
     }
 
     // ========== Test: Multi-input, multi-output processors ==========
@@ -324,7 +324,7 @@ class RuntimeTypeResolverTest {
     // ========== Any-Input Variant Tests ==========
 
     @Test
-    fun `2 in 0 out anyInput returns createIn2AnySink`() {
+    fun `2 in 0 out anyInput returns createSinkIn2Any`() {
         val node = createTestCodeNode(
             id = "sink", name = "AnySink", type = CodeNodeType.SINK,
             inputPorts = listOf(
@@ -333,9 +333,9 @@ class RuntimeTypeResolverTest {
             )
         )
 
-        assertEquals("createIn2AnySink", resolver.getFactoryMethodName(node, anyInput = true))
+        assertEquals("createSinkIn2Any", resolver.getFactoryMethodName(node, anyInput = true))
         assertEquals("consume", resolver.getTickParamName(node, anyInput = true))
-        assertEquals("In2AnySinkRuntime<Int, Int>", resolver.getRuntimeTypeName(node, anyInput = true))
+        assertEquals("SinkIn2AnyRuntime<Int, Int>", resolver.getRuntimeTypeName(node, anyInput = true))
     }
 
     @Test
@@ -392,7 +392,7 @@ class RuntimeTypeResolverTest {
     }
 
     @Test
-    fun `3 in 0 out anyInput returns createIn3AnySink`() {
+    fun `3 in 0 out anyInput returns createSinkIn3Any`() {
         val node = createTestCodeNode(
             id = "sink", name = "AnyTriSink", type = CodeNodeType.SINK,
             inputPorts = listOf(
@@ -402,8 +402,8 @@ class RuntimeTypeResolverTest {
             )
         )
 
-        assertEquals("createIn3AnySink", resolver.getFactoryMethodName(node, anyInput = true))
-        assertEquals("In3AnySinkRuntime<Int, String, Boolean>", resolver.getRuntimeTypeName(node, anyInput = true))
+        assertEquals("createSinkIn3Any", resolver.getFactoryMethodName(node, anyInput = true))
+        assertEquals("SinkIn3AnyRuntime<Int, String, Boolean>", resolver.getRuntimeTypeName(node, anyInput = true))
     }
 
     @Test

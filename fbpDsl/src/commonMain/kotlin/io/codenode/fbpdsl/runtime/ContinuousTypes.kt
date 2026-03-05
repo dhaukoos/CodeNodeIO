@@ -158,7 +158,7 @@ typealias In3Out3ProcessBlock<A, B, C, U, V, W> = suspend (A, B, C) -> ProcessRe
  * @param A Type of first input
  * @param B Type of second input
  */
-typealias In2SinkBlock<A, B> = suspend (A, B) -> Unit
+typealias SinkIn2Block<A, B> = suspend (A, B) -> Unit
 
 /**
  * Type alias for 3-input sink block.
@@ -168,7 +168,7 @@ typealias In2SinkBlock<A, B> = suspend (A, B) -> Unit
  * @param B Type of second input
  * @param C Type of third input
  */
-typealias In3SinkBlock<A, B, C> = suspend (A, B, C) -> Unit
+typealias SinkIn3Block<A, B, C> = suspend (A, B, C) -> Unit
 
 // ========== Multi-Output Source Blocks ==========
 
@@ -311,7 +311,7 @@ typealias In2AnyOut2ProcessBlock<A, B, U, V> = suspend (A, B) -> ProcessResult2<
 
 typealias In2AnyOut3ProcessBlock<A, B, U, V, W> = suspend (A, B) -> ProcessResult3<U, V, W>
 
-typealias In2AnySinkBlock<A, B> = suspend (A, B) -> Unit
+typealias SinkIn2AnyBlock<A, B> = suspend (A, B) -> Unit
 
 typealias In3AnyOut1ProcessBlock<A, B, C, R> = suspend (A, B, C) -> R
 
@@ -319,7 +319,7 @@ typealias In3AnyOut2ProcessBlock<A, B, C, U, V> = suspend (A, B, C) -> ProcessRe
 
 typealias In3AnyOut3ProcessBlock<A, B, C, U, V, W> = suspend (A, B, C) -> ProcessResult3<U, V, W>
 
-typealias In3AnySinkBlock<A, B, C> = suspend (A, B, C) -> Unit
+typealias SinkIn3AnyBlock<A, B, C> = suspend (A, B, C) -> Unit
 
 // ========== Any-Input Tick Blocks ==========
 

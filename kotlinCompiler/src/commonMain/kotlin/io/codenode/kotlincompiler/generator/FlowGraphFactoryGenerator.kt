@@ -84,8 +84,8 @@ class FlowGraphFactoryGenerator {
             inputCount == 3 && outputCount == 3 -> "createTimedIn3Out3Processor"
 
             inputCount == 1 && outputCount == 0 -> "createContinuousSink"
-            inputCount == 2 && outputCount == 0 -> "createIn2Sink"
-            inputCount == 3 && outputCount == 0 -> "createIn3Sink"
+            inputCount == 2 && outputCount == 0 -> "createSinkIn2"
+            inputCount == 3 && outputCount == 0 -> "createSinkIn3"
 
             else -> "createTimed"
         }

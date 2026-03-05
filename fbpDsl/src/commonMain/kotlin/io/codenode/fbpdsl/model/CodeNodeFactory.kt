@@ -393,11 +393,11 @@ object CodeNodeFactory {
      * @param position Canvas position
      * @param description Optional documentation
      * @param consume Sink function that processes both inputs
-     * @return In2SinkRuntime configured for continuous consumption
+     * @return SinkIn2Runtime configured for continuous consumption
      *
      * @sample
      * ```kotlin
-     * val pairLogger = CodeNodeFactory.createIn2Sink<Int, String>(
+     * val pairLogger = CodeNodeFactory.createSinkIn2<Int, String>(
      *     name = "PairLogger"
      * ) { num, text -> println("$num: $text") }
      *
@@ -406,12 +406,12 @@ object CodeNodeFactory {
      * pairLogger.start(scope) { }
      * ```
      */
-    inline fun <reified A : Any, reified B : Any> createIn2Sink(
+    inline fun <reified A : Any, reified B : Any> createSinkIn2(
         name: String,
         position: Node.Position = Node.Position.ORIGIN,
         description: String? = null,
-        noinline consume: io.codenode.fbpdsl.runtime.In2SinkBlock<A, B>
-    ): io.codenode.fbpdsl.runtime.In2SinkRuntime<A, B> {
+        noinline consume: io.codenode.fbpdsl.runtime.SinkIn2Block<A, B>
+    ): io.codenode.fbpdsl.runtime.SinkIn2Runtime<A, B> {
         val nodeId = NodeIdGenerator.generateId("codenode")
 
         val codeNode = CodeNode(
@@ -427,7 +427,7 @@ object CodeNodeFactory {
             outputPorts = emptyList()
         )
 
-        return io.codenode.fbpdsl.runtime.In2SinkRuntime(codeNode, consume)
+        return io.codenode.fbpdsl.runtime.SinkIn2Runtime(codeNode, consume)
     }
 
     /**
@@ -444,11 +444,11 @@ object CodeNodeFactory {
      * @param position Canvas position
      * @param description Optional documentation
      * @param consume Sink function that processes all three inputs
-     * @return In3SinkRuntime configured for continuous consumption
+     * @return SinkIn3Runtime configured for continuous consumption
      *
      * @sample
      * ```kotlin
-     * val tripleLogger = CodeNodeFactory.createIn3Sink<Int, Int, Int>(
+     * val tripleLogger = CodeNodeFactory.createSinkIn3<Int, Int, Int>(
      *     name = "TripleLogger"
      * ) { a, b, c -> println("Sum: ${a + b + c}") }
      *
@@ -458,12 +458,12 @@ object CodeNodeFactory {
      * tripleLogger.start(scope) { }
      * ```
      */
-    inline fun <reified A : Any, reified B : Any, reified C : Any> createIn3Sink(
+    inline fun <reified A : Any, reified B : Any, reified C : Any> createSinkIn3(
         name: String,
         position: Node.Position = Node.Position.ORIGIN,
         description: String? = null,
-        noinline consume: io.codenode.fbpdsl.runtime.In3SinkBlock<A, B, C>
-    ): io.codenode.fbpdsl.runtime.In3SinkRuntime<A, B, C> {
+        noinline consume: io.codenode.fbpdsl.runtime.SinkIn3Block<A, B, C>
+    ): io.codenode.fbpdsl.runtime.SinkIn3Runtime<A, B, C> {
         val nodeId = NodeIdGenerator.generateId("codenode")
 
         val codeNode = CodeNode(
@@ -480,7 +480,7 @@ object CodeNodeFactory {
             outputPorts = emptyList()
         )
 
-        return io.codenode.fbpdsl.runtime.In3SinkRuntime(codeNode, consume)
+        return io.codenode.fbpdsl.runtime.SinkIn3Runtime(codeNode, consume)
     }
 
     // ========== Multi-Output Generator Factory Methods ==========
@@ -1208,16 +1208,16 @@ object CodeNodeFactory {
      * @param position Canvas position
      * @param description Optional documentation
      * @param consume Sink function that processes both inputs
-     * @return In2AnySinkRuntime configured for any-input consumption
+     * @return SinkIn2AnyRuntime configured for any-input consumption
      */
-    inline fun <reified A : Any, reified B : Any> createIn2AnySink(
+    inline fun <reified A : Any, reified B : Any> createSinkIn2Any(
         name: String,
         initialValue1: A,
         initialValue2: B,
         position: Node.Position = Node.Position.ORIGIN,
         description: String? = null,
-        noinline consume: io.codenode.fbpdsl.runtime.In2AnySinkBlock<A, B>
-    ): io.codenode.fbpdsl.runtime.In2AnySinkRuntime<A, B> {
+        noinline consume: io.codenode.fbpdsl.runtime.SinkIn2AnyBlock<A, B>
+    ): io.codenode.fbpdsl.runtime.SinkIn2AnyRuntime<A, B> {
         val nodeId = NodeIdGenerator.generateId("codenode")
 
         val codeNode = CodeNode(
@@ -1233,7 +1233,7 @@ object CodeNodeFactory {
             outputPorts = emptyList()
         )
 
-        return io.codenode.fbpdsl.runtime.In2AnySinkRuntime(codeNode, initialValue1, initialValue2, consume)
+        return io.codenode.fbpdsl.runtime.SinkIn2AnyRuntime(codeNode, initialValue1, initialValue2, consume)
     }
 
     /**
@@ -1252,17 +1252,17 @@ object CodeNodeFactory {
      * @param position Canvas position
      * @param description Optional documentation
      * @param consume Sink function that processes all three inputs
-     * @return In3AnySinkRuntime configured for any-input consumption
+     * @return SinkIn3AnyRuntime configured for any-input consumption
      */
-    inline fun <reified A : Any, reified B : Any, reified C : Any> createIn3AnySink(
+    inline fun <reified A : Any, reified B : Any, reified C : Any> createSinkIn3Any(
         name: String,
         initialValue1: A,
         initialValue2: B,
         initialValue3: C,
         position: Node.Position = Node.Position.ORIGIN,
         description: String? = null,
-        noinline consume: io.codenode.fbpdsl.runtime.In3AnySinkBlock<A, B, C>
-    ): io.codenode.fbpdsl.runtime.In3AnySinkRuntime<A, B, C> {
+        noinline consume: io.codenode.fbpdsl.runtime.SinkIn3AnyBlock<A, B, C>
+    ): io.codenode.fbpdsl.runtime.SinkIn3AnyRuntime<A, B, C> {
         val nodeId = NodeIdGenerator.generateId("codenode")
 
         val codeNode = CodeNode(
@@ -1279,7 +1279,7 @@ object CodeNodeFactory {
             outputPorts = emptyList()
         )
 
-        return io.codenode.fbpdsl.runtime.In3AnySinkRuntime(codeNode, initialValue1, initialValue2, initialValue3, consume)
+        return io.codenode.fbpdsl.runtime.SinkIn3AnyRuntime(codeNode, initialValue1, initialValue2, initialValue3, consume)
     }
 
     // ========== Timed Processor Factory Methods ==========

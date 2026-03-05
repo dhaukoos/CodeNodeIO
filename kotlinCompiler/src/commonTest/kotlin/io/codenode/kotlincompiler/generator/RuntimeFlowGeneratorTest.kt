@@ -196,7 +196,7 @@ class RuntimeFlowGeneratorTest {
         val flowGraph = createStopWatchLikeFlow()
         val result = generator.generate(flowGraph, generatedPackage, usecasesPackage, viewModelPackage)
 
-        assertTrue(result.contains("internal val displayReceiver = CodeNodeFactory.createIn2Sink<Int, Int>("))
+        assertTrue(result.contains("internal val displayReceiver = CodeNodeFactory.createSinkIn2<Int, Int>("))
         assertTrue(result.contains("name = \"DisplayReceiver\""))
         assertTrue(result.contains("consume = { seconds, minutes ->"))
         assertTrue(result.contains("StopWatch2State._seconds.value = seconds"),
@@ -525,7 +525,7 @@ class RuntimeFlowGeneratorTest {
     }
 
     @Test
-    fun `any-input sink uses createIn2AnySink factory method`() {
+    fun `any-input sink uses createSinkIn2Any factory method`() {
         val anySink = CodeNode(
             id = "sink",
             name = "AnySink",
@@ -541,7 +541,7 @@ class RuntimeFlowGeneratorTest {
         val flowGraph = createFlowGraph(nodes = listOf(anySink))
         val result = generator.generate(flowGraph, generatedPackage, usecasesPackage, viewModelPackage)
 
-        assertTrue(result.contains("CodeNodeFactory.createIn2AnySink<Int, String>("),
+        assertTrue(result.contains("CodeNodeFactory.createSinkIn2Any<Int, String>("),
             "Should use any-input sink factory method")
         assertTrue(result.contains("initialValue1 = 0,"),
             "Should generate initialValue1 for Int type")

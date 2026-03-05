@@ -154,10 +154,10 @@ class PauseResumeTest {
     }
 
     @Test
-    fun in2SinkRuntime_pauseChangesState() = runTest {
+    fun sinkIn2Runtime_pauseChangesState() = runTest {
         val inputChannel1 = Channel<Int>(Channel.BUFFERED)
         val inputChannel2 = Channel<String>(Channel.BUFFERED)
-        val sink = In2SinkRuntime<Int, String>(
+        val sink = SinkIn2Runtime<Int, String>(
             codeNode = createTestCodeNode("sink2in", CodeNodeType.SINK)
         ) { _, _ -> }
         sink.inputChannel1 = inputChannel1

@@ -1,5 +1,5 @@
 /*
- * In3SinkRuntime - Runtime for sink nodes with 3 inputs
+ * SinkIn3Runtime - Runtime for sink nodes with 3 inputs
  * Manages synchronous receive from three input channels
  * License: Apache 2.0
  */
@@ -30,9 +30,9 @@ import kotlinx.coroutines.launch
  * @param codeNode The underlying CodeNode model
  * @param consume The sink function that processes all three inputs
  */
-class In3SinkRuntime<A : Any, B : Any, C : Any>(
+class SinkIn3Runtime<A : Any, B : Any, C : Any>(
     codeNode: CodeNode,
-    private val consume: In3SinkBlock<A, B, C>
+    private val consume: SinkIn3Block<A, B, C>
 ) : NodeRuntime(codeNode) {
 
     /**
