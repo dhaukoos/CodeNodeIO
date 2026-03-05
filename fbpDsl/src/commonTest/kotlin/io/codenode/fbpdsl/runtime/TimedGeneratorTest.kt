@@ -3,8 +3,7 @@
  * Verifies interval emission, pause/resume, stop/close, zero interval, and selective output
  *
  * Note: Tests use createOut2Generator with test-defined timed loops to ensure delay()
- * correctly interacts with the TestDispatcher's virtual time. The createTimedOut2Generator
- * factory works correctly with real dispatchers in production.
+ * correctly interacts with the TestDispatcher's virtual time.
  *
  * License: Apache 2.0
  */
@@ -23,7 +22,6 @@ import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -254,28 +252,4 @@ class TimedGeneratorTest {
         generator.stop()
     }
 
-    // Verify createTimedOut2Generator factory creates a valid runtime
-    @Test
-    fun `createTimedOut2Generator factory creates valid runtime with channels`() = runTest {
-        val generator = CodeNodeFactory.createTimedOut2Generator<Int, String>(
-            name = "FactoryTest",
-            tickIntervalMs = 100,
-            tick = {
-                ProcessResult2.both(1, "one")
-            }
-        )
-
-        // Verify runtime is properly configured
-        assertNotNull(generator.outputChannel1, "Output channel 1 should be created")
-        assertNotNull(generator.outputChannel2, "Output channel 2 should be created")
-        assertEquals(ExecutionState.IDLE, generator.executionState, "Initial state should be IDLE")
-
-        // Verify start transitions to RUNNING
-        generator.start(this) {}
-        advanceUntilIdle()
-        assertEquals(ExecutionState.RUNNING, generator.executionState, "Should be RUNNING after start")
-
-        generator.stop()
-        assertEquals(ExecutionState.IDLE, generator.executionState, "Should be IDLE after stop")
-    }
 }

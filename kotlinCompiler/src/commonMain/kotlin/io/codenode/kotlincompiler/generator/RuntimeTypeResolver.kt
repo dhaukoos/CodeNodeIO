@@ -32,10 +32,10 @@ class RuntimeTypeResolver {
         val any = if (anyInput && inputs >= 2) "Any" else ""
 
         return when {
-            // Generators (0 inputs)
+            // Sources (0 inputs)
             inputs == 0 && outputs == 1 -> "createContinuousSource"
-            inputs == 0 && outputs == 2 -> "createTimedOut2Generator"
-            inputs == 0 && outputs == 3 -> "createTimedOut3Generator"
+            inputs == 0 && outputs == 2 -> "createOut2Generator"
+            inputs == 0 && outputs == 3 -> "createOut3Generator"
 
             // Sinks (0 outputs)
             inputs == 1 && outputs == 0 -> "createContinuousSink"
@@ -121,7 +121,7 @@ class RuntimeTypeResolver {
         val outputs = node.outputPorts.size
 
         return when {
-            inputs == 0 -> "tick"
+            inputs == 0 -> "generate"
             outputs == 0 -> "consume"
             inputs == 1 && outputs == 1 -> {
                 val inType = node.inputPorts[0].dataType.simpleName ?: "Any"

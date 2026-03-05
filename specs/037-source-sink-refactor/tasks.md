@@ -69,15 +69,15 @@
 
 ### Implementation for User Story 2
 
-- [ ] T017 [US2] Remove timed source factory methods (`createTimedGenerator`, `createTimedOut2Generator`, `createTimedOut3Generator`) from `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/CodeNodeFactory.kt`
-- [ ] T018 [US2] Remove source tick type aliases (`GeneratorTickBlock`, `Out2TickBlock`, `Out3TickBlock`) from `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/ContinuousTypes.kt`
-- [ ] T019 [US2] Update `ProcessingLogicStubGenerator.shouldGenerateStub()` to return `false` for `CodeNodeType.SOURCE` nodes in `kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/ProcessingLogicStubGenerator.kt`
-- [ ] T020 [US2] Update `RuntimeFlowGenerator.kt` to not use tick pattern for source nodes — no `tickIntervalMs`, no `tick = ...Tick` parameter, use `createContinuousSource` with ViewModel-driven generate block in `kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/RuntimeFlowGenerator.kt`
-- [ ] T021 [US2] Update `RuntimeTypeResolver.kt` to remove timed source factory method mappings in `kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/RuntimeTypeResolver.kt`
-- [ ] T022 [US2] Update `ProcessingLogicStubGenerator` tick type alias resolution to skip source node patterns (0 inputs) in `kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/ProcessingLogicStubGenerator.kt`
-- [ ] T023 [US2] Update fbpDsl tests for timed source removal: `ContinuousFactoryTest.kt`, `TypedNodeRuntimeTest.kt` in `fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/runtime/`
-- [ ] T024 [US2] Update kotlinCompiler tests for source stub and tick removal: `ProcessingLogicStubGeneratorTest.kt`, `RuntimeFlowGeneratorTest.kt`, `RuntimeTypeResolverTest.kt`, `FlowGraphFactoryGeneratorTest.kt` in `kotlinCompiler/src/commonTest/kotlin/io/codenode/kotlincompiler/generator/`
-- [ ] T025 [US2] Compile and run tests: `./gradlew :fbpDsl:jvmTest :kotlinCompiler:jvmTest`
+- [X] T017 [US2] Remove timed source factory methods (`createTimedGenerator`, `createTimedOut2Generator`, `createTimedOut3Generator`) from `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/CodeNodeFactory.kt`
+- [X] T018 [US2] Remove source tick type aliases (`GeneratorTickBlock`, `Out2TickBlock`, `Out3TickBlock`) from `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/ContinuousTypes.kt`
+- [X] T019 [US2] Update `ProcessingLogicStubGenerator.shouldGenerateStub()` to return `false` for `CodeNodeType.SOURCE` nodes in `kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/ProcessingLogicStubGenerator.kt`
+- [X] T020 [US2] Update `RuntimeFlowGenerator.kt` to not use tick pattern for source nodes — no `tickIntervalMs`, no `tick = ...Tick` parameter, use `createContinuousSource` with ViewModel-driven generate block in `kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/RuntimeFlowGenerator.kt`
+- [X] T021 [US2] Update `RuntimeTypeResolver.kt` to remove timed source factory method mappings in `kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/RuntimeTypeResolver.kt`
+- [X] T022 [US2] Update `ProcessingLogicStubGenerator` tick type alias resolution to skip source node patterns (0 inputs) in `kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/ProcessingLogicStubGenerator.kt`
+- [X] T023 [US2] Update fbpDsl tests for timed source removal: `ContinuousFactoryTest.kt`, `TypedNodeRuntimeTest.kt` in `fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/runtime/`
+- [X] T024 [US2] Update kotlinCompiler tests for source stub and tick removal: `ProcessingLogicStubGeneratorTest.kt`, `RuntimeFlowGeneratorTest.kt`, `RuntimeTypeResolverTest.kt`, `FlowGraphFactoryGeneratorTest.kt` in `kotlinCompiler/src/commonTest/kotlin/io/codenode/kotlincompiler/generator/`
+- [X] T025 [US2] Compile and run tests: `./gradlew :fbpDsl:jvmTest :kotlinCompiler:jvmTest`
 
 **Checkpoint**: Source nodes are fully ViewModel-driven — no tick loops, no timed factories, no processing logic stubs. Tests pass.
 

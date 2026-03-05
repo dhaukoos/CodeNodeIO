@@ -182,15 +182,6 @@ typealias In3SinkBlock<A, B, C> = suspend (A, B, C) -> Unit
 typealias Out2GeneratorBlock<U, V> = suspend (emit: suspend (ProcessResult2<U, V>) -> Unit) -> Unit
 
 /**
- * Type alias for 2-output timed tick block.
- * Called once per tick interval by the runtime, returns values to emit.
- *
- * @param U Type of first output
- * @param V Type of second output
- */
-typealias Out2TickBlock<U, V> = suspend () -> ProcessResult2<U, V>
-
-/**
  * Type alias for 3-output generator block.
  * Emits ProcessResult3 values to three output channels.
  *
@@ -201,26 +192,6 @@ typealias Out2TickBlock<U, V> = suspend () -> ProcessResult2<U, V>
 typealias Out3GeneratorBlock<U, V, W> = suspend (emit: suspend (ProcessResult3<U, V, W>) -> Unit) -> Unit
 
 // ========== Timed Tick Blocks ==========
-
-// --- Source Tick Blocks ---
-
-/**
- * Type alias for single-output timed tick block.
- * Called once per tick interval by the runtime, returns a value to emit.
- *
- * @param T Type of output value
- */
-typealias SourceTickBlock<T> = suspend () -> T
-
-/**
- * Type alias for 3-output timed tick block.
- * Called once per tick interval by the runtime, returns values to emit.
- *
- * @param U Type of first output
- * @param V Type of second output
- * @param W Type of third output
- */
-typealias Out3TickBlock<U, V, W> = suspend () -> ProcessResult3<U, V, W>
 
 // --- Processor Tick Blocks ---
 

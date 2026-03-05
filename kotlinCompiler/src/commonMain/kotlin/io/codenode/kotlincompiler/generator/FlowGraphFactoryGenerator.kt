@@ -65,8 +65,8 @@ class FlowGraphFactoryGenerator {
 
         return when {
             inputCount == 0 && outputCount == 1 -> "createContinuousSource"
-            inputCount == 0 && outputCount == 2 -> "createTimedOut2Generator"
-            inputCount == 0 && outputCount == 3 -> "createTimedOut3Generator"
+            inputCount == 0 && outputCount == 2 -> "createOut2Generator"
+            inputCount == 0 && outputCount == 3 -> "createOut3Generator"
 
             inputCount == 1 && outputCount == 1 -> {
                 val inType = node.inputPorts[0].dataType.simpleName ?: "Any"
@@ -138,8 +138,8 @@ class FlowGraphFactoryGenerator {
             // Imports
             appendLine("import io.codenode.fbpdsl.model.CodeNodeFactory")
 
-            // Import tick functions from logicmethods
-            allCodeNodes.forEach { node ->
+            // Import tick functions from logicmethods (skip source nodes — they are ViewModel-driven)
+            allCodeNodes.filter { it.inputPorts.isNotEmpty() || it.outputPorts.isEmpty() }.forEach { node ->
                 appendLine("import ${getTickImport(node, logicMethodsBase)}")
             }
             appendLine()
@@ -164,13 +164,18 @@ class FlowGraphFactoryGenerator {
                 val varName = node.name.camelCase()
                 val factoryMethod = getFactoryMethodName(node)
                 val typeParams = getTypeParams(node)
-                val tickValName = getTickValName(node)
-                val tickInterval = node.configuration["tickIntervalMs"] ?: "1000"
+                val isSource = node.inputPorts.isEmpty() && node.outputPorts.isNotEmpty()
 
                 appendLine("${indent}val $varName = CodeNodeFactory.$factoryMethod<$typeParams>(")
                 appendLine("${indent}${indent}name = \"${node.name}\",")
-                appendLine("${indent}${indent}tickIntervalMs = $tickInterval,")
-                appendLine("${indent}${indent}tick = $tickValName")
+                if (isSource) {
+                    appendLine("${indent}${indent}generate = { _ -> kotlinx.coroutines.awaitCancellation() }")
+                } else {
+                    val tickValName = getTickValName(node)
+                    val tickInterval = node.configuration["tickIntervalMs"] ?: "1000"
+                    appendLine("${indent}${indent}tickIntervalMs = $tickInterval,")
+                    appendLine("${indent}${indent}tick = $tickValName")
+                }
                 appendLine("${indent})")
                 appendLine()
             }

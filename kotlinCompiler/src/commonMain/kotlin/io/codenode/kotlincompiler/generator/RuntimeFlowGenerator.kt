@@ -92,8 +92,8 @@ class RuntimeFlowGenerator {
         viewModelPackage: String,
         flowName: String
     ) {
-        // Tick function imports from user stubs
-        codeNodes.forEach { node ->
+        // Tick function imports from user stubs (source nodes have no stubs)
+        codeNodes.filter { it.inputPorts.isNotEmpty() || it.outputPorts.isEmpty() }.forEach { node ->
             appendLine("import $usecasesPackage.${node.name.camelCase()}Tick")
         }
         appendLine()
@@ -160,9 +160,7 @@ class RuntimeFlowGenerator {
             appendLine("        name = \"${node.name}\",")
 
             if (isSource) {
-                val tickInterval = node.configuration["tickIntervalMs"] ?: "1000L"
-                appendLine("        tickIntervalMs = $tickInterval,")
-                appendLine("        $tickParamName = ${varName}Tick")
+                appendLine("        generate = { _ -> kotlinx.coroutines.awaitCancellation() }")
             } else if (anyInput && node.inputPorts.size >= 2) {
                 generateInitialValues(node)
                 if (isSink) {

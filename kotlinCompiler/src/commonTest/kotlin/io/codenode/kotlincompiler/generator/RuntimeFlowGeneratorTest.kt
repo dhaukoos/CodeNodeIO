@@ -78,11 +78,12 @@ class RuntimeFlowGeneratorTest {
     // ========== Test 1: StopWatch-like flow ==========
 
     @Test
-    fun `StopWatch-like flow generates tick imports`() {
+    fun `StopWatch-like flow generates tick imports for non-source nodes only`() {
         val flowGraph = createStopWatchLikeFlow()
         val result = generator.generate(flowGraph, generatedPackage, usecasesPackage, viewModelPackage)
 
-        assertTrue(result.contains("import io.codenode.testapp.usecases.timerEmitterTick"))
+        assertFalse(result.contains("import io.codenode.testapp.usecases.timerEmitterTick"),
+            "Source nodes should not have tick stub imports")
         assertTrue(result.contains("import io.codenode.testapp.usecases.displayReceiverTick"))
     }
 
@@ -153,18 +154,22 @@ class RuntimeFlowGeneratorTest {
     }
 
     @Test
-    fun `StopWatch-like flow generates generator runtime instance with timed factory`() {
+    fun `StopWatch-like flow generates source runtime instance with continuous factory`() {
         val flowGraph = createStopWatchLikeFlow()
         val result = generator.generate(flowGraph, generatedPackage, usecasesPackage, viewModelPackage)
 
-        assertTrue(result.contains("internal val timerEmitter = CodeNodeFactory.createTimedOut2Generator<Int, Int>("))
+        assertTrue(result.contains("internal val timerEmitter = CodeNodeFactory.createOut2Generator<Int, Int>("))
         assertTrue(result.contains("name = \"TimerEmitter\""))
-        assertTrue(result.contains("tickIntervalMs = 1000L"))
-        assertTrue(result.contains("tick = timerEmitterTick"))
+        assertTrue(result.contains("generate = { _ -> kotlinx.coroutines.awaitCancellation() }"),
+            "Source nodes should use generate with awaitCancellation")
+        assertFalse(result.contains("tickIntervalMs"),
+            "Source nodes should not have tickIntervalMs")
+        assertFalse(result.contains("tick = timerEmitterTick"),
+            "Source nodes should not reference tick stubs")
     }
 
     @Test
-    fun `generator with tickIntervalMs config uses configured value`() {
+    fun `source node ignores tickIntervalMs config`() {
         val timerEmitter = CodeNode(
             id = "timer",
             name = "TimerEmitter",
@@ -179,10 +184,10 @@ class RuntimeFlowGeneratorTest {
         val flowGraph = createFlowGraph(name = "ConfigTest", nodes = listOf(timerEmitter))
         val result = generator.generate(flowGraph, generatedPackage, usecasesPackage, viewModelPackage)
 
-        assertTrue(result.contains("tickIntervalMs = 500L"),
-            "Should use configured tickIntervalMs value")
-        assertFalse(result.contains("tickIntervalMs = 1000L"),
-            "Should not use default 1000L when configured")
+        assertFalse(result.contains("tickIntervalMs"),
+            "Source nodes should not use tickIntervalMs even if configured")
+        assertTrue(result.contains("generate = { _ -> kotlinx.coroutines.awaitCancellation() }"),
+            "Source nodes should use generate with awaitCancellation")
     }
 
     @Test
@@ -369,7 +374,7 @@ class RuntimeFlowGeneratorTest {
     }
 
     @Test
-    fun `single output source uses createContinuousSource`() {
+    fun `single output source uses createContinuousSource with generate param`() {
         val gen = createTestCodeNode(
             "gen", "ValueGenerator", CodeNodeType.SOURCE,
             outputPorts = listOf(outputPort("g_out", "value", Int::class, "gen"))
@@ -378,7 +383,10 @@ class RuntimeFlowGeneratorTest {
         val result = generator.generate(flowGraph, generatedPackage, usecasesPackage, viewModelPackage)
 
         assertTrue(result.contains("CodeNodeFactory.createContinuousSource<Int>("))
-        assertTrue(result.contains("tick = valueGeneratorTick"))
+        assertTrue(result.contains("generate = { _ -> kotlinx.coroutines.awaitCancellation() }"),
+            "Source node should use generate with awaitCancellation")
+        assertFalse(result.contains("tick = valueGeneratorTick"),
+            "Source node should not reference tick stub")
     }
 
     @Test

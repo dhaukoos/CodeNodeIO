@@ -56,10 +56,10 @@ class RuntimeTypeResolverTest {
 
     private val resolver = RuntimeTypeResolver()
 
-    // ========== Test: 0 in, 2 out → createTimedOut2Generator ==========
+    // ========== Test: 0 in, 2 out → createOut2Generator ==========
 
     @Test
-    fun `0 in 2 out returns createTimedOut2Generator`() {
+    fun `0 in 2 out returns createOut2Generator`() {
         val node = createTestCodeNode(
             id = "gen", name = "TimerEmitter", type = CodeNodeType.SOURCE,
             outputPorts = listOf(
@@ -68,8 +68,8 @@ class RuntimeTypeResolverTest {
             )
         )
 
-        assertEquals("createTimedOut2Generator", resolver.getFactoryMethodName(node))
-        assertEquals("tick", resolver.getTickParamName(node))
+        assertEquals("createOut2Generator", resolver.getFactoryMethodName(node))
+        assertEquals("generate", resolver.getTickParamName(node))
         assertEquals("Out2GeneratorRuntime<Int, Int>", resolver.getRuntimeTypeName(node))
     }
 
@@ -115,7 +115,7 @@ class RuntimeTypeResolverTest {
         )
 
         assertEquals("createContinuousSource", resolver.getFactoryMethodName(node))
-        assertEquals("tick", resolver.getTickParamName(node))
+        assertEquals("generate", resolver.getTickParamName(node))
         assertEquals("SourceRuntime<Int>", resolver.getRuntimeTypeName(node))
     }
 
@@ -148,10 +148,10 @@ class RuntimeTypeResolverTest {
         assertEquals("FilterRuntime<Int>", resolver.getRuntimeTypeName(node))
     }
 
-    // ========== Test: 0 in, 3 out → createTimedOut3Generator ==========
+    // ========== Test: 0 in, 3 out → createOut3Generator ==========
 
     @Test
-    fun `0 in 3 out returns createTimedOut3Generator`() {
+    fun `0 in 3 out returns createOut3Generator`() {
         val node = createTestCodeNode(
             id = "gen", name = "TriGenerator", type = CodeNodeType.SOURCE,
             outputPorts = listOf(
@@ -161,8 +161,8 @@ class RuntimeTypeResolverTest {
             )
         )
 
-        assertEquals("createTimedOut3Generator", resolver.getFactoryMethodName(node))
-        assertEquals("tick", resolver.getTickParamName(node))
+        assertEquals("createOut3Generator", resolver.getFactoryMethodName(node))
+        assertEquals("generate", resolver.getTickParamName(node))
         assertEquals("Out3GeneratorRuntime<Int, String, Boolean>", resolver.getRuntimeTypeName(node))
     }
 

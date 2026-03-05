@@ -13,9 +13,10 @@ import kotlin.test.*
  * Tests for FlowGraphFactoryGenerator - generates factory functions using tick stubs.
  *
  * Tests verify that generated factory code:
- * - Imports tick functions from logicmethods package
- * - Calls the correct CodeNodeFactory.createTimed* factory methods
- * - Passes tick function references as the tick parameter
+ * - Imports tick functions from logicmethods package for non-source nodes
+ * - Calls the correct CodeNodeFactory factory methods
+ * - Passes tick function references as the tick parameter for non-source nodes
+ * - Uses generate = { _ -> awaitCancellation() } for source nodes (0 inputs)
  * - No longer references ProcessingLogic or _useCaseClass
  */
 class FlowGraphFactoryGeneratorTest {
@@ -175,40 +176,42 @@ class FlowGraphFactoryGeneratorTest {
     // ========== Tick Function Imports ==========
 
     @Test
-    fun `factory imports tick functions from logicmethods`() {
+    fun `factory imports tick functions from logicmethods for non-source nodes only`() {
         val flowGraph = createTestFlowGraph("StopWatch")
         val generator = FlowGraphFactoryGenerator()
 
         val result = generator.generateFactory(flowGraph, "io.codenode.generated.stopwatch")
 
-        assertTrue(result.contains("import io.codenode.generated.stopwatch.logicmethods.timerEmitterTick"),
-            "Should import timerEmitterTick from logicmethods")
+        assertFalse(result.contains("import io.codenode.generated.stopwatch.logicmethods.timerEmitterTick"),
+            "Source nodes should not have tick stub imports")
         assertTrue(result.contains("import io.codenode.generated.stopwatch.logicmethods.displayReceiverTick"),
             "Should import displayReceiverTick from logicmethods")
     }
 
     @Test
-    fun `factory uses separate usecasesPackage for tick imports`() {
+    fun `factory uses separate usecasesPackage for tick imports of non-source nodes`() {
         val flowGraph = createTestFlowGraph("StopWatch")
         val generator = FlowGraphFactoryGenerator()
 
         val result = generator.generateFactory(flowGraph, "io.codenode.generated.stopwatch", "io.codenode.stopwatch")
 
-        assertTrue(result.contains("import io.codenode.stopwatch.logicmethods.timerEmitterTick"),
-            "Should import from usecasesPackage.logicmethods")
+        assertFalse(result.contains("import io.codenode.stopwatch.logicmethods.timerEmitterTick"),
+            "Source nodes should not import tick stubs from usecasesPackage")
+        assertTrue(result.contains("import io.codenode.stopwatch.logicmethods.displayReceiverTick"),
+            "Should import non-source tick from usecasesPackage.logicmethods")
     }
 
     // ========== Factory Method Calls ==========
 
     @Test
-    fun `factory calls createTimedOut2Generator for 0-in-2-out node`() {
+    fun `factory calls createOut2Generator for 0-in-2-out node`() {
         val flowGraph = createTestFlowGraph("StopWatch")
         val generator = FlowGraphFactoryGenerator()
 
         val result = generator.generateFactory(flowGraph, "io.codenode.generated.stopwatch")
 
-        assertTrue(result.contains("CodeNodeFactory.createTimedOut2Generator<Int, Int>"),
-            "Should call createTimedOut2Generator for 0-in-2-out generator")
+        assertTrue(result.contains("CodeNodeFactory.createOut2Generator<Int, Int>"),
+            "Should call createOut2Generator for 0-in-2-out source node")
     }
 
     @Test
@@ -223,16 +226,18 @@ class FlowGraphFactoryGeneratorTest {
     }
 
     @Test
-    fun `factory passes tick function reference`() {
+    fun `factory passes generate for source and tick for non-source nodes`() {
         val flowGraph = createTestFlowGraph("StopWatch")
         val generator = FlowGraphFactoryGenerator()
 
         val result = generator.generateFactory(flowGraph, "io.codenode.generated.stopwatch")
 
-        assertTrue(result.contains("tick = timerEmitterTick"),
-            "Should pass timerEmitterTick as tick parameter")
+        assertTrue(result.contains("generate = { _ -> kotlinx.coroutines.awaitCancellation() }"),
+            "Source node should use generate with awaitCancellation")
+        assertFalse(result.contains("tick = timerEmitterTick"),
+            "Source node should not reference tick stub")
         assertTrue(result.contains("tick = displayReceiverTick"),
-            "Should pass displayReceiverTick as tick parameter")
+            "Should pass displayReceiverTick as tick parameter for sink node")
     }
 
     @Test
@@ -249,18 +254,33 @@ class FlowGraphFactoryGeneratorTest {
     }
 
     @Test
-    fun `factory includes tickIntervalMs parameter`() {
-        val flowGraph = createTestFlowGraph("StopWatch")
+    fun `factory does not include tickIntervalMs for source nodes`() {
+        // Use a flow with only a source node to isolate the assertion
+        val sourceNode = createTestCodeNode(
+            "gen", "Generator", CodeNodeType.SOURCE,
+            inputPorts = emptyList(),
+            outputPorts = listOf(
+                Port(
+                    id = "gen_out", name = "value",
+                    direction = Port.Direction.OUTPUT, dataType = Int::class,
+                    owningNodeId = "gen"
+                )
+            )
+        )
+        val flowGraph = FlowGraph(
+            id = "flow_1", name = "SourceOnly", version = "1.0.0",
+            rootNodes = listOf(sourceNode)
+        )
         val generator = FlowGraphFactoryGenerator()
 
-        val result = generator.generateFactory(flowGraph, "io.codenode.generated.stopwatch")
+        val result = generator.generateFactory(flowGraph, "io.codenode.generated")
 
-        assertTrue(result.contains("tickIntervalMs = "),
-            "Should include tickIntervalMs parameter")
+        assertFalse(result.contains("tickIntervalMs"),
+            "Source nodes should not include tickIntervalMs parameter")
     }
 
     @Test
-    fun `factory uses tickIntervalMs from node configuration`() {
+    fun `factory source node ignores tickIntervalMs from configuration`() {
         val node = createTestCodeNode(
             "gen", "FastGenerator", CodeNodeType.SOURCE,
             inputPorts = emptyList(),
@@ -281,8 +301,10 @@ class FlowGraphFactoryGeneratorTest {
 
         val result = generator.generateFactory(flowGraph, "io.codenode.generated")
 
-        assertTrue(result.contains("tickIntervalMs = 500"),
-            "Should use tickIntervalMs from node configuration")
+        assertFalse(result.contains("tickIntervalMs"),
+            "Source nodes should not use tickIntervalMs even if configured")
+        assertTrue(result.contains("generate = { _ -> kotlinx.coroutines.awaitCancellation() }"),
+            "Source nodes should use generate with awaitCancellation")
     }
 
     // ========== No ProcessingLogic References ==========
@@ -380,47 +402,45 @@ class FlowGraphFactoryGeneratorTest {
     // ========== Validation ==========
 
     @Test
-    fun `getRequiredComponents returns tick stub file names`() {
+    fun `getRequiredComponents returns tick stub file names for non-source nodes only`() {
         val flowGraph = createTestFlowGraph("StopWatch")
         val generator = FlowGraphFactoryGenerator()
 
         val required = generator.getRequiredComponents(flowGraph)
 
-        assertTrue(required.contains("TimerEmitterProcessLogic"),
-            "Should list TimerEmitterProcessLogic as required")
+        assertFalse(required.contains("TimerEmitterProcessLogic"),
+            "Source nodes should not require process logic stubs")
         assertTrue(required.contains("DisplayReceiverProcessLogic"),
             "Should list DisplayReceiverProcessLogic as required")
     }
 
     @Test
-    fun `validateComponents returns success when all stubs exist`() {
+    fun `validateComponents returns success when all non-source stubs exist`() {
         val flowGraph = createTestFlowGraph("StopWatch")
         val generator = FlowGraphFactoryGenerator()
         val existingFiles = setOf(
-            "TimerEmitterProcessLogic.kt",
             "DisplayReceiverProcessLogic.kt"
         )
 
         val result = generator.validateComponents(flowGraph, existingFiles)
 
-        assertTrue(result.isValid, "Validation should pass when all stubs exist")
+        assertTrue(result.isValid, "Validation should pass when all non-source stubs exist")
         assertTrue(result.missingComponents.isEmpty(), "No missing stubs expected")
     }
 
     @Test
-    fun `validateComponents returns failure with missing stubs`() {
+    fun `validateComponents returns failure with missing non-source stubs`() {
         val flowGraph = createTestFlowGraph("StopWatch")
         val generator = FlowGraphFactoryGenerator()
-        val existingFiles = setOf(
-            "TimerEmitterProcessLogic.kt"
-            // DisplayReceiverProcessLogic.kt is missing
-        )
+        val existingFiles = emptySet<String>()
 
         val result = generator.validateComponents(flowGraph, existingFiles)
 
         assertFalse(result.isValid, "Validation should fail when stubs are missing")
         assertTrue(result.missingComponents.contains("DisplayReceiverProcessLogic"),
             "Should report DisplayReceiverProcessLogic as missing")
+        assertFalse(result.missingComponents.contains("TimerEmitterProcessLogic"),
+            "Source nodes should not appear in missing components")
     }
 
     // ========== Additional Tests ==========
@@ -475,7 +495,10 @@ class FlowGraphFactoryGeneratorTest {
         assertTrue(result.contains("createContinuousSource<Int>"), "Should create source")
         assertTrue(result.contains("createTimedTransformer<Int, String>"), "Should create transformer")
         assertTrue(result.contains("createTimedSink<String>"), "Should create sink")
-        assertTrue(result.contains("tick = generatorTick"), "Should reference generatorTick")
+        assertTrue(result.contains("generate = { _ -> kotlinx.coroutines.awaitCancellation() }"),
+            "Source node should use generate with awaitCancellation")
+        assertFalse(result.contains("tick = generatorTick"),
+            "Source node should not reference generatorTick")
         assertTrue(result.contains("tick = processorTick"), "Should reference processorTick")
         assertTrue(result.contains("tick = receiverTick"), "Should reference receiverTick")
     }

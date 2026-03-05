@@ -34,6 +34,8 @@ class ProcessingLogicStubGenerator {
         val outputCount = codeNode.outputPorts.size
         if (inputCount == 0 && outputCount == 0) return false
         if (inputCount > 3 || outputCount > 3) return false
+        // Source nodes (0 inputs) are ViewModel-driven — no processing logic stub
+        if (inputCount == 0) return false
         return true
     }
 
@@ -74,13 +76,8 @@ class ProcessingLogicStubGenerator {
         val any = if (anyInput && inputCount >= 2) "Any" else ""
 
         return when {
-            // Generators (0 inputs)
-            inputCount == 0 && outputCount == 1 ->
-                "SourceTickBlock<${outType(codeNode, 0)}>"
-            inputCount == 0 && outputCount == 2 ->
-                "Out2TickBlock<${outType(codeNode, 0)}, ${outType(codeNode, 1)}>"
-            inputCount == 0 && outputCount == 3 ->
-                "Out3TickBlock<${outType(codeNode, 0)}, ${outType(codeNode, 1)}, ${outType(codeNode, 2)}>"
+            // Source nodes (0 inputs) — no tick type alias, ViewModel-driven
+            inputCount == 0 -> ""
 
             // Filter vs Transformer (1 input, 1 output)
             inputCount == 1 && outputCount == 1 -> {
