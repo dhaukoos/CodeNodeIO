@@ -24,7 +24,7 @@ private fun createStopWatchFlowGraph(): FlowGraph {
     val timerEmitter = CodeNode(
         id = timerEmitterId,
         name = "TimerEmitter",
-        codeNodeType = CodeNodeType.GENERATOR,
+        codeNodeType = CodeNodeType.SOURCE,
         position = Node.Position(100.0, 100.0),
         inputPorts = emptyList(),
         outputPorts = listOf(

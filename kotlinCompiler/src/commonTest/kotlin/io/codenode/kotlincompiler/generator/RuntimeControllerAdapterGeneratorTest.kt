@@ -174,7 +174,7 @@ class RuntimeControllerAdapterGeneratorTest {
     @Test
     fun `no sink nodes delegates only executionState`() {
         val gen = createTestCodeNode(
-            "gen", "ValueGenerator", CodeNodeType.GENERATOR,
+            "gen", "ValueGenerator", CodeNodeType.SOURCE,
             outputPorts = listOf(outputPort("g_out", "value", Int::class, "gen"))
         )
         val flowGraph = createFlowGraph(nodes = listOf(gen))
@@ -187,7 +187,7 @@ class RuntimeControllerAdapterGeneratorTest {
     @Test
     fun `no sink nodes still delegates all control methods`() {
         val gen = createTestCodeNode(
-            "gen", "ValueGenerator", CodeNodeType.GENERATOR,
+            "gen", "ValueGenerator", CodeNodeType.SOURCE,
             outputPorts = listOf(outputPort("g_out", "value", Int::class, "gen"))
         )
         val flowGraph = createFlowGraph(nodes = listOf(gen))
@@ -206,7 +206,7 @@ class RuntimeControllerAdapterGeneratorTest {
         val timerEmitter = createTestCodeNode(
             id = "timer",
             name = "TimerEmitter",
-            type = CodeNodeType.GENERATOR,
+            type = CodeNodeType.SOURCE,
             outputPorts = listOf(
                 outputPort("timer_sec", "elapsedSeconds", Int::class, "timer"),
                 outputPort("timer_min", "elapsedMinutes", Int::class, "timer")

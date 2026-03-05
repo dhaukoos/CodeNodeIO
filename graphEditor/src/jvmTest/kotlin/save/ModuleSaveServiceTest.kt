@@ -86,7 +86,7 @@ class ModuleSaveServiceTest {
         val timerEmitter = CodeNode(
             id = "timer",
             name = "TimerEmitter",
-            codeNodeType = CodeNodeType.GENERATOR,
+            codeNodeType = CodeNodeType.SOURCE,
             position = Node.Position(100.0, 100.0),
             inputPorts = emptyList(),
             outputPorts = listOf(
@@ -336,7 +336,7 @@ class ModuleSaveServiceTest {
 
     @Test
     fun `saveModule writes flow kt in source set`() {
-        val node1 = createTestCodeNode("node1", "Original", CodeNodeType.GENERATOR)
+        val node1 = createTestCodeNode("node1", "Original", CodeNodeType.SOURCE)
         val flowGraph = createTestFlowGraph("UpdateFlow", listOf(node1))
         val saveService = ModuleSaveService()
 
@@ -352,7 +352,7 @@ class ModuleSaveServiceTest {
 
     @Test
     fun `re-save updates flow kt in source set`() {
-        val node1 = createTestCodeNode("node1", "Original", CodeNodeType.GENERATOR)
+        val node1 = createTestCodeNode("node1", "Original", CodeNodeType.SOURCE)
         val flowGraph1 = createTestFlowGraph("UpdateFlow", listOf(node1))
         val saveService = ModuleSaveService()
 
@@ -402,7 +402,7 @@ class ModuleSaveServiceTest {
 
     @Test
     fun `re-save updates flow kt when connection added`() {
-        val node1 = createTestCodeNode("node1", "Source", CodeNodeType.GENERATOR)
+        val node1 = createTestCodeNode("node1", "Source", CodeNodeType.SOURCE)
         val node2 = createTestCodeNode("node2", "Target", CodeNodeType.SINK)
         val flowGraph1 = FlowGraph(
             id = "flow_connect",
@@ -526,7 +526,7 @@ class ModuleSaveServiceTest {
     fun `re-save selectively regenerates ViewModel module properties section`() {
         // First save with original sink ports
         val timerEmitter = CodeNode(
-            id = "timer", name = "TimerEmitter", codeNodeType = CodeNodeType.GENERATOR,
+            id = "timer", name = "TimerEmitter", codeNodeType = CodeNodeType.SOURCE,
             position = Node.Position(100.0, 100.0),
             inputPorts = emptyList(),
             outputPorts = listOf(
@@ -641,7 +641,7 @@ class ModuleSaveServiceTest {
         val node1 = CodeNode(
             id = "node1",
             name = "FirstNode",
-            codeNodeType = CodeNodeType.GENERATOR,
+            codeNodeType = CodeNodeType.SOURCE,
             position = Node.Position(100.0, 100.0),
             inputPorts = emptyList(),
             outputPorts = listOf(
@@ -746,7 +746,7 @@ class ModuleSaveServiceTest {
 
     @Test
     fun `re-save preserves multiple ProcessingLogic files`() {
-        val node1 = createTestCodeNode("node1", "Generator", CodeNodeType.GENERATOR)
+        val node1 = createTestCodeNode("node1", "Generator", CodeNodeType.SOURCE)
         val node2 = createTestCodeNode("node2", "Processor", CodeNodeType.TRANSFORMER)
         val flowGraph = createTestFlowGraph("MultiNode", listOf(node1, node2))
         val saveService = ModuleSaveService()
@@ -805,7 +805,7 @@ class ModuleSaveServiceTest {
 
     @Test
     fun `filesCreated only includes newly created files on re-save`() {
-        val node1 = createTestCodeNode("node1", "FirstNode", CodeNodeType.GENERATOR)
+        val node1 = createTestCodeNode("node1", "FirstNode", CodeNodeType.SOURCE)
         val flowGraph1 = createTestFlowGraph("TrackFiles", listOf(node1))
         val saveService = ModuleSaveService()
 
@@ -830,7 +830,7 @@ class ModuleSaveServiceTest {
 
     @Test
     fun `re-save deletes orphaned ProcessingLogic when node removed`() {
-        val node1 = createTestCodeNode("node1", "KeptNode", CodeNodeType.GENERATOR)
+        val node1 = createTestCodeNode("node1", "KeptNode", CodeNodeType.SOURCE)
         val node2 = createTestCodeNode("node2", "RemovedNode", CodeNodeType.SINK)
         val flowGraph1 = createTestFlowGraph("ShrinkingFlow", listOf(node1, node2))
         val saveService = ModuleSaveService()
@@ -863,7 +863,7 @@ class ModuleSaveServiceTest {
         val node1 = CodeNode(
             id = "gen1",
             name = "TimerEmitter",
-            codeNodeType = CodeNodeType.GENERATOR,
+            codeNodeType = CodeNodeType.SOURCE,
             position = Node.Position(100.0, 100.0),
             inputPorts = emptyList(),
             outputPorts = listOf(
@@ -920,7 +920,7 @@ class ModuleSaveServiceTest {
         val node1 = CodeNode(
             id = "gen1",
             name = "Source",
-            codeNodeType = CodeNodeType.GENERATOR,
+            codeNodeType = CodeNodeType.SOURCE,
             position = Node.Position(100.0, 100.0),
             inputPorts = emptyList(),
             outputPorts = listOf(
@@ -1035,8 +1035,10 @@ class ModuleSaveServiceTest {
         // Processing logic stubs
         assertTrue(result.filesCreated.any { it.contains("TimerEmitterProcessLogic.kt") })
         assertTrue(result.filesCreated.any { it.contains("DisplayReceiverProcessLogic.kt") })
-        // Total: 2 gradle + 1 flow.kt + 4 runtime + 1 ViewModel + 2 stubs = 10
-        assertEquals(10, result.filesCreated.size, "First save should create 10 files")
+        // UI stub
+        assertTrue(result.filesCreated.any { it.contains("StopWatch4.kt") && it.contains("userInterface") })
+        // Total: 2 gradle + 1 flow.kt + 4 runtime + 1 ViewModel + 2 stubs + 1 UI stub = 11
+        assertEquals(11, result.filesCreated.size, "First save should create 11 files")
     }
 
     // ========== End-to-End Quickstart Validation ==========
@@ -1111,7 +1113,7 @@ class ModuleSaveServiceTest {
         val node1 = CodeNode(
             id = "gen1",
             name = "Emitter",
-            codeNodeType = CodeNodeType.GENERATOR,
+            codeNodeType = CodeNodeType.SOURCE,
             position = Node.Position(100.0, 100.0),
             inputPorts = emptyList(),
             outputPorts = listOf(
@@ -1148,7 +1150,7 @@ class ModuleSaveServiceTest {
     @Test
     fun `T006 - first save creates complete module with all file categories`() {
         val timerEmitter = CodeNode(
-            id = "timer", name = "TimerEmitter", codeNodeType = CodeNodeType.GENERATOR,
+            id = "timer", name = "TimerEmitter", codeNodeType = CodeNodeType.SOURCE,
             position = Node.Position(100.0, 200.0),
             inputPorts = emptyList(),
             outputPorts = listOf(
@@ -1210,9 +1212,9 @@ class ModuleSaveServiceTest {
         assertTrue(File(processingLogicDir, "TimerEmitterProcessLogic.kt").exists(), "TimerEmitter stub should exist")
         assertTrue(File(processingLogicDir, "DisplayReceiverProcessLogic.kt").exists(), "DisplayReceiver stub should exist")
 
-        // 5. filesCreated includes all 10 files
-        assertEquals(10, result.filesCreated.size,
-            "First save should report 10 files created (2 gradle + 1 flow.kt + 4 runtime + 1 ViewModel + 2 stubs)")
+        // 5. filesCreated includes all 11 files
+        assertEquals(11, result.filesCreated.size,
+            "First save should report 11 files created (2 gradle + 1 flow.kt + 4 runtime + 1 ViewModel + 2 stubs + 1 UI stub)")
 
         // 6. No overwrites or deletions on first save
         assertTrue(result.filesOverwritten.isEmpty(), "First save should have 0 overwritten")
@@ -1225,7 +1227,7 @@ class ModuleSaveServiceTest {
     fun `T008 - re-save overwrites flow kt with updated content`() {
         // First save with 2 nodes
         val timerEmitter = CodeNode(
-            id = "timer", name = "TimerEmitter", codeNodeType = CodeNodeType.GENERATOR,
+            id = "timer", name = "TimerEmitter", codeNodeType = CodeNodeType.SOURCE,
             position = Node.Position(100.0, 200.0),
             inputPorts = emptyList(),
             outputPorts = listOf(
@@ -1274,7 +1276,7 @@ class ModuleSaveServiceTest {
     @Test
     fun `T008 - re-save overwrites all 4 runtime files and ViewModel`() {
         val timerEmitter = CodeNode(
-            id = "timer", name = "TimerEmitter", codeNodeType = CodeNodeType.GENERATOR,
+            id = "timer", name = "TimerEmitter", codeNodeType = CodeNodeType.SOURCE,
             position = Node.Position(100.0, 200.0),
             inputPorts = emptyList(),
             outputPorts = listOf(
@@ -1316,7 +1318,7 @@ class ModuleSaveServiceTest {
     @Test
     fun `T008 - re-save preserves existing processing logic stubs`() {
         val timerEmitter = CodeNode(
-            id = "timer", name = "TimerEmitter", codeNodeType = CodeNodeType.GENERATOR,
+            id = "timer", name = "TimerEmitter", codeNodeType = CodeNodeType.SOURCE,
             position = Node.Position(100.0, 200.0),
             inputPorts = emptyList(),
             outputPorts = listOf(
@@ -1362,7 +1364,7 @@ class ModuleSaveServiceTest {
     @Test
     fun `T008 - re-save creates new stubs for added nodes`() {
         val timerEmitter = CodeNode(
-            id = "timer", name = "TimerEmitter", codeNodeType = CodeNodeType.GENERATOR,
+            id = "timer", name = "TimerEmitter", codeNodeType = CodeNodeType.SOURCE,
             position = Node.Position(100.0, 200.0),
             inputPorts = emptyList(),
             outputPorts = listOf(
@@ -1403,7 +1405,7 @@ class ModuleSaveServiceTest {
     @Test
     fun `T008 - re-save result matches quickstart Step 2 counts`() {
         val timerEmitter = CodeNode(
-            id = "timer", name = "TimerEmitter", codeNodeType = CodeNodeType.GENERATOR,
+            id = "timer", name = "TimerEmitter", codeNodeType = CodeNodeType.SOURCE,
             position = Node.Position(100.0, 200.0),
             inputPorts = emptyList(),
             outputPorts = listOf(
@@ -1433,7 +1435,7 @@ class ModuleSaveServiceTest {
         // Step 1: First save
         val result1 = saveService.saveModule(flowGraph1, tempDir)
         assertTrue(result1.success)
-        assertEquals(10, result1.filesCreated.size, "Step 1: 10 files created")
+        assertEquals(11, result1.filesCreated.size, "Step 1: 11 files created")
 
         // Step 2: Add Logger node, re-save
         val logger = CodeNode(
@@ -1474,7 +1476,7 @@ class ModuleSaveServiceTest {
     @Test
     fun `T009 - re-save after removing node deletes orphaned stubs and preserves remaining`() {
         val timerEmitter = CodeNode(
-            id = "timer", name = "TimerEmitter", codeNodeType = CodeNodeType.GENERATOR,
+            id = "timer", name = "TimerEmitter", codeNodeType = CodeNodeType.SOURCE,
             position = Node.Position(100.0, 200.0),
             inputPorts = emptyList(),
             outputPorts = listOf(
@@ -1714,7 +1716,7 @@ class ModuleSaveServiceTest {
     @Test
     fun `T010 - save under new name creates new module and preserves original`() {
         val timerEmitter = CodeNode(
-            id = "timer", name = "TimerEmitter", codeNodeType = CodeNodeType.GENERATOR,
+            id = "timer", name = "TimerEmitter", codeNodeType = CodeNodeType.SOURCE,
             position = Node.Position(100.0, 200.0),
             inputPorts = emptyList(),
             outputPorts = listOf(

@@ -161,7 +161,7 @@ class FlowKtGeneratorTest {
     @Test
     fun `T013 - generateFlowKt includes codeNode DSL block`() {
         // Given
-        val node = createTestCodeNode("timer", "TimerEmitter", CodeNodeType.GENERATOR)
+        val node = createTestCodeNode("timer", "TimerEmitter", CodeNodeType.SOURCE)
         val flowGraph = createTestFlowGraph("NodeTest", listOf(node))
         val generator = FlowKtGenerator()
 
@@ -267,7 +267,7 @@ class FlowKtGeneratorTest {
     @Test
     fun `T013 - codeNode includes node type`() {
         // Given
-        val node = createTestCodeNode("gen", "Generator", CodeNodeType.GENERATOR)
+        val node = createTestCodeNode("gen", "Generator", CodeNodeType.SOURCE)
         val flowGraph = createTestFlowGraph("TypeTest", listOf(node))
         val generator = FlowKtGenerator()
 
@@ -275,7 +275,7 @@ class FlowKtGeneratorTest {
         val result = generator.generateFlowKt(flowGraph, "io.codenode.generated")
 
         // Then
-        assertTrue(result.contains("nodeType = \"GENERATOR\""),
+        assertTrue(result.contains("nodeType = \"SOURCE\""),
             "Should include quoted node type string")
     }
 

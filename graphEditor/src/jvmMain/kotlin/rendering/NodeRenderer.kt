@@ -286,7 +286,7 @@ private fun getNodeColors(
  */
 private fun getNodeTypeColor(nodeType: CodeNodeType): Color {
     return when (nodeType) {
-        CodeNodeType.GENERATOR -> Color(0xFF4CAF50)  // Green - produces data
+        CodeNodeType.SOURCE -> Color(0xFF4CAF50)  // Green - produces data
         CodeNodeType.TRANSFORMER -> Color(0xFF2196F3)  // Blue - transforms data
         CodeNodeType.FILTER -> Color(0xFFFFC107)  // Amber - filters data
         CodeNodeType.VALIDATOR -> Color(0xFFFF9800)  // Orange - validates data

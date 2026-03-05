@@ -218,7 +218,7 @@ fun createNodeFromType(nodeType: NodeTypeDefinition, position: Offset): CodeNode
 
     // Map node category to CodeNodeType
     val codeNodeType = when (nodeType.category) {
-        NodeTypeDefinition.NodeCategory.UI_COMPONENT -> CodeNodeType.GENERATOR // UI generates events/data
+        NodeTypeDefinition.NodeCategory.UI_COMPONENT -> CodeNodeType.SOURCE // UI is a source of events/data
         NodeTypeDefinition.NodeCategory.SERVICE -> CodeNodeType.TRANSFORMER // Services transform data
         NodeTypeDefinition.NodeCategory.TRANSFORMER -> CodeNodeType.TRANSFORMER
         NodeTypeDefinition.NodeCategory.VALIDATOR -> CodeNodeType.VALIDATOR

@@ -53,7 +53,7 @@ class ChannelCapacityTest {
     private fun createFlowGraphWithConnection(
         channelCapacity: Int
     ): FlowGraph {
-        val sourceNode = createTestCodeNode("source", "Source", CodeNodeType.GENERATOR)
+        val sourceNode = createTestCodeNode("source", "Source", CodeNodeType.SOURCE)
         val targetNode = createTestCodeNode("target", "Target", CodeNodeType.SINK)
         val connection = Connection(
             id = "conn_1",

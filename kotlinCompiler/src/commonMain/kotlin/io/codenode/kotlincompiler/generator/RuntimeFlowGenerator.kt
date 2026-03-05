@@ -154,12 +154,12 @@ class RuntimeFlowGenerator {
             val typeParams = getFactoryTypeParams(node)
             val tickParamName = runtimeTypeResolver.getTickParamName(node, anyInput)
             val isSink = node.inputPorts.isNotEmpty() && node.outputPorts.isEmpty()
-            val isGenerator = node.inputPorts.isEmpty() && node.outputPorts.isNotEmpty()
+            val isSource = node.inputPorts.isEmpty() && node.outputPorts.isNotEmpty()
 
             appendLine("    internal val $varName = CodeNodeFactory.$factoryMethod<$typeParams>(")
             appendLine("        name = \"${node.name}\",")
 
-            if (isGenerator) {
+            if (isSource) {
                 val tickInterval = node.configuration["tickIntervalMs"] ?: "1000L"
                 appendLine("        tickIntervalMs = $tickInterval,")
                 appendLine("        $tickParamName = ${varName}Tick")
@@ -233,18 +233,18 @@ class RuntimeFlowGenerator {
         appendLine("     */")
         appendLine("    suspend fun start(scope: CoroutineScope) {")
 
-        // Start generators first
-        val generators = codeNodes.filter { it.inputPorts.isEmpty() && it.outputPorts.isNotEmpty() }
-        generators.forEach { node ->
+        // Start sources first
+        val sources = codeNodes.filter { it.inputPorts.isEmpty() && it.outputPorts.isNotEmpty() }
+        sources.forEach { node ->
             appendLine("        ${node.name.camelCase()}.start(scope) {}")
         }
 
         // Wire connections
         appendLine("        wireConnections()")
 
-        // Start non-generators
-        val nonGenerators = codeNodes.filter { !(it.inputPorts.isEmpty() && it.outputPorts.isNotEmpty()) }
-        nonGenerators.forEach { node ->
+        // Start non-sources
+        val nonSources = codeNodes.filter { !(it.inputPorts.isEmpty() && it.outputPorts.isNotEmpty()) }
+        nonSources.forEach { node ->
             appendLine("        ${node.name.camelCase()}.start(scope) {}")
         }
 

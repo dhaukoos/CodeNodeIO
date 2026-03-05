@@ -1,6 +1,6 @@
 /*
- * Generator Node Template
- * Generates code for data generation nodes (sources)
+ * Source Node Template
+ * Generates code for data source nodes (sources)
  * License: Apache 2.0
  */
 
@@ -14,14 +14,14 @@ import io.codenode.kotlincompiler.generator.camelCase
 import io.codenode.kotlincompiler.generator.ConfigAwareGenerator
 
 /**
- * Template for generating Generator node components.
+ * Template for generating Source node components.
  *
- * Generators produce data without requiring input. They are the sources
+ * Sources produce data without requiring input. They are the sources
  * in a flow graph - timers, API polls, user input listeners, etc.
  *
  * Generated code pattern:
  * ```kotlin
- * class MyGenerator {
+ * class MySource {
  *     val output = MutableSharedFlow<Any>()
  *
  *     suspend fun generate(): Any?
@@ -38,9 +38,9 @@ import io.codenode.kotlincompiler.generator.ConfigAwareGenerator
  * }
  * ```
  */
-class GeneratorTemplate : NodeTemplate {
+class SourceTemplate : NodeTemplate {
 
-    override val nodeType = CodeNodeType.GENERATOR
+    override val nodeType = CodeNodeType.SOURCE
 
     override fun generate(node: CodeNode, className: ClassName): TypeSpec {
         val classBuilder = TypeSpec.classBuilder(className)
@@ -99,7 +99,7 @@ class GeneratorTemplate : NodeTemplate {
 
     private fun generateKDoc(node: CodeNode): CodeBlock {
         return CodeBlock.builder()
-            .add("Generator component: ${node.name}\n")
+            .add("Source component: ${node.name}\n")
             .add("\n")
             .add("Produces data for the flow graph.\n")
             .add("This is a source node - it has no inputs.\n")
@@ -133,7 +133,7 @@ class GeneratorTemplate : NodeTemplate {
 
         return FunSpec.builder("start")
             .addParameter("scope", scopeType)
-            .addKdoc("Starts the generator's production loop.\n")
+            .addKdoc("Starts the source's production loop.\n")
             .addCode(CodeBlock.builder()
                 .addStatement("isRunning = true")
                 .beginControlFlow("scope.launch")
@@ -151,7 +151,7 @@ class GeneratorTemplate : NodeTemplate {
 
     private fun generateStopFunction(): FunSpec {
         return FunSpec.builder("stop")
-            .addKdoc("Stops the generator.\n")
+            .addKdoc("Stops the source.\n")
             .addCode(CodeBlock.builder()
                 .addStatement("isRunning = false")
                 .build())

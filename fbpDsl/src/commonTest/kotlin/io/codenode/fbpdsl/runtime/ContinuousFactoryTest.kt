@@ -1,6 +1,6 @@
 /*
  * ContinuousFactoryTest - TDD tests for continuous factory methods
- * Tests createContinuousGenerator, createContinuousSink, etc.
+ * Tests createContinuousSource, createContinuousSink, etc.
  * License: Apache 2.0
  */
 
@@ -24,7 +24,7 @@ import kotlin.test.assertTrue
 
 /**
  * TDD tests for continuous factory methods.
- * Tests the createContinuousGenerator and related functionality.
+ * Tests the createContinuousSource and related functionality.
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 class ContinuousFactoryTest {
@@ -39,7 +39,7 @@ class ContinuousFactoryTest {
         val emissions = mutableListOf<Int>()
         val channel = Channel<Int>(Channel.BUFFERED)
 
-        val runtime = CodeNodeFactory.createContinuousGenerator<Int>(
+        val runtime = CodeNodeFactory.createContinuousSource<Int>(
             name = "Counter"
         ) { emit ->
             var count = 0
@@ -82,7 +82,7 @@ class ContinuousFactoryTest {
         var loopIterations = 0
         val channel = Channel<Int>(Channel.BUFFERED)
 
-        val runtime = CodeNodeFactory.createContinuousGenerator<Int>(
+        val runtime = CodeNodeFactory.createContinuousSource<Int>(
             name = "ActiveChecker"
         ) { emit ->
             while (currentCoroutineContext().isActive) {
@@ -120,7 +120,7 @@ class ContinuousFactoryTest {
         val channel = Channel<Int>(Channel.BUFFERED)
         var channelClosed = false
 
-        val runtime = CodeNodeFactory.createContinuousGenerator<Int>(
+        val runtime = CodeNodeFactory.createContinuousSource<Int>(
             name = "ChannelCloser"
         ) { emit ->
             while (currentCoroutineContext().isActive) {
@@ -157,11 +157,11 @@ class ContinuousFactoryTest {
     }
 
     /**
-     * Test that createContinuousGenerator returns a properly configured NodeRuntime
+     * Test that createContinuousSource returns a properly configured NodeRuntime
      */
     @Test
-    fun `createContinuousGenerator returns configured NodeRuntime`() = runTest {
-        val runtime = CodeNodeFactory.createContinuousGenerator<String>(
+    fun `createContinuousSource returns configured NodeRuntime`() = runTest {
+        val runtime = CodeNodeFactory.createContinuousSource<String>(
             name = "TestGenerator",
             description = "A test generator"
         ) { emit ->
@@ -173,7 +173,7 @@ class ContinuousFactoryTest {
         assertNotNull(runtime.codeNode, "CodeNode should not be null")
         assertEquals("TestGenerator", runtime.codeNode.name)
         assertEquals("A test generator", runtime.codeNode.description)
-        assertEquals(CodeNodeType.GENERATOR, runtime.codeNode.codeNodeType)
+        assertEquals(CodeNodeType.SOURCE, runtime.codeNode.codeNodeType)
         assertTrue(runtime.isIdle(), "Initial state should be IDLE")
     }
 
@@ -184,7 +184,7 @@ class ContinuousFactoryTest {
     fun `generator uses custom channel capacity`() = runTest {
         val customCapacity = 10
 
-        val runtime = CodeNodeFactory.createContinuousGenerator<Int>(
+        val runtime = CodeNodeFactory.createContinuousSource<Int>(
             name = "CapacityTest",
             channelCapacity = customCapacity
         ) { emit ->
@@ -336,7 +336,7 @@ class ContinuousFactoryTest {
         val receivedValues = mutableListOf<Int>()
 
         // Create generator that emits 1, 2, 3
-        val generator = CodeNodeFactory.createContinuousGenerator<Int>(
+        val generator = CodeNodeFactory.createContinuousSource<Int>(
             name = "NumberGenerator"
         ) { emit ->
             for (i in 1..3) {
@@ -388,7 +388,7 @@ class ContinuousFactoryTest {
         val smallChannel = Channel<Int>(capacity = 2)
 
         // Fast generator - tries to emit quickly
-        val generator = CodeNodeFactory.createContinuousGenerator<Int>(
+        val generator = CodeNodeFactory.createContinuousSource<Int>(
             name = "FastProducer"
         ) { emit ->
             while (currentCoroutineContext().isActive) {
@@ -437,7 +437,7 @@ class ContinuousFactoryTest {
         var sinkCompleted = false
 
         // Create generator
-        val generator = CodeNodeFactory.createContinuousGenerator<Int>(
+        val generator = CodeNodeFactory.createContinuousSource<Int>(
             name = "ClosingGenerator"
         ) { emit ->
             // Emit a few values then exit (simulating completion)
@@ -489,7 +489,7 @@ class ContinuousFactoryTest {
         val results = mutableListOf<String>()
 
         // Generator emits strings
-        val generator = CodeNodeFactory.createContinuousGenerator<String>(
+        val generator = CodeNodeFactory.createContinuousSource<String>(
             name = "StringGenerator"
         ) { emit ->
             emit("Hello")
@@ -644,7 +644,7 @@ class ContinuousFactoryTest {
         val results = mutableListOf<String>()
 
         // Create generator that emits numbers
-        val generator = CodeNodeFactory.createContinuousGenerator<Int>(
+        val generator = CodeNodeFactory.createContinuousSource<Int>(
             name = "NumberGenerator"
         ) { emit ->
             emit(1)

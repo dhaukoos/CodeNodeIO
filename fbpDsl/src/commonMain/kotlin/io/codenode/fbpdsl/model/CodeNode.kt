@@ -29,8 +29,8 @@ enum class CodeNodeType {
     /** Validates input data against rules */
     VALIDATOR,
 
-    /** Generates data (no input required) */
-    GENERATOR,
+    /** Source of data driven by external input (no input ports) */
+    SOURCE,
 
     /** Consumes data (no output) */
     SINK,

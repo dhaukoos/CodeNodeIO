@@ -71,11 +71,11 @@ class StopWatchFlowGraphTest {
 
     @Test
     fun `T010 - CodeNode with 0 inputs and 2 Int outputs validates successfully`() {
-        // Given: A TimerEmitter-style CodeNode (GENERATOR pattern)
+        // Given: A TimerEmitter-style CodeNode (SOURCE pattern)
         val timerEmitter = CodeNode(
             id = "timer-emitter-1",
             name = "TimerEmitter",
-            codeNodeType = CodeNodeType.GENERATOR,
+            codeNodeType = CodeNodeType.SOURCE,
             position = Node.Position(100.0, 100.0),
             inputPorts = emptyList(), // 0 inputs
             outputPorts = listOf(
@@ -119,12 +119,12 @@ class StopWatchFlowGraphTest {
     }
 
     @Test
-    fun `T010 - TimerEmitter is classified as GENERATOR`() {
+    fun `T010 - TimerEmitter is classified as SOURCE`() {
         // Given: A TimerEmitter CodeNode
         val timerEmitter = createTimerEmitterNode()
 
-        // Then: Should be of type GENERATOR
-        assertEquals(CodeNodeType.GENERATOR, timerEmitter.codeNodeType)
+        // Then: Should be of type SOURCE
+        assertEquals(CodeNodeType.SOURCE, timerEmitter.codeNodeType)
     }
 
     // ========== T011: DisplayReceiver CodeNode Tests ==========
@@ -277,7 +277,7 @@ class StopWatchFlowGraphTest {
         return CodeNode(
             id = id,
             name = "TimerEmitter",
-            codeNodeType = CodeNodeType.GENERATOR,
+            codeNodeType = CodeNodeType.SOURCE,
             position = Node.Position(100.0, 100.0),
             inputPorts = emptyList(),
             outputPorts = listOf(

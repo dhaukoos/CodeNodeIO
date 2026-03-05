@@ -22,7 +22,7 @@ import kotlin.test.assertTrue
 @OptIn(ExperimentalCoroutinesApi::class)
 class PauseResumeTest {
 
-    private fun createTestCodeNode(id: String, type: CodeNodeType = CodeNodeType.GENERATOR): CodeNode {
+    private fun createTestCodeNode(id: String, type: CodeNodeType = CodeNodeType.SOURCE): CodeNode {
         return CodeNode(
             id = id,
             name = "Test Node $id",
@@ -36,7 +36,7 @@ class PauseResumeTest {
 
     @Test
     fun generatorRuntime_pauseChangesState() = runTest {
-        val generator = GeneratorRuntime<Int>(
+        val generator = SourceRuntime<Int>(
             codeNode = createTestCodeNode("gen1")
         ) { emit -> }
 
@@ -132,7 +132,7 @@ class PauseResumeTest {
     }
 
     @Test
-    fun out2GeneratorRuntime_pauseChangesState() = runTest {
+    fun out2SourceRuntime_pauseChangesState() = runTest {
         val generator = Out2GeneratorRuntime<Int, String>(
             codeNode = createTestCodeNode("gen2out"),
             generate = { emit -> }
@@ -184,7 +184,7 @@ class PauseResumeTest {
 
     @Test
     fun pauseOnlyWorksWhenRunning() = runTest {
-        val generator = GeneratorRuntime<Int>(
+        val generator = SourceRuntime<Int>(
             codeNode = createTestCodeNode("gen-pause-test")
         ) { emit -> }
 
@@ -209,7 +209,7 @@ class PauseResumeTest {
 
     @Test
     fun resumeOnlyWorksWhenPaused() = runTest {
-        val generator = GeneratorRuntime<Int>(
+        val generator = SourceRuntime<Int>(
             codeNode = createTestCodeNode("gen-resume-test")
         ) { emit -> }
 
@@ -236,7 +236,7 @@ class PauseResumeTest {
 
     @Test
     fun stopWhilePaused_changesStateToIdle() = runTest {
-        val generator = GeneratorRuntime<Int>(
+        val generator = SourceRuntime<Int>(
             codeNode = createTestCodeNode("gen-stop-paused")
         ) { emit -> }
 
@@ -258,12 +258,12 @@ class PauseResumeTest {
     fun registry_pauseAll_pausesAllRuntimes() = runTest {
         val registry = RuntimeRegistry()
 
-        val gen1 = GeneratorRuntime<Int>(
+        val gen1 = SourceRuntime<Int>(
             codeNode = createTestCodeNode("gen1")
         ) { emit -> }
         gen1.registry = registry
 
-        val gen2 = GeneratorRuntime<Int>(
+        val gen2 = SourceRuntime<Int>(
             codeNode = createTestCodeNode("gen2")
         ) { emit -> }
         gen2.registry = registry
@@ -294,12 +294,12 @@ class PauseResumeTest {
     fun registry_stopAll_stopsAllRuntimes() = runTest {
         val registry = RuntimeRegistry()
 
-        val gen1 = GeneratorRuntime<Int>(
+        val gen1 = SourceRuntime<Int>(
             codeNode = createTestCodeNode("gen1")
         ) { emit -> }
         gen1.registry = registry
 
-        val gen2 = GeneratorRuntime<Int>(
+        val gen2 = SourceRuntime<Int>(
             codeNode = createTestCodeNode("gen2")
         ) { emit -> }
         gen2.registry = registry
@@ -325,17 +325,17 @@ class PauseResumeTest {
         val independentNode = CodeNode(
             id = "independent",
             name = "Independent Node",
-            codeNodeType = CodeNodeType.GENERATOR,
+            codeNodeType = CodeNodeType.SOURCE,
             position = Node.Position.ORIGIN,
             controlConfig = ControlConfig(independentControl = true)
         )
 
-        val normalRuntime = GeneratorRuntime<Int>(
+        val normalRuntime = SourceRuntime<Int>(
             codeNode = normalNode
         ) { emit -> }
         normalRuntime.registry = registry
 
-        val independentRuntime = GeneratorRuntime<Int>(
+        val independentRuntime = SourceRuntime<Int>(
             codeNode = independentNode
         ) { emit -> }
         independentRuntime.registry = registry
@@ -365,7 +365,7 @@ class PauseResumeTest {
 
     @Test
     fun multiplePauseResumeCycles() = runTest {
-        val generator = GeneratorRuntime<Int>(
+        val generator = SourceRuntime<Int>(
             codeNode = createTestCodeNode("gen-cycle")
         ) { emit -> }
 

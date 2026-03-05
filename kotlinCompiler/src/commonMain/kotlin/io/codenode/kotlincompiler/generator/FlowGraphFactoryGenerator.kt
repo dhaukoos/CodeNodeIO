@@ -64,7 +64,7 @@ class FlowGraphFactoryGenerator {
         val outputCount = node.outputPorts.size
 
         return when {
-            inputCount == 0 && outputCount == 1 -> "createTimedGenerator"
+            inputCount == 0 && outputCount == 1 -> "createContinuousSource"
             inputCount == 0 && outputCount == 2 -> "createTimedOut2Generator"
             inputCount == 0 && outputCount == 3 -> "createTimedOut3Generator"
 

@@ -33,7 +33,7 @@ class NodeRuntimeTest {
         val codeNode = CodeNode(
             id = "test-node",
             name = "TestNode",
-            codeNodeType = CodeNodeType.GENERATOR,
+            codeNodeType = CodeNodeType.SOURCE,
             position = Node.Position(0.0, 0.0),
             executionState = executionState
         )

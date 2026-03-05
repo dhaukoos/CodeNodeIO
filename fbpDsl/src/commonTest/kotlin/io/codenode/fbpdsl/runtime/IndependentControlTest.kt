@@ -37,7 +37,7 @@ class IndependentControlTest {
 
     private fun createCodeNode(
         id: String,
-        type: CodeNodeType = CodeNodeType.GENERATOR,
+        type: CodeNodeType = CodeNodeType.SOURCE,
         independentControl: Boolean = false
     ): CodeNode {
         return CodeNode(
@@ -58,7 +58,7 @@ class IndependentControlTest {
         val registry = RuntimeRegistry()
 
         // Create generator with independentControl=true
-        val independentGenerator = GeneratorRuntime<Int>(
+        val independentGenerator = SourceRuntime<Int>(
             codeNode = createCodeNode("independent", independentControl = true)
         ) { emit ->
             while (true) {
@@ -70,7 +70,7 @@ class IndependentControlTest {
         independentGenerator.registry = registry
 
         // Create normal generator (independentControl=false)
-        val normalGenerator = GeneratorRuntime<Int>(
+        val normalGenerator = SourceRuntime<Int>(
             codeNode = createCodeNode("normal", independentControl = false)
         ) { emit ->
             while (true) {
@@ -110,7 +110,7 @@ class IndependentControlTest {
         val registry = RuntimeRegistry()
 
         // Create generator with independentControl=true
-        val generator = GeneratorRuntime<Int>(
+        val generator = SourceRuntime<Int>(
             codeNode = createCodeNode("independent", independentControl = true)
         ) { emit ->
             while (true) {
@@ -171,7 +171,7 @@ class IndependentControlTest {
         val registry = RuntimeRegistry()
 
         // Create generator with independentControl=true
-        val generator = GeneratorRuntime<Int>(
+        val generator = SourceRuntime<Int>(
             codeNode = createCodeNode("independent", independentControl = true)
         ) { emit ->
             while (true) {
@@ -221,7 +221,7 @@ class IndependentControlTest {
         val registry = RuntimeRegistry()
 
         // Create 3 generators: 1 independent, 2 normal
-        val independent = GeneratorRuntime<Int>(
+        val independent = SourceRuntime<Int>(
             codeNode = createCodeNode("independent", independentControl = true)
         ) { emit ->
             while (true) { emit(1); delay(100) }
@@ -229,7 +229,7 @@ class IndependentControlTest {
         independent.outputChannel = Channel(Channel.BUFFERED)
         independent.registry = registry
 
-        val normal1 = GeneratorRuntime<Int>(
+        val normal1 = SourceRuntime<Int>(
             codeNode = createCodeNode("normal1")
         ) { emit ->
             while (true) { emit(1); delay(100) }
@@ -237,7 +237,7 @@ class IndependentControlTest {
         normal1.outputChannel = Channel(Channel.BUFFERED)
         normal1.registry = registry
 
-        val normal2 = GeneratorRuntime<Int>(
+        val normal2 = SourceRuntime<Int>(
             codeNode = createCodeNode("normal2")
         ) { emit ->
             while (true) { emit(1); delay(100) }
@@ -285,7 +285,7 @@ class IndependentControlTest {
         val registry = RuntimeRegistry()
 
         // Create both independent and normal generators
-        val independent = GeneratorRuntime<Int>(
+        val independent = SourceRuntime<Int>(
             codeNode = createCodeNode("independent", independentControl = true)
         ) { emit ->
             while (true) { emit(1); delay(100) }
@@ -293,7 +293,7 @@ class IndependentControlTest {
         independent.outputChannel = Channel(Channel.BUFFERED)
         independent.registry = registry
 
-        val normal = GeneratorRuntime<Int>(
+        val normal = SourceRuntime<Int>(
             codeNode = createCodeNode("normal")
         ) { emit ->
             while (true) { emit(1); delay(100) }
@@ -333,7 +333,7 @@ class IndependentControlTest {
     fun multiple_pause_and_resume_cycles_work_correctly() = runTest {
         val registry = RuntimeRegistry()
 
-        val generator = GeneratorRuntime<Int>(
+        val generator = SourceRuntime<Int>(
             codeNode = createCodeNode("cycle-test")
         ) { emit ->
             while (true) {

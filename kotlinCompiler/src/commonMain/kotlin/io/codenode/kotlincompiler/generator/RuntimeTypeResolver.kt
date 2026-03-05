@@ -24,7 +24,7 @@ class RuntimeTypeResolver {
      *
      * @param node The code node
      * @param anyInput When true, returns any-input factory variant (e.g., "createIn2AnyOut1Processor")
-     * @return Factory method name (e.g., "createTimedOut2Generator", "createIn2Sink")
+     * @return Factory method name (e.g., "createContinuousSource", "createIn2Sink")
      */
     fun getFactoryMethodName(node: CodeNode, anyInput: Boolean = false): String {
         val inputs = node.inputPorts.size
@@ -33,7 +33,7 @@ class RuntimeTypeResolver {
 
         return when {
             // Generators (0 inputs)
-            inputs == 0 && outputs == 1 -> "createTimedGenerator"
+            inputs == 0 && outputs == 1 -> "createContinuousSource"
             inputs == 0 && outputs == 2 -> "createTimedOut2Generator"
             inputs == 0 && outputs == 3 -> "createTimedOut3Generator"
 
@@ -63,7 +63,7 @@ class RuntimeTypeResolver {
             inputs == 3 && outputs == 2 -> "createIn3${any}Out2Processor"
             inputs == 3 && outputs == 3 -> "createIn3${any}Out3Processor"
 
-            else -> "createContinuousGenerator" // fallback
+            else -> "createContinuousSource" // fallback
         }
     }
 
@@ -72,7 +72,7 @@ class RuntimeTypeResolver {
      *
      * @param node The code node
      * @param anyInput When true, returns any-input runtime variant (e.g., "In2AnyOut1Runtime<Int, Int, Int>")
-     * @return Runtime type string (e.g., "Out2GeneratorRuntime<Int, Int>")
+     * @return Runtime type string (e.g., "SourceRuntime<Int>", "Out2GeneratorRuntime<Int, Int>")
      */
     fun getRuntimeTypeName(node: CodeNode, anyInput: Boolean = false): String {
         val inputs = node.inputPorts.size
@@ -82,7 +82,7 @@ class RuntimeTypeResolver {
         val typeParams = buildTypeParams(node)
 
         return when {
-            inputs == 0 && outputs == 1 -> "GeneratorRuntime<$typeParams>"
+            inputs == 0 && outputs == 1 -> "SourceRuntime<$typeParams>"
             inputs == 0 && outputs == 2 -> "Out2GeneratorRuntime<$typeParams>"
             inputs == 0 && outputs == 3 -> "Out3GeneratorRuntime<$typeParams>"
 
@@ -105,7 +105,7 @@ class RuntimeTypeResolver {
             inputs == 3 && outputs == 2 -> "In3${any}Out2Runtime<$typeParams>"
             inputs == 3 && outputs == 3 -> "In3${any}Out3Runtime<$typeParams>"
 
-            else -> "GeneratorRuntime<Any>"
+            else -> "SourceRuntime<Any>"
         }
     }
 

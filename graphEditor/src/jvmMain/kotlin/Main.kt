@@ -96,10 +96,10 @@ fun createSampleNodeTypes(): List<NodeTypeDefinition> {
 
     val specializedTypes = listOf(
         NodeTypeDefinition(
-            id = "nodeType_generator",
-            name = "Data Generator",
+            id = "nodeType_source",
+            name = "Data Source",
             category = NodeTypeDefinition.NodeCategory.SERVICE,
-            description = "Generates or loads data into the flow",
+            description = "Sources or loads data into the flow",
             portTemplates = listOf(
                 PortTemplate(
                     name = "output",
@@ -683,7 +683,7 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                             val yOffset = 200.0 + (nodeCount / 3) * 100.0  // New row every 3 nodes
                             // Map node category to CodeNodeType
                             val mappedCodeNodeType = when (nodeType.category) {
-                                NodeTypeDefinition.NodeCategory.UI_COMPONENT -> CodeNodeType.GENERATOR
+                                NodeTypeDefinition.NodeCategory.UI_COMPONENT -> CodeNodeType.SOURCE
                                 NodeTypeDefinition.NodeCategory.SERVICE -> CodeNodeType.TRANSFORMER
                                 NodeTypeDefinition.NodeCategory.TRANSFORMER -> CodeNodeType.TRANSFORMER
                                 NodeTypeDefinition.NodeCategory.VALIDATOR -> CodeNodeType.VALIDATOR

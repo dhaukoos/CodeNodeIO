@@ -76,7 +76,7 @@ class ConnectionWiringResolverTest {
         val generator = createTestCodeNode(
             id = "gen",
             name = "TimerEmitter",
-            type = CodeNodeType.GENERATOR,
+            type = CodeNodeType.SOURCE,
             outputPorts = listOf(
                 outputPort("gen_sec", "seconds", Int::class, "gen"),
                 outputPort("gen_min", "minutes", Int::class, "gen")
@@ -135,7 +135,7 @@ class ConnectionWiringResolverTest {
         val generator = createTestCodeNode(
             id = "gen",
             name = "Generator",
-            type = CodeNodeType.GENERATOR,
+            type = CodeNodeType.SOURCE,
             outputPorts = listOf(outputPort("gen_out", "value", Int::class, "gen"))
         )
         val flowGraph = createFlowGraph(listOf(generator))
@@ -152,7 +152,7 @@ class ConnectionWiringResolverTest {
         val generator = createTestCodeNode(
             id = "gen",
             name = "ValueGenerator",
-            type = CodeNodeType.GENERATOR,
+            type = CodeNodeType.SOURCE,
             outputPorts = listOf(
                 outputPort("gen_out", "value", Int::class, "gen")
             )
@@ -189,7 +189,7 @@ class ConnectionWiringResolverTest {
         val generator = createTestCodeNode(
             id = "gen",
             name = "ValueGenerator",
-            type = CodeNodeType.GENERATOR,
+            type = CodeNodeType.SOURCE,
             outputPorts = listOf(
                 outputPort("gen_out", "value", Int::class, "gen")
             )
@@ -226,7 +226,7 @@ class ConnectionWiringResolverTest {
         val generator = createTestCodeNode(
             id = "gen",
             name = "TriGenerator",
-            type = CodeNodeType.GENERATOR,
+            type = CodeNodeType.SOURCE,
             outputPorts = listOf(
                 outputPort("gen_o1", "first", Int::class, "gen"),
                 outputPort("gen_o2", "second", String::class, "gen"),
@@ -275,15 +275,15 @@ class ConnectionWiringResolverTest {
     @Test
     fun `3 input sink uses inputChannel1 inputChannel2 inputChannel3`() {
         val gen1 = createTestCodeNode(
-            id = "g1", name = "Gen1", type = CodeNodeType.GENERATOR,
+            id = "g1", name = "Gen1", type = CodeNodeType.SOURCE,
             outputPorts = listOf(outputPort("g1_out", "value", Int::class, "g1"))
         )
         val gen2 = createTestCodeNode(
-            id = "g2", name = "Gen2", type = CodeNodeType.GENERATOR,
+            id = "g2", name = "Gen2", type = CodeNodeType.SOURCE,
             outputPorts = listOf(outputPort("g2_out", "value", String::class, "g2"))
         )
         val gen3 = createTestCodeNode(
-            id = "g3", name = "Gen3", type = CodeNodeType.GENERATOR,
+            id = "g3", name = "Gen3", type = CodeNodeType.SOURCE,
             outputPorts = listOf(outputPort("g3_out", "value", Boolean::class, "g3"))
         )
         val sink = createTestCodeNode(
@@ -316,7 +316,7 @@ class ConnectionWiringResolverTest {
         val generator = createTestCodeNode(
             id = "gen",
             name = "TimerEmitter",
-            type = CodeNodeType.GENERATOR,
+            type = CodeNodeType.SOURCE,
             outputPorts = listOf(outputPort("gen_out", "value", Int::class, "gen"))
         )
         val sink = createTestCodeNode(

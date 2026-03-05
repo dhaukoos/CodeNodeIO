@@ -50,7 +50,7 @@ class NodeTemplateRegistry {
         register(ValidatorTemplate())
         register(SplitterTemplate())
         register(MergerTemplate())
-        register(GeneratorTemplate())
+        register(SourceTemplate())
         register(SinkTemplate())
     }
 

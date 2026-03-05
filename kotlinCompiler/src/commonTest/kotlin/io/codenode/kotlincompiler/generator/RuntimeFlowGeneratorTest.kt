@@ -168,7 +168,7 @@ class RuntimeFlowGeneratorTest {
         val timerEmitter = CodeNode(
             id = "timer",
             name = "TimerEmitter",
-            codeNodeType = CodeNodeType.GENERATOR,
+            codeNodeType = CodeNodeType.SOURCE,
             position = Node.Position(100.0, 200.0),
             inputPorts = emptyList(),
             outputPorts = listOf(
@@ -281,7 +281,7 @@ class RuntimeFlowGeneratorTest {
     @Test
     fun `no connections generates empty wireConnections body`() {
         val gen = createTestCodeNode(
-            "gen", "Generator", CodeNodeType.GENERATOR,
+            "gen", "Generator", CodeNodeType.SOURCE,
             outputPorts = listOf(outputPort("g_out", "value", Int::class, "gen"))
         )
         val sink = createTestCodeNode(
@@ -299,7 +299,7 @@ class RuntimeFlowGeneratorTest {
     @Test
     fun `no sink nodes does not import State object`() {
         val gen = createTestCodeNode(
-            "gen", "Generator", CodeNodeType.GENERATOR,
+            "gen", "Generator", CodeNodeType.SOURCE,
             outputPorts = listOf(outputPort("g_out", "value", Int::class, "gen"))
         )
         val transformer = createTestCodeNode(
@@ -317,7 +317,7 @@ class RuntimeFlowGeneratorTest {
     @Test
     fun `no sink nodes generates empty reset body`() {
         val gen = createTestCodeNode(
-            "gen", "Generator", CodeNodeType.GENERATOR,
+            "gen", "Generator", CodeNodeType.SOURCE,
             outputPorts = listOf(outputPort("g_out", "value", Int::class, "gen"))
         )
         val flowGraph = createFlowGraph(nodes = listOf(gen))
@@ -332,7 +332,7 @@ class RuntimeFlowGeneratorTest {
     @Test
     fun `single output generator uses outputChannel`() {
         val gen = createTestCodeNode(
-            "gen", "ValueGenerator", CodeNodeType.GENERATOR,
+            "gen", "ValueGenerator", CodeNodeType.SOURCE,
             outputPorts = listOf(outputPort("g_out", "value", Int::class, "gen"))
         )
         val sink = createTestCodeNode(
@@ -351,7 +351,7 @@ class RuntimeFlowGeneratorTest {
     @Test
     fun `single input sink uses inputChannel`() {
         val gen = createTestCodeNode(
-            "gen", "ValueGenerator", CodeNodeType.GENERATOR,
+            "gen", "ValueGenerator", CodeNodeType.SOURCE,
             outputPorts = listOf(outputPort("g_out", "value", Int::class, "gen"))
         )
         val sink = createTestCodeNode(
@@ -369,15 +369,15 @@ class RuntimeFlowGeneratorTest {
     }
 
     @Test
-    fun `single output generator uses createTimedGenerator`() {
+    fun `single output source uses createContinuousSource`() {
         val gen = createTestCodeNode(
-            "gen", "ValueGenerator", CodeNodeType.GENERATOR,
+            "gen", "ValueGenerator", CodeNodeType.SOURCE,
             outputPorts = listOf(outputPort("g_out", "value", Int::class, "gen"))
         )
         val flowGraph = createFlowGraph(nodes = listOf(gen))
         val result = generator.generate(flowGraph, generatedPackage, usecasesPackage, viewModelPackage)
 
-        assertTrue(result.contains("CodeNodeFactory.createTimedGenerator<Int>("))
+        assertTrue(result.contains("CodeNodeFactory.createContinuousSource<Int>("))
         assertTrue(result.contains("tick = valueGeneratorTick"))
     }
 
@@ -568,7 +568,7 @@ class RuntimeFlowGeneratorTest {
         val timerEmitter = createTestCodeNode(
             id = "timer",
             name = "TimerEmitter",
-            type = CodeNodeType.GENERATOR,
+            type = CodeNodeType.SOURCE,
             outputPorts = listOf(
                 outputPort("timer_sec", "elapsedSeconds", Int::class, "timer"),
                 outputPort("timer_min", "elapsedMinutes", Int::class, "timer")

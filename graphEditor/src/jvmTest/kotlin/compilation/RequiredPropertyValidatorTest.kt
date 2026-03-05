@@ -245,7 +245,7 @@ class RequiredPropertyValidatorTest {
         assertTrue(validator.getRequiredProperties(CodeNodeType.TRANSFORMER).isEmpty())
         assertTrue(validator.getRequiredProperties(CodeNodeType.API_ENDPOINT).isEmpty())
         assertTrue(validator.getRequiredProperties(CodeNodeType.DATABASE).isEmpty())
-        assertTrue(validator.getRequiredProperties(CodeNodeType.GENERATOR).isEmpty())
+        assertTrue(validator.getRequiredProperties(CodeNodeType.SOURCE).isEmpty())
         assertTrue(validator.getRequiredProperties(CodeNodeType.SINK).isEmpty())
     }
 }

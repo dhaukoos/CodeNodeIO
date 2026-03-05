@@ -61,7 +61,7 @@ class RuntimeTypeResolverTest {
     @Test
     fun `0 in 2 out returns createTimedOut2Generator`() {
         val node = createTestCodeNode(
-            id = "gen", name = "TimerEmitter", type = CodeNodeType.GENERATOR,
+            id = "gen", name = "TimerEmitter", type = CodeNodeType.SOURCE,
             outputPorts = listOf(
                 outputPort("o1", "seconds", Int::class, "gen"),
                 outputPort("o2", "minutes", Int::class, "gen")
@@ -105,18 +105,18 @@ class RuntimeTypeResolverTest {
         assertEquals("TransformerRuntime<String, Int>", resolver.getRuntimeTypeName(node))
     }
 
-    // ========== Test: 0 in, 1 out → createContinuousGenerator ==========
+    // ========== Test: 0 in, 1 out → createContinuousSource ==========
 
     @Test
-    fun `0 in 1 out returns createContinuousGenerator`() {
+    fun `0 in 1 out returns createContinuousSource`() {
         val node = createTestCodeNode(
-            id = "gen", name = "ValueGenerator", type = CodeNodeType.GENERATOR,
+            id = "gen", name = "ValueGenerator", type = CodeNodeType.SOURCE,
             outputPorts = listOf(outputPort("out", "value", Int::class, "gen"))
         )
 
-        assertEquals("createTimedGenerator", resolver.getFactoryMethodName(node))
+        assertEquals("createContinuousSource", resolver.getFactoryMethodName(node))
         assertEquals("tick", resolver.getTickParamName(node))
-        assertEquals("GeneratorRuntime<Int>", resolver.getRuntimeTypeName(node))
+        assertEquals("SourceRuntime<Int>", resolver.getRuntimeTypeName(node))
     }
 
     // ========== Test: 1 in, 0 out → createContinuousSink ==========
@@ -153,7 +153,7 @@ class RuntimeTypeResolverTest {
     @Test
     fun `0 in 3 out returns createTimedOut3Generator`() {
         val node = createTestCodeNode(
-            id = "gen", name = "TriGenerator", type = CodeNodeType.GENERATOR,
+            id = "gen", name = "TriGenerator", type = CodeNodeType.SOURCE,
             outputPorts = listOf(
                 outputPort("o1", "first", Int::class, "gen"),
                 outputPort("o2", "second", String::class, "gen"),
@@ -475,13 +475,13 @@ class RuntimeTypeResolverTest {
     }
 
     @Test
-    fun `anyInput has no effect on generators`() {
+    fun `anyInput has no effect on sources`() {
         val node = createTestCodeNode(
-            id = "gen", name = "Generator", type = CodeNodeType.GENERATOR,
+            id = "gen", name = "Generator", type = CodeNodeType.SOURCE,
             outputPorts = listOf(outputPort("out", "value", Int::class, "gen"))
         )
 
-        assertEquals("createTimedGenerator", resolver.getFactoryMethodName(node, anyInput = true))
-        assertEquals("GeneratorRuntime<Int>", resolver.getRuntimeTypeName(node, anyInput = true))
+        assertEquals("createContinuousSource", resolver.getFactoryMethodName(node, anyInput = true))
+        assertEquals("SourceRuntime<Int>", resolver.getRuntimeTypeName(node, anyInput = true))
     }
 }

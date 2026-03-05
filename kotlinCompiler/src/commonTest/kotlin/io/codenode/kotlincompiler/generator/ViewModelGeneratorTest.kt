@@ -29,7 +29,7 @@ class ViewModelGeneratorTest {
         val generator = CodeNode(
             id = generatorId,
             name = "TimerEmitter",
-            codeNodeType = CodeNodeType.GENERATOR,
+            codeNodeType = CodeNodeType.SOURCE,
             position = Node.Position(100.0, 100.0),
             inputPorts = emptyList(),
             outputPorts = listOf(
@@ -109,7 +109,7 @@ class ViewModelGeneratorTest {
         val generator = CodeNode(
             id = generatorId,
             name = "DataSource",
-            codeNodeType = CodeNodeType.GENERATOR,
+            codeNodeType = CodeNodeType.SOURCE,
             position = Node.Position(100.0, 100.0),
             inputPorts = emptyList(),
             outputPorts = listOf(
@@ -175,7 +175,7 @@ class ViewModelGeneratorTest {
         val generator = CodeNode(
             id = generatorId,
             name = "DataSource",
-            codeNodeType = CodeNodeType.GENERATOR,
+            codeNodeType = CodeNodeType.SOURCE,
             position = Node.Position(100.0, 100.0),
             inputPorts = emptyList(),
             outputPorts = listOf(

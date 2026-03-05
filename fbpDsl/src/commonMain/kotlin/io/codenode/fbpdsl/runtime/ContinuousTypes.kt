@@ -9,12 +9,12 @@ package io.codenode.fbpdsl.runtime
 import kotlinx.coroutines.channels.Channel
 
 /**
- * Type alias for continuous generator processing block.
+ * Type alias for continuous source processing block.
  * Receives an emit function to send values to the output channel.
  *
- * @param T Type of values emitted by the generator
+ * @param T Type of values emitted by the source
  */
-typealias ContinuousGeneratorBlock<T> = suspend (emit: suspend (T) -> Unit) -> Unit
+typealias ContinuousSourceBlock<T> = suspend (emit: suspend (T) -> Unit) -> Unit
 
 /**
  * Type alias for continuous sink processing block.
@@ -202,7 +202,7 @@ typealias Out3GeneratorBlock<U, V, W> = suspend (emit: suspend (ProcessResult3<U
 
 // ========== Timed Tick Blocks ==========
 
-// --- Generator Tick Blocks ---
+// --- Source Tick Blocks ---
 
 /**
  * Type alias for single-output timed tick block.
@@ -210,7 +210,7 @@ typealias Out3GeneratorBlock<U, V, W> = suspend (emit: suspend (ProcessResult3<U
  *
  * @param T Type of output value
  */
-typealias GeneratorTickBlock<T> = suspend () -> T
+typealias SourceTickBlock<T> = suspend () -> T
 
 /**
  * Type alias for 3-output timed tick block.

@@ -61,7 +61,7 @@ class FlowGraphFactoryGeneratorTest {
         name: String = "TestFlow",
         nodes: List<Node> = listOf(
             createTestCodeNode(
-                "timer", "TimerEmitter", CodeNodeType.GENERATOR,
+                "timer", "TimerEmitter", CodeNodeType.SOURCE,
                 inputPorts = emptyList(),
                 outputPorts = listOf(
                     Port(
@@ -262,7 +262,7 @@ class FlowGraphFactoryGeneratorTest {
     @Test
     fun `factory uses tickIntervalMs from node configuration`() {
         val node = createTestCodeNode(
-            "gen", "FastGenerator", CodeNodeType.GENERATOR,
+            "gen", "FastGenerator", CodeNodeType.SOURCE,
             inputPorts = emptyList(),
             outputPorts = listOf(
                 Port(
@@ -336,7 +336,7 @@ class FlowGraphFactoryGeneratorTest {
                 direction = Port.Direction.OUTPUT, dataType = Int::class,
                 owningNodeId = "g"
             )))
-        assertEquals("createTimedGenerator", generator.getFactoryMethodName(gen1))
+        assertEquals("createContinuousSource", generator.getFactoryMethodName(gen1))
 
         // Sink (1 in, 0 out)
         val sink1 = createTestCodeNode("s", "Sink",
@@ -439,7 +439,7 @@ class FlowGraphFactoryGeneratorTest {
     @Test
     fun `factory handles multiple nodes`() {
         val nodes = listOf(
-            createTestCodeNode("gen", "Generator", CodeNodeType.GENERATOR,
+            createTestCodeNode("gen", "Generator", CodeNodeType.SOURCE,
                 inputPorts = emptyList(),
                 outputPorts = listOf(Port(
                     id = "g_out", name = "value",
@@ -472,7 +472,7 @@ class FlowGraphFactoryGeneratorTest {
 
         val result = generator.generateFactory(flowGraph, "io.codenode.generated.pipeline")
 
-        assertTrue(result.contains("createTimedGenerator<Int>"), "Should create generator")
+        assertTrue(result.contains("createContinuousSource<Int>"), "Should create source")
         assertTrue(result.contains("createTimedTransformer<Int, String>"), "Should create transformer")
         assertTrue(result.contains("createTimedSink<String>"), "Should create sink")
         assertTrue(result.contains("tick = generatorTick"), "Should reference generatorTick")

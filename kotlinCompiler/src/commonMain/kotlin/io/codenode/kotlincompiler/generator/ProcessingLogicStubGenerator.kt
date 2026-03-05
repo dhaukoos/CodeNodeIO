@@ -76,7 +76,7 @@ class ProcessingLogicStubGenerator {
         return when {
             // Generators (0 inputs)
             inputCount == 0 && outputCount == 1 ->
-                "GeneratorTickBlock<${outType(codeNode, 0)}>"
+                "SourceTickBlock<${outType(codeNode, 0)}>"
             inputCount == 0 && outputCount == 2 ->
                 "Out2TickBlock<${outType(codeNode, 0)}, ${outType(codeNode, 1)}>"
             inputCount == 0 && outputCount == 3 ->
@@ -249,7 +249,7 @@ class ProcessingLogicStubGenerator {
         val inputCount = codeNode.inputPorts.size
         val outputCount = codeNode.outputPorts.size
         return when {
-            inputCount == 0 && outputCount > 0 -> "Generator"
+            inputCount == 0 && outputCount > 0 -> "Source"
             inputCount > 0 && outputCount == 0 -> "Sink"
             inputCount == 1 && outputCount == 1 -> {
                 if (inType(codeNode, 0) == outType(codeNode, 0)) "Filter" else "Transformer"

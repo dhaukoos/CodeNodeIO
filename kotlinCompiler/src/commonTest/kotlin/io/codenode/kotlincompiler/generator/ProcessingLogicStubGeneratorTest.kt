@@ -125,22 +125,22 @@ class ProcessingLogicStubGeneratorTest {
     // ========== Generator Nodes (0 inputs) ==========
 
     @Test
-    fun `generator node 0 in 1 out produces GeneratorTickBlock`() {
+    fun `source node 0 in 1 out produces SourceTickBlock`() {
         val node = createTestCodeNode(
             "gen", "DataGenerator",
-            type = CodeNodeType.GENERATOR,
+            type = CodeNodeType.SOURCE,
             outputPorts = listOf(outputPort("gen_value", "value", Int::class, "gen"))
         )
         val generator = ProcessingLogicStubGenerator()
 
         val typeAlias = generator.getTickTypeAlias(node)
-        assertEquals("GeneratorTickBlock<Int>", typeAlias)
+        assertEquals("SourceTickBlock<Int>", typeAlias)
 
         val result = generator.generateStub(node, "io.codenode.generated")
         assertTrue(result.contains("package io.codenode.generated"))
-        assertTrue(result.contains("import io.codenode.fbpdsl.runtime.GeneratorTickBlock"))
-        assertTrue(result.contains("val dataGeneratorTick: GeneratorTickBlock<Int>"))
-        assertTrue(result.contains("Generator (0 inputs, 1 outputs)"))
+        assertTrue(result.contains("import io.codenode.fbpdsl.runtime.SourceTickBlock"))
+        assertTrue(result.contains("val dataGeneratorTick: SourceTickBlock<Int>"))
+        assertTrue(result.contains("Source (0 inputs, 1 outputs)"))
         assertTrue(result.contains("0"))  // default Int return
     }
 
@@ -148,7 +148,7 @@ class ProcessingLogicStubGeneratorTest {
     fun `generator node 0 in 2 out produces Out2TickBlock`() {
         val node = createTestCodeNode(
             "timer", "TimerEmitter",
-            type = CodeNodeType.GENERATOR,
+            type = CodeNodeType.SOURCE,
             outputPorts = listOf(
                 outputPort("timer_sec", "elapsedSeconds", Int::class, "timer"),
                 outputPort("timer_min", "elapsedMinutes", Int::class, "timer")
@@ -170,7 +170,7 @@ class ProcessingLogicStubGeneratorTest {
     fun `generator node 0 in 3 out produces Out3TickBlock`() {
         val node = createTestCodeNode(
             "multi", "MultiOutput",
-            type = CodeNodeType.GENERATOR,
+            type = CodeNodeType.SOURCE,
             outputPorts = listOf(
                 outputPort("o1", "first", Int::class, "multi"),
                 outputPort("o2", "second", String::class, "multi"),
@@ -385,7 +385,7 @@ class ProcessingLogicStubGeneratorTest {
     fun `stub does not contain StateProperties import`() {
         val node = createTestCodeNode(
             "timer", "TimerEmitter",
-            type = CodeNodeType.GENERATOR,
+            type = CodeNodeType.SOURCE,
             outputPorts = listOf(outputPort("timer_out", "value", Int::class, "timer"))
         )
         val generator = ProcessingLogicStubGenerator()
@@ -419,7 +419,7 @@ class ProcessingLogicStubGeneratorTest {
     fun `KDoc lists output ports`() {
         val node = createTestCodeNode(
             "gen", "ValueGenerator",
-            type = CodeNodeType.GENERATOR,
+            type = CodeNodeType.SOURCE,
             outputPorts = listOf(outputPort("gen_val", "value", Double::class, "gen"))
         )
         val generator = ProcessingLogicStubGenerator()
@@ -434,7 +434,7 @@ class ProcessingLogicStubGeneratorTest {
     fun `default return value for String output is empty string`() {
         val node = createTestCodeNode(
             "gen", "StringGen",
-            type = CodeNodeType.GENERATOR,
+            type = CodeNodeType.SOURCE,
             outputPorts = listOf(outputPort("gen_s", "text", String::class, "gen"))
         )
         val generator = ProcessingLogicStubGenerator()
@@ -447,7 +447,7 @@ class ProcessingLogicStubGeneratorTest {
     fun `default return value for Boolean output is false`() {
         val node = createTestCodeNode(
             "gen", "BoolGen",
-            type = CodeNodeType.GENERATOR,
+            type = CodeNodeType.SOURCE,
             outputPorts = listOf(outputPort("gen_b", "flag", Boolean::class, "gen"))
         )
         val generator = ProcessingLogicStubGenerator()
@@ -460,7 +460,7 @@ class ProcessingLogicStubGeneratorTest {
     fun `default return value for Long output is 0L`() {
         val node = createTestCodeNode(
             "gen", "LongGen",
-            type = CodeNodeType.GENERATOR,
+            type = CodeNodeType.SOURCE,
             outputPorts = listOf(outputPort("gen_l", "count", Long::class, "gen"))
         )
         val generator = ProcessingLogicStubGenerator()
@@ -473,7 +473,7 @@ class ProcessingLogicStubGeneratorTest {
     fun `default return value for Double output is 0_0`() {
         val node = createTestCodeNode(
             "gen", "DoubleGen",
-            type = CodeNodeType.GENERATOR,
+            type = CodeNodeType.SOURCE,
             outputPorts = listOf(outputPort("gen_d", "value", Double::class, "gen"))
         )
         val generator = ProcessingLogicStubGenerator()

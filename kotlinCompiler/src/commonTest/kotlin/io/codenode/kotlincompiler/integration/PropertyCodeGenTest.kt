@@ -399,7 +399,7 @@ class PropertyCodeGenTest {
         val dataSourceNode = CodeNode(
             id = "node_source_1",
             name = "DataSource",
-            codeNodeType = CodeNodeType.GENERATOR,
+            codeNodeType = CodeNodeType.SOURCE,
             position = Node.Position(100.0, 100.0),
             outputPorts = listOf(
                 PortFactory.output<Any>("data", "node_source_1")

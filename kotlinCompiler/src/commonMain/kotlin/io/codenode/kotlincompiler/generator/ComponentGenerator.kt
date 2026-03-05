@@ -226,7 +226,7 @@ class ComponentGenerator {
                 .addStatement("return listOf(${node.inputPorts.joinToString(", ") { it.name.camelCase() }}).firstOrNull()")
                 .build()
 
-            CodeNodeType.GENERATOR -> CodeBlock.builder()
+            CodeNodeType.SOURCE -> CodeBlock.builder()
                 .addStatement("// TODO: Implement generation logic")
                 .addStatement("return null // Generate and return data")
                 .build()

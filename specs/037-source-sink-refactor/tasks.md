@@ -27,7 +27,7 @@
 
 **CRITICAL**: No user story work can begin until this is complete.
 
-- [ ] T001 Rename `GENERATOR` to `SOURCE` in `CodeNodeType` enum and update KDoc description in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/CodeNode.kt`
+- [X] T001 Rename `GENERATOR` to `SOURCE` in `CodeNodeType` enum and update KDoc description in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/CodeNode.kt`
 
 **Checkpoint**: Enum renamed — project will not compile until all references are updated in subsequent phases.
 
@@ -41,21 +41,21 @@
 
 ### Implementation for User Story 1
 
-- [ ] T002 [US1] Rename `GeneratorRuntime.kt` → `SourceRuntime.kt`: create new file with class renamed to `SourceRuntime<T>`, update all internal references, delete old file in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/`
-- [ ] T003 [US1] Rename `ContinuousGeneratorBlock<T>` → `ContinuousSourceBlock<T>` type alias in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/ContinuousTypes.kt`
-- [ ] T004 [US1] Rename `createContinuousGenerator<T>` → `createContinuousSource<T>` factory method and update all `CodeNodeType.GENERATOR` → `CodeNodeType.SOURCE` references in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/CodeNodeFactory.kt`
-- [ ] T005 [US1] Update `RuntimeTypeResolver.kt` to return `SourceRuntime` and `createContinuousSource` for single-output source nodes in `kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/RuntimeTypeResolver.kt`
-- [ ] T006 [US1] Update `RuntimeFlowGenerator.kt` to use `SOURCE` terminology (variable names, comments, factory calls) in `kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/RuntimeFlowGenerator.kt`
-- [ ] T007 [P] [US1] Update `FlowKtGenerator.kt` to serialize `"SOURCE"` instead of `"GENERATOR"` in `kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/FlowKtGenerator.kt`
-- [ ] T008 [P] [US1] Update `FlowGraphSerializer.kt` to deserialize both `"GENERATOR"` (legacy) and `"SOURCE"` (new) to `CodeNodeType.SOURCE` in `graphEditor/src/jvmMain/kotlin/serialization/FlowGraphSerializer.kt`
-- [ ] T009 [P] [US1] Update `NodeRenderer.kt` to use `CodeNodeType.SOURCE` in color mapping and labels in `graphEditor/src/jvmMain/kotlin/rendering/NodeRenderer.kt`
-- [ ] T010 [P] [US1] Update `DragAndDropHandler.kt` and `Main.kt` to use `CodeNodeType.SOURCE` in `graphEditor/src/jvmMain/kotlin/ui/DragAndDropHandler.kt` and `graphEditor/src/jvmMain/kotlin/Main.kt`
-- [ ] T011 [P] [US1] Rename `GeneratorTemplate.kt` → `SourceTemplate.kt` and update class/references in `kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/templates/`
-- [ ] T012 [P] [US1] Update `ComponentGenerator.kt` to use SOURCE references in `kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/ComponentGenerator.kt`
-- [ ] T013 [US1] Update all fbpDsl test files to use `SOURCE`/`SourceRuntime` naming: `ContinuousFactoryTest.kt`, `PauseResumeTest.kt`, `IndependentControlTest.kt`, `NodeRuntimeTest.kt`, `RuntimeRegistryTest.kt`, `RuntimeRegistrationTest.kt`, `StopWatchFlowGraphTest.kt`, `StopWatchSerializationTest.kt` in `fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/`
-- [ ] T014 [US1] Update all kotlinCompiler test files to use `SOURCE` naming: `RuntimeTypeResolverTest.kt`, `RuntimeFlowGeneratorTest.kt`, `ProcessingLogicStubGeneratorTest.kt`, `RuntimeViewModelGeneratorTest.kt`, `RuntimeControllerGeneratorTest.kt`, `RuntimeControllerInterfaceGeneratorTest.kt`, `RuntimeControllerAdapterGeneratorTest.kt`, `FlowKtGeneratorTest.kt`, `ConnectionWiringResolverTest.kt`, `ObservableStateResolverTest.kt`, `FlowGraphFactoryGeneratorTest.kt`, `ChannelCapacityTest.kt`, `ViewModelGeneratorTest.kt`, `StopWatchModuleGeneratorTest.kt`, `PropertyCodeGenTest.kt` in `kotlinCompiler/src/commonTest/kotlin/io/codenode/kotlincompiler/`
-- [ ] T015 [US1] Update graphEditor test files to use `SOURCE` naming: `ModuleSaveServiceTest.kt`, `RequiredPropertyValidatorTest.kt`, `CompilationValidatorTest.kt` in `graphEditor/src/jvmTest/kotlin/`
-- [ ] T016 [US1] Compile and run all tests: `./gradlew :fbpDsl:jvmTest :kotlinCompiler:jvmTest :graphEditor:jvmTest`
+- [X] T002 [US1] Rename `GeneratorRuntime.kt` → `SourceRuntime.kt`: create new file with class renamed to `SourceRuntime<T>`, update all internal references, delete old file in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/`
+- [X] T003 [US1] Rename `ContinuousGeneratorBlock<T>` → `ContinuousSourceBlock<T>` type alias in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/ContinuousTypes.kt`
+- [X] T004 [US1] Rename `createContinuousGenerator<T>` → `createContinuousSource<T>` factory method and update all `CodeNodeType.GENERATOR` → `CodeNodeType.SOURCE` references in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/CodeNodeFactory.kt`
+- [X] T005 [US1] Update `RuntimeTypeResolver.kt` to return `SourceRuntime` and `createContinuousSource` for single-output source nodes in `kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/RuntimeTypeResolver.kt`
+- [X] T006 [US1] Update `RuntimeFlowGenerator.kt` to use `SOURCE` terminology (variable names, comments, factory calls) in `kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/RuntimeFlowGenerator.kt`
+- [X] T007 [P] [US1] Update `FlowKtGenerator.kt` to serialize `"SOURCE"` instead of `"GENERATOR"` in `kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/FlowKtGenerator.kt`
+- [X] T008 [P] [US1] Update `FlowGraphSerializer.kt` to deserialize both `"GENERATOR"` (legacy) and `"SOURCE"` (new) to `CodeNodeType.SOURCE` in `graphEditor/src/jvmMain/kotlin/serialization/FlowGraphSerializer.kt`
+- [X] T009 [P] [US1] Update `NodeRenderer.kt` to use `CodeNodeType.SOURCE` in color mapping and labels in `graphEditor/src/jvmMain/kotlin/rendering/NodeRenderer.kt`
+- [X] T010 [P] [US1] Update `DragAndDropHandler.kt` and `Main.kt` to use `CodeNodeType.SOURCE` in `graphEditor/src/jvmMain/kotlin/ui/DragAndDropHandler.kt` and `graphEditor/src/jvmMain/kotlin/Main.kt`
+- [X] T011 [P] [US1] Rename `GeneratorTemplate.kt` → `SourceTemplate.kt` and update class/references in `kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/templates/`
+- [X] T012 [P] [US1] Update `ComponentGenerator.kt` to use SOURCE references in `kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/ComponentGenerator.kt`
+- [X] T013 [US1] Update all fbpDsl test files to use `SOURCE`/`SourceRuntime` naming: `ContinuousFactoryTest.kt`, `PauseResumeTest.kt`, `IndependentControlTest.kt`, `NodeRuntimeTest.kt`, `RuntimeRegistryTest.kt`, `RuntimeRegistrationTest.kt`, `StopWatchFlowGraphTest.kt`, `StopWatchSerializationTest.kt` in `fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/`
+- [X] T014 [US1] Update all kotlinCompiler test files to use `SOURCE` naming: `RuntimeTypeResolverTest.kt`, `RuntimeFlowGeneratorTest.kt`, `ProcessingLogicStubGeneratorTest.kt`, `RuntimeViewModelGeneratorTest.kt`, `RuntimeControllerGeneratorTest.kt`, `RuntimeControllerInterfaceGeneratorTest.kt`, `RuntimeControllerAdapterGeneratorTest.kt`, `FlowKtGeneratorTest.kt`, `ConnectionWiringResolverTest.kt`, `ObservableStateResolverTest.kt`, `FlowGraphFactoryGeneratorTest.kt`, `ChannelCapacityTest.kt`, `ViewModelGeneratorTest.kt`, `StopWatchModuleGeneratorTest.kt`, `PropertyCodeGenTest.kt` in `kotlinCompiler/src/commonTest/kotlin/io/codenode/kotlincompiler/`
+- [X] T015 [US1] Update graphEditor test files to use `SOURCE` naming: `ModuleSaveServiceTest.kt`, `RequiredPropertyValidatorTest.kt`, `CompilationValidatorTest.kt` in `graphEditor/src/jvmTest/kotlin/`
+- [X] T016 [US1] Compile and run all tests: `./gradlew :fbpDsl:jvmTest :kotlinCompiler:jvmTest :graphEditor:jvmTest`
 
 **Checkpoint**: All "Generator" references for the base single-output source node are renamed. Project compiles and tests pass.
 

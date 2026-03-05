@@ -115,7 +115,7 @@ class RuntimeViewModelGeneratorTest {
     @Test
     fun `no sink nodes omits MutableStateFlow imports`() {
         val gen = createTestCodeNode(
-            "gen", "ValueGenerator", CodeNodeType.GENERATOR,
+            "gen", "ValueGenerator", CodeNodeType.SOURCE,
             outputPorts = listOf(outputPort("g_out", "value", Int::class, "gen"))
         )
         val flowGraph = createFlowGraph(nodes = listOf(gen))
@@ -183,7 +183,7 @@ class RuntimeViewModelGeneratorTest {
     @Test
     fun `no sink nodes generates empty State object`() {
         val gen = createTestCodeNode(
-            "gen", "ValueGenerator", CodeNodeType.GENERATOR,
+            "gen", "ValueGenerator", CodeNodeType.SOURCE,
             outputPorts = listOf(outputPort("g_out", "value", Int::class, "gen"))
         )
         val flowGraph = createFlowGraph(nodes = listOf(gen))
@@ -244,7 +244,7 @@ class RuntimeViewModelGeneratorTest {
     @Test
     fun `no sink nodes still delegates all control methods`() {
         val gen = createTestCodeNode(
-            "gen", "ValueGenerator", CodeNodeType.GENERATOR,
+            "gen", "ValueGenerator", CodeNodeType.SOURCE,
             outputPorts = listOf(outputPort("g_out", "value", Int::class, "gen"))
         )
         val flowGraph = createFlowGraph(nodes = listOf(gen))
@@ -260,7 +260,7 @@ class RuntimeViewModelGeneratorTest {
     @Test
     fun `no sink nodes omits observable state delegation in ViewModel`() {
         val gen = createTestCodeNode(
-            "gen", "ValueGenerator", CodeNodeType.GENERATOR,
+            "gen", "ValueGenerator", CodeNodeType.SOURCE,
             outputPorts = listOf(outputPort("g_out", "value", Int::class, "gen"))
         )
         val flowGraph = createFlowGraph(nodes = listOf(gen))
@@ -306,7 +306,7 @@ class RuntimeViewModelGeneratorTest {
     @Test
     fun `generateModulePropertiesSection with no sinks generates empty State object`() {
         val gen = createTestCodeNode(
-            "gen", "ValueGenerator", CodeNodeType.GENERATOR,
+            "gen", "ValueGenerator", CodeNodeType.SOURCE,
             outputPorts = listOf(outputPort("g_out", "value", Int::class, "gen"))
         )
         val flowGraph = createFlowGraph(nodes = listOf(gen))
@@ -335,7 +335,7 @@ class RuntimeViewModelGeneratorTest {
         val timerEmitter = createTestCodeNode(
             id = "timer",
             name = "TimerEmitter",
-            type = CodeNodeType.GENERATOR,
+            type = CodeNodeType.SOURCE,
             outputPorts = listOf(
                 outputPort("timer_sec", "elapsedSeconds", Int::class, "timer"),
                 outputPort("timer_min", "elapsedMinutes", Int::class, "timer")

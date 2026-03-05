@@ -162,7 +162,7 @@ class RuntimeControllerInterfaceGeneratorTest {
     @Test
     fun `no sink nodes generates only executionState property`() {
         val gen = createTestCodeNode(
-            "gen", "ValueGenerator", CodeNodeType.GENERATOR,
+            "gen", "ValueGenerator", CodeNodeType.SOURCE,
             outputPorts = listOf(outputPort("g_out", "value", Int::class, "gen"))
         )
         val flowGraph = createFlowGraph(nodes = listOf(gen))
@@ -175,7 +175,7 @@ class RuntimeControllerInterfaceGeneratorTest {
     @Test
     fun `no sink nodes still generates all control methods`() {
         val gen = createTestCodeNode(
-            "gen", "ValueGenerator", CodeNodeType.GENERATOR,
+            "gen", "ValueGenerator", CodeNodeType.SOURCE,
             outputPorts = listOf(outputPort("g_out", "value", Int::class, "gen"))
         )
         val flowGraph = createFlowGraph(nodes = listOf(gen))
@@ -194,7 +194,7 @@ class RuntimeControllerInterfaceGeneratorTest {
         val timerEmitter = createTestCodeNode(
             id = "timer",
             name = "TimerEmitter",
-            type = CodeNodeType.GENERATOR,
+            type = CodeNodeType.SOURCE,
             outputPorts = listOf(
                 outputPort("timer_sec", "elapsedSeconds", Int::class, "timer"),
                 outputPort("timer_min", "elapsedMinutes", Int::class, "timer")

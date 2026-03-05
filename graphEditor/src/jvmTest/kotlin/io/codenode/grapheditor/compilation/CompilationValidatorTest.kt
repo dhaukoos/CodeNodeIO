@@ -71,7 +71,7 @@ class CompilationValidatorTest {
     private fun createTestFlowGraph(
         name: String = "TestFlow",
         nodes: List<Node> = listOf(
-            createTestCodeNode("timer", "TimerEmitter", CodeNodeType.GENERATOR, "TimerEmitterComponent"),
+            createTestCodeNode("timer", "TimerEmitter", CodeNodeType.SOURCE, "TimerEmitterComponent"),
             createTestCodeNode("display", "DisplayReceiver", CodeNodeType.SINK, "DisplayReceiverProcessLogic")
         )
     ): FlowGraph {

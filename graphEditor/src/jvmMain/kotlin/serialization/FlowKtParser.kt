@@ -243,12 +243,8 @@ class FlowKtParser {
             // Parse output ports
             val outputPorts = parseOutputPorts(nodeBlockContent, nodeName)
 
-            // Parse node type
-            val codeNodeType = try {
-                CodeNodeType.valueOf(nodeTypeStr)
-            } catch (e: IllegalArgumentException) {
-                CodeNodeType.TRANSFORMER
-            }
+            // Parse node type (with backward compatibility for renamed enums)
+            val codeNodeType = parseCodeNodeType(nodeTypeStr)
 
             // Parse configuration
             val config = parseConfiguration(nodeBlockContent)
@@ -387,6 +383,23 @@ class FlowKtParser {
         }
 
         return connections
+    }
+
+    /**
+     * Parses a CodeNodeType string with backward compatibility for renamed enums.
+     * Legacy .flow.kt files may contain "GENERATOR" which was renamed to "SOURCE".
+     */
+    private fun parseCodeNodeType(nodeTypeStr: String): CodeNodeType {
+        // Backward compatibility: map legacy enum names to current values
+        val normalized = when (nodeTypeStr) {
+            "GENERATOR" -> "SOURCE"
+            else -> nodeTypeStr
+        }
+        return try {
+            CodeNodeType.valueOf(normalized)
+        } catch (e: IllegalArgumentException) {
+            CodeNodeType.TRANSFORMER
+        }
     }
 
     /**

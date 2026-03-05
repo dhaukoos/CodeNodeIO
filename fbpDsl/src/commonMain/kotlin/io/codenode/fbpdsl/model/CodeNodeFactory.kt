@@ -7,11 +7,11 @@
 package io.codenode.fbpdsl.model
 
 import io.codenode.fbpdsl.runtime.ContinuousFilterPredicate
-import io.codenode.fbpdsl.runtime.ContinuousGeneratorBlock
+import io.codenode.fbpdsl.runtime.ContinuousSourceBlock
 import io.codenode.fbpdsl.runtime.ContinuousSinkBlock
 import io.codenode.fbpdsl.runtime.ContinuousTransformBlock
 import io.codenode.fbpdsl.runtime.FilterRuntime
-import io.codenode.fbpdsl.runtime.GeneratorRuntime
+import io.codenode.fbpdsl.runtime.SourceRuntime
 import io.codenode.fbpdsl.runtime.SinkRuntime
 import io.codenode.fbpdsl.runtime.TransformerRuntime
 import kotlinx.coroutines.channels.Channel
@@ -75,7 +75,7 @@ object CodeNodeFactory {
      *
      * @sample
      * ```kotlin
-     * val timer = CodeNodeFactory.createContinuousGenerator<Int>(
+     * val timer = CodeNodeFactory.createContinuousSource<Int>(
      *     name = "Counter"
      * ) { emit ->
      *     var count = 0
@@ -88,19 +88,19 @@ object CodeNodeFactory {
      * timer.start(scope) { }
      * ```
      */
-    inline fun <reified T : Any> createContinuousGenerator(
+    inline fun <reified T : Any> createContinuousSource(
         name: String,
         channelCapacity: Int = Channel.BUFFERED,
         position: Node.Position = Node.Position.ORIGIN,
         description: String? = null,
-        noinline generate: ContinuousGeneratorBlock<T>
-    ): GeneratorRuntime<T> {
+        noinline generate: ContinuousSourceBlock<T>
+    ): SourceRuntime<T> {
         val nodeId = NodeIdGenerator.generateId("codenode")
 
         val codeNode = CodeNode(
             id = nodeId,
             name = name,
-            codeNodeType = CodeNodeType.GENERATOR,
+            codeNodeType = CodeNodeType.SOURCE,
             description = description,
             position = position,
             inputPorts = emptyList(),
@@ -109,7 +109,7 @@ object CodeNodeFactory {
             )
         )
 
-        return GeneratorRuntime(codeNode, channelCapacity, generate)
+        return SourceRuntime(codeNode, channelCapacity, generate)
     }
 
     /**
@@ -498,7 +498,7 @@ object CodeNodeFactory {
      * @param position Canvas position
      * @param description Optional documentation
      * @param tick Function called once per interval, returns value to emit
-     * @return GeneratorRuntime configured for timed tick mode
+     * @return SourceRuntime configured for timed tick mode
      */
     inline fun <reified T : Any> createTimedGenerator(
         name: String,
@@ -506,19 +506,19 @@ object CodeNodeFactory {
         channelCapacity: Int = Channel.BUFFERED,
         position: Node.Position = Node.Position.ORIGIN,
         description: String? = null,
-        noinline tick: io.codenode.fbpdsl.runtime.GeneratorTickBlock<T>
-    ): GeneratorRuntime<T> {
+        noinline tick: io.codenode.fbpdsl.runtime.SourceTickBlock<T>
+    ): SourceRuntime<T> {
         // Reference holder so the lambda can read attenuationDelayMs from the runtime at execution time
         val runtimeRef = arrayOfNulls<io.codenode.fbpdsl.runtime.NodeRuntime>(1)
 
-        val timedGenerate: ContinuousGeneratorBlock<T> = { emit ->
+        val timedGenerate: ContinuousSourceBlock<T> = { emit ->
             while (currentCoroutineContext().isActive) {
                 delay(runtimeRef[0]?.attenuationDelayMs ?: tickIntervalMs)
                 emit(tick())
             }
         }
 
-        val runtime = createContinuousGenerator(
+        val runtime = createContinuousSource(
             name = name,
             channelCapacity = channelCapacity,
             position = position,
@@ -670,7 +670,7 @@ object CodeNodeFactory {
         val codeNode = CodeNode(
             id = nodeId,
             name = name,
-            codeNodeType = CodeNodeType.GENERATOR,
+            codeNodeType = CodeNodeType.SOURCE,
             description = description,
             position = position,
             inputPorts = emptyList(),
@@ -727,7 +727,7 @@ object CodeNodeFactory {
         val codeNode = CodeNode(
             id = nodeId,
             name = name,
-            codeNodeType = CodeNodeType.GENERATOR,
+            codeNodeType = CodeNodeType.SOURCE,
             description = description,
             position = position,
             inputPorts = emptyList(),

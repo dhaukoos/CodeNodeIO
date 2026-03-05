@@ -32,7 +32,7 @@ class RuntimeRegistrationTest {
         return CodeNode(
             id = id,
             name = "Test Node $id",
-            codeNodeType = CodeNodeType.GENERATOR,
+            codeNodeType = CodeNodeType.SOURCE,
             position = Node.Position.ORIGIN,
             controlConfig = ControlConfig(independentControl = independentControl)
         )

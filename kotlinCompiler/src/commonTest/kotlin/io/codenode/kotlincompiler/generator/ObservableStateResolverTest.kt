@@ -110,7 +110,7 @@ class ObservableStateResolverTest {
         val generator = createTestCodeNode(
             id = "gen",
             name = "DataGenerator",
-            type = CodeNodeType.GENERATOR,
+            type = CodeNodeType.SOURCE,
             outputPorts = listOf(outputPort("gen_out", "value", Int::class, "gen"))
         )
         val transformer = createTestCodeNode(
@@ -283,7 +283,7 @@ class ObservableStateResolverTest {
         val generator = createTestCodeNode(
             id = "gen",
             name = "TimerEmitter",
-            type = CodeNodeType.GENERATOR,
+            type = CodeNodeType.SOURCE,
             outputPorts = listOf(
                 outputPort("gen_sec", "seconds", Int::class, "gen"),
                 outputPort("gen_min", "minutes", Int::class, "gen")
