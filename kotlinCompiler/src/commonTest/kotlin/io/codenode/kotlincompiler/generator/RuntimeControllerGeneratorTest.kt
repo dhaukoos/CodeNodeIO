@@ -278,40 +278,37 @@ class RuntimeControllerGeneratorTest {
         assertTrue(result.contains("import kotlinx.coroutines.flow.StateFlow"))
     }
 
-    // ========== Test 2: No sink nodes → only executionState property ==========
+    // ========== Test 2: No boundary nodes → only executionState property ==========
 
     @Test
-    fun `no sink nodes generates only executionState property`() {
-        val gen = createTestCodeNode(
-            "gen", "ValueGenerator", CodeNodeType.SOURCE,
-            outputPorts = listOf(outputPort("g_out", "value", Int::class, "gen"))
-        )
+    fun `no boundary nodes generates only executionState property`() {
         val transformer = createTestCodeNode(
             "trans", "DataTransformer", CodeNodeType.TRANSFORMER,
             inputPorts = listOf(inputPort("t_in", "input", Int::class, "trans")),
             outputPorts = listOf(outputPort("t_out", "output", String::class, "trans"))
         )
-        val flowGraph = createFlowGraph(nodes = listOf(gen, transformer))
+        val flowGraph = createFlowGraph(nodes = listOf(transformer))
         val result = generator.generate(flowGraph, generatedPackage, usecasesPackage)
 
         assertTrue(result.contains("val executionState: StateFlow<ExecutionState>"))
-        // No observable state from sink ports
+        // No observable state from boundary ports
         assertFalse(result.contains("= flow.") && result.contains("Flow"))
     }
 
     @Test
-    fun `no sink nodes does not delegate observable state from flow`() {
-        val gen = createTestCodeNode(
-            "gen", "ValueGenerator", CodeNodeType.SOURCE,
-            outputPorts = listOf(outputPort("g_out", "value", Int::class, "gen"))
+    fun `no boundary nodes does not delegate observable state from flow`() {
+        val transformer = createTestCodeNode(
+            "trans", "DataTransformer", CodeNodeType.TRANSFORMER,
+            inputPorts = listOf(inputPort("t_in", "input", Int::class, "trans")),
+            outputPorts = listOf(outputPort("t_out", "output", String::class, "trans"))
         )
-        val flowGraph = createFlowGraph(nodes = listOf(gen))
+        val flowGraph = createFlowGraph(nodes = listOf(transformer))
         val result = generator.generate(flowGraph, generatedPackage, usecasesPackage)
 
         // Should not have any "val xxx: StateFlow<...> = flow.xxxFlow" lines
         // but SHOULD have executionState
         assertTrue(result.contains("val executionState: StateFlow<ExecutionState>"))
-        assertFalse(result.contains("flow.valueFlow"))
+        assertFalse(result.contains("flow.inputFlow"))
     }
 
     @Test

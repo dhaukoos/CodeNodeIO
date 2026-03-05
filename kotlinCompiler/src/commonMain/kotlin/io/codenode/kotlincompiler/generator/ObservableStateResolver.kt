@@ -1,6 +1,6 @@
 /*
  * ObservableStateResolver
- * Extracts observable state properties from sink node input ports
+ * Extracts observable state properties from source output ports and sink input ports
  * License: Apache 2.0
  */
 
@@ -11,7 +11,8 @@ import io.codenode.fbpdsl.model.CodeNode
 import io.codenode.fbpdsl.model.Port
 
 /**
- * Represents an observable state property derived from a sink node input port.
+ * Represents an observable state property derived from a boundary port
+ * (source node output port or sink node input port).
  *
  * @property name camelCase property name (e.g., "seconds")
  * @property typeName Kotlin type name (e.g., "Int", "String")
@@ -30,26 +31,37 @@ data class ObservableProperty(
 /**
  * Resolves observable state properties from a FlowGraph.
  *
- * Observable state is derived from sink node input ports:
+ * Observable state is derived from boundary ports:
+ * - Source node output ports (data entering the graph from the UI)
+ * - Sink node input ports (data exiting the graph to the UI)
  * - The port name becomes the StateFlow property name
  * - The port data type becomes the StateFlow generic type parameter
- * - When multiple sinks have ports with the same name, names are
+ * - When multiple boundary ports share the same name, names are
  *   disambiguated by prefixing with the node name
  */
 class ObservableStateResolver {
 
     /**
-     * Extracts observable state properties from all sink nodes in the FlowGraph.
+     * Extracts observable state properties from all source and sink nodes in the FlowGraph.
+     *
+     * Source output ports are collected first, then sink input ports.
      *
      * @param flowGraph The FlowGraph to analyze
-     * @return List of observable properties derived from sink input ports
+     * @return List of observable properties derived from boundary ports
      */
     fun getObservableStateProperties(flowGraph: FlowGraph): List<ObservableProperty> {
-        val sinkNodes = flowGraph.getAllCodeNodes().filter { isSinkNode(it) }
-        if (sinkNodes.isEmpty()) return emptyList()
+        val allNodes = flowGraph.getAllCodeNodes()
+        val sourceNodes = allNodes.filter { isSourceNode(it) }
+        val sinkNodes = allNodes.filter { isSinkNode(it) }
+        if (sourceNodes.isEmpty() && sinkNodes.isEmpty()) return emptyList()
 
-        // Collect all port names to detect collisions
+        // Collect all boundary port names to detect collisions
         val allPortNames = mutableListOf<Pair<CodeNode, Port<*>>>()
+        for (source in sourceNodes) {
+            for (port in source.outputPorts) {
+                allPortNames.add(source to port)
+            }
+        }
         for (sink in sinkNodes) {
             for (port in sink.inputPorts) {
                 allPortNames.add(sink to port)
@@ -77,6 +89,13 @@ class ObservableStateResolver {
                 defaultValue = defaultForType(typeName)
             )
         }
+    }
+
+    /**
+     * Determines if a node is a source (has output ports, no input ports).
+     */
+    private fun isSourceNode(node: CodeNode): Boolean {
+        return node.inputPorts.isEmpty() && node.outputPorts.isNotEmpty()
     }
 
     /**

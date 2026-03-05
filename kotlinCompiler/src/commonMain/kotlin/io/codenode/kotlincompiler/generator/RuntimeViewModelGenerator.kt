@@ -11,7 +11,7 @@ import io.codenode.fbpdsl.model.FlowGraph
 /**
  * Generates a {Name}ViewModel.kt stub file in the base package containing:
  * 1. A marker-delineated {ModuleName}State object with MutableStateFlow/StateFlow pairs
- *    derived from sink input ports via ObservableStateResolver
+ *    derived from source output ports and sink input ports via ObservableStateResolver
  * 2. A {ModuleName}ViewModel class extending ViewModel with state delegation from
  *    {ModuleName}State and control method delegation from {ModuleName}ControllerInterface
  *
@@ -74,7 +74,7 @@ class RuntimeViewModelGenerator {
     ): String {
         return buildString {
             appendLine(MODULE_PROPERTIES_START)
-            appendLine("// Auto-generated from sink node input ports. Do not edit this section manually.")
+            appendLine("// Auto-generated from source output ports and sink input ports. Do not edit this section manually.")
             appendLine("// Changes here will be overwritten on next code generation.")
             appendLine()
             appendLine("object ${flowName}State {")

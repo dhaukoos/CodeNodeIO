@@ -169,19 +169,20 @@ class RuntimeControllerAdapterGeneratorTest {
         assertTrue(result.contains("import kotlinx.coroutines.flow.StateFlow"))
     }
 
-    // ========== Test 2: No sink nodes → only executionState delegation ==========
+    // ========== Test 2: No boundary nodes → only executionState delegation ==========
 
     @Test
-    fun `no sink nodes delegates only executionState`() {
-        val gen = createTestCodeNode(
-            "gen", "ValueGenerator", CodeNodeType.SOURCE,
-            outputPorts = listOf(outputPort("g_out", "value", Int::class, "gen"))
+    fun `no boundary nodes delegates only executionState`() {
+        val transformer = createTestCodeNode(
+            "trans", "DataTransformer", CodeNodeType.TRANSFORMER,
+            inputPorts = listOf(inputPort("t_in", "input", Int::class, "trans")),
+            outputPorts = listOf(outputPort("t_out", "output", String::class, "trans"))
         )
-        val flowGraph = createFlowGraph(nodes = listOf(gen))
+        val flowGraph = createFlowGraph(nodes = listOf(transformer))
         val result = generator.generate(flowGraph, generatedPackage)
 
         assertTrue(result.contains("override val executionState: StateFlow<ExecutionState>"))
-        assertFalse(result.contains("override val value"))
+        assertFalse(result.contains("override val input"))
     }
 
     @Test

@@ -157,19 +157,20 @@ class RuntimeControllerInterfaceGeneratorTest {
         assertTrue(result.contains("import kotlinx.coroutines.flow.StateFlow"))
     }
 
-    // ========== Test 2: No sink nodes → only executionState property ==========
+    // ========== Test 2: No boundary nodes → only executionState property ==========
 
     @Test
-    fun `no sink nodes generates only executionState property`() {
-        val gen = createTestCodeNode(
-            "gen", "ValueGenerator", CodeNodeType.SOURCE,
-            outputPorts = listOf(outputPort("g_out", "value", Int::class, "gen"))
+    fun `no boundary nodes generates only executionState property`() {
+        val transformer = createTestCodeNode(
+            "trans", "DataTransformer", CodeNodeType.TRANSFORMER,
+            inputPorts = listOf(inputPort("t_in", "input", Int::class, "trans")),
+            outputPorts = listOf(outputPort("t_out", "output", String::class, "trans"))
         )
-        val flowGraph = createFlowGraph(nodes = listOf(gen))
+        val flowGraph = createFlowGraph(nodes = listOf(transformer))
         val result = generator.generate(flowGraph, generatedPackage)
 
         assertTrue(result.contains("val executionState: StateFlow<ExecutionState>"))
-        assertFalse(result.contains("val value: StateFlow"))
+        assertFalse(result.contains("val input: StateFlow"))
     }
 
     @Test

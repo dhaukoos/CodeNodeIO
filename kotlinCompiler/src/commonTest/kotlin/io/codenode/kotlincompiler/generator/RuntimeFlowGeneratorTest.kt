@@ -300,37 +300,66 @@ class RuntimeFlowGeneratorTest {
         assertTrue(result.contains("private fun wireConnections()"))
     }
 
-    // ========== Test 3: No sink nodes ==========
+    // ========== Test 3: No boundary nodes ==========
 
     @Test
-    fun `no sink nodes does not import State object`() {
-        val gen = createTestCodeNode(
-            "gen", "Generator", CodeNodeType.SOURCE,
-            outputPorts = listOf(outputPort("g_out", "value", Int::class, "gen"))
-        )
+    fun `no boundary nodes does not import State object`() {
         val transformer = createTestCodeNode(
             "trans", "Transformer", CodeNodeType.TRANSFORMER,
             inputPorts = listOf(inputPort("t_in", "input", Int::class, "trans")),
             outputPorts = listOf(outputPort("t_out", "output", String::class, "trans"))
         )
-        val flowGraph = createFlowGraph(nodes = listOf(gen, transformer))
+        val flowGraph = createFlowGraph(nodes = listOf(transformer))
         val result = generator.generate(flowGraph, generatedPackage, usecasesPackage, viewModelPackage)
 
         assertFalse(result.contains("TestFlowState"),
-            "Should not reference State object when no sinks exist")
+            "Should not reference State object when no boundary nodes exist")
     }
 
     @Test
-    fun `no sink nodes generates empty reset body`() {
+    fun `no boundary nodes generates empty reset body`() {
+        val transformer = createTestCodeNode(
+            "trans", "Transformer", CodeNodeType.TRANSFORMER,
+            inputPorts = listOf(inputPort("t_in", "input", Int::class, "trans")),
+            outputPorts = listOf(outputPort("t_out", "output", String::class, "trans"))
+        )
+        val flowGraph = createFlowGraph(nodes = listOf(transformer))
+        val result = generator.generate(flowGraph, generatedPackage, usecasesPackage, viewModelPackage)
+
+        assertTrue(result.contains("fun reset()"))
+        assertFalse(result.contains("State.reset()"))
+    }
+
+    @Test
+    fun `source-only graph imports State object and generates state delegation`() {
         val gen = createTestCodeNode(
-            "gen", "Generator", CodeNodeType.SOURCE,
+            "gen", "ValueGenerator", CodeNodeType.SOURCE,
             outputPorts = listOf(outputPort("g_out", "value", Int::class, "gen"))
         )
         val flowGraph = createFlowGraph(nodes = listOf(gen))
         val result = generator.generate(flowGraph, generatedPackage, usecasesPackage, viewModelPackage)
 
-        assertTrue(result.contains("fun reset()"))
-        assertFalse(result.contains("State.reset()"))
+        assertTrue(result.contains("import io.codenode.testapp.TestFlowState"),
+            "Should import State object when source has output ports")
+        assertTrue(result.contains("val valueFlow: StateFlow<Int> = TestFlowState.valueFlow"),
+            "Should delegate valueFlow from TestFlowState")
+    }
+
+    @Test
+    fun `StopWatch-like flow delegates observable state for both source and sink ports`() {
+        val flowGraph = createStopWatchLikeFlow()
+        val result = generator.generate(flowGraph, generatedPackage, usecasesPackage, viewModelPackage)
+
+        // Source output ports
+        assertTrue(result.contains("val elapsedSecondsFlow: StateFlow<Int> = StopWatch2State.elapsedSecondsFlow"),
+            "Should delegate elapsedSecondsFlow from source output port")
+        assertTrue(result.contains("val elapsedMinutesFlow: StateFlow<Int> = StopWatch2State.elapsedMinutesFlow"),
+            "Should delegate elapsedMinutesFlow from source output port")
+        // Sink input ports
+        assertTrue(result.contains("val secondsFlow: StateFlow<Int> = StopWatch2State.secondsFlow"),
+            "Should delegate secondsFlow from sink input port")
+        assertTrue(result.contains("val minutesFlow: StateFlow<Int> = StopWatch2State.minutesFlow"),
+            "Should delegate minutesFlow from sink input port")
     }
 
     // ========== Test 4: Single-output generator + single-input sink ==========

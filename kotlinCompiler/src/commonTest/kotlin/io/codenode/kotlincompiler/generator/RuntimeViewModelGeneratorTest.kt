@@ -113,7 +113,22 @@ class RuntimeViewModelGeneratorTest {
     }
 
     @Test
-    fun `no sink nodes omits MutableStateFlow imports`() {
+    fun `no boundary nodes omits MutableStateFlow imports`() {
+        val transformer = createTestCodeNode(
+            "trans", "DataTransformer", CodeNodeType.TRANSFORMER,
+            inputPorts = listOf(inputPort("t_in", "input", Int::class, "trans")),
+            outputPorts = listOf(outputPort("t_out", "output", String::class, "trans"))
+        )
+        val flowGraph = createFlowGraph(nodes = listOf(transformer))
+        val result = generator.generate(flowGraph, basePackage, generatedPackage)
+
+        assertFalse(result.contains("import kotlinx.coroutines.flow.MutableStateFlow"))
+        assertFalse(result.contains("import kotlinx.coroutines.flow.asStateFlow"))
+        assertTrue(result.contains("import kotlinx.coroutines.flow.StateFlow"))
+    }
+
+    @Test
+    fun `source-only graph generates MutableStateFlow imports`() {
         val gen = createTestCodeNode(
             "gen", "ValueGenerator", CodeNodeType.SOURCE,
             outputPorts = listOf(outputPort("g_out", "value", Int::class, "gen"))
@@ -121,9 +136,8 @@ class RuntimeViewModelGeneratorTest {
         val flowGraph = createFlowGraph(nodes = listOf(gen))
         val result = generator.generate(flowGraph, basePackage, generatedPackage)
 
-        assertFalse(result.contains("import kotlinx.coroutines.flow.MutableStateFlow"))
-        assertFalse(result.contains("import kotlinx.coroutines.flow.asStateFlow"))
-        assertTrue(result.contains("import kotlinx.coroutines.flow.StateFlow"))
+        assertTrue(result.contains("import kotlinx.coroutines.flow.MutableStateFlow"))
+        assertTrue(result.contains("import kotlinx.coroutines.flow.asStateFlow"))
     }
 
     // ========== Module Properties Section (State Object) ==========
@@ -181,7 +195,21 @@ class RuntimeViewModelGeneratorTest {
     }
 
     @Test
-    fun `no sink nodes generates empty State object`() {
+    fun `no boundary nodes generates empty State object`() {
+        val transformer = createTestCodeNode(
+            "trans", "DataTransformer", CodeNodeType.TRANSFORMER,
+            inputPorts = listOf(inputPort("t_in", "input", Int::class, "trans")),
+            outputPorts = listOf(outputPort("t_out", "output", String::class, "trans"))
+        )
+        val flowGraph = createFlowGraph(nodes = listOf(transformer))
+        val result = generator.generate(flowGraph, basePackage, generatedPackage)
+
+        assertTrue(result.contains("object TestFlowState {"))
+        assertFalse(result.contains("MutableStateFlow("))
+    }
+
+    @Test
+    fun `source-only graph generates MutableStateFlow for output ports`() {
         val gen = createTestCodeNode(
             "gen", "ValueGenerator", CodeNodeType.SOURCE,
             outputPorts = listOf(outputPort("g_out", "value", Int::class, "gen"))
@@ -190,7 +218,8 @@ class RuntimeViewModelGeneratorTest {
         val result = generator.generate(flowGraph, basePackage, generatedPackage)
 
         assertTrue(result.contains("object TestFlowState {"))
-        assertFalse(result.contains("MutableStateFlow("))
+        assertTrue(result.contains("internal val _value = MutableStateFlow(0)"))
+        assertTrue(result.contains("val valueFlow: StateFlow<Int> = _value.asStateFlow()"))
     }
 
     // ========== ViewModel Class ==========
@@ -242,12 +271,13 @@ class RuntimeViewModelGeneratorTest {
     }
 
     @Test
-    fun `no sink nodes still delegates all control methods`() {
-        val gen = createTestCodeNode(
-            "gen", "ValueGenerator", CodeNodeType.SOURCE,
-            outputPorts = listOf(outputPort("g_out", "value", Int::class, "gen"))
+    fun `no boundary nodes still delegates all control methods`() {
+        val transformer = createTestCodeNode(
+            "trans", "DataTransformer", CodeNodeType.TRANSFORMER,
+            inputPorts = listOf(inputPort("t_in", "input", Int::class, "trans")),
+            outputPorts = listOf(outputPort("t_out", "output", String::class, "trans"))
         )
-        val flowGraph = createFlowGraph(nodes = listOf(gen))
+        val flowGraph = createFlowGraph(nodes = listOf(transformer))
         val result = generator.generate(flowGraph, basePackage, generatedPackage)
 
         assertTrue(result.contains("fun start(): FlowGraph = controller.start()"))
@@ -258,7 +288,21 @@ class RuntimeViewModelGeneratorTest {
     }
 
     @Test
-    fun `no sink nodes omits observable state delegation in ViewModel`() {
+    fun `no boundary nodes omits observable state delegation in ViewModel`() {
+        val transformer = createTestCodeNode(
+            "trans", "DataTransformer", CodeNodeType.TRANSFORMER,
+            inputPorts = listOf(inputPort("t_in", "input", Int::class, "trans")),
+            outputPorts = listOf(outputPort("t_out", "output", String::class, "trans"))
+        )
+        val flowGraph = createFlowGraph(nodes = listOf(transformer))
+        val result = generator.generate(flowGraph, basePackage, generatedPackage)
+
+        assertFalse(result.contains("// Observable state from module properties"))
+        assertTrue(result.contains("val executionState: StateFlow<ExecutionState> = controller.executionState"))
+    }
+
+    @Test
+    fun `source-only graph delegates observable state in ViewModel`() {
         val gen = createTestCodeNode(
             "gen", "ValueGenerator", CodeNodeType.SOURCE,
             outputPorts = listOf(outputPort("g_out", "value", Int::class, "gen"))
@@ -266,8 +310,20 @@ class RuntimeViewModelGeneratorTest {
         val flowGraph = createFlowGraph(nodes = listOf(gen))
         val result = generator.generate(flowGraph, basePackage, generatedPackage)
 
-        assertFalse(result.contains("val value"))
-        assertTrue(result.contains("val executionState: StateFlow<ExecutionState> = controller.executionState"))
+        assertTrue(result.contains("val value: StateFlow<Int> = TestFlowState.valueFlow"))
+    }
+
+    @Test
+    fun `StopWatch-like flow generates state for both source and sink ports`() {
+        val flowGraph = createStopWatchLikeFlow()
+        val result = generator.generate(flowGraph, basePackage, generatedPackage)
+
+        // Source output ports
+        assertTrue(result.contains("val elapsedSeconds: StateFlow<Int> = StopWatch2State.elapsedSecondsFlow"))
+        assertTrue(result.contains("val elapsedMinutes: StateFlow<Int> = StopWatch2State.elapsedMinutesFlow"))
+        // Sink input ports
+        assertTrue(result.contains("val seconds: StateFlow<Int> = StopWatch2State.secondsFlow"))
+        assertTrue(result.contains("val minutes: StateFlow<Int> = StopWatch2State.minutesFlow"))
     }
 
     // ========== generateModulePropertiesSection (Selective Regeneration) ==========
@@ -304,12 +360,13 @@ class RuntimeViewModelGeneratorTest {
     }
 
     @Test
-    fun `generateModulePropertiesSection with no sinks generates empty State object`() {
-        val gen = createTestCodeNode(
-            "gen", "ValueGenerator", CodeNodeType.SOURCE,
-            outputPorts = listOf(outputPort("g_out", "value", Int::class, "gen"))
+    fun `generateModulePropertiesSection with no boundary nodes generates empty State object`() {
+        val transformer = createTestCodeNode(
+            "trans", "DataTransformer", CodeNodeType.TRANSFORMER,
+            inputPorts = listOf(inputPort("t_in", "input", Int::class, "trans")),
+            outputPorts = listOf(outputPort("t_out", "output", String::class, "trans"))
         )
-        val flowGraph = createFlowGraph(nodes = listOf(gen))
+        val flowGraph = createFlowGraph(nodes = listOf(transformer))
         val section = generator.generateModulePropertiesSection(flowGraph)
 
         assertTrue(section.contains("object TestFlowState {"))

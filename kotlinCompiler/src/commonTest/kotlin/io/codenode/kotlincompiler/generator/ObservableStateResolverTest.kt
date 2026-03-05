@@ -1,6 +1,6 @@
 /*
  * ObservableStateResolver Test
- * Tests for extracting observable state properties from sink node input ports
+ * Tests for extracting observable state properties from source output ports and sink input ports
  * License: Apache 2.0
  */
 
@@ -11,7 +11,7 @@ import kotlin.test.*
 
 /**
  * Tests for ObservableStateResolver - extracts observable state properties
- * from sink node input ports for MutableStateFlow generation.
+ * from source output ports and sink input ports for MutableStateFlow generation.
  */
 class ObservableStateResolverTest {
 
@@ -103,16 +103,10 @@ class ObservableStateResolverTest {
         assertEquals("0", minutes.defaultValue)
     }
 
-    // ========== Test: No sink nodes ==========
+    // ========== Test: No boundary nodes ==========
 
     @Test
-    fun `no sink nodes returns empty list`() {
-        val generator = createTestCodeNode(
-            id = "gen",
-            name = "DataGenerator",
-            type = CodeNodeType.SOURCE,
-            outputPorts = listOf(outputPort("gen_out", "value", Int::class, "gen"))
-        )
+    fun `no source or sink nodes returns empty list`() {
         val transformer = createTestCodeNode(
             id = "trans",
             name = "DataTransformer",
@@ -120,11 +114,45 @@ class ObservableStateResolverTest {
             inputPorts = listOf(inputPort("t_in", "input", Int::class, "trans")),
             outputPorts = listOf(outputPort("t_out", "output", String::class, "trans"))
         )
-        val flowGraph = createFlowGraph(listOf(generator, transformer))
+        val flowGraph = createFlowGraph(listOf(transformer))
 
         val properties = resolver.getObservableStateProperties(flowGraph)
 
         assertTrue(properties.isEmpty())
+    }
+
+    // ========== Test: Source node with output ports ==========
+
+    @Test
+    fun `source node with output ports returns observable properties`() {
+        val source = createTestCodeNode(
+            id = "gen",
+            name = "DataGenerator",
+            type = CodeNodeType.SOURCE,
+            outputPorts = listOf(
+                outputPort("gen_val", "value", Int::class, "gen"),
+                outputPort("gen_label", "label", String::class, "gen")
+            )
+        )
+        val flowGraph = createFlowGraph(listOf(source))
+
+        val properties = resolver.getObservableStateProperties(flowGraph)
+
+        assertEquals(2, properties.size)
+
+        val value = properties[0]
+        assertEquals("value", value.name)
+        assertEquals("Int", value.typeName)
+        assertEquals("DataGenerator", value.sourceNodeName)
+        assertEquals("value", value.sourcePortName)
+        assertEquals("0", value.defaultValue)
+
+        val label = properties[1]
+        assertEquals("label", label.name)
+        assertEquals("String", label.typeName)
+        assertEquals("DataGenerator", label.sourceNodeName)
+        assertEquals("label", label.sourcePortName)
+        assertEquals("\"\"", label.defaultValue)
     }
 
     // ========== Test: Two sinks with duplicate port names ==========
@@ -276,17 +304,17 @@ class ObservableStateResolverTest {
         assertTrue(properties.isEmpty())
     }
 
-    // ========== Test: Mixed sink and non-sink nodes ==========
+    // ========== Test: Mixed source and sink nodes ==========
 
     @Test
-    fun `only sink nodes contribute observable properties`() {
-        val generator = createTestCodeNode(
+    fun `source and sink nodes both contribute observable properties`() {
+        val source = createTestCodeNode(
             id = "gen",
             name = "TimerEmitter",
             type = CodeNodeType.SOURCE,
             outputPorts = listOf(
-                outputPort("gen_sec", "seconds", Int::class, "gen"),
-                outputPort("gen_min", "minutes", Int::class, "gen")
+                outputPort("gen_sec", "elapsedSeconds", Int::class, "gen"),
+                outputPort("gen_min", "elapsedMinutes", Int::class, "gen")
             )
         )
         val sink = createTestCodeNode(
@@ -298,12 +326,51 @@ class ObservableStateResolverTest {
                 inputPort("d_min", "minutes", Int::class, "display")
             )
         )
-        val flowGraph = createFlowGraph(listOf(generator, sink))
+        val flowGraph = createFlowGraph(listOf(source, sink))
+
+        val properties = resolver.getObservableStateProperties(flowGraph)
+
+        assertEquals(4, properties.size)
+        // Source output ports come first
+        assertEquals("elapsedSeconds", properties[0].name)
+        assertEquals("TimerEmitter", properties[0].sourceNodeName)
+        assertEquals("elapsedMinutes", properties[1].name)
+        assertEquals("TimerEmitter", properties[1].sourceNodeName)
+        // Sink input ports come second
+        assertEquals("seconds", properties[2].name)
+        assertEquals("DisplayReceiver", properties[2].sourceNodeName)
+        assertEquals("minutes", properties[3].name)
+        assertEquals("DisplayReceiver", properties[3].sourceNodeName)
+    }
+
+    // ========== Test: Source + sink with colliding port names ==========
+
+    @Test
+    fun `source and sink with colliding port names are disambiguated`() {
+        val source = createTestCodeNode(
+            id = "gen",
+            name = "DataGenerator",
+            type = CodeNodeType.SOURCE,
+            outputPorts = listOf(
+                outputPort("gen_val", "value", Int::class, "gen")
+            )
+        )
+        val sink = createTestCodeNode(
+            id = "sink",
+            name = "DataReceiver",
+            type = CodeNodeType.SINK,
+            inputPorts = listOf(
+                inputPort("s_val", "value", String::class, "sink")
+            )
+        )
+        val flowGraph = createFlowGraph(listOf(source, sink))
 
         val properties = resolver.getObservableStateProperties(flowGraph)
 
         assertEquals(2, properties.size)
-        assertEquals("seconds", properties[0].name)
-        assertEquals("minutes", properties[1].name)
+        assertEquals("dataGeneratorValue", properties[0].name)
+        assertEquals("Int", properties[0].typeName)
+        assertEquals("dataReceiverValue", properties[1].name)
+        assertEquals("String", properties[1].typeName)
     }
 }
