@@ -836,6 +836,8 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                                         ipPaletteViewModel.clearSelection()
                                     }
                                     statusMessage = if (nodeId != null) "Selected node" else ""
+                                    // Restore focus so keyboard events (Delete) work
+                                    focusRequester.requestFocus()
                                 },
                                 onConnectionSelected = { connectionId ->
                                     if (connectionId != null) {
@@ -848,17 +850,21 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                                         graphState.clearSelection()
                                         statusMessage = ""
                                     }
+                                    // Restore focus so keyboard events (Delete) work
+                                    focusRequester.requestFocus()
                                 },
                                 onElementShiftClicked = { element ->
                                     // Toggle element in selection (unified for nodes and connections)
                                     graphState.toggleElementInSelection(element)
                                     val count = graphState.selectionState.totalSelectionCount
                                     statusMessage = "$count item${if (count != 1) "s" else ""} selected"
+                                    focusRequester.requestFocus()
                                 },
                                 onEmptyCanvasClicked = {
                                     // Clear all selections when clicking empty canvas
                                     graphState.clearSelection()
                                     statusMessage = ""
+                                    focusRequester.requestFocus()
                                 },
                                 onConnectionRightClick = { connectionId, position ->
                                     graphState.showConnectionContextMenu(connectionId, position)

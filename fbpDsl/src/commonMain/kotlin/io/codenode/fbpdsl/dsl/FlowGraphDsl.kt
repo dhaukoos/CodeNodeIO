@@ -176,6 +176,11 @@ class NodeBuilder(
     private val configuration = mutableMapOf<String, String>()
 
     /**
+     * Optional description for this node
+     */
+    var description: String? = null
+
+    /**
      * Adds an input port to the node
      *
      * @param portName Port name
@@ -283,7 +288,7 @@ class NodeBuilder(
             id = nodeId,
             name = name,
             codeNodeType = codeNodeType,
-            description = null,
+            description = description,
             position = nodePosition,
             inputPorts = inputPorts,
             outputPorts = outputPorts,
