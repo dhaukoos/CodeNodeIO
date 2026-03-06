@@ -75,6 +75,13 @@ fun UserProfiles(
 
     val selectedProfile = profiles.find { it.id == selectedProfileId }
 
+    // Clear selection if the selected profile was removed externally
+    LaunchedEffect(profiles, selectedProfileId) {
+        if (selectedProfileId != null && selectedProfile == null) {
+            selectedProfileId = null
+        }
+    }
+
     if (showAddForm) {
         AddUpdateUserProfile(
             existingProfile = null,

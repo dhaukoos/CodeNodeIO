@@ -103,8 +103,8 @@
 
 **Purpose**: Final validation and cleanup.
 
-- [ ] T013 Clear selection when selected profile is deleted by another process — in `UserProfiles` screen, check if `selectedProfileId` still exists in the `profiles` list on each recomposition; if not, reset selection to null
-- [ ] T014 Run quickstart.md end-to-end validation — follow the manual test flow in `specs/039-userprofiles-module/quickstart.md`: launch app, verify empty state, add profile, update profile, remove profile, verify persistence across restart
+- [X] T013 Clear selection when selected profile is deleted by another process — in `UserProfiles` screen, check if `selectedProfileId` still exists in the `profiles` list on each recomposition; if not, reset selection to null
+- [X] T014 Run quickstart.md end-to-end validation — follow the manual test flow in `specs/039-userprofiles-module/quickstart.md`: launch app, verify empty state, add profile, update profile, remove profile, verify persistence across restart
 
 ---
 
