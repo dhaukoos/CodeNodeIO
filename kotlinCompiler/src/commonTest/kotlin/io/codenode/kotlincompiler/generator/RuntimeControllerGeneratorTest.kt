@@ -211,8 +211,9 @@ class RuntimeControllerGeneratorTest {
             "Should not call reset() on runtime instances (NodeRuntime has no reset method)")
         assertFalse(result.contains("flow.displayReceiver.reset()"),
             "Should not call reset() on runtime instances (NodeRuntime has no reset method)")
+        assertTrue(result.contains("stop()"))
         assertTrue(result.contains("flow.reset()"))
-        assertTrue(result.contains("return stop()"))
+        assertTrue(result.contains("return flowGraph"))
     }
 
     @Test

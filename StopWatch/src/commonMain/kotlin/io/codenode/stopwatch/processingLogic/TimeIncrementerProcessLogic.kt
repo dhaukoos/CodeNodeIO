@@ -17,13 +17,10 @@ import io.codenode.stopwatch.StopWatchState
  *   - seconds: Int
  *   - minutes: Int
  *
- * Increments elapsed time using StopWatchState as the source of truth,
- * keeping observable state in sync with the processing logic.
- * Reset is handled by StopWatchState.reset().
  */
-val timeIncrementerTick: In2Out2TickBlock<Int, Int, Int, Int> = { _, _ ->
-    var newSeconds = StopWatchState._elapsedSeconds.value + 1
-    var newMinutes = StopWatchState._elapsedMinutes.value
+val timeIncrementerTick: In2Out2TickBlock<Int, Int, Int, Int> = { elapsedSeconds, elapsedMinutes ->
+    var newSeconds = elapsedSeconds + 1
+    var newMinutes = elapsedMinutes
 
     if (newSeconds >= 60) {
         newSeconds = 0

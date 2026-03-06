@@ -85,9 +85,9 @@
 
 ### Implementation for User Story 4
 
-- [ ] T018 [US4] Update `TimeIncrementerProcessLogic.kt` to use input parameters: change `{ _, _ ->` to `{ elapsedSeconds, elapsedMinutes ->`, replace `StopWatchState._elapsedSeconds.value + 1` with `elapsedSeconds + 1`, replace `StopWatchState._elapsedMinutes.value` with `elapsedMinutes`. Keep state write-back (`StopWatchState._elapsedSeconds.value = newSeconds`) to trigger reactive source re-emission in `StopWatch/src/commonMain/kotlin/io/codenode/stopwatch/processingLogic/TimeIncrementerProcessLogic.kt`
-- [ ] T019 [US4] Regenerate StopWatch module: run the graphEditor "Save + Regen Stubs" or manually regenerate `StopWatchFlow.kt` and `StopWatchController.kt` to include reactive source blocks and controller priming logic
-- [ ] T020 [US4] Compile and run all tests: `./gradlew :fbpDsl:jvmTest :kotlinCompiler:jvmTest :graphEditor:jvmTest`
+- [X] T018 [US4] Update `TimeIncrementerProcessLogic.kt` to use input parameters: change `{ _, _ ->` to `{ elapsedSeconds, elapsedMinutes ->`, replace `StopWatchState._elapsedSeconds.value + 1` with `elapsedSeconds + 1`, replace `StopWatchState._elapsedMinutes.value` with `elapsedMinutes`. Keep state write-back (`StopWatchState._elapsedSeconds.value = newSeconds`) to trigger reactive source re-emission in `StopWatch/src/commonMain/kotlin/io/codenode/stopwatch/processingLogic/TimeIncrementerProcessLogic.kt`
+- [X] T019 [US4] Regenerate StopWatch module: run the graphEditor "Save + Regen Stubs" or manually regenerate `StopWatchFlow.kt` and `StopWatchController.kt` to include reactive source blocks and controller priming logic
+- [X] T020 [US4] Compile and run all tests: `./gradlew :fbpDsl:jvmTest :kotlinCompiler:jvmTest :graphEditor:jvmTest`
 
 **Checkpoint**: StopWatch processing logic uses input values. Regenerated flow code includes reactive source blocks and controller priming.
 
@@ -97,7 +97,7 @@
 
 **Purpose**: Full build verification and manual integration testing.
 
-- [ ] T021 Full build verification: `./gradlew build` — all modules compile and all tests pass
+- [X] T021 Full build verification: `./gradlew build` — all modules compile and all tests pass
 
 **Checkpoint**: Entire project builds. Reactive feedback loop is fully implemented.
 

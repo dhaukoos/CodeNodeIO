@@ -13,6 +13,9 @@ import io.codenode.stopwatch.StopWatchState
 import io.codenode.fbpdsl.model.CodeNodeFactory
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.drop
+import io.codenode.fbpdsl.runtime.ProcessResult2
 
 /**
  * Flow orchestrator for: StopWatch
@@ -47,8 +50,16 @@ class StopWatchFlow {
 
     internal val timerEmitter = CodeNodeFactory.createSourceOut2<Int, Int>(
         name = "TimerEmitter",
-        generate = { _ -> kotlinx.coroutines.awaitCancellation() }
-    )
+        generate = { emit ->
+            combine(
+                StopWatchState._elapsedSeconds,
+                StopWatchState._elapsedMinutes
+            ) { elapsedSeconds, elapsedMinutes ->
+                ProcessResult2.both(elapsedSeconds, elapsedMinutes)
+            }.drop(1).collect { result ->
+                emit(result)
+            }
+        }    )
 
     /**
      * Starts the flow with the given coroutine scope.

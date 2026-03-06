@@ -244,8 +244,9 @@ class RuntimeControllerGenerator {
     private fun StringBuilder.generateResetMethod(codeNodes: List<CodeNode>) {
         appendLine("    fun reset(): FlowGraph {")
         appendLine("        wasRunningBeforePause = false")
+        appendLine("        stop()")
         appendLine("        flow.reset()")
-        appendLine("        return stop()")
+        appendLine("        return flowGraph")
         appendLine("    }")
         appendLine()
     }

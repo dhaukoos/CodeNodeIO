@@ -6,6 +6,8 @@
 
 package io.codenode.stopwatch.generated
 
+import io.codenode.stopwatch.StopWatchState
+
 import io.codenode.fbpdsl.model.RootControlNode
 import io.codenode.fbpdsl.model.FlowGraph
 import io.codenode.fbpdsl.model.FlowExecutionStatus
@@ -75,6 +77,9 @@ class StopWatchController(
         flow.timerEmitter.executionState = ExecutionState.RUNNING
         scope.launch {
             flow.start(scope)
+
+            flow.timerEmitter.outputChannel1?.send(StopWatchState._elapsedSeconds.value)
+            flow.timerEmitter.outputChannel2?.send(StopWatchState._elapsedMinutes.value)
         }
 
         return flowGraph
@@ -108,8 +113,9 @@ class StopWatchController(
 
     fun reset(): FlowGraph {
         wasRunningBeforePause = false
+        stop()
         flow.reset()
-        return stop()
+        return flowGraph
     }
 
     fun getStatus(): FlowExecutionStatus {
@@ -155,11 +161,13 @@ class StopWatchController(
     }
 
     /**
-     * Sets the attenuation delay on all generator runtimes.
-     * When non-null, replaces tickIntervalMs as the delay between ticks.
-     * When null, reverts to the original tickIntervalMs.
+     * Sets the attenuation delay on all runtime nodes.
+     * When non-null and > 0, processors delay between receive and process.
+     * When null or 0, processors process immediately (default behavior).
      */
     fun setAttenuationDelay(ms: Long?) {
+        flow.timeIncrementer.attenuationDelayMs = ms
+        flow.displayReceiver.attenuationDelayMs = ms
         flow.timerEmitter.attenuationDelayMs = ms
     }
 
