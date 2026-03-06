@@ -297,7 +297,6 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
     val propertyChangeTracker = rememberPropertyChangeTracker(undoRedoManager, graphState)
 
     // Runtime preview session and panel state
-    var runtimeSession by remember { mutableStateOf<RuntimeSession?>(null) }
     var isRuntimePanelExpanded by remember { mutableStateOf(false) }
     var moduleRootDir by remember { mutableStateOf<File?>(null) }
 
@@ -366,20 +365,21 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
     val saveLocationRegistry = remember { mutableMapOf<String, File>() }
     var statusMessage by remember { mutableStateOf("Ready - Create a new graph or open an existing one") }
 
-    // Create/recreate RuntimeSession when module changes
-    LaunchedEffect(moduleRootDir) {
-        // Stop previous session if running
-        runtimeSession?.let {
-            if (it.executionState.value != ExecutionState.IDLE) {
-                it.stop()
+    // Create/recreate RuntimeSession synchronously when module changes
+    // (must be synchronous so runtimeSession is always in sync with moduleRootDir
+    // during the same recomposition — avoids ClassCastException on module switch)
+    val runtimeSession = remember(moduleRootDir) {
+        moduleRootDir?.name?.let { ModuleSessionFactory.createSession(it) }
+    }
+
+    // Stop previous session when it's replaced or removed
+    DisposableEffect(runtimeSession) {
+        onDispose {
+            runtimeSession?.let {
+                if (it.executionState.value != ExecutionState.IDLE) {
+                    it.stop()
+                }
             }
-        }
-        // Create new session based on module name
-        val moduleName = moduleRootDir?.name
-        runtimeSession = if (moduleName != null) {
-            ModuleSessionFactory.createSession(moduleName)
-        } else {
-            null
         }
     }
 
