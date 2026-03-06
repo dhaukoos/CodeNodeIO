@@ -67,8 +67,22 @@ fun UserProfiles(
 ) {
     val profiles by viewModel.profiles.collectAsState()
     var selectedProfileId by remember { mutableStateOf<Long?>(null) }
+    var showAddForm by remember { mutableStateOf(false) }
 
     val selectedProfile = profiles.find { it.id == selectedProfileId }
+
+    if (showAddForm) {
+        AddUpdateUserProfile(
+            existingProfile = null,
+            onSave = { profile ->
+                viewModel.addEntity(profile)
+                showAddForm = false
+            },
+            onCancel = { showAddForm = false },
+            modifier = modifier
+        )
+        return
+    }
 
     Column(
         modifier = modifier.fillMaxSize().padding(16.dp)
@@ -109,7 +123,7 @@ fun UserProfiles(
                 .padding(top = 16.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Button(onClick = { /* wired in T010 */ }) {
+            Button(onClick = { showAddForm = true }) {
                 Text("Add")
             }
             Button(
