@@ -1,16 +1,13 @@
 /*
  * RuntimeSession - Orchestrates runtime preview execution
- * Manages StopWatch lifecycle, attenuation propagation, and execution state
+ * Manages module lifecycle, attenuation propagation, and execution state
  * License: Apache 2.0
  */
 
 package io.codenode.circuitsimulator
 
 import io.codenode.fbpdsl.model.ExecutionState
-import io.codenode.stopwatch.generated.StopWatchController
-import io.codenode.stopwatch.generated.StopWatchControllerAdapter
-import io.codenode.stopwatch.StopWatchViewModel
-import io.codenode.stopwatch.stopWatchFlowGraph
+import io.codenode.fbpdsl.runtime.ModuleController
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -19,18 +16,18 @@ import kotlinx.coroutines.flow.asStateFlow
  * Orchestrates runtime preview execution within the graphEditor.
  *
  * Manages:
- * - StopWatchController creation and lifecycle
- * - StopWatchViewModel for UI binding
- * - Attenuation delay propagation to generator runtimes
+ * - Module controller lifecycle (start/stop/pause/resume)
+ * - Module-specific ViewModel for UI binding (opaque to RuntimeSession)
+ * - Attenuation delay propagation to runtime nodes
  * - Execution state transitions (IDLE, RUNNING, PAUSED)
+ *
+ * @param controller The module's controller implementing ModuleController
+ * @param viewModel The module's ViewModel, stored opaquely for preview providers to cast
  */
-class RuntimeSession {
-
-    private val controller = StopWatchController(stopWatchFlowGraph)
-    private val adapter = StopWatchControllerAdapter(controller)
-
-    /** ViewModel for binding to the StopWatch UI composable */
-    val viewModel = StopWatchViewModel(adapter)
+class RuntimeSession(
+    private val controller: ModuleController,
+    val viewModel: Any
+) {
 
     private val _executionState = MutableStateFlow(ExecutionState.IDLE)
     /** Current execution state of the runtime session */

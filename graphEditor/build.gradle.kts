@@ -22,6 +22,7 @@ kotlin {
                 implementation(project(":fbpDsl"))
                 implementation(project(":circuitSimulator"))
                 implementation(project(":StopWatch"))
+                implementation(project(":UserProfiles"))
                 // Compose Multiplatform dependencies (using compose DSL)
                 implementation(compose.ui)
                 implementation(compose.foundation)

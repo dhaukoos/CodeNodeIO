@@ -17,7 +17,7 @@ kotlin {
             dependencies {
                 implementation(libs.coroutines.core)
                 implementation(project(":fbpDsl"))
-                implementation(project(":StopWatch"))
+                // StopWatch dependency removed — RuntimeSession now uses ModuleController interface
                 // Compose UI dependencies (explicit 1.7.3 to match StopWatch module)
                 implementation("org.jetbrains.compose.runtime:runtime:1.7.3")
                 implementation("org.jetbrains.compose.foundation:foundation:1.7.3")

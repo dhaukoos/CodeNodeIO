@@ -13,6 +13,7 @@ import io.codenode.fbpdsl.model.FlowGraph
 import io.codenode.fbpdsl.model.FlowExecutionStatus
 import io.codenode.fbpdsl.model.ExecutionState
 import io.codenode.fbpdsl.model.ControlConfig
+import io.codenode.fbpdsl.runtime.ModuleController
 import io.codenode.fbpdsl.runtime.RuntimeRegistry
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -37,7 +38,7 @@ import kotlinx.coroutines.launch
  */
 class StopWatchController(
     private var flowGraph: FlowGraph
-) {
+) : ModuleController {
 
     private val registry = RuntimeRegistry()
 
@@ -59,9 +60,9 @@ class StopWatchController(
     val minutes: StateFlow<Int> = flow.minutesFlow
 
     private val _executionState = MutableStateFlow(ExecutionState.IDLE)
-    val executionState: StateFlow<ExecutionState> = _executionState.asStateFlow()
+    override val executionState: StateFlow<ExecutionState> = _executionState.asStateFlow()
 
-    fun start(): FlowGraph {
+    override fun start(): FlowGraph {
         flowGraph = controller.startAll()
         controller = RootControlNode.createFor(flowGraph, "StopWatchController", registry)
         _executionState.value = ExecutionState.RUNNING
@@ -85,21 +86,21 @@ class StopWatchController(
         return flowGraph
     }
 
-    fun pause(): FlowGraph {
+    override fun pause(): FlowGraph {
         flowGraph = controller.pauseAll()
         controller = RootControlNode.createFor(flowGraph, "StopWatchController", registry)
         _executionState.value = ExecutionState.PAUSED
         return flowGraph
     }
 
-    fun resume(): FlowGraph {
+    override fun resume(): FlowGraph {
         flowGraph = controller.resumeAll()
         controller = RootControlNode.createFor(flowGraph, "StopWatchController", registry)
         _executionState.value = ExecutionState.RUNNING
         return flowGraph
     }
 
-    fun stop(): FlowGraph {
+    override fun stop(): FlowGraph {
         flowGraph = controller.stopAll()
         controller = RootControlNode.createFor(flowGraph, "StopWatchController", registry)
         _executionState.value = ExecutionState.IDLE
@@ -111,7 +112,7 @@ class StopWatchController(
         return flowGraph
     }
 
-    fun reset(): FlowGraph {
+    override fun reset(): FlowGraph {
         wasRunningBeforePause = false
         stop()
         flow.reset()
@@ -165,7 +166,7 @@ class StopWatchController(
      * When non-null and > 0, processors delay between receive and process.
      * When null or 0, processors process immediately (default behavior).
      */
-    fun setAttenuationDelay(ms: Long?) {
+    override fun setAttenuationDelay(ms: Long?) {
         flow.timeIncrementer.attenuationDelayMs = ms
         flow.displayReceiver.attenuationDelayMs = ms
         flow.timerEmitter.attenuationDelayMs = ms

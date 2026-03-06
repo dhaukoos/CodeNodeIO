@@ -12,6 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import io.codenode.circuitsimulator.RuntimeSession
 import io.codenode.fbpdsl.model.ExecutionState
+import io.codenode.stopwatch.StopWatchViewModel
 import io.codenode.stopwatch.userInterface.StopWatch
 import io.codenode.stopwatch.userInterface.StopWatchScreen
 
@@ -33,7 +34,7 @@ object StopWatchPreviewProvider {
         runtimeSession: RuntimeSession,
         modifier: Modifier = Modifier
     ) {
-        val viewModel = runtimeSession.viewModel
+        val viewModel = runtimeSession.viewModel as StopWatchViewModel
         val seconds by viewModel.seconds.collectAsState()
         val minutes by viewModel.minutes.collectAsState()
         val executionState by viewModel.executionState.collectAsState()
@@ -60,7 +61,7 @@ object StopWatchPreviewProvider {
         modifier: Modifier = Modifier
     ) {
         StopWatchScreen(
-            viewModel = runtimeSession.viewModel,
+            viewModel = runtimeSession.viewModel as StopWatchViewModel,
             modifier = modifier,
             minSize = 200.dp
         )

@@ -48,6 +48,7 @@ import io.codenode.grapheditor.ui.NodeGeneratorPanel
 import io.codenode.grapheditor.ui.GraphEditorWithToggle
 import io.codenode.grapheditor.ui.ViewMode
 import io.codenode.grapheditor.ui.CompactPropertiesPanelWithViewModel
+import io.codenode.grapheditor.ui.ModuleSessionFactory
 import io.codenode.grapheditor.ui.RuntimePreviewPanel
 import io.codenode.circuitsimulator.RuntimeSession
 import io.codenode.grapheditor.ui.PropertiesPanelState
@@ -294,7 +295,7 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
     val propertyChangeTracker = rememberPropertyChangeTracker(undoRedoManager, graphState)
 
     // Runtime preview session and panel state
-    val runtimeSession = remember { RuntimeSession() }
+    var runtimeSession by remember { mutableStateOf<RuntimeSession?>(null) }
     var isRuntimePanelExpanded by remember { mutableStateOf(false) }
     var moduleRootDir by remember { mutableStateOf<File?>(null) }
 
@@ -356,13 +357,30 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
     val saveLocationRegistry = remember { mutableMapOf<String, File>() }
     var statusMessage by remember { mutableStateOf("Ready - Create a new graph or open an existing one") }
 
+    // Create/recreate RuntimeSession when module changes
+    LaunchedEffect(moduleRootDir) {
+        // Stop previous session if running
+        runtimeSession?.let {
+            if (it.executionState.value != ExecutionState.IDLE) {
+                it.stop()
+            }
+        }
+        // Create new session based on module name
+        val moduleName = moduleRootDir?.name
+        runtimeSession = if (moduleName != null) {
+            ModuleSessionFactory.createSession(moduleName)
+        } else {
+            null
+        }
+    }
+
     // Auto-stop runtime when graph is edited while running (FR-007)
     LaunchedEffect(runtimeSession) {
         snapshotFlow { graphState.flowGraph }
             .drop(1) // Skip the initial value
             .collect {
-                if (runtimeSession.executionState.value != ExecutionState.IDLE) {
-                    runtimeSession.stop()
+                if (runtimeSession?.executionState?.value != ExecutionState.IDLE) {
+                    runtimeSession?.stop()
                     statusMessage = "Execution stopped: graph was modified"
                 }
             }
@@ -1029,14 +1047,16 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                     )
 
                     // Runtime Preview Panel (right side, after properties)
-                    RuntimePreviewPanel(
-                        runtimeSession = runtimeSession,
-                        isExpanded = isRuntimePanelExpanded,
-                        onToggle = { isRuntimePanelExpanded = !isRuntimePanelExpanded },
-                        moduleRootDir = moduleRootDir,
-                        flowGraphName = graphState.flowGraph.name,
-                        modifier = Modifier.fillMaxHeight()
-                    )
+                    runtimeSession?.let { session ->
+                        RuntimePreviewPanel(
+                            runtimeSession = session,
+                            isExpanded = isRuntimePanelExpanded,
+                            onToggle = { isRuntimePanelExpanded = !isRuntimePanelExpanded },
+                            moduleRootDir = moduleRootDir,
+                            flowGraphName = graphState.flowGraph.name,
+                            modifier = Modifier.fillMaxHeight()
+                        )
+                    }
                 }
 
                 // Canvas controls overlay (bottom right)
