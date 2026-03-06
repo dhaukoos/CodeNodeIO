@@ -102,6 +102,9 @@ class In1Out2Runtime<A : Any, U : Any, V : Any>(
                     // Receive from input channel
                     val value = inChannel.receive()
 
+                    val delayMs = attenuationDelayMs
+                    if (delayMs != null && delayMs > 0) delay(delayMs)
+
                     // Process and get result
                     val result = process(value)
 

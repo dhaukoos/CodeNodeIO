@@ -82,6 +82,9 @@ class FilterRuntime<T : Any>(
                     // Receive next value (suspends until available or channel closed)
                     val value = inChannel.receiveCatching().getOrNull() ?: break
 
+                    val delayMs = attenuationDelayMs
+                    if (delayMs != null && delayMs > 0) delay(delayMs)
+
                     // Apply predicate - only send if true
                     if (predicate(value)) {
                         outChannel.send(value)

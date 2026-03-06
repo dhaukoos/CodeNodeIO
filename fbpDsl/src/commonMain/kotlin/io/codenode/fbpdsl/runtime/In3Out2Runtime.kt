@@ -118,6 +118,9 @@ class In3Out2Runtime<A : Any, B : Any, C : Any, U : Any, V : Any>(
                     val value2 = inChannel2.receive()
                     val value3 = inChannel3.receive()
 
+                    val delayMs = attenuationDelayMs
+                    if (delayMs != null && delayMs > 0) delay(delayMs)
+
                     // Process and get result
                     val result = process(value1, value2, value3)
 

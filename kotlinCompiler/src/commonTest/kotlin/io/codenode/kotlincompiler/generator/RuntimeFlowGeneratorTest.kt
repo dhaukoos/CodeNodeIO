@@ -133,6 +133,19 @@ class RuntimeFlowGeneratorTest {
     }
 
     @Test
+    fun `StopWatch-like flow imports combine and drop for reactive source`() {
+        val flowGraph = createStopWatchLikeFlow()
+        val result = generator.generate(flowGraph, generatedPackage, usecasesPackage, viewModelPackage)
+
+        assertTrue(result.contains("import kotlinx.coroutines.flow.combine"),
+            "Should import combine for multi-output source observation")
+        assertTrue(result.contains("import kotlinx.coroutines.flow.drop"),
+            "Should import drop for skipping initial emission")
+        assertTrue(result.contains("import io.codenode.fbpdsl.runtime.ProcessResult2"),
+            "Should import ProcessResult2 for 2-output source")
+    }
+
+    @Test
     fun `StopWatch-like flow delegates observable state from State object`() {
         val flowGraph = createStopWatchLikeFlow()
         val result = generator.generate(flowGraph, generatedPackage, usecasesPackage, viewModelPackage)
@@ -155,14 +168,24 @@ class RuntimeFlowGeneratorTest {
     }
 
     @Test
-    fun `StopWatch-like flow generates source runtime instance with continuous factory`() {
+    fun `StopWatch-like flow generates source runtime instance with reactive observation`() {
         val flowGraph = createStopWatchLikeFlow()
         val result = generator.generate(flowGraph, generatedPackage, usecasesPackage, viewModelPackage)
 
         assertTrue(result.contains("internal val timerEmitter = CodeNodeFactory.createSourceOut2<Int, Int>("))
         assertTrue(result.contains("name = \"TimerEmitter\""))
-        assertTrue(result.contains("generate = { _ -> kotlinx.coroutines.awaitCancellation() }"),
-            "Source nodes should use generate with awaitCancellation")
+        assertTrue(result.contains("generate = { emit ->"),
+            "Source nodes should use generate with emit parameter")
+        assertTrue(result.contains("combine("),
+            "2-output source should use combine")
+        assertTrue(result.contains("StopWatch2State._elapsedSeconds"),
+            "Should observe elapsedSeconds state flow")
+        assertTrue(result.contains("StopWatch2State._elapsedMinutes"),
+            "Should observe elapsedMinutes state flow")
+        assertTrue(result.contains(".drop(1).collect"),
+            "Should drop initial emission")
+        assertTrue(result.contains("ProcessResult2.both(elapsedSeconds, elapsedMinutes)"),
+            "Should create ProcessResult2 from combined values")
         assertFalse(result.contains("tickIntervalMs"),
             "Source nodes should not have tickIntervalMs")
         assertFalse(result.contains("tick = timerEmitterTick"),
@@ -170,7 +193,7 @@ class RuntimeFlowGeneratorTest {
     }
 
     @Test
-    fun `source node ignores tickIntervalMs config`() {
+    fun `source node ignores tickIntervalMs config and uses reactive observation`() {
         val timerEmitter = CodeNode(
             id = "timer",
             name = "TimerEmitter",
@@ -187,8 +210,10 @@ class RuntimeFlowGeneratorTest {
 
         assertFalse(result.contains("tickIntervalMs"),
             "Source nodes should not use tickIntervalMs even if configured")
-        assertTrue(result.contains("generate = { _ -> kotlinx.coroutines.awaitCancellation() }"),
-            "Source nodes should use generate with awaitCancellation")
+        assertTrue(result.contains("generate = { emit ->"),
+            "Source node should use generate with emit parameter")
+        assertTrue(result.contains("ConfigTestState._value.drop(1).collect"),
+            "1-output source should observe state flow with drop(1)")
     }
 
     @Test
@@ -404,7 +429,7 @@ class RuntimeFlowGeneratorTest {
     }
 
     @Test
-    fun `single output source uses createContinuousSource with generate param`() {
+    fun `single output source uses createContinuousSource with reactive observation`() {
         val gen = createTestCodeNode(
             "gen", "ValueGenerator", CodeNodeType.SOURCE,
             outputPorts = listOf(outputPort("g_out", "value", Int::class, "gen"))
@@ -413,8 +438,12 @@ class RuntimeFlowGeneratorTest {
         val result = generator.generate(flowGraph, generatedPackage, usecasesPackage, viewModelPackage)
 
         assertTrue(result.contains("CodeNodeFactory.createContinuousSource<Int>("))
-        assertTrue(result.contains("generate = { _ -> kotlinx.coroutines.awaitCancellation() }"),
-            "Source node should use generate with awaitCancellation")
+        assertTrue(result.contains("generate = { emit ->"),
+            "Source node should use generate with emit parameter")
+        assertTrue(result.contains("TestFlowState._value.drop(1).collect { value ->"),
+            "1-output source should observe state flow with drop(1)")
+        assertTrue(result.contains("emit(value)"),
+            "Should emit value on state change")
         assertFalse(result.contains("tick = valueGeneratorTick"),
             "Source node should not reference tick stub")
     }

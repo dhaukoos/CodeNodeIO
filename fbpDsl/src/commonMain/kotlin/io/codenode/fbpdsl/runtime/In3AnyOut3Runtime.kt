@@ -77,6 +77,8 @@ class In3AnyOut3Runtime<A : Any, B : Any, C : Any, U : Any, V : Any, W : Any>(
                     select<Unit> {
                         inChannel1.onReceive { value ->
                             lastValue1 = value
+                            val delayMs = attenuationDelayMs
+                            if (delayMs != null && delayMs > 0) delay(delayMs)
                             val result = process(lastValue1, lastValue2, lastValue3)
                             result.out1?.let { outChannel1.send(it) }
                             result.out2?.let { outChannel2.send(it) }
@@ -84,6 +86,8 @@ class In3AnyOut3Runtime<A : Any, B : Any, C : Any, U : Any, V : Any, W : Any>(
                         }
                         inChannel2.onReceive { value ->
                             lastValue2 = value
+                            val delayMs = attenuationDelayMs
+                            if (delayMs != null && delayMs > 0) delay(delayMs)
                             val result = process(lastValue1, lastValue2, lastValue3)
                             result.out1?.let { outChannel1.send(it) }
                             result.out2?.let { outChannel2.send(it) }
@@ -91,6 +95,8 @@ class In3AnyOut3Runtime<A : Any, B : Any, C : Any, U : Any, V : Any, W : Any>(
                         }
                         inChannel3.onReceive { value ->
                             lastValue3 = value
+                            val delayMs = attenuationDelayMs
+                            if (delayMs != null && delayMs > 0) delay(delayMs)
                             val result = process(lastValue1, lastValue2, lastValue3)
                             result.out1?.let { outChannel1.send(it) }
                             result.out2?.let { outChannel2.send(it) }

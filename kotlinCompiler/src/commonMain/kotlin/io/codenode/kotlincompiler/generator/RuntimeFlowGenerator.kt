@@ -110,6 +110,22 @@ class RuntimeFlowGenerator {
         if (hasObservableState) {
             appendLine("import kotlinx.coroutines.flow.StateFlow")
         }
+
+        // Reactive source imports
+        val sourceNodes = codeNodes.filter { it.inputPorts.isEmpty() && it.outputPorts.isNotEmpty() }
+        if (sourceNodes.isNotEmpty() && hasObservableState) {
+            val maxOutputs = sourceNodes.maxOf { it.outputPorts.size }
+            if (maxOutputs >= 2) {
+                appendLine("import kotlinx.coroutines.flow.combine")
+            }
+            appendLine("import kotlinx.coroutines.flow.drop")
+            if (maxOutputs == 2) {
+                appendLine("import io.codenode.fbpdsl.runtime.ProcessResult2")
+            } else if (maxOutputs >= 3) {
+                appendLine("import io.codenode.fbpdsl.runtime.ProcessResult2")
+                appendLine("import io.codenode.fbpdsl.runtime.ProcessResult3")
+            }
+        }
     }
 
     private fun StringBuilder.generateKDoc(flowGraph: FlowGraph, flowName: String) {
@@ -160,7 +176,7 @@ class RuntimeFlowGenerator {
             appendLine("        name = \"${node.name}\",")
 
             if (isSource) {
-                appendLine("        generate = { _ -> kotlinx.coroutines.awaitCancellation() }")
+                generateReactiveSourceBlock(node, observableProps, flowName)
             } else if (anyInput && node.inputPorts.size >= 2) {
                 generateInitialValues(node)
                 if (isSink) {
@@ -222,6 +238,77 @@ class RuntimeFlowGenerator {
             }
         }
         append("        }")
+    }
+
+    private fun StringBuilder.generateReactiveSourceBlock(
+        node: CodeNode,
+        observableProps: List<ObservableProperty>,
+        flowName: String
+    ) {
+        val stateName = "${flowName}State"
+        val sourceProps = node.outputPorts.map { port ->
+            observableProps.find { prop ->
+                prop.sourceNodeName == node.name && prop.sourcePortName == port.name
+            }
+        }
+
+        val outputCount = node.outputPorts.size
+
+        when (outputCount) {
+            1 -> {
+                val prop = sourceProps[0]
+                if (prop != null) {
+                    appendLine("        generate = { emit ->")
+                    appendLine("            $stateName._${prop.name}.drop(1).collect { value ->")
+                    appendLine("                emit(value)")
+                    appendLine("            }")
+                    append("        }")
+                } else {
+                    appendLine("        generate = { _ -> kotlinx.coroutines.awaitCancellation() }")
+                }
+            }
+            2 -> {
+                val prop1 = sourceProps[0]
+                val prop2 = sourceProps[1]
+                if (prop1 != null && prop2 != null) {
+                    appendLine("        generate = { emit ->")
+                    appendLine("            combine(")
+                    appendLine("                $stateName._${prop1.name},")
+                    appendLine("                $stateName._${prop2.name}")
+                    appendLine("            ) { ${prop1.name}, ${prop2.name} ->")
+                    appendLine("                ProcessResult2.both(${prop1.name}, ${prop2.name})")
+                    appendLine("            }.drop(1).collect { result ->")
+                    appendLine("                emit(result)")
+                    appendLine("            }")
+                    append("        }")
+                } else {
+                    appendLine("        generate = { _ -> kotlinx.coroutines.awaitCancellation() }")
+                }
+            }
+            3 -> {
+                val prop1 = sourceProps[0]
+                val prop2 = sourceProps[1]
+                val prop3 = sourceProps[2]
+                if (prop1 != null && prop2 != null && prop3 != null) {
+                    appendLine("        generate = { emit ->")
+                    appendLine("            combine(")
+                    appendLine("                $stateName._${prop1.name},")
+                    appendLine("                $stateName._${prop2.name},")
+                    appendLine("                $stateName._${prop3.name}")
+                    appendLine("            ) { ${prop1.name}, ${prop2.name}, ${prop3.name} ->")
+                    appendLine("                ProcessResult3(${prop1.name}, ${prop2.name}, ${prop3.name})")
+                    appendLine("            }.drop(1).collect { result ->")
+                    appendLine("                emit(result)")
+                    appendLine("            }")
+                    append("        }")
+                } else {
+                    appendLine("        generate = { _ -> kotlinx.coroutines.awaitCancellation() }")
+                }
+            }
+            else -> {
+                appendLine("        generate = { _ -> kotlinx.coroutines.awaitCancellation() }")
+            }
+        }
     }
 
     private fun StringBuilder.generateStartMethod(codeNodes: List<CodeNode>) {

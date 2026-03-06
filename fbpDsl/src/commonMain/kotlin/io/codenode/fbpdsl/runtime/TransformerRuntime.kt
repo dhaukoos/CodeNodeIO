@@ -10,6 +10,7 @@ import io.codenode.fbpdsl.model.CodeNode
 import io.codenode.fbpdsl.model.ExecutionState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.ClosedReceiveChannelException
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.launch
@@ -81,6 +82,9 @@ class TransformerRuntime<TIn : Any, TOut : Any>(
 
                     // Receive next value (suspends until available or channel closed)
                     val value = inChannel.receiveCatching().getOrNull() ?: break
+
+                    val delayMs = attenuationDelayMs
+                    if (delayMs != null && delayMs > 0) delay(delayMs)
 
                     // Transform and send
                     val transformed = transform(value)

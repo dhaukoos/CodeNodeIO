@@ -9,7 +9,9 @@ import io.codenode.fbpdsl.model.CodeNodeFactory
 import io.codenode.fbpdsl.model.ExecutionState
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -683,5 +685,73 @@ class TypedNodeRuntimeTest {
         val processor = CodeNodeFactory.createIn2Out1Processor<Int, Int, Int>(name = "MinProc") { a, b -> a + b }
         assertTrue(processor.codeNode.inputPorts.isNotEmpty())
         assertTrue(processor.codeNode.outputPorts.isNotEmpty())
+    }
+
+    // ========== Attenuation Delay ==========
+
+    @Test
+    fun `In2Out2Runtime respects attenuationDelayMs before processing`() = runTest {
+        // Given: A processor with 1000ms attenuation delay
+        val processor = CodeNodeFactory.createIn2Out2Processor<Int, Int, Int, Int>(
+            name = "DelayedProcessor"
+        ) { a, b -> ProcessResult2.both(a + 1, b + 1) }
+
+        val input1 = Channel<Int>(Channel.BUFFERED)
+        val input2 = Channel<Int>(Channel.BUFFERED)
+
+        processor.inputChannel1 = input1
+        processor.inputChannel2 = input2
+        val output1 = processor.outputChannel1!!
+        val output2 = processor.outputChannel2!!
+        processor.attenuationDelayMs = 1000L
+
+        // When: Start and send values
+        processor.start(this) { }
+
+        input1.send(5)
+        input2.send(10)
+
+        // Then: No output before delay elapses
+        advanceTimeBy(999)
+        runCurrent()
+        assertTrue(output1.tryReceive().isFailure, "Should not have output before delay")
+
+        // Then: Output appears after delay elapses
+        advanceTimeBy(2)
+        runCurrent()
+        assertEquals(6, output1.receive())
+        assertEquals(11, output2.receive())
+
+        processor.stop()
+    }
+
+    @Test
+    fun `In2Out2Runtime processes immediately when attenuationDelayMs is null`() = runTest {
+        // Given: A processor with no attenuation delay (default)
+        val processor = CodeNodeFactory.createIn2Out2Processor<Int, Int, Int, Int>(
+            name = "NoDelayProcessor"
+        ) { a, b -> ProcessResult2.both(a, b) }
+
+        val input1 = Channel<Int>(Channel.BUFFERED)
+        val input2 = Channel<Int>(Channel.BUFFERED)
+
+        processor.inputChannel1 = input1
+        processor.inputChannel2 = input2
+        val output1 = processor.outputChannel1!!
+        val output2 = processor.outputChannel2!!
+        // attenuationDelayMs is null by default
+
+        // When: Start and send values
+        processor.start(this) { }
+
+        input1.send(5)
+        input2.send(10)
+        advanceUntilIdle()
+
+        // Then: Output appears immediately
+        assertEquals(5, output1.receive())
+        assertEquals(10, output2.receive())
+
+        processor.stop()
     }
 }

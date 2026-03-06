@@ -68,12 +68,16 @@ class In2AnyOut2Runtime<A : Any, B : Any, U : Any, V : Any>(
                     select<Unit> {
                         inChannel1.onReceive { value ->
                             lastValue1 = value
+                            val delayMs = attenuationDelayMs
+                            if (delayMs != null && delayMs > 0) delay(delayMs)
                             val result = process(lastValue1, lastValue2)
                             result.out1?.let { outChannel1.send(it) }
                             result.out2?.let { outChannel2.send(it) }
                         }
                         inChannel2.onReceive { value ->
                             lastValue2 = value
+                            val delayMs = attenuationDelayMs
+                            if (delayMs != null && delayMs > 0) delay(delayMs)
                             val result = process(lastValue1, lastValue2)
                             result.out1?.let { outChannel1.send(it) }
                             result.out2?.let { outChannel2.send(it) }
