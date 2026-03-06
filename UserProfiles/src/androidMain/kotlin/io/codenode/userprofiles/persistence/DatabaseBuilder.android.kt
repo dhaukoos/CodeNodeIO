@@ -1,13 +1,19 @@
 package io.codenode.userprofiles.persistence
 
-import android.content.Context
+import android.app.Application
 import androidx.room.Room
 import androidx.room.RoomDatabase
 
-fun getDatabaseBuilder(context: Context): RoomDatabase.Builder<AppDatabase> {
-    val dbFile = context.getDatabasePath("app.db")
+private lateinit var appContext: Application
+
+fun initializeDatabaseContext(context: Application) {
+    appContext = context
+}
+
+actual fun getDatabaseBuilder(): RoomDatabase.Builder<AppDatabase> {
+    val dbFile = appContext.getDatabasePath("app.db")
     return Room.databaseBuilder<AppDatabase>(
-        context = context.applicationContext,
+        context = appContext,
         name = dbFile.absolutePath
     )
 }
