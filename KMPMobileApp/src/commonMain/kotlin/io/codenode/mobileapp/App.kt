@@ -46,7 +46,11 @@ fun App() {
 @Composable
 fun MainContent() {
     // Create Controller from StopWatch module's flow graph
-    val controller = remember { StopWatchController(stopWatchFlowGraph) }
+    val controller = remember {
+        StopWatchController(stopWatchFlowGraph).also {
+            it.setAttenuationDelay(1000)
+        }
+    }
 
     // Create ViewModel wrapping the controller via adapter
     val viewModel = remember { StopWatchViewModel(StopWatchControllerAdapter(controller)) }
