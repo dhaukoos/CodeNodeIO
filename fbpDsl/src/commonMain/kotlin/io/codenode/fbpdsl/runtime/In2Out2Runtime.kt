@@ -125,10 +125,7 @@ class In2Out2Runtime<A : Any, B : Any, U : Any, V : Any>(
             } catch (e: ClosedSendChannelException) {
                 // Output channel closed - graceful shutdown
             } finally {
-                // Transition to IDLE and close outputs
                 executionState = ExecutionState.IDLE
-                outputChannel1?.close()
-                outputChannel2?.close()
             }
         }
     }

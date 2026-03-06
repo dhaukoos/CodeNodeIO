@@ -93,9 +93,6 @@ class In2AnyOut3Runtime<A : Any, B : Any, U : Any, V : Any, W : Any>(
             } catch (_: ClosedSendChannelException) {
             } finally {
                 executionState = ExecutionState.IDLE
-                outputChannel1?.close()
-                outputChannel2?.close()
-                outputChannel3?.close()
             }
         }
     }

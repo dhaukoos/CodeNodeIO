@@ -57,6 +57,9 @@ class SourceRuntime<T : Any>(
         // Cancel existing job if running
         nodeControlJob?.cancel()
 
+        // Recreate output channel (previous one may have been closed on stop)
+        outputChannel = Channel(channelCapacity)
+
         // Transition to RUNNING state
         executionState = ExecutionState.RUNNING
 
