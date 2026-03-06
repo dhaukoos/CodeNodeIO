@@ -32,15 +32,17 @@ class RuntimeControllerGenerator {
      * @param usecasesPackage The package name for user-written tick stubs (unused by Controller)
      * @return Generated Kotlin source code
      */
-    fun generate(flowGraph: FlowGraph, generatedPackage: String, usecasesPackage: String): String {
+    fun generate(flowGraph: FlowGraph, generatedPackage: String, usecasesPackage: String, viewModelPackage: String? = null): String {
         val flowName = flowGraph.name.pascalCase()
         val codeNodes = flowGraph.getAllCodeNodes()
         val observableProps = observableStateResolver.getObservableStateProperties(flowGraph)
+        val sourceNodes = codeNodes.filter { it.inputPorts.isEmpty() && it.outputPorts.isNotEmpty() }
+        val hasSourcesWithState = sourceNodes.isNotEmpty() && observableProps.isNotEmpty() && viewModelPackage != null
 
         return buildString {
             generateHeader(flowName)
             generatePackage(generatedPackage)
-            generateImports()
+            generateImports(hasSourcesWithState, viewModelPackage, flowName)
             appendLine()
             generateKDoc(flowName)
             appendLine("class ${flowName}Controller(")
@@ -50,7 +52,7 @@ class RuntimeControllerGenerator {
             generateFields(flowName)
             generateObservableState(observableProps)
             generateExecutionState()
-            generateStartMethod(flowName, codeNodes)
+            generateStartMethod(flowName, codeNodes, observableProps, hasSourcesWithState)
             generatePauseMethod(flowName)
             generateResumeMethod(flowName)
             generateStopMethod(flowName)
@@ -80,7 +82,11 @@ class RuntimeControllerGenerator {
         appendLine()
     }
 
-    private fun StringBuilder.generateImports() {
+    private fun StringBuilder.generateImports(hasSourcesWithState: Boolean, viewModelPackage: String?, flowName: String) {
+        if (hasSourcesWithState && viewModelPackage != null) {
+            appendLine("import $viewModelPackage.${flowName}State")
+            appendLine()
+        }
         appendLine("import io.codenode.fbpdsl.model.RootControlNode")
         appendLine("import io.codenode.fbpdsl.model.FlowGraph")
         appendLine("import io.codenode.fbpdsl.model.FlowExecutionStatus")
@@ -144,7 +150,12 @@ class RuntimeControllerGenerator {
         appendLine()
     }
 
-    private fun StringBuilder.generateStartMethod(flowName: String, codeNodes: List<CodeNode>) {
+    private fun StringBuilder.generateStartMethod(
+        flowName: String,
+        codeNodes: List<CodeNode>,
+        observableProps: List<ObservableProperty>,
+        hasSourcesWithState: Boolean
+    ) {
         appendLine("    fun start(): FlowGraph {")
         appendLine("        flowGraph = controller.startAll()")
         appendLine("        controller = RootControlNode.createFor(flowGraph, \"${flowName}Controller\", registry)")
@@ -162,13 +173,32 @@ class RuntimeControllerGenerator {
         appendLine()
 
         // Set executionState = RUNNING for generators only
-        val generators = codeNodes.filter { it.inputPorts.isEmpty() && it.outputPorts.isNotEmpty() }
-        generators.forEach { node ->
+        val sourceNodes = codeNodes.filter { it.inputPorts.isEmpty() && it.outputPorts.isNotEmpty() }
+        sourceNodes.forEach { node ->
             appendLine("        flow.${node.name.camelCase()}.executionState = ExecutionState.RUNNING")
         }
 
         appendLine("        scope.launch {")
         appendLine("            flow.start(scope)")
+
+        // Prime source node output channels with initial state values
+        if (hasSourcesWithState) {
+            appendLine()
+            sourceNodes.forEach { node ->
+                val varName = node.name.camelCase()
+                val nodeProps = node.outputPorts.mapNotNull { port ->
+                    observableProps.find { prop ->
+                        prop.sourceNodeName == node.name && prop.sourcePortName == port.name
+                    }
+                }
+                val outputCount = node.outputPorts.size
+                nodeProps.forEachIndexed { index, prop ->
+                    val channelProp = if (outputCount == 1) "outputChannel" else "outputChannel${index + 1}"
+                    appendLine("            flow.$varName.$channelProp?.send(${flowName}State._${prop.name}.value)")
+                }
+            }
+        }
+
         appendLine("        }")
         appendLine()
         appendLine("        return flowGraph")
@@ -275,14 +305,13 @@ class RuntimeControllerGenerator {
     }
 
     private fun StringBuilder.generateSetAttenuationDelayMethod(codeNodes: List<CodeNode>) {
-        val generators = codeNodes.filter { it.inputPorts.isEmpty() && it.outputPorts.isNotEmpty() }
         appendLine("    /**")
-        appendLine("     * Sets the attenuation delay on all generator runtimes.")
-        appendLine("     * When non-null, replaces tickIntervalMs as the delay between ticks.")
-        appendLine("     * When null, reverts to the original tickIntervalMs.")
+        appendLine("     * Sets the attenuation delay on all runtime nodes.")
+        appendLine("     * When non-null and > 0, processors delay between receive and process.")
+        appendLine("     * When null or 0, processors process immediately (default behavior).")
         appendLine("     */")
         appendLine("    fun setAttenuationDelay(ms: Long?) {")
-        generators.forEach { node ->
+        codeNodes.forEach { node ->
             appendLine("        flow.${node.name.camelCase()}.attenuationDelayMs = ms")
         }
         appendLine("    }")

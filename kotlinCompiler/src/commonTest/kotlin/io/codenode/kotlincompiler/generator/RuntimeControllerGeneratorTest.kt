@@ -73,6 +73,7 @@ class RuntimeControllerGeneratorTest {
     private val generator = RuntimeControllerGenerator()
     private val generatedPackage = "io.codenode.testapp.generated"
     private val usecasesPackage = "io.codenode.testapp.usecases"
+    private val viewModelPackage = "io.codenode.testapp"
 
     // ========== Test 1: StopWatch-like flow ==========
 
@@ -242,15 +243,28 @@ class RuntimeControllerGeneratorTest {
     }
 
     @Test
-    fun `StopWatch-like flow generates setAttenuationDelay method for generators`() {
+    fun `StopWatch-like flow generates setAttenuationDelay method for all nodes`() {
         val flowGraph = createStopWatchLikeFlow()
         val result = generator.generate(flowGraph, generatedPackage, usecasesPackage)
 
         assertTrue(result.contains("fun setAttenuationDelay(ms: Long?)"))
         assertTrue(result.contains("flow.timerEmitter.attenuationDelayMs = ms"),
-            "Should set attenuationDelayMs on generator nodes")
-        assertFalse(result.contains("flow.displayReceiver.attenuationDelayMs"),
-            "Should not set attenuationDelayMs on sink nodes")
+            "Should set attenuationDelayMs on source nodes")
+        assertTrue(result.contains("flow.displayReceiver.attenuationDelayMs = ms"),
+            "Should set attenuationDelayMs on all nodes including sinks")
+    }
+
+    @Test
+    fun `StopWatch-like flow with processor sets delay on all nodes`() {
+        val flowGraph = createStopWatchWithProcessorFlow()
+        val result = generator.generate(flowGraph, generatedPackage, usecasesPackage)
+
+        assertTrue(result.contains("flow.timerEmitter.attenuationDelayMs = ms"),
+            "Should set attenuationDelayMs on source node")
+        assertTrue(result.contains("flow.timeIncrementer.attenuationDelayMs = ms"),
+            "Should set attenuationDelayMs on processor node")
+        assertTrue(result.contains("flow.displayReceiver.attenuationDelayMs = ms"),
+            "Should set attenuationDelayMs on sink node")
     }
 
     @Test
@@ -353,6 +367,61 @@ class RuntimeControllerGeneratorTest {
         assertTrue(result.contains("import androidx.lifecycle.LifecycleOwner"))
     }
 
+    // ========== Test: Controller priming ==========
+
+    @Test
+    fun `start primes source output channels with initial state values`() {
+        val flowGraph = createStopWatchLikeFlow()
+        val result = generator.generate(flowGraph, generatedPackage, usecasesPackage, viewModelPackage)
+
+        assertTrue(result.contains("flow.timerEmitter.outputChannel1?.send(StopWatch2State._elapsedSeconds.value)"),
+            "Should prime outputChannel1 with elapsedSeconds state value")
+        assertTrue(result.contains("flow.timerEmitter.outputChannel2?.send(StopWatch2State._elapsedMinutes.value)"),
+            "Should prime outputChannel2 with elapsedMinutes state value")
+    }
+
+    @Test
+    fun `start primes single-output source with outputChannel`() {
+        val gen = createTestCodeNode(
+            "gen", "ValueGenerator", CodeNodeType.SOURCE,
+            outputPorts = listOf(outputPort("g_out", "value", Int::class, "gen"))
+        )
+        val flowGraph = createFlowGraph(nodes = listOf(gen))
+        val result = generator.generate(flowGraph, generatedPackage, usecasesPackage, viewModelPackage)
+
+        assertTrue(result.contains("flow.valueGenerator.outputChannel?.send(TestFlowState._value.value)"),
+            "Should prime outputChannel with value state")
+    }
+
+    @Test
+    fun `start does not prime when viewModelPackage is null`() {
+        val flowGraph = createStopWatchLikeFlow()
+        val result = generator.generate(flowGraph, generatedPackage, usecasesPackage)
+
+        assertFalse(result.contains("State._"),
+            "Should not generate priming when viewModelPackage is null")
+    }
+
+    // ========== Test: State import ==========
+
+    @Test
+    fun `imports State when viewModelPackage provided and sources exist`() {
+        val flowGraph = createStopWatchLikeFlow()
+        val result = generator.generate(flowGraph, generatedPackage, usecasesPackage, viewModelPackage)
+
+        assertTrue(result.contains("import io.codenode.testapp.StopWatch2State"),
+            "Should import State object from viewModelPackage")
+    }
+
+    @Test
+    fun `does not import State when viewModelPackage is null`() {
+        val flowGraph = createStopWatchLikeFlow()
+        val result = generator.generate(flowGraph, generatedPackage, usecasesPackage)
+
+        assertFalse(result.contains("import io.codenode.testapp.StopWatch2State"),
+            "Should not import State when viewModelPackage is null")
+    }
+
     // ========== Helper: StopWatch-like FlowGraph ==========
 
     private fun createStopWatchLikeFlow(): FlowGraph {
@@ -382,6 +451,44 @@ class RuntimeControllerGeneratorTest {
             name = "StopWatch2",
             nodes = listOf(timerEmitter, displayReceiver),
             connections = connections
+        )
+    }
+
+    private fun createStopWatchWithProcessorFlow(): FlowGraph {
+        val timerEmitter = createTestCodeNode(
+            id = "timer",
+            name = "TimerEmitter",
+            type = CodeNodeType.SOURCE,
+            outputPorts = listOf(
+                outputPort("timer_sec", "elapsedSeconds", Int::class, "timer"),
+                outputPort("timer_min", "elapsedMinutes", Int::class, "timer")
+            )
+        )
+        val timeIncrementer = createTestCodeNode(
+            id = "proc",
+            name = "TimeIncrementer",
+            type = CodeNodeType.TRANSFORMER,
+            inputPorts = listOf(
+                inputPort("proc_sec_in", "seconds", Int::class, "proc"),
+                inputPort("proc_min_in", "minutes", Int::class, "proc")
+            ),
+            outputPorts = listOf(
+                outputPort("proc_sec_out", "seconds", Int::class, "proc"),
+                outputPort("proc_min_out", "minutes", Int::class, "proc")
+            )
+        )
+        val displayReceiver = createTestCodeNode(
+            id = "display",
+            name = "DisplayReceiver",
+            type = CodeNodeType.SINK,
+            inputPorts = listOf(
+                inputPort("display_sec", "seconds", Int::class, "display"),
+                inputPort("display_min", "minutes", Int::class, "display")
+            )
+        )
+        return createFlowGraph(
+            name = "StopWatch2",
+            nodes = listOf(timerEmitter, timeIncrementer, displayReceiver)
         )
     }
 }

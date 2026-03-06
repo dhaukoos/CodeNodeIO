@@ -66,12 +66,12 @@
 
 ### Implementation for User Story 3
 
-- [ ] T012 [US3] Add `viewModelPackage` parameter to `RuntimeControllerGenerator.generate()` method signature. Generate State import (`import ${viewModelPackage}.${flowName}State`) when source nodes with observable state exist in `kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/RuntimeControllerGenerator.kt`
-- [ ] T013 [US3] Generate priming logic in controller `start()` method: after `flow.start(scope)`, generate `scope.launch { }` block with `send()` calls for each source node's output ports using corresponding state property values (e.g., `flow.timerEmitter.outputChannel1?.send(StopWatchState._elapsedSeconds.value)`) in `kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/RuntimeControllerGenerator.kt`
-- [ ] T014 [US3] Update `generateSetAttenuationDelayMethod()` to iterate ALL `codeNodes` (not just source/generator nodes) so delay propagates to processor, transformer, and filter runtimes in `kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/RuntimeControllerGenerator.kt`
-- [ ] T015 [US3] Update `ModuleSaveService.kt` to pass `basePackage` (or viewModel package) as the `viewModelPackage` parameter when calling `runtimeControllerGenerator.generate()` in `graphEditor/src/jvmMain/kotlin/save/ModuleSaveService.kt`
-- [ ] T016 [US3] Update `RuntimeControllerGeneratorTest.kt`: update attenuation delay test to assert delay is set on ALL nodes (not just sources), add priming test asserting `send()` calls in `start()`, add State import test in `kotlinCompiler/src/commonTest/kotlin/io/codenode/kotlincompiler/generator/RuntimeControllerGeneratorTest.kt`
-- [ ] T017 [US3] Compile and run tests: `./gradlew :kotlinCompiler:jvmTest :graphEditor:jvmTest`
+- [X] T012 [US3] Add `viewModelPackage` parameter to `RuntimeControllerGenerator.generate()` method signature. Generate State import (`import ${viewModelPackage}.${flowName}State`) when source nodes with observable state exist in `kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/RuntimeControllerGenerator.kt`
+- [X] T013 [US3] Generate priming logic in controller `start()` method: after `flow.start(scope)`, generate `scope.launch { }` block with `send()` calls for each source node's output ports using corresponding state property values (e.g., `flow.timerEmitter.outputChannel1?.send(StopWatchState._elapsedSeconds.value)`) in `kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/RuntimeControllerGenerator.kt`
+- [X] T014 [US3] Update `generateSetAttenuationDelayMethod()` to iterate ALL `codeNodes` (not just source/generator nodes) so delay propagates to processor, transformer, and filter runtimes in `kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/RuntimeControllerGenerator.kt`
+- [X] T015 [US3] Update `ModuleSaveService.kt` to pass `basePackage` (or viewModel package) as the `viewModelPackage` parameter when calling `runtimeControllerGenerator.generate()` in `graphEditor/src/jvmMain/kotlin/save/ModuleSaveService.kt`
+- [X] T016 [US3] Update `RuntimeControllerGeneratorTest.kt`: update attenuation delay test to assert delay is set on ALL nodes (not just sources), add priming test asserting `send()` calls in `start()`, add State import test in `kotlinCompiler/src/commonTest/kotlin/io/codenode/kotlincompiler/generator/RuntimeControllerGeneratorTest.kt`
+- [X] T017 [US3] Compile and run tests: `./gradlew :kotlinCompiler:jvmTest :graphEditor:jvmTest`
 
 **Checkpoint**: Controller primes source channels on start, imports State, and propagates delay to all nodes. Tests pass.
 
