@@ -15,10 +15,19 @@ import kotlinx.coroutines.flow.asStateFlow
 import io.codenode.userprofiles.generated.UserProfilesControllerInterface
 
 // ===== MODULE PROPERTIES START =====
-// Auto-generated from sink node input ports. Do not edit this section manually.
+// Auto-generated from source output ports and sink input ports. Do not edit this section manually.
 // Changes here will be overwritten on next code generation.
 
 object UserProfilesState {
+
+    internal val _save = MutableStateFlow(null)
+    val saveFlow: StateFlow<Any> = _save.asStateFlow()
+
+    internal val _update = MutableStateFlow(null)
+    val updateFlow: StateFlow<Any> = _update.asStateFlow()
+
+    internal val _remove = MutableStateFlow(null)
+    val removeFlow: StateFlow<Any> = _remove.asStateFlow()
 
     internal val _result = MutableStateFlow(null)
     val resultFlow: StateFlow<Any> = _result.asStateFlow()
@@ -27,12 +36,16 @@ object UserProfilesState {
     val errorFlow: StateFlow<Any> = _error.asStateFlow()
 
     fun reset() {
+        _save.value = null
+        _update.value = null
+        _remove.value = null
         _result.value = null
         _error.value = null
     }
 }
 
 // ===== MODULE PROPERTIES END =====
+
 
 
 
