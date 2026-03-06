@@ -79,7 +79,7 @@
 
 ### Implementation for User Story 3
 
-- [ ] T011 [US3] Wire Update button to show `AddUpdateUserProfile` in update mode in `UserProfiles/src/commonMain/kotlin/io/codenode/userprofiles/userInterface/UserProfiles.kt` — add a `showUpdateForm` boolean state. When "Update" is tapped (with a row selected), show `AddUpdateUserProfile` with `existingProfile` set to the selected profile. On save, call `viewModel.updateEntity(profile)` and hide the form. On cancel, hide the form. Clear selection after successful update.
+- [X] T011 [US3] Wire Update button to show `AddUpdateUserProfile` in update mode in `UserProfiles/src/commonMain/kotlin/io/codenode/userprofiles/userInterface/UserProfiles.kt` — add a `showUpdateForm` boolean state. When "Update" is tapped (with a row selected), show `AddUpdateUserProfile` with `existingProfile` set to the selected profile. On save, call `viewModel.updateEntity(profile)` and hide the form. On cancel, hide the form. Clear selection after successful update.
 
 **Checkpoint**: Select row → tap Update → form pre-populated → modify → tap Update → list reflects changes. Cancel discards changes.
 
@@ -93,7 +93,7 @@
 
 ### Implementation for User Story 4
 
-- [ ] T012 [US4] Add removal confirmation dialog to `UserProfiles` screen in `UserProfiles/src/commonMain/kotlin/io/codenode/userprofiles/userInterface/UserProfiles.kt` — add a `showRemoveConfirmation` boolean state. When "Remove" is tapped (with a row selected), show an `AlertDialog` asking "Remove this profile?" with "Confirm" and "Cancel" buttons. On confirm, call `viewModel.removeEntity(selectedProfile)`, clear selection, and dismiss dialog. On cancel, dismiss dialog.
+- [X] T012 [US4] Add removal confirmation dialog to `UserProfiles` screen in `UserProfiles/src/commonMain/kotlin/io/codenode/userprofiles/userInterface/UserProfiles.kt` — add a `showRemoveConfirmation` boolean state. When "Remove" is tapped (with a row selected), show an `AlertDialog` asking "Remove this profile?" with "Confirm" and "Cancel" buttons. On confirm, call `viewModel.removeEntity(selectedProfile)`, clear selection, and dismiss dialog. On cancel, dismiss dialog.
 
 **Checkpoint**: Select row → tap Remove → confirmation dialog → Confirm → profile disappears. Cancel keeps profile.
 

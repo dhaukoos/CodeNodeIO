@@ -11,9 +11,11 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -68,6 +70,8 @@ fun UserProfiles(
     val profiles by viewModel.profiles.collectAsState()
     var selectedProfileId by remember { mutableStateOf<Long?>(null) }
     var showAddForm by remember { mutableStateOf(false) }
+    var showUpdateForm by remember { mutableStateOf(false) }
+    var showRemoveConfirmation by remember { mutableStateOf(false) }
 
     val selectedProfile = profiles.find { it.id == selectedProfileId }
 
@@ -79,6 +83,20 @@ fun UserProfiles(
                 showAddForm = false
             },
             onCancel = { showAddForm = false },
+            modifier = modifier
+        )
+        return
+    }
+
+    if (showUpdateForm && selectedProfile != null) {
+        AddUpdateUserProfile(
+            existingProfile = selectedProfile,
+            onSave = { profile ->
+                viewModel.updateEntity(profile)
+                showUpdateForm = false
+                selectedProfileId = null
+            },
+            onCancel = { showUpdateForm = false },
             modifier = modifier
         )
         return
@@ -127,17 +145,39 @@ fun UserProfiles(
                 Text("Add")
             }
             Button(
-                onClick = { /* wired in T011 */ },
+                onClick = { showUpdateForm = true },
                 enabled = selectedProfile != null
             ) {
                 Text("Update")
             }
             Button(
-                onClick = { /* wired in T012 */ },
+                onClick = { showRemoveConfirmation = true },
                 enabled = selectedProfile != null
             ) {
                 Text("Remove")
             }
+        }
+
+        if (showRemoveConfirmation && selectedProfile != null) {
+            AlertDialog(
+                onDismissRequest = { showRemoveConfirmation = false },
+                title = { Text("Remove this profile?") },
+                text = { Text("Are you sure you want to remove \"${selectedProfile.name}\"?") },
+                confirmButton = {
+                    TextButton(onClick = {
+                        viewModel.removeEntity(selectedProfile)
+                        selectedProfileId = null
+                        showRemoveConfirmation = false
+                    }) {
+                        Text("Confirm")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showRemoveConfirmation = false }) {
+                        Text("Cancel")
+                    }
+                }
+            )
         }
     }
 }
