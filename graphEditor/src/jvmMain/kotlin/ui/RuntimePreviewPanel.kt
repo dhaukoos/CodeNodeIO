@@ -94,7 +94,7 @@ fun RuntimePreviewPanel(
 
             Column(
                 modifier = Modifier
-                    .width(280.dp)
+                    .width(360.dp)
                     .fillMaxHeight()
                     .padding(12.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
