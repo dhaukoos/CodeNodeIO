@@ -46,15 +46,15 @@ import java.io.File
  */
 @Composable
 fun RuntimePreviewPanel(
-    runtimeSession: RuntimeSession,
+    runtimeSession: RuntimeSession?,
     isExpanded: Boolean,
     onToggle: () -> Unit,
     moduleRootDir: File? = null,
     flowGraphName: String = "",
     modifier: Modifier = Modifier
 ) {
-    val executionState by runtimeSession.executionState.collectAsState()
-    val attenuationMs by runtimeSession.attenuationDelayMs.collectAsState()
+    val executionState = runtimeSession?.executionState?.collectAsState()?.value ?: ExecutionState.IDLE
+    val attenuationMs = runtimeSession?.attenuationDelayMs?.collectAsState()?.value ?: 0L
 
     // Discover composables from the loaded module
     val composables = remember(moduleRootDir) {
@@ -135,8 +135,8 @@ fun RuntimePreviewPanel(
                 ) {
                     // Start button - only when Idle
                     Button(
-                        onClick = { runtimeSession.start() },
-                        enabled = executionState == ExecutionState.IDLE,
+                        onClick = { runtimeSession?.start() },
+                        enabled = runtimeSession != null && executionState == ExecutionState.IDLE,
                         modifier = Modifier.weight(1f),
                         colors = ButtonDefaults.buttonColors(
                             backgroundColor = Color(0xFF4CAF50)
@@ -155,8 +155,8 @@ fun RuntimePreviewPanel(
 
                     // Pause button - only when Running
                     Button(
-                        onClick = { runtimeSession.pause() },
-                        enabled = executionState == ExecutionState.RUNNING,
+                        onClick = { runtimeSession?.pause() },
+                        enabled = runtimeSession != null && executionState == ExecutionState.RUNNING,
                         modifier = Modifier.weight(1f),
                         colors = ButtonDefaults.buttonColors(
                             backgroundColor = Color(0xFFFF9800)
@@ -180,8 +180,8 @@ fun RuntimePreviewPanel(
                 ) {
                     // Resume button - only when Paused
                     Button(
-                        onClick = { runtimeSession.resume() },
-                        enabled = executionState == ExecutionState.PAUSED,
+                        onClick = { runtimeSession?.resume() },
+                        enabled = runtimeSession != null && executionState == ExecutionState.PAUSED,
                         modifier = Modifier.weight(1f),
                         colors = ButtonDefaults.buttonColors(
                             backgroundColor = Color(0xFF2196F3)
@@ -200,8 +200,8 @@ fun RuntimePreviewPanel(
 
                     // Stop button - when Running or Paused
                     Button(
-                        onClick = { runtimeSession.stop() },
-                        enabled = executionState == ExecutionState.RUNNING || executionState == ExecutionState.PAUSED,
+                        onClick = { runtimeSession?.stop() },
+                        enabled = runtimeSession != null && (executionState == ExecutionState.RUNNING || executionState == ExecutionState.PAUSED),
                         modifier = Modifier.weight(1f),
                         colors = ButtonDefaults.buttonColors(
                             backgroundColor = Color(0xFFF44336)
@@ -239,8 +239,9 @@ fun RuntimePreviewPanel(
                     onValueChange = { value ->
                         // Snap to nearest 100ms interval
                         val snapped = (value / 100f).toLong() * 100L
-                        runtimeSession.setAttenuation(snapped)
+                        runtimeSession?.setAttenuation(snapped)
                     },
+                    enabled = runtimeSession != null,
                     valueRange = 0f..2000f,
                     steps = 19,
                     modifier = Modifier.fillMaxWidth()
@@ -322,26 +323,30 @@ fun RuntimePreviewPanel(
                         .weight(1f),
                     contentAlignment = Alignment.TopCenter
                 ) {
-                    if (moduleRootDir == null || composables.isEmpty()) {
+                    if (runtimeSession == null) {
+                        Text(
+                            text = "No runtime available for this module",
+                            fontSize = 12.sp,
+                            color = Color.Gray
+                        )
+                    } else if (moduleRootDir == null || composables.isEmpty()) {
                         Text(
                             text = "No preview available",
                             fontSize = 12.sp,
                             color = Color.Gray
                         )
                     } else {
-                        when (selectedComposable) {
-                            "StopWatch" -> StopWatchPreviewProvider.Preview(
-                                runtimeSession = runtimeSession
-                            )
-                            "StopWatchScreen" -> StopWatchPreviewProvider.ScreenPreview(
-                                runtimeSession = runtimeSession
-                            )
-                            null -> Text(
+                        val previewFn = selectedComposable?.let { PreviewRegistry.get(it) }
+                        if (previewFn != null) {
+                            previewFn(runtimeSession.viewModel, Modifier)
+                        } else if (selectedComposable == null) {
+                            Text(
                                 text = "Select a composable to preview",
                                 fontSize = 12.sp,
                                 color = Color.Gray
                             )
-                            else -> Text(
+                        } else {
+                            Text(
                                 text = "Preview not available for: $selectedComposable",
                                 fontSize = 12.sp,
                                 color = Color.Gray

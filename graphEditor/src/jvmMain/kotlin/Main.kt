@@ -50,6 +50,8 @@ import io.codenode.grapheditor.ui.ViewMode
 import io.codenode.grapheditor.ui.CompactPropertiesPanelWithViewModel
 import io.codenode.grapheditor.ui.ModuleSessionFactory
 import io.codenode.grapheditor.ui.RuntimePreviewPanel
+import io.codenode.grapheditor.ui.StopWatchPreviewProvider
+import io.codenode.grapheditor.ui.UserProfilesPreviewProvider
 import io.codenode.circuitsimulator.RuntimeSession
 import io.codenode.grapheditor.ui.PropertiesPanelState
 import io.codenode.grapheditor.repository.CustomNodeDefinition
@@ -316,6 +318,13 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                 customNodes = customNodeRepository.getAll()
             }
         )
+    }
+
+    // Initialize preview providers at startup
+    remember {
+        StopWatchPreviewProvider.register()
+        UserProfilesPreviewProvider.register()
+        true // return value for remember block
     }
 
     // Load custom nodes on startup
@@ -1047,16 +1056,14 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                     )
 
                     // Runtime Preview Panel (right side, after properties)
-                    runtimeSession?.let { session ->
-                        RuntimePreviewPanel(
-                            runtimeSession = session,
-                            isExpanded = isRuntimePanelExpanded,
-                            onToggle = { isRuntimePanelExpanded = !isRuntimePanelExpanded },
-                            moduleRootDir = moduleRootDir,
-                            flowGraphName = graphState.flowGraph.name,
-                            modifier = Modifier.fillMaxHeight()
-                        )
-                    }
+                    RuntimePreviewPanel(
+                        runtimeSession = runtimeSession,
+                        isExpanded = isRuntimePanelExpanded,
+                        onToggle = { isRuntimePanelExpanded = !isRuntimePanelExpanded },
+                        moduleRootDir = moduleRootDir,
+                        flowGraphName = graphState.flowGraph.name,
+                        modifier = Modifier.fillMaxHeight()
+                    )
                 }
 
                 // Canvas controls overlay (bottom right)
