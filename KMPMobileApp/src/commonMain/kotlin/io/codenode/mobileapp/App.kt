@@ -5,23 +5,31 @@
  */
 package io.codenode.mobileapp
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import io.codenode.stopwatch.generated.StopWatchControllerAdapter
 import io.codenode.stopwatch.StopWatchViewModel
 import io.codenode.stopwatch.generated.StopWatchController
 import io.codenode.stopwatch.stopWatchFlowGraph
 import io.codenode.stopwatch.userInterface.StopWatchScreen
+import io.codenode.userprofiles.UserProfilesViewModel
+import io.codenode.userprofiles.generated.UserProfilesController
+import io.codenode.userprofiles.generated.UserProfilesControllerAdapter
+import io.codenode.userprofiles.userProfilesFlowGraph
+import io.codenode.userprofiles.userInterface.UserProfiles
 
 /**
  * Main application composable.
@@ -40,41 +48,64 @@ fun App() {
 }
 
 /**
- * Main content composable displaying a greeting and stopwatch.
- * Creates the StopWatchViewModel from the StopWatch module's FlowGraph.
+ * Main content composable with bottom navigation for StopWatch and UserProfiles tabs.
  */
 @Composable
 fun MainContent() {
-    // Create Controller from StopWatch module's flow graph
-    val controller = remember {
+    // StopWatch setup
+    val stopWatchController = remember {
         StopWatchController(stopWatchFlowGraph).also {
             it.setAttenuationDelay(1000)
         }
     }
+    val stopWatchViewModel = remember { StopWatchViewModel(StopWatchControllerAdapter(stopWatchController)) }
 
-    // Create ViewModel wrapping the controller via adapter
-    val viewModel = remember { StopWatchViewModel(StopWatchControllerAdapter(controller)) }
+    // UserProfiles setup
+    val userProfilesController = remember {
+        UserProfilesController(userProfilesFlowGraph).also {
+            it.start()
+        }
+    }
+    val userProfilesViewModel = remember { UserProfilesViewModel(UserProfilesControllerAdapter(userProfilesController)) }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Text(
-            text = "CodeNodeIO Mobile",
-            style = MaterialTheme.typography.headlineLarge
-        )
-        Text(
-            text = greet(),
-            style = MaterialTheme.typography.bodyLarge,
-            modifier = Modifier.padding(top = 8.dp)
-        )
-        StopWatchScreen(
-            viewModel = viewModel,
-            modifier = Modifier.padding(top = 32.dp),
-            minSize = 400.dp
-        )
+    var selectedTab by remember { mutableStateOf(0) }
+    val tabs = listOf("StopWatch", "UserProfiles")
+
+    Scaffold(
+        bottomBar = {
+            NavigationBar {
+                tabs.forEachIndexed { index, title ->
+                    NavigationBarItem(
+                        selected = selectedTab == index,
+                        onClick = { selectedTab = index },
+                        label = { Text(title) },
+                        icon = {}
+                    )
+                }
+            }
+        }
+    ) { paddingValues ->
+        when (selectedTab) {
+            0 -> {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues)
+                ) {
+                    StopWatchScreen(
+                        viewModel = stopWatchViewModel,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
+            }
+            1 -> {
+                UserProfiles(
+                    viewModel = userProfilesViewModel,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues)
+                )
+            }
+        }
     }
 }

@@ -6,24 +6,124 @@
 
 package io.codenode.userprofiles.userInterface
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import io.codenode.userprofiles.UserProfilesViewModel
+import io.codenode.userprofiles.persistence.UserProfileEntity
+
+@Composable
+fun UserProfileRow(
+    profile: UserProfileEntity,
+    isSelected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val backgroundColor = if (isSelected) {
+        MaterialTheme.colorScheme.primaryContainer
+    } else {
+        MaterialTheme.colorScheme.surface
+    }
+
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .background(backgroundColor)
+            .clickable { onClick() }
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = profile.name,
+            style = MaterialTheme.typography.bodyLarge,
+            modifier = Modifier.weight(1f)
+        )
+        Text(
+            text = "Age: ${profile.age ?: "N/A"}",
+            style = MaterialTheme.typography.bodyMedium,
+            modifier = Modifier.padding(horizontal = 8.dp)
+        )
+        Text(
+            text = if (profile.isActive) "Active" else "Inactive",
+            style = MaterialTheme.typography.bodyMedium
+        )
+    }
+}
 
 @Composable
 fun UserProfiles(
     viewModel: UserProfilesViewModel,
     modifier: Modifier = Modifier
 ) {
-    // TODO: Implement UserProfiles UI
+    val profiles by viewModel.profiles.collectAsState()
+    var selectedProfileId by remember { mutableStateOf<Long?>(null) }
+
+    val selectedProfile = profiles.find { it.id == selectedProfileId }
+
     Column(
-        modifier = modifier,
-        horizontalAlignment = Alignment.CenterHorizontally
+        modifier = modifier.fillMaxSize().padding(16.dp)
     ) {
-        Text("UserProfiles")
+        Text(
+            text = "UserProfiles",
+            style = MaterialTheme.typography.headlineMedium,
+            modifier = Modifier.padding(bottom = 16.dp)
+        )
+
+        // Profile list or empty state
+        Box(modifier = Modifier.weight(1f)) {
+            if (profiles.isEmpty()) {
+                Text(
+                    text = "No profiles yet",
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier.align(Alignment.Center)
+                )
+            } else {
+                LazyColumn(modifier = Modifier.fillMaxSize()) {
+                    items(profiles, key = { it.id }) { profile ->
+                        UserProfileRow(
+                            profile = profile,
+                            isSelected = profile.id == selectedProfileId,
+                            onClick = {
+                                selectedProfileId = if (selectedProfileId == profile.id) null else profile.id
+                            }
+                        )
+                    }
+                }
+            }
+        }
+
+        // Button row
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 16.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Button(onClick = { /* wired in T010 */ }) {
+                Text("Add")
+            }
+            Button(
+                onClick = { /* wired in T011 */ },
+                enabled = selectedProfile != null
+            ) {
+                Text("Update")
+            }
+            Button(
+                onClick = { /* wired in T012 */ },
+                enabled = selectedProfile != null
+            ) {
+                Text("Remove")
+            }
+        }
     }
 }
