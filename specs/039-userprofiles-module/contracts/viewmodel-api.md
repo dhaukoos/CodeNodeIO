@@ -35,7 +35,7 @@
 |-----------------------|-----------------------------------|---------|------------------------------------------|
 | addEntity()           | userProfile: UserProfileEntity    | Unit    | Triggers save via UserProfilesState._save |
 | updateEntity()        | userProfile: UserProfileEntity    | Unit    | Triggers update via UserProfilesState._update |
-| removeEntity()        | userProfileId: Long               | Unit    | Triggers remove via UserProfilesState._remove |
+| removeEntity()        | userProfile: UserProfileEntity    | Unit    | Triggers remove via UserProfilesState._remove |
 
 ## UserProfiles Composable Contract
 

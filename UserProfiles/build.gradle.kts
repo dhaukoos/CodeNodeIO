@@ -12,6 +12,8 @@ plugins {
     id("org.jetbrains.compose")
     id("org.jetbrains.kotlin.plugin.compose")
     id("com.android.library")
+    id("com.google.devtools.ksp")
+    id("androidx.room")
 }
 
 kotlin {
@@ -49,6 +51,17 @@ kotlin {
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
                 // KMP-compatible lifecycle support (works on all platforms)
                 implementation("org.jetbrains.androidx.lifecycle:lifecycle-runtime-compose:2.8.0")
+                // Compose UI dependencies (for userInterface composables)
+                // Use explicit 1.7.3 to match KMPMobileApp and stay compatible with compileSdk 34
+                implementation("org.jetbrains.compose.runtime:runtime:1.7.3")
+                implementation("org.jetbrains.compose.foundation:foundation:1.7.3")
+                implementation("org.jetbrains.compose.material3:material3:1.7.3")
+                implementation("org.jetbrains.compose.ui:ui:1.7.3")
+                // JetBrains Multiplatform ViewModel
+                implementation("org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose:2.8.0")
+                // Room KMP persistence
+                implementation("androidx.room:room-runtime:2.8.4")
+                implementation("androidx.sqlite:sqlite-bundled:2.6.2")
             }
         }
 
@@ -79,4 +92,16 @@ android {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
+}
+
+dependencies {
+    add("kspJvm", "androidx.room:room-compiler:2.8.4")
+    add("kspAndroid", "androidx.room:room-compiler:2.8.4")
+    add("kspIosX64", "androidx.room:room-compiler:2.8.4")
+    add("kspIosArm64", "androidx.room:room-compiler:2.8.4")
+    add("kspIosSimulatorArm64", "androidx.room:room-compiler:2.8.4")
+}
+
+room {
+    schemaDirectory("$projectDir/schemas")
 }

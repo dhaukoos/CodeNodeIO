@@ -34,7 +34,7 @@
 
 ## R4: ViewModel CRUD Method Pattern
 
-**Decision**: Add `addEntity(userProfile)`, `updateEntity(userProfile)`, and `removeEntity(userProfileId)` methods to `UserProfilesViewModel`. These methods will write to `UserProfilesState._save`, `_update`, and `_remove` respectively, which triggers the reactive source flow. Also add a `profiles` StateFlow that observes the repository's `observeAll()` for the list display.
+**Decision**: Add `addEntity(userProfile)`, `updateEntity(userProfile)`, and `removeEntity(userProfile)` methods to `UserProfilesViewModel`. These methods will write to `UserProfilesState._save`, `_update`, and `_remove` respectively, which triggers the reactive source flow. Also add a `profiles` StateFlow that observes the repository's `observeAll()` for the list display.
 
 **Rationale**: The existing flow architecture uses `UserProfilesState` MutableStateFlows as the reactive trigger mechanism. Setting a value on `_save` fires the `combine` in `userProfileCUD`, which sends the value through the flow graph to the `userProfileRepository` processor. The ViewModel methods simply need to update these state flows.
 

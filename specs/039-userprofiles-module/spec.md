@@ -115,7 +115,7 @@ The mobile application initializes a persistent database on launch that serves a
 - **FR-013**: The "Remove" button MUST be disabled when no row is selected.
 - **FR-014**: Tapping "Remove" with a row selected MUST display a confirmation dialog before deletion.
 - **FR-015**: Confirming removal MUST delete the profile from the repository and reactively update the list.
-- **FR-016**: The UserProfilesViewModel MUST expose methods: addEntity(userProfile), updateEntity(userProfile), and removeEntity(userProfileId).
+- **FR-016**: The UserProfilesViewModel MUST expose methods: addEntity(userProfile), updateEntity(userProfile), and removeEntity(userProfile).
 - **FR-017**: The profile list MUST update reactively when the repository contents change (add, update, or remove), without requiring manual refresh.
 - **FR-018**: The name field MUST be required; the form's submit button MUST be disabled when the name is empty.
 - **FR-019**: The age field MUST be optional; an empty age value MUST be stored as null.

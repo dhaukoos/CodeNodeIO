@@ -18,6 +18,8 @@ pluginManagement {
         id("org.jetbrains.compose") version "1.11.1"
         id("org.jetbrains.kotlin.plugin.compose") version "2.1.21"
         id("org.jetbrains.kotlin.plugin.parcelize") version "2.1.21"
+        id("com.google.devtools.ksp") version "2.1.21-2.0.1"
+        id("androidx.room") version "2.8.4"
         id("com.android.application") version "8.13.2"
         id("com.android.library") version "8.13.2"
     }
@@ -52,4 +54,5 @@ include(":KMPMobileApp")
 
 // Generated modules (from FlowGraph compilation)
 include(":StopWatch")
+include(":UserProfiles")
 

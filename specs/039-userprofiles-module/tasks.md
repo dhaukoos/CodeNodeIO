@@ -19,9 +19,9 @@
 
 **Purpose**: Register the UserProfiles module in Gradle, add Room/KSP/SQLite dependencies, and enable KMPMobileApp to depend on UserProfiles.
 
-- [ ] T001 Add Room/KSP plugins and `include(":UserProfiles")` to `settings.gradle.kts` — add `id("com.google.devtools.ksp") version "2.1.21-2.0.1"` and `id("androidx.room") version "2.8.4"` to `pluginManagement.plugins`, and add `include(":UserProfiles")` under "Generated modules" section
-- [ ] T002 [P] Add Room/KSP/SQLite dependencies to `UserProfiles/build.gradle.kts` — add `id("com.google.devtools.ksp")` and `id("androidx.room")` plugins, add `implementation("androidx.room:room-runtime:2.8.4")` and `implementation("androidx.sqlite:sqlite-bundled:2.6.2")` to commonMain dependencies, add `ksp("androidx.room:room-compiler:2.8.4")` to dependencies block, and add `room { schemaDirectory("$projectDir/schemas") }` configuration
-- [ ] T003 [P] Add UserProfiles dependency to `KMPMobileApp/build.gradle.kts` — add `implementation(project(":UserProfiles"))` to `commonMain.dependencies`
+- [X] T001 Add Room/KSP plugins and `include(":UserProfiles")` to `settings.gradle.kts` — add `id("com.google.devtools.ksp") version "2.1.21-2.0.1"` and `id("androidx.room") version "2.8.4"` to `pluginManagement.plugins`, and add `include(":UserProfiles")` under "Generated modules" section
+- [X] T002 [P] Add Room/KSP/SQLite dependencies to `UserProfiles/build.gradle.kts` — add `id("com.google.devtools.ksp")` and `id("androidx.room")` plugins, add `implementation("androidx.room:room-runtime:2.8.4")` and `implementation("androidx.sqlite:sqlite-bundled:2.6.2")` to commonMain dependencies, add `ksp("androidx.room:room-compiler:2.8.4")` to dependencies block, and add `room { schemaDirectory("$projectDir/schemas") }` configuration
+- [X] T003 [P] Add UserProfiles dependency to `KMPMobileApp/build.gradle.kts` — add `implementation(project(":UserProfiles"))` to `commonMain.dependencies`
 
 **Checkpoint**: `./gradlew :UserProfiles:compileKotlinJvm` compiles without errors
 
@@ -33,8 +33,8 @@
 
 **CRITICAL**: No user story UI work can begin until this phase is complete.
 
-- [ ] T004 Implement `userProfileRepositoryTick` processing logic in `UserProfiles/src/commonMain/kotlin/io/codenode/userprofiles/processingLogic/UserProfileRepositoryProcessLogic.kt` — replace the TODO stub with logic that accesses `DatabaseModule.getDatabase().userProfileDao()` to create a `UserProfileRepository`, dispatches to save/update/remove based on which input is non-null, and returns `ProcessResult2(result, error)`. Handle errors gracefully with try/catch returning error on output port 2.
-- [ ] T005 Add `_profiles` StateFlow to `UserProfilesState` and `profiles` property + CRUD methods to `UserProfilesViewModel` in `UserProfiles/src/commonMain/kotlin/io/codenode/userprofiles/UserProfilesViewModel.kt` — add `_profiles: MutableStateFlow<List<UserProfileEntity>>` initialized to `emptyList()` in `UserProfilesState`, add `profiles: StateFlow<List<UserProfileEntity>>` to ViewModel, add `addEntity(userProfile: UserProfileEntity)` that sets `UserProfilesState._save.value`, `updateEntity(userProfile: UserProfileEntity)` that sets `UserProfilesState._update.value`, and `removeEntity(userProfileId: Long)` that sets `UserProfilesState._remove.value`. Initialize a coroutine in the ViewModel that collects `UserProfileRepository.observeAll()` into `_profiles`.
+- [X] T004 Implement `userProfileRepositoryTick` processing logic in `UserProfiles/src/commonMain/kotlin/io/codenode/userprofiles/processingLogic/UserProfileRepositoryProcessLogic.kt` — replace the TODO stub with logic that accesses `DatabaseModule.getDatabase().userProfileDao()` to create a `UserProfileRepository`, dispatches to save/update/remove based on which input is non-null, and returns `ProcessResult2(result, error)`. Handle errors gracefully with try/catch returning error on output port 2.
+- [X] T005 Add `_profiles` StateFlow to `UserProfilesState` and `profiles` property + CRUD methods to `UserProfilesViewModel` in `UserProfiles/src/commonMain/kotlin/io/codenode/userprofiles/UserProfilesViewModel.kt` — add `_profiles: MutableStateFlow<List<UserProfileEntity>>` initialized to `emptyList()` in `UserProfilesState`, add `profiles: StateFlow<List<UserProfileEntity>>` to ViewModel, add `addEntity(userProfile: UserProfileEntity)` that sets `UserProfilesState._save.value`, `updateEntity(userProfile: UserProfileEntity)` that sets `UserProfilesState._update.value`, and `removeEntity(userProfile: UserProfileEntity)` that sets `UserProfilesState._remove.value`. Initialize a coroutine in the ViewModel that collects `UserProfileRepository.observeAll()` into `_profiles`.
 
 **Checkpoint**: ViewModel exposes `profiles`, `addEntity()`, `updateEntity()`, `removeEntity()` and the processing logic connects to Room.
 
@@ -93,7 +93,7 @@
 
 ### Implementation for User Story 4
 
-- [ ] T012 [US4] Add removal confirmation dialog to `UserProfiles` screen in `UserProfiles/src/commonMain/kotlin/io/codenode/userprofiles/userInterface/UserProfiles.kt` — add a `showRemoveConfirmation` boolean state. When "Remove" is tapped (with a row selected), show an `AlertDialog` asking "Remove this profile?" with "Confirm" and "Cancel" buttons. On confirm, call `viewModel.removeEntity(selectedProfile.id)`, clear selection, and dismiss dialog. On cancel, dismiss dialog.
+- [ ] T012 [US4] Add removal confirmation dialog to `UserProfiles` screen in `UserProfiles/src/commonMain/kotlin/io/codenode/userprofiles/userInterface/UserProfiles.kt` — add a `showRemoveConfirmation` boolean state. When "Remove" is tapped (with a row selected), show an `AlertDialog` asking "Remove this profile?" with "Confirm" and "Cancel" buttons. On confirm, call `viewModel.removeEntity(selectedProfile)`, clear selection, and dismiss dialog. On cancel, dismiss dialog.
 
 **Checkpoint**: Select row → tap Remove → confirmation dialog → Confirm → profile disappears. Cancel keeps profile.
 

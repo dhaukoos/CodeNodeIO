@@ -7,12 +7,17 @@
 package io.codenode.userprofiles
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import io.codenode.fbpdsl.model.ExecutionState
 import io.codenode.fbpdsl.model.FlowGraph
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import io.codenode.userprofiles.generated.UserProfilesControllerInterface
+import io.codenode.userprofiles.persistence.DatabaseModule
+import io.codenode.userprofiles.persistence.UserProfileEntity
+import io.codenode.userprofiles.persistence.UserProfileRepository
 
 // ===== MODULE PROPERTIES START =====
 // Auto-generated from source output ports and sink input ports. Do not edit this section manually.
@@ -20,20 +25,22 @@ import io.codenode.userprofiles.generated.UserProfilesControllerInterface
 
 object UserProfilesState {
 
-    internal val _save = MutableStateFlow(null)
-    val saveFlow: StateFlow<Any> = _save.asStateFlow()
+    internal val _save = MutableStateFlow<Any?>(null)
+    val saveFlow: StateFlow<Any?> = _save.asStateFlow()
 
-    internal val _update = MutableStateFlow(null)
-    val updateFlow: StateFlow<Any> = _update.asStateFlow()
+    internal val _update = MutableStateFlow<Any?>(null)
+    val updateFlow: StateFlow<Any?> = _update.asStateFlow()
 
-    internal val _remove = MutableStateFlow(null)
-    val removeFlow: StateFlow<Any> = _remove.asStateFlow()
+    internal val _remove = MutableStateFlow<Any?>(null)
+    val removeFlow: StateFlow<Any?> = _remove.asStateFlow()
 
-    internal val _result = MutableStateFlow(null)
-    val resultFlow: StateFlow<Any> = _result.asStateFlow()
+    internal val _result = MutableStateFlow<Any?>(null)
+    val resultFlow: StateFlow<Any?> = _result.asStateFlow()
 
-    internal val _error = MutableStateFlow(null)
-    val errorFlow: StateFlow<Any> = _error.asStateFlow()
+    internal val _error = MutableStateFlow<Any?>(null)
+    val errorFlow: StateFlow<Any?> = _error.asStateFlow()
+
+    internal val _profiles = MutableStateFlow<List<UserProfileEntity>>(emptyList())
 
     fun reset() {
         _save.value = null
@@ -41,6 +48,7 @@ object UserProfilesState {
         _remove.value = null
         _result.value = null
         _error.value = null
+        _profiles.value = emptyList()
     }
 }
 
@@ -68,11 +76,37 @@ class UserProfilesViewModel(
 ) : ViewModel() {
 
     // Observable state from module properties
-    val result: StateFlow<Any> = UserProfilesState.resultFlow
-    val error: StateFlow<Any> = UserProfilesState.errorFlow
+    val result: StateFlow<Any?> = UserProfilesState.resultFlow
+    val error: StateFlow<Any?> = UserProfilesState.errorFlow
+
+    // Reactive profile list from repository
+    val profiles: StateFlow<List<UserProfileEntity>> = UserProfilesState._profiles
 
     // Execution state from controller
     val executionState: StateFlow<ExecutionState> = controller.executionState
+
+    init {
+        // Collect repository changes into the profiles StateFlow
+        viewModelScope.launch {
+            val repo = UserProfileRepository(DatabaseModule.getDatabase().userProfileDao())
+            repo.observeAll().collect { list ->
+                UserProfilesState._profiles.value = list
+            }
+        }
+    }
+
+    // CRUD methods — trigger operations via the FlowGraph reactive source
+    fun addEntity(userProfile: UserProfileEntity) {
+        UserProfilesState._save.value = userProfile
+    }
+
+    fun updateEntity(userProfile: UserProfileEntity) {
+        UserProfilesState._update.value = userProfile
+    }
+
+    fun removeEntity(userProfile: UserProfileEntity) {
+        UserProfilesState._remove.value = userProfile
+    }
 
     // Control methods
     fun start(): FlowGraph = controller.start()

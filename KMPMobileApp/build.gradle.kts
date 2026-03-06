@@ -54,9 +54,10 @@ kotlin {
             implementation(libs.coroutines.core)
             // Multiplatform datetime support
             implementation("org.jetbrains.kotlinx:kotlinx-datetime:${LocalVersions.datetime}")
-            // FBP DSL and generated StopWatch module (KMP - works on all platforms)
+            // FBP DSL and generated modules (KMP - works on all platforms)
             implementation(project(":fbpDsl"))
             implementation(project(":StopWatch"))
+            implementation(project(":UserProfiles"))
             // JetBrains Multiplatform ViewModel
             implementation("org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose:2.8.0")
         }
