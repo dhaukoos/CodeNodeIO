@@ -55,6 +55,9 @@ class RuntimeSession(
     /** Minimum attenuation (ms) required to enable animation */
     val animationAttenuationThreshold: Long = 500L
 
+    /** Tracks whether the controller was already running before RuntimeSession.start() */
+    private var preStarted = false
+
     private var animationScope: CoroutineScope? = null
 
     /**
@@ -97,9 +100,17 @@ class RuntimeSession(
     /**
      * Starts the flow graph execution.
      * Only valid when state is IDLE.
+     *
+     * If the controller is already running (e.g., event-driven modules like UserProfiles
+     * that are pre-started in the factory), skips the redundant controller.start() call
+     * and just wires up animation and syncs execution state.
      */
     fun start() {
         if (_executionState.value != ExecutionState.IDLE) return
+
+        val alreadyRunning = controller.executionState.value == ExecutionState.RUNNING
+        preStarted = alreadyRunning
+
         controller.setAttenuationDelay(_attenuationDelayMs.value)
 
         // Wire emission observer before start so runtimes have it when they begin
@@ -116,13 +127,19 @@ class RuntimeSession(
             animationController.startFrameLoop(scope)
         }
 
-        controller.start()
+        if (!alreadyRunning) {
+            controller.start()
+        }
         _executionState.value = ExecutionState.RUNNING
     }
 
     /**
      * Stops the flow graph execution and resets state.
      * Valid when state is RUNNING or PAUSED.
+     *
+     * If the controller was already running before RuntimeSession.start() was called
+     * (pre-started modules), only clears animation state without resetting the controller,
+     * preserving the module's running state and data.
      */
     fun stop() {
         if (_executionState.value == ExecutionState.IDLE) return
@@ -133,7 +150,9 @@ class RuntimeSession(
         animationScope?.cancel()
         animationScope = null
 
-        controller.reset()
+        if (!preStarted) {
+            controller.reset()
+        }
         _executionState.value = ExecutionState.IDLE
     }
 
