@@ -88,7 +88,7 @@ class FilterRuntime<T : Any>(
                     // Apply predicate - only send if true
                     if (predicate(value)) {
                         outChannel.send(value)
-                        onEmit?.invoke(codeNode.id, 0)
+                        onEmit?.invoke(codeNode.name, 0)
                     }
                     // Otherwise drop the value
                 }

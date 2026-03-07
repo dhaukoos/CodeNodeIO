@@ -77,9 +77,20 @@ class RuntimeSession(
                 attenuationMs = { _attenuationDelayMs.value }
             )
             controller.setEmissionObserver(observer)
+
+            // Start frame loop if execution is already running
+            if (_executionState.value == ExecutionState.RUNNING || _executionState.value == ExecutionState.PAUSED) {
+                animationScope?.cancel()
+                val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+                animationScope = scope
+                animationController.startFrameLoop(scope)
+            }
         } else {
             controller.setEmissionObserver(null)
             animationController.clear()
+            animationController.stopFrameLoop()
+            animationScope?.cancel()
+            animationScope = null
         }
     }
 

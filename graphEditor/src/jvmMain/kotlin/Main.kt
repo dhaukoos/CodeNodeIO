@@ -369,8 +369,9 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
     // Create/recreate RuntimeSession synchronously when module changes
     // (must be synchronous so runtimeSession is always in sync with moduleRootDir
     // during the same recomposition — avoids ClassCastException on module switch)
+    // Pass the editor's FlowGraph so animation connection IDs match the Canvas.
     val runtimeSession = remember(moduleRootDir) {
-        moduleRootDir?.name?.let { ModuleSessionFactory.createSession(it) }
+        moduleRootDir?.name?.let { ModuleSessionFactory.createSession(it, graphState.flowGraph) }
     }
 
     // Collect animation state from the session

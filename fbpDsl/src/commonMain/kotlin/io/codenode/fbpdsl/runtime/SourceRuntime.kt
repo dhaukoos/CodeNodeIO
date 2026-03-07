@@ -79,7 +79,7 @@ class SourceRuntime<T : Any>(
                     // Only send if still running (not stopped during pause)
                     if (executionState == ExecutionState.RUNNING) {
                         outputChannel?.send(value)
-                        onEmit?.invoke(codeNode.id, 0)
+                        onEmit?.invoke(codeNode.name, 0)
                     }
                 }
 

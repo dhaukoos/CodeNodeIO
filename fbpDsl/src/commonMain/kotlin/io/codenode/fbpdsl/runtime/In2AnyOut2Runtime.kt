@@ -73,11 +73,11 @@ class In2AnyOut2Runtime<A : Any, B : Any, U : Any, V : Any>(
                             val result = process(lastValue1, lastValue2)
                             result.out1?.let {
                                 outChannel1.send(it)
-                                onEmit?.invoke(codeNode.id, 0)
+                                onEmit?.invoke(codeNode.name, 0)
                             }
                             result.out2?.let {
                                 outChannel2.send(it)
-                                onEmit?.invoke(codeNode.id, 1)
+                                onEmit?.invoke(codeNode.name, 1)
                             }
                         }
                         inChannel2.onReceive { value ->
@@ -87,11 +87,11 @@ class In2AnyOut2Runtime<A : Any, B : Any, U : Any, V : Any>(
                             val result = process(lastValue1, lastValue2)
                             result.out1?.let {
                                 outChannel1.send(it)
-                                onEmit?.invoke(codeNode.id, 0)
+                                onEmit?.invoke(codeNode.name, 0)
                             }
                             result.out2?.let {
                                 outChannel2.send(it)
-                                onEmit?.invoke(codeNode.id, 1)
+                                onEmit?.invoke(codeNode.name, 1)
                             }
                         }
                     }

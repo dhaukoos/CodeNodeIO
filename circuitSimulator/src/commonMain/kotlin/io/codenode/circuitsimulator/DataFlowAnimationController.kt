@@ -53,8 +53,8 @@ class DataFlowAnimationController {
         // Pre-compute: for each (nodeId, portIndex) -> list of connection IDs
         val nodePortToConnections = buildPortConnectionMap(flowGraph)
 
-        return { nodeId: String, portIndex: Int ->
-            val key = "$nodeId:$portIndex"
+        return { nodeName: String, portIndex: Int ->
+            val key = "$nodeName:$portIndex"
             val connectionIds = nodePortToConnections[key] ?: emptyList()
 
             if (connectionIds.isNotEmpty()) {
@@ -144,10 +144,16 @@ class DataFlowAnimationController {
     private fun buildPortConnectionMap(flowGraph: FlowGraph): Map<String, List<String>> {
         val map = mutableMapOf<String, MutableList<String>>()
 
+        // Build a nodeId-to-name lookup for connection source resolution
+        val nodeIdToName = flowGraph.getAllNodes().associate { it.id to it.name }
+
         for (node in flowGraph.getAllNodes()) {
             val outputPorts = node.outputPorts
             for ((index, port) in outputPorts.withIndex()) {
-                val key = "${node.id}:$index"
+                // Key by node NAME (not ID) because runtime CodeNodes have different
+                // dynamically-generated IDs than FlowGraph DSL nodes.
+                // Node names are consistent across both.
+                val key = "${node.name}:$index"
                 val connections = flowGraph.connections.filter { conn ->
                     conn.sourceNodeId == node.id && conn.sourcePortId == port.id
                 }

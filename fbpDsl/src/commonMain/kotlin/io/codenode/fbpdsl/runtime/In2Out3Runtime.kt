@@ -128,15 +128,15 @@ class In2Out3Runtime<A : Any, B : Any, U : Any, V : Any, W : Any>(
                     // Send non-null values to respective channels (selective output)
                     result.out1?.let {
                         out1.send(it)
-                        onEmit?.invoke(codeNode.id, 0)
+                        onEmit?.invoke(codeNode.name, 0)
                     }
                     result.out2?.let {
                         out2.send(it)
-                        onEmit?.invoke(codeNode.id, 1)
+                        onEmit?.invoke(codeNode.name, 1)
                     }
                     result.out3?.let {
                         out3.send(it)
-                        onEmit?.invoke(codeNode.id, 2)
+                        onEmit?.invoke(codeNode.name, 2)
                     }
                 }
             } catch (e: ClosedReceiveChannelException) {

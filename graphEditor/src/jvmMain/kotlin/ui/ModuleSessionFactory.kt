@@ -6,6 +6,7 @@
 package io.codenode.grapheditor.ui
 
 import io.codenode.circuitsimulator.RuntimeSession
+import io.codenode.fbpdsl.model.FlowGraph
 import io.codenode.stopwatch.StopWatchViewModel
 import io.codenode.stopwatch.generated.StopWatchController
 import io.codenode.stopwatch.generated.StopWatchControllerAdapter
@@ -27,28 +28,31 @@ object ModuleSessionFactory {
      * Creates a RuntimeSession for the given module name.
      *
      * @param moduleName The module directory name (e.g., "StopWatch", "UserProfiles")
+     * @param editorFlowGraph The editor's FlowGraph for animation connection mapping.
+     *   This must be the same FlowGraph instance that the Canvas uses to render connections,
+     *   so that animation connection IDs match the rendered connections.
      * @return A configured RuntimeSession, or null for unknown modules
      */
-    fun createSession(moduleName: String): RuntimeSession? {
+    fun createSession(moduleName: String, editorFlowGraph: FlowGraph? = null): RuntimeSession? {
         return when (moduleName) {
-            "StopWatch" -> createStopWatchSession()
-            "UserProfiles" -> createUserProfilesSession()
+            "StopWatch" -> createStopWatchSession(editorFlowGraph)
+            "UserProfiles" -> createUserProfilesSession(editorFlowGraph)
             else -> null
         }
     }
 
-    private fun createStopWatchSession(): RuntimeSession {
+    private fun createStopWatchSession(editorFlowGraph: FlowGraph?): RuntimeSession {
         val controller = StopWatchController(stopWatchFlowGraph)
         val adapter = StopWatchControllerAdapter(controller)
         val viewModel = StopWatchViewModel(adapter)
-        return RuntimeSession(controller, viewModel, stopWatchFlowGraph)
+        return RuntimeSession(controller, viewModel, editorFlowGraph ?: stopWatchFlowGraph)
     }
 
-    private fun createUserProfilesSession(): RuntimeSession {
+    private fun createUserProfilesSession(editorFlowGraph: FlowGraph?): RuntimeSession {
         val controller = UserProfilesController(userProfilesFlowGraph)
         controller.start()
         val adapter = UserProfilesControllerAdapter(controller)
         val viewModel = UserProfilesViewModel(adapter)
-        return RuntimeSession(controller, viewModel, userProfilesFlowGraph)
+        return RuntimeSession(controller, viewModel, editorFlowGraph ?: userProfilesFlowGraph)
     }
 }

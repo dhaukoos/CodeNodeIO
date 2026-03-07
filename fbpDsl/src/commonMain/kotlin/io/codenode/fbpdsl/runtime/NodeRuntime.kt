@@ -48,7 +48,7 @@ open class NodeRuntime(
 
     /**
      * Optional callback invoked when this node emits an IP on an output port.
-     * Parameters: (nodeId: String, portIndex: Int)
+     * Parameters: (nodeName: String, portIndex: Int)
      * Set by ModuleController when emission observation is enabled.
      */
     var onEmit: ((String, Int) -> Unit)? = null
