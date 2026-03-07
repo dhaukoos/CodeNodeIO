@@ -99,6 +99,7 @@ class In2Out1Runtime<A : Any, B : Any, R : Any>(
                     // Process and send result
                     val result = process(value1, value2)
                     outChannel.send(result)
+                    onEmit?.invoke(codeNode.id, 0)
                 }
             } catch (e: ClosedReceiveChannelException) {
                 // Input channel closed - graceful shutdown

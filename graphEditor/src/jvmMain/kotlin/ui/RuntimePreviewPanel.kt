@@ -51,6 +51,8 @@ fun RuntimePreviewPanel(
     onToggle: () -> Unit,
     moduleRootDir: File? = null,
     flowGraphName: String = "",
+    animateDataFlow: Boolean = false,
+    onAnimateDataFlowChanged: (Boolean) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val executionState = runtimeSession?.executionState?.collectAsState()?.value ?: ExecutionState.IDLE
@@ -253,6 +255,30 @@ fun RuntimePreviewPanel(
                 ) {
                     Text("0ms", fontSize = 10.sp, color = Color.Gray)
                     Text("2000ms", fontSize = 10.sp, color = Color.Gray)
+                }
+
+                // Animate Data Flow toggle
+                val animationEnabled = runtimeSession != null && attenuationMs >= 500L
+                Column {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text("Animate Data Flow", fontSize = 11.sp)
+                        Switch(
+                            checked = animateDataFlow,
+                            onCheckedChange = { onAnimateDataFlowChanged(it) },
+                            enabled = animationEnabled
+                        )
+                    }
+                    if (!animationEnabled) {
+                        Text(
+                            text = "Requires \u2265500ms attenuation",
+                            fontSize = 9.sp,
+                            color = Color.Gray
+                        )
+                    }
                 }
 
                 Divider()

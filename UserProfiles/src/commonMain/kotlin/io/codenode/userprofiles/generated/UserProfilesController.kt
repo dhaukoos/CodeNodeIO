@@ -54,6 +54,8 @@ class UserProfilesController(
 
     private var wasRunningBeforePause: Boolean = false
 
+    private var emissionObserver: ((String, Int) -> Unit)? = null
+
     val save: StateFlow<Any?> = flow.saveFlow
     val update: StateFlow<Any?> = flow.updateFlow
     val remove: StateFlow<Any?> = flow.removeFlow
@@ -77,6 +79,10 @@ class UserProfilesController(
         flow.userProfilesDisplay.registry = registry
 
         flow.userProfileCUD.executionState = ExecutionState.RUNNING
+
+        // Apply emission observer to all runtimes
+        applyEmissionObserver()
+
         scope.launch {
             flow.start(scope)
 
@@ -172,6 +178,18 @@ class UserProfilesController(
         flow.userProfileRepository.attenuationDelayMs = ms
         flow.userProfileCUD.attenuationDelayMs = ms
         flow.userProfilesDisplay.attenuationDelayMs = ms
+    }
+
+    override fun setEmissionObserver(observer: ((String, Int) -> Unit)?) {
+        emissionObserver = observer
+        applyEmissionObserver()
+    }
+
+    private fun applyEmissionObserver() {
+        val obs = emissionObserver
+        flow.userProfileRepository.onEmit = obs
+        flow.userProfileCUD.onEmit = obs
+        flow.userProfilesDisplay.onEmit = obs
     }
 
     val currentFlowGraph: FlowGraph

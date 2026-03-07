@@ -41,7 +41,7 @@ object ModuleSessionFactory {
         val controller = StopWatchController(stopWatchFlowGraph)
         val adapter = StopWatchControllerAdapter(controller)
         val viewModel = StopWatchViewModel(adapter)
-        return RuntimeSession(controller, viewModel)
+        return RuntimeSession(controller, viewModel, stopWatchFlowGraph)
     }
 
     private fun createUserProfilesSession(): RuntimeSession {
@@ -49,6 +49,6 @@ object ModuleSessionFactory {
         controller.start()
         val adapter = UserProfilesControllerAdapter(controller)
         val viewModel = UserProfilesViewModel(adapter)
-        return RuntimeSession(controller, viewModel)
+        return RuntimeSession(controller, viewModel, userProfilesFlowGraph)
     }
 }

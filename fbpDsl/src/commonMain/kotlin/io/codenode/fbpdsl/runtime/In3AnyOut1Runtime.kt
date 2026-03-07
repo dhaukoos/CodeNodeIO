@@ -73,6 +73,7 @@ class In3AnyOut1Runtime<A : Any, B : Any, C : Any, R : Any>(
                             if (delayMs != null && delayMs > 0) delay(delayMs)
                             val result = process(lastValue1, lastValue2, lastValue3)
                             outChannel.send(result)
+                            onEmit?.invoke(codeNode.id, 0)
                         }
                         inChannel2.onReceive { value ->
                             lastValue2 = value
@@ -80,6 +81,7 @@ class In3AnyOut1Runtime<A : Any, B : Any, C : Any, R : Any>(
                             if (delayMs != null && delayMs > 0) delay(delayMs)
                             val result = process(lastValue1, lastValue2, lastValue3)
                             outChannel.send(result)
+                            onEmit?.invoke(codeNode.id, 0)
                         }
                         inChannel3.onReceive { value ->
                             lastValue3 = value
@@ -87,6 +89,7 @@ class In3AnyOut1Runtime<A : Any, B : Any, C : Any, R : Any>(
                             if (delayMs != null && delayMs > 0) delay(delayMs)
                             val result = process(lastValue1, lastValue2, lastValue3)
                             outChannel.send(result)
+                            onEmit?.invoke(codeNode.id, 0)
                         }
                     }
                 }

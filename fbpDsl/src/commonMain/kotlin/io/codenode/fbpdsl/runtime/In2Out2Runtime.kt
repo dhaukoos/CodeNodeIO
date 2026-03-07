@@ -117,8 +117,14 @@ class In2Out2Runtime<A : Any, B : Any, U : Any, V : Any>(
                     val result = process(value1, value2)
 
                     // Send non-null values to respective channels (selective output)
-                    result.out1?.let { out1.send(it) }
-                    result.out2?.let { out2.send(it) }
+                    result.out1?.let {
+                        out1.send(it)
+                        onEmit?.invoke(codeNode.id, 0)
+                    }
+                    result.out2?.let {
+                        out2.send(it)
+                        onEmit?.invoke(codeNode.id, 1)
+                    }
                 }
             } catch (e: ClosedReceiveChannelException) {
                 // Input channel closed - graceful shutdown

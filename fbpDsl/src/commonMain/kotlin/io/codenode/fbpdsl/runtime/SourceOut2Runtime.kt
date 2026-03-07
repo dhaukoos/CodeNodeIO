@@ -97,8 +97,14 @@ class SourceOut2Runtime<U : Any, V : Any>(
                     // Only send if still running (not stopped during pause)
                     if (executionState == ExecutionState.RUNNING) {
                         // Send non-null values to respective channels
-                        result.out1?.let { out1.send(it) }
-                        result.out2?.let { out2.send(it) }
+                        result.out1?.let {
+                            out1.send(it)
+                            onEmit?.invoke(codeNode.id, 0)
+                        }
+                        result.out2?.let {
+                            out2.send(it)
+                            onEmit?.invoke(codeNode.id, 1)
+                        }
                     }
                 }
 

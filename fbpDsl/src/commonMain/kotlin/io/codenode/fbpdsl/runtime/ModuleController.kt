@@ -24,4 +24,5 @@ interface ModuleController {
     fun resume(): FlowGraph
     fun reset(): FlowGraph
     fun setAttenuationDelay(ms: Long?)
+    fun setEmissionObserver(observer: ((String, Int) -> Unit)?)
 }

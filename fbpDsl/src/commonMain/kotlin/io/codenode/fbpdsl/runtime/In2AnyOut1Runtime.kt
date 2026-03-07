@@ -78,6 +78,7 @@ class In2AnyOut1Runtime<A : Any, B : Any, R : Any>(
                             if (delayMs != null && delayMs > 0) delay(delayMs)
                             val result = process(lastValue1, lastValue2)
                             outChannel.send(result)
+                            onEmit?.invoke(codeNode.id, 0)
                         }
                         inChannel2.onReceive { value ->
                             lastValue2 = value
@@ -85,6 +86,7 @@ class In2AnyOut1Runtime<A : Any, B : Any, R : Any>(
                             if (delayMs != null && delayMs > 0) delay(delayMs)
                             val result = process(lastValue1, lastValue2)
                             outChannel.send(result)
+                            onEmit?.invoke(codeNode.id, 0)
                         }
                     }
                 }

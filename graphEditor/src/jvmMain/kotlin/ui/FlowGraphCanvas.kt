@@ -22,6 +22,7 @@ import androidx.compose.ui.input.pointer.*
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.geometry.Rect
+import io.codenode.circuitsimulator.ConnectionAnimation
 import io.codenode.fbpdsl.model.FlowGraph
 import io.codenode.fbpdsl.model.Node
 import io.codenode.fbpdsl.model.GraphNode
@@ -94,11 +95,24 @@ fun FlowGraphCanvas(
     displayNodes: List<Node>? = null,
     displayConnections: List<Connection>? = null,
     currentGraphNode: GraphNode? = null,
+    activeAnimations: List<ConnectionAnimation> = emptyList(),
     modifier: Modifier = Modifier
 ) {
     // Use provided nodes/connections or default to flowGraph's root level
     val nodesToRender = displayNodes ?: flowGraph.rootNodes
     val connectionsToRender = displayConnections ?: flowGraph.connections
+
+    // Animation frame time — triggers recomposition at frame rate during active animations
+    var animationTimeMs by remember { mutableStateOf(System.currentTimeMillis()) }
+    LaunchedEffect(activeAnimations.isNotEmpty()) {
+        if (activeAnimations.isNotEmpty()) {
+            while (true) {
+                withFrameNanos {
+                    animationTimeMs = System.currentTimeMillis()
+                }
+            }
+        }
+    }
 
     // Drag state (local only)
     var draggingNode by remember { mutableStateOf<String?>(null) }
@@ -499,6 +513,65 @@ fun FlowGraphCanvas(
                     isSelected = connection.id in selectedConnectionIds,
                     ipTypeColor = connectionColors[connection.id]
                 )
+            }
+
+            // Draw animation dots traveling along connections
+            if (activeAnimations.isNotEmpty()) {
+                val currentMs = animationTimeMs  // read state to ensure recomposition
+                val portSpacing = 25f * transformedScale
+                val nodeWidth = 180f * transformedScale
+                val headerHeight = 30f * transformedScale
+
+                activeAnimations.forEach { animation ->
+                    val connection = connectionsToRender.find { it.id == animation.connectionId }
+                        ?: return@forEach
+                    val sourceNode = nodesToRender.find { it.id == connection.sourceNodeId }
+                        ?: return@forEach
+                    val targetNode = nodesToRender.find { it.id == connection.targetNodeId }
+                        ?: return@forEach
+                    val sourcePort = sourceNode.outputPorts.find { it.id == connection.sourcePortId }
+                        ?: return@forEach
+                    val targetPort = targetNode.inputPorts.find { it.id == connection.targetPortId }
+                        ?: return@forEach
+
+                    val sourceNodePos = Offset(
+                        sourceNode.position.x.toFloat() * transformedScale + transformedOffset.x,
+                        sourceNode.position.y.toFloat() * transformedScale + transformedOffset.y
+                    ) + if (sourceNode.id == draggingNode) dragOffset else Offset.Zero
+
+                    val targetNodePos = Offset(
+                        targetNode.position.x.toFloat() * transformedScale + transformedOffset.x,
+                        targetNode.position.y.toFloat() * transformedScale + transformedOffset.y
+                    ) + if (targetNode.id == draggingNode) dragOffset else Offset.Zero
+
+                    val sourcePortIndex = sourceNode.outputPorts.indexOf(sourcePort)
+                    val targetPortIndex = targetNode.inputPorts.indexOf(targetPort)
+
+                    val sourcePos = Offset(
+                        sourceNodePos.x + nodeWidth,
+                        sourceNodePos.y + headerHeight + 20f * transformedScale + (sourcePortIndex * portSpacing)
+                    )
+                    val targetPos = Offset(
+                        targetNodePos.x,
+                        targetNodePos.y + headerHeight + 20f * transformedScale + (targetPortIndex * portSpacing)
+                    )
+
+                    // Bezier control points (same as drawBezierConnection)
+                    val dx = targetPos.x - sourcePos.x
+                    val controlPointOffset = kotlin.math.abs(dx) * 0.5f
+                    val cp1 = Offset(sourcePos.x + controlPointOffset, sourcePos.y)
+                    val cp2 = Offset(targetPos.x - controlPointOffset, targetPos.y)
+
+                    val t = animation.progress(currentMs)
+                    val dotPos = cubicBezier(sourcePos, cp1, cp2, targetPos, t)
+                    val dotColor = connectionColors[connection.id] ?: Color(0xFF424242)
+
+                    drawCircle(
+                        color = dotColor,
+                        radius = 6f * transformedScale,
+                        center = dotPos
+                    )
+                }
             }
 
             // Draw pending connection line if creating a connection
@@ -1495,6 +1568,7 @@ fun FlowGraphCanvasWithViewModel(
     displayNodes: List<Node>? = null,
     displayConnections: List<Connection>? = null,
     currentGraphNode: GraphNode? = null,
+    activeAnimations: List<ConnectionAnimation> = emptyList(),
     modifier: Modifier = Modifier
 ) {
     val state by viewModel.state.collectAsState()
@@ -1542,6 +1616,7 @@ fun FlowGraphCanvasWithViewModel(
         displayNodes = displayNodes,
         displayConnections = displayConnections,
         currentGraphNode = currentGraphNode,
+        activeAnimations = activeAnimations,
         modifier = modifier
     )
 }

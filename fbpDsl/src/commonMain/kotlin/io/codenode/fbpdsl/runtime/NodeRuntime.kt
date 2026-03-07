@@ -47,6 +47,13 @@ open class NodeRuntime(
     var attenuationDelayMs: Long? = null
 
     /**
+     * Optional callback invoked when this node emits an IP on an output port.
+     * Parameters: (nodeId: String, portIndex: Int)
+     * Set by ModuleController when emission observation is enabled.
+     */
+    var onEmit: ((String, Int) -> Unit)? = null
+
+    /**
      * Runtime job reference for lifecycle control.
      * Tracks the active coroutine when the node is running.
      */

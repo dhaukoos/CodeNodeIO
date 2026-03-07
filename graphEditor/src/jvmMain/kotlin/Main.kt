@@ -52,6 +52,7 @@ import io.codenode.grapheditor.ui.ModuleSessionFactory
 import io.codenode.grapheditor.ui.RuntimePreviewPanel
 import io.codenode.grapheditor.ui.StopWatchPreviewProvider
 import io.codenode.grapheditor.ui.UserProfilesPreviewProvider
+import io.codenode.circuitsimulator.ConnectionAnimation
 import io.codenode.circuitsimulator.RuntimeSession
 import io.codenode.grapheditor.ui.PropertiesPanelState
 import io.codenode.grapheditor.repository.CustomNodeDefinition
@@ -371,6 +372,10 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
     val runtimeSession = remember(moduleRootDir) {
         moduleRootDir?.name?.let { ModuleSessionFactory.createSession(it) }
     }
+
+    // Collect animation state from the session
+    val animateDataFlow = runtimeSession?.animateDataFlow?.collectAsState()?.value ?: false
+    val activeAnimations = runtimeSession?.animationController?.activeAnimations?.collectAsState()?.value ?: emptyList()
 
     // Stop previous session when it's replaced or removed
     DisposableEffect(runtimeSession) {
@@ -954,7 +959,8 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                                 },
                                 displayNodes = graphState.getNodesInCurrentContext(),
                                 displayConnections = graphState.getConnectionsInCurrentContext(),
-                                currentGraphNode = graphState.getCurrentGraphNode()
+                                currentGraphNode = graphState.getCurrentGraphNode(),
+                                activeAnimations = activeAnimations
                             )
 
                             // Connection Context Menu (rendered as overlay)
@@ -1062,6 +1068,8 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                         onToggle = { isRuntimePanelExpanded = !isRuntimePanelExpanded },
                         moduleRootDir = moduleRootDir,
                         flowGraphName = graphState.flowGraph.name,
+                        animateDataFlow = animateDataFlow,
+                        onAnimateDataFlowChanged = { runtimeSession?.setAnimateDataFlow(it) },
                         modifier = Modifier.fillMaxHeight()
                     )
                 }
