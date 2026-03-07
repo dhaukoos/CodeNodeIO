@@ -19,10 +19,10 @@
 
 ### Implementation for User Story 1
 
-- [ ] T001 [US1] Replace `combine()` source with individual StateFlow collectors in `UserProfiles/src/commonMain/kotlin/io/codenode/userprofiles/generated/UserProfilesFlow.kt` — each collector emits `ProcessResult3` with only the changed value (others null)
-- [ ] T002 [US1] Change processor from `In3Out2` to `In3AnyOut2` in `UserProfiles/src/commonMain/kotlin/io/codenode/userprofiles/generated/UserProfilesFlow.kt` — use `CodeNodeFactory.createIn3AnyOut2Processor()` with `Unit` initial values
-- [ ] T003 [US1] Update `start()` to match new flow pattern in `UserProfiles/src/commonMain/kotlin/io/codenode/userprofiles/generated/UserProfilesController.kt` — wire connections for the new processor type
-- [ ] T004 [US1] Adapt process block for any-input semantics in `UserProfiles/src/commonMain/kotlin/io/codenode/userprofiles/processingLogic/UserProfileRepositoryProcessLogic.kt` — handle receiving data on any single input channel independently
+- [x] T001 [US1] Replace `combine()` source with individual StateFlow collectors in `UserProfiles/src/commonMain/kotlin/io/codenode/userprofiles/generated/UserProfilesFlow.kt` — each collector emits `ProcessResult3` with only the changed value (others null)
+- [x] T002 [US1] Change processor from `In3Out2` to `In3AnyOut2` in `UserProfiles/src/commonMain/kotlin/io/codenode/userprofiles/generated/UserProfilesFlow.kt` — use `CodeNodeFactory.createIn3AnyOut2Processor()` with `Unit` initial values
+- [x] T003 [US1] Update `start()` to match new flow pattern in `UserProfiles/src/commonMain/kotlin/io/codenode/userprofiles/generated/UserProfilesController.kt` — wire connections for the new processor type
+- [x] T004 [US1] Adapt process block for any-input semantics in `UserProfiles/src/commonMain/kotlin/io/codenode/userprofiles/processingLogic/UserProfileRepositoryProcessLogic.kt` — handle receiving data on any single input channel independently
 
 **Checkpoint**: UserProfiles selective channel emission works — only the triggered action's channel emits data.
 
@@ -36,7 +36,7 @@
 
 ### Implementation for User Story 2
 
-- [ ] T005 [US2] Use `ProcessResult2.first()` when minutes unchanged in `StopWatch/src/commonMain/kotlin/io/codenode/stopwatch/processingLogic/TimeIncrementerProcessLogic.kt` — compare `newMinutes != elapsedMinutes` and use `ProcessResult2.both()` only when minutes changes, otherwise `ProcessResult2.first(newSeconds)`
+- [x] T005 [US2] Use `ProcessResult2.first()` when minutes unchanged in `StopWatch/src/commonMain/kotlin/io/codenode/stopwatch/processingLogic/TimeIncrementerProcessLogic.kt` — compare `newMinutes != elapsedMinutes` and use `ProcessResult2.both()` only when minutes changes, otherwise `ProcessResult2.first(newSeconds)`
 
 **Checkpoint**: StopWatch minutes output only emits on actual minute changes.
 
@@ -44,8 +44,8 @@
 
 ## Phase 3: Polish & Cross-Cutting Concerns
 
-- [ ] T006 Run `./gradlew :StopWatch:compileKotlinJvm :UserProfiles:compileKotlinJvm` to verify both modules compile
-- [ ] T007 Run quickstart.md manual verification for both modules
+- [x] T006 Run `./gradlew :StopWatch:compileKotlinJvm :UserProfiles:compileKotlinJvm` to verify both modules compile
+- [x] T007 Run quickstart.md manual verification for both modules
 
 ---
 

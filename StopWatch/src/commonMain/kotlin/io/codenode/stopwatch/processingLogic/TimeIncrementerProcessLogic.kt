@@ -30,5 +30,9 @@ val timeIncrementerTick: In2Out2TickBlock<Int, Int, Int, Int> = { elapsedSeconds
     StopWatchState._elapsedSeconds.value = newSeconds
     StopWatchState._elapsedMinutes.value = newMinutes
 
-    ProcessResult2.both(newSeconds, newMinutes)
+    if (newMinutes != elapsedMinutes) {
+        ProcessResult2.both(newSeconds, newMinutes)
+    } else {
+        ProcessResult2.first(newSeconds)
+    }
 }

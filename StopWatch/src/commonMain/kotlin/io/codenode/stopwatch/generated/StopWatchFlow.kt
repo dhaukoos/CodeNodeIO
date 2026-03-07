@@ -41,12 +41,15 @@ class StopWatchFlow {
         process = timeIncrementerTick
     )
 
-    internal val displayReceiver = CodeNodeFactory.createSinkIn2<Int, Int>(
+    internal val displayReceiver = CodeNodeFactory.createSinkIn2Any<Int, Int>(
         name = "DisplayReceiver",
+        initialValue1 = 0,
+        initialValue2 = 0,
         consume = { seconds, minutes ->
             StopWatchState._seconds.value = seconds
             StopWatchState._minutes.value = minutes
-        }    )
+        }
+    )
 
     internal val timerEmitter = CodeNodeFactory.createSourceOut2<Int, Int>(
         name = "TimerEmitter",

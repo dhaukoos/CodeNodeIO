@@ -12,9 +12,10 @@ import io.codenode.userprofiles.UserProfilesState
 
 import io.codenode.fbpdsl.model.CodeNodeFactory
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.drop
+import kotlinx.coroutines.launch
 import io.codenode.fbpdsl.runtime.ProcessResult2
 import io.codenode.fbpdsl.runtime.ProcessResult3
 
@@ -38,28 +39,42 @@ class UserProfilesFlow {
     val errorFlow: StateFlow<Any?> = UserProfilesState.errorFlow
 
     // Runtime instances
-    internal val userProfileRepository = CodeNodeFactory.createIn3Out2Processor<Any, Any, Any, Any, Any>(
+    internal val userProfileRepository = CodeNodeFactory.createIn3AnyOut2Processor<Any, Any, Any, Any, Any>(
         name = "UserProfileRepository",
+        initialValue1 = Unit,
+        initialValue2 = Unit,
+        initialValue3 = Unit,
         process = userProfileRepositoryTick
     )
 
     internal val userProfileCUD = CodeNodeFactory.createSourceOut3<Any, Any, Any>(
         name = "UserProfileCUD",
         generate = { emit ->
-            combine(
-                UserProfilesState._save,
-                UserProfilesState._update,
-                UserProfilesState._remove
-            ) { save, update, remove ->
-                // Map nulls to Unit so all 3 channels always receive a value.
-                // In3Out2 processor waits for all 3 inputs before processing.
-                ProcessResult3(save ?: Unit, update ?: Unit, remove ?: Unit)
-            }.drop(1).collect { result ->
-                emit(result)
-                // Reset processed values to prevent re-processing on next combine
-                if (result.out1 != null && result.out1 != Unit) UserProfilesState._save.value = null
-                if (result.out2 != null && result.out2 != Unit) UserProfilesState._update.value = null
-                if (result.out3 != null && result.out3 != Unit) UserProfilesState._remove.value = null
+            coroutineScope {
+                launch {
+                    UserProfilesState._save.drop(1).collect { save ->
+                        if (save != null) {
+                            emit(ProcessResult3(save, null, null))
+                            UserProfilesState._save.value = null
+                        }
+                    }
+                }
+                launch {
+                    UserProfilesState._update.drop(1).collect { update ->
+                        if (update != null) {
+                            emit(ProcessResult3(null, update, null))
+                            UserProfilesState._update.value = null
+                        }
+                    }
+                }
+                launch {
+                    UserProfilesState._remove.drop(1).collect { remove ->
+                        if (remove != null) {
+                            emit(ProcessResult3(null, null, remove))
+                            UserProfilesState._remove.value = null
+                        }
+                    }
+                }
             }
         }    )
 

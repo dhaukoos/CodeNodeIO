@@ -39,8 +39,8 @@ class In3AnyOut2Runtime<A : Any, B : Any, C : Any, U : Any, V : Any>(
     var inputChannel1: ReceiveChannel<A>? = null
     var inputChannel2: ReceiveChannel<B>? = null
     var inputChannel3: ReceiveChannel<C>? = null
-    var outputChannel1: SendChannel<U>? = Channel(channelCapacity)
-    var outputChannel2: SendChannel<V>? = Channel(channelCapacity)
+    var outputChannel1: Channel<U>? = Channel(channelCapacity)
+    var outputChannel2: Channel<V>? = Channel(channelCapacity)
 
     private var lastValue1: A = initialValue1
     private var lastValue2: B = initialValue2

@@ -1,6 +1,6 @@
 package io.codenode.userprofiles.processingLogic
 
-import io.codenode.fbpdsl.runtime.In3Out2TickBlock
+import io.codenode.fbpdsl.runtime.In3AnyOut2ProcessBlock
 import io.codenode.fbpdsl.runtime.ProcessResult2
 import io.codenode.userprofiles.persistence.DatabaseModule
 import io.codenode.userprofiles.persistence.UserProfileEntity
@@ -23,7 +23,7 @@ import io.codenode.userprofiles.persistence.UserProfileRepository
  * Dispatches to save/update/remove based on which input is a real value
  * (not the Unit sentinel). Only one operation should be non-Unit per invocation.
  */
-val userProfileRepositoryTick: In3Out2TickBlock<Any, Any, Any, Any, Any> = { save, update, remove ->
+val userProfileRepositoryTick: In3AnyOut2ProcessBlock<Any, Any, Any, Any, Any> = { save, update, remove ->
     try {
         val repo = UserProfileRepository(DatabaseModule.getDatabase().userProfileDao())
         when {

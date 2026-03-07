@@ -85,10 +85,6 @@ class UserProfilesController(
 
         scope.launch {
             flow.start(scope)
-
-            flow.userProfileCUD.outputChannel1?.send(UserProfilesState._save.value ?: Unit)
-            flow.userProfileCUD.outputChannel2?.send(UserProfilesState._update.value ?: Unit)
-            flow.userProfileCUD.outputChannel3?.send(UserProfilesState._remove.value ?: Unit)
         }
 
         return flowGraph
