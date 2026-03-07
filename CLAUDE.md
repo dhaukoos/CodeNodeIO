@@ -55,6 +55,8 @@ Auto-generated from all feature plans. Last updated: 2026-01-13
 - Kotlin 2.1.21 (Kotlin Multiplatform) + Compose Desktop 1.7.3, kotlinx-coroutines 1.8.0, lifecycle-viewmodel-compose 2.8.0, Room 2.8.4 (UserProfiles only) (040-generalize-runtime-preview)
 - N/A (no new storage; UserProfiles uses existing Room database) (040-generalize-runtime-preview)
 - N/A (in-memory animation state) (041-animate-data-flow)
+- Kotlin 2.1.21 (Kotlin Multiplatform) + Compose Desktop 1.7.3 + Compose Material (Icons, Surface, Row, Column, Box), Compose Foundation (clickable, background) (042-collapsible-panels)
+- N/A (in-memory panel state, session-only) (042-collapsible-panels)
 
 - Kotlin 1.9+, Go 1.21+ (001-ide-plugin-platform)
 
@@ -74,9 +76,9 @@ tests/
 Kotlin 1.9+, Go 1.21+: Follow standard conventions
 
 ## Recent Changes
+- 042-collapsible-panels: Added Kotlin 2.1.21 (Kotlin Multiplatform) + Compose Desktop 1.7.3 + Compose Material (Icons, Surface, Row, Column, Box), Compose Foundation (clickable, background)
 - 041-animate-data-flow: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + Compose Desktop 1.7.3, kotlinx-coroutines 1.8.0, kotlinx-serialization 1.6.0
 - 040-generalize-runtime-preview: Added Kotlin 2.1.21 (Kotlin Multiplatform) + Compose Desktop 1.7.3, kotlinx-coroutines 1.8.0, lifecycle-viewmodel-compose 2.8.0, Room 2.8.4 (UserProfiles only)
-- 039-userprofiles-module: Added Kotlin 2.1.21 (Kotlin Multiplatform) + Compose Multiplatform 1.7.3, kotlinx-coroutines 1.8.0, kotlinx-serialization 1.6.0, lifecycle-viewmodel-compose 2.8.0, Room 2.8.4 (KMP), KSP 2.1.21-2.0.1, SQLite Bundled 2.6.2
 
 
 <!-- MANUAL ADDITIONS START -->
