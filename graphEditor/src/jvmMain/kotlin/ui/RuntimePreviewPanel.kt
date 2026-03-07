@@ -70,30 +70,12 @@ fun RuntimePreviewPanel(
     }
     var dropdownExpanded by remember { mutableStateOf(false) }
 
-    Row(modifier = modifier) {
-        // Vertical divider + toggle strip (always visible)
-        Divider(modifier = Modifier.fillMaxHeight().width(1.dp))
-
-        Box(
-            modifier = Modifier
-                .fillMaxHeight()
-                .width(20.dp)
-                .clickable(onClick = onToggle)
-                .background(MaterialTheme.colors.surface),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                imageVector = if (isExpanded) Icons.Default.ChevronRight else Icons.Default.ChevronLeft,
-                contentDescription = if (isExpanded) "Collapse runtime panel" else "Expand runtime panel",
-                modifier = Modifier.size(16.dp),
-                tint = MaterialTheme.colors.onSurface.copy(alpha = 0.6f)
-            )
-        }
-
-        // Panel content (only when expanded)
-        if (isExpanded) {
-            Divider(modifier = Modifier.fillMaxHeight().width(1.dp))
-
+    CollapsiblePanel(
+        isExpanded = isExpanded,
+        onToggle = onToggle,
+        side = PanelSide.RIGHT,
+        modifier = modifier
+    ) {
             Column(
                 modifier = Modifier
                     .width(360.dp)
@@ -383,4 +365,3 @@ fun RuntimePreviewPanel(
             }
         }
     }
-}

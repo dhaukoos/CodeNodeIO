@@ -17,7 +17,7 @@
 
 **Purpose**: Create the reusable CollapsiblePanel composable extracted from RuntimePreviewPanel's pattern
 
-- [ ] T001 Create `PanelSide` enum and `CollapsiblePanel` composable in `graphEditor/src/jvmMain/kotlin/ui/CollapsiblePanel.kt` — Extract the toggle strip pattern (Divider + 20dp clickable Box with chevron + conditional content) from RuntimePreviewPanel. PanelSide.LEFT places toggle on right edge (ChevronLeft expanded / ChevronRight collapsed), PanelSide.RIGHT places toggle on left edge (ChevronRight expanded / ChevronLeft collapsed). Parameters: `isExpanded: Boolean`, `onToggle: () -> Unit`, `side: PanelSide`, `modifier: Modifier`, `content: @Composable () -> Unit`.
+- [x] T001 Create `PanelSide` enum and `CollapsiblePanel` composable in `graphEditor/src/jvmMain/kotlin/ui/CollapsiblePanel.kt` — Extract the toggle strip pattern (Divider + 20dp clickable Box with chevron + conditional content) from RuntimePreviewPanel. PanelSide.LEFT places toggle on right edge (ChevronLeft expanded / ChevronRight collapsed), PanelSide.RIGHT places toggle on left edge (ChevronRight expanded / ChevronLeft collapsed). Parameters: `isExpanded: Boolean`, `onToggle: () -> Unit`, `side: PanelSide`, `modifier: Modifier`, `content: @Composable () -> Unit`.
 
 **Checkpoint**: `./gradlew :graphEditor:compileKotlinJvm` compiles successfully
 
@@ -31,8 +31,8 @@
 
 ### Implementation for User Story 1
 
-- [ ] T002 [US1] Add `isPropertiesPanelExpanded` state variable (default `true`) in `graphEditor/src/jvmMain/kotlin/Main.kt` alongside the existing `isRuntimePanelExpanded`
-- [ ] T003 [US1] Wrap the `CompactPropertiesPanelWithViewModel(...)` call in Main.kt's layout Row with `CollapsiblePanel(isExpanded = isPropertiesPanelExpanded, onToggle = { isPropertiesPanelExpanded = !isPropertiesPanelExpanded }, side = PanelSide.RIGHT)` in `graphEditor/src/jvmMain/kotlin/Main.kt`
+- [x] T002 [US1] Add `isPropertiesPanelExpanded` state variable (default `true`) in `graphEditor/src/jvmMain/kotlin/Main.kt` alongside the existing `isRuntimePanelExpanded`
+- [x] T003 [US1] Wrap the `CompactPropertiesPanelWithViewModel(...)` call in Main.kt's layout Row with `CollapsiblePanel(isExpanded = isPropertiesPanelExpanded, onToggle = { isPropertiesPanelExpanded = !isPropertiesPanelExpanded }, side = PanelSide.RIGHT)` in `graphEditor/src/jvmMain/kotlin/Main.kt`
 
 **Checkpoint**: `./gradlew :graphEditor:compileKotlinJvm` compiles. Run app — Properties Panel has a collapsible toggle on its left edge. Clicking toggles content visibility. Canvas resizes. Node selection does not change collapsed state.
 
@@ -46,8 +46,8 @@
 
 ### Implementation for User Story 2
 
-- [ ] T004 [US2] Add `isIPPanelExpanded` state variable (default `true`) in `graphEditor/src/jvmMain/kotlin/Main.kt`
-- [ ] T005 [US2] Wrap the IP Generator + IP Palette `Column { IPGeneratorPanel(...) IPPalette(...) }` in Main.kt's layout Row with `CollapsiblePanel(isExpanded = isIPPanelExpanded, onToggle = { isIPPanelExpanded = !isIPPanelExpanded }, side = PanelSide.LEFT)` in `graphEditor/src/jvmMain/kotlin/Main.kt`
+- [x] T004 [US2] Add `isIPPanelExpanded` state variable (default `true`) in `graphEditor/src/jvmMain/kotlin/Main.kt`
+- [x] T005 [US2] Wrap the IP Generator + IP Palette `Column { IPGeneratorPanel(...) IPPalette(...) }` in Main.kt's layout Row with `CollapsiblePanel(isExpanded = isIPPanelExpanded, onToggle = { isIPPanelExpanded = !isIPPanelExpanded }, side = PanelSide.LEFT)` in `graphEditor/src/jvmMain/kotlin/Main.kt`
 
 **Checkpoint**: `./gradlew :graphEditor:compileKotlinJvm` compiles. Run app — IP column has a collapsible toggle on its right edge. Canvas resizes when toggled.
 
@@ -61,8 +61,8 @@
 
 ### Implementation for User Story 3
 
-- [ ] T006 [US3] Add `isNodePanelExpanded` state variable (default `true`) in `graphEditor/src/jvmMain/kotlin/Main.kt`
-- [ ] T007 [US3] Wrap the Node Generator + Node Palette `Column { NodeGeneratorPanel(...) NodePalette(...) }` in Main.kt's layout Row with `CollapsiblePanel(isExpanded = isNodePanelExpanded, onToggle = { isNodePanelExpanded = !isNodePanelExpanded }, side = PanelSide.LEFT)` in `graphEditor/src/jvmMain/kotlin/Main.kt`
+- [x] T006 [US3] Add `isNodePanelExpanded` state variable (default `true`) in `graphEditor/src/jvmMain/kotlin/Main.kt`
+- [x] T007 [US3] Wrap the Node Generator + Node Palette `Column { NodeGeneratorPanel(...) NodePalette(...) }` in Main.kt's layout Row with `CollapsiblePanel(isExpanded = isNodePanelExpanded, onToggle = { isNodePanelExpanded = !isNodePanelExpanded }, side = PanelSide.LEFT)` in `graphEditor/src/jvmMain/kotlin/Main.kt`
 
 **Checkpoint**: `./gradlew :graphEditor:compileKotlinJvm` compiles. Run app — Node column has a collapsible toggle on its right edge. Canvas resizes when toggled.
 
@@ -76,8 +76,8 @@
 
 ### Implementation for User Story 4
 
-- [ ] T008 [US4] Refactor `RuntimePreviewPanel` in `graphEditor/src/jvmMain/kotlin/ui/RuntimePreviewPanel.kt` to use `CollapsiblePanel` internally, replacing its inline toggle strip implementation. The RuntimePreviewPanel's `isExpanded`/`onToggle` params are passed through to CollapsiblePanel with `side = PanelSide.RIGHT`. Preserve all existing RuntimePreviewPanel content and behavior.
-- [ ] T009 [US4] Verify all four panels have identical toggle strip appearance and independent state by running the app and testing: collapse all panels (canvas fills full width), expand one at a time (others stay collapsed), window resize preserves state, module switch preserves state.
+- [x] T008 [US4] Refactor `RuntimePreviewPanel` in `graphEditor/src/jvmMain/kotlin/ui/RuntimePreviewPanel.kt` to use `CollapsiblePanel` internally, replacing its inline toggle strip implementation. The RuntimePreviewPanel's `isExpanded`/`onToggle` params are passed through to CollapsiblePanel with `side = PanelSide.RIGHT`. Preserve all existing RuntimePreviewPanel content and behavior.
+- [x] T009 [US4] Verify all four panels have identical toggle strip appearance and independent state by running the app and testing: collapse all panels (canvas fills full width), expand one at a time (others stay collapsed), window resize preserves state, module switch preserves state.
 
 **Checkpoint**: All four collapsible panels visually match. States are independent. Canvas resizes correctly in all combinations.
 

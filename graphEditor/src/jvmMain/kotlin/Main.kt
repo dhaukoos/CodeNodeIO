@@ -47,7 +47,9 @@ import io.codenode.grapheditor.ui.NodePalette
 import io.codenode.grapheditor.ui.NodeGeneratorPanel
 import io.codenode.grapheditor.ui.GraphEditorWithToggle
 import io.codenode.grapheditor.ui.ViewMode
+import io.codenode.grapheditor.ui.CollapsiblePanel
 import io.codenode.grapheditor.ui.CompactPropertiesPanelWithViewModel
+import io.codenode.grapheditor.ui.PanelSide
 import io.codenode.grapheditor.ui.ModuleSessionFactory
 import io.codenode.grapheditor.ui.RuntimePreviewPanel
 import io.codenode.grapheditor.ui.StopWatchPreviewProvider
@@ -296,6 +298,11 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
     val graphState = remember { GraphState(initialGraph) }
     val undoRedoManager = rememberUndoRedoManager()
     val propertyChangeTracker = rememberPropertyChangeTracker(undoRedoManager, graphState)
+
+    // Panel collapse/expand state
+    var isNodePanelExpanded by remember { mutableStateOf(true) }
+    var isIPPanelExpanded by remember { mutableStateOf(true) }
+    var isPropertiesPanelExpanded by remember { mutableStateOf(true) }
 
     // Runtime preview session and panel state
     var isRuntimePanelExpanded by remember { mutableStateOf(false) }
@@ -690,6 +697,12 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                 // Layout: NodeGeneratorPanel + NodePalette on left, Canvas on right
                 Row(modifier = Modifier.fillMaxSize()) {
                     // Left column: Node Generator Panel above Node Palette
+                    CollapsiblePanel(
+                        isExpanded = isNodePanelExpanded,
+                        onToggle = { isNodePanelExpanded = !isNodePanelExpanded },
+                        side = PanelSide.LEFT,
+                        modifier = Modifier.fillMaxHeight()
+                    ) {
                     Column(modifier = Modifier.fillMaxHeight()) {
                         // Node Generator Panel
                         NodeGeneratorPanel(
@@ -757,8 +770,15 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                         }
                         )
                     }
+                    }
 
                     // IP Generator + IP Palette
+                    CollapsiblePanel(
+                        isExpanded = isIPPanelExpanded,
+                        onToggle = { isIPPanelExpanded = !isIPPanelExpanded },
+                        side = PanelSide.LEFT,
+                        modifier = Modifier.fillMaxHeight()
+                    ) {
                     Column {
                         IPGeneratorPanel(
                             viewModel = ipGeneratorViewModel,
@@ -772,6 +792,7 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                             viewModel = ipPaletteViewModel,
                             ipTypes = ipTypes
                         )
+                    }
                     }
 
                     // Compute connection colors based on IP types
@@ -1006,6 +1027,12 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                         }
                     } else null
 
+                    CollapsiblePanel(
+                        isExpanded = isPropertiesPanelExpanded,
+                        onToggle = { isPropertiesPanelExpanded = !isPropertiesPanelExpanded },
+                        side = PanelSide.RIGHT,
+                        modifier = Modifier.fillMaxHeight()
+                    ) {
                     CompactPropertiesPanelWithViewModel(
                         viewModel = propertiesPanelViewModel,
                         selectedNode = selectedNode,
@@ -1061,6 +1088,7 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                             customNodes.any { it.isRepository && it.sourceIPTypeId == ipType.id }
                         } ?: false
                     )
+                    }
 
                     // Runtime Preview Panel (right side, after properties)
                     RuntimePreviewPanel(
