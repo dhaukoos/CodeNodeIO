@@ -58,6 +58,8 @@ Auto-generated from all feature plans. Last updated: 2026-01-13
 - Kotlin 2.1.21 (Kotlin Multiplatform) + Compose Desktop 1.7.3 + Compose Material (Icons, Surface, Row, Column, Box), Compose Foundation (clickable, background) (042-collapsible-panels)
 - N/A (in-memory panel state, session-only) (042-collapsible-panels)
 - Kotlin 2.1.21 (Kotlin Multiplatform) + kotlinx-coroutines 1.8.0 + kotlinx-coroutines (channels, StateFlow, select), kotlinx-serialization 1.6.0 (043-dataflow-refinements)
+- Kotlin 2.1.21 (Kotlin Multiplatform) + Compose Desktop 1.7.3 + kotlinx-coroutines 1.8.0 (channels, StateFlow), Compose Material (UI) (044-debuggable-data-preview)
+- N/A (in-memory snapshots, transient per runtime session) (044-debuggable-data-preview)
 
 - Kotlin 1.9+, Go 1.21+ (001-ide-plugin-platform)
 
@@ -77,9 +79,9 @@ tests/
 Kotlin 1.9+, Go 1.21+: Follow standard conventions
 
 ## Recent Changes
+- 044-debuggable-data-preview: Added Kotlin 2.1.21 (Kotlin Multiplatform) + Compose Desktop 1.7.3 + kotlinx-coroutines 1.8.0 (channels, StateFlow), Compose Material (UI)
 - 043-dataflow-refinements: Added Kotlin 2.1.21 (Kotlin Multiplatform) + kotlinx-coroutines 1.8.0 + kotlinx-coroutines (channels, StateFlow, select), kotlinx-serialization 1.6.0
 - 042-collapsible-panels: Added Kotlin 2.1.21 (Kotlin Multiplatform) + Compose Desktop 1.7.3 + Compose Material (Icons, Surface, Row, Column, Box), Compose Foundation (clickable, background)
-- 041-animate-data-flow: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + Compose Desktop 1.7.3, kotlinx-coroutines 1.8.0, kotlinx-serialization 1.6.0
 
 
 <!-- MANUAL ADDITIONS START -->
