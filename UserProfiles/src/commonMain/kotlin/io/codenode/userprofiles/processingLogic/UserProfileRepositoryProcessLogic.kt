@@ -9,7 +9,7 @@ import io.codenode.userprofiles.persistence.UserProfileRepository
 /**
  * Tick function for the UserProfileRepository node.
  *
- * Node type: Processor (3 inputs, 2 outputs)
+ * Node type: Processor (3 any-inputs, 2 outputs)
  *
  * Inputs:
  *   - save: UserProfileEntity (or Unit sentinel for no-op)
@@ -20,26 +20,37 @@ import io.codenode.userprofiles.persistence.UserProfileRepository
  *   - result: Any (success message)
  *   - error: Any (error message)
  *
- * Dispatches to save/update/remove based on which input is a real value
- * (not the Unit sentinel). Only one operation should be non-Unit per invocation.
+ * Uses In3AnyOut2 (fires on any input). Per-channel identity tracking
+ * prevents stale cached values from re-triggering operations.
  */
+private var lastSaveRef: Any? = null
+private var lastUpdateRef: Any? = null
+private var lastRemoveRef: Any? = null
+
 val userProfileRepositoryTick: In3AnyOut2ProcessBlock<Any, Any, Any, Any, Any> = { save, update, remove ->
     try {
         val repo = UserProfileRepository(DatabaseModule.getDatabase().userProfileDao())
+        val isFreshSave = save is UserProfileEntity && save !== lastSaveRef
+        val isFreshUpdate = update is UserProfileEntity && update !== lastUpdateRef
+        val isFreshRemove = remove is UserProfileEntity && remove !== lastRemoveRef
+
         when {
-            save is UserProfileEntity -> {
+            isFreshSave -> {
+                lastSaveRef = save
                 repo.save(save)
                 ProcessResult2.first("Saved: ${save.name}")
             }
-            update is UserProfileEntity -> {
+            isFreshUpdate -> {
+                lastUpdateRef = update
                 repo.update(update)
                 ProcessResult2.first("Updated: ${update.name}")
             }
-            remove is UserProfileEntity -> {
+            isFreshRemove -> {
+                lastRemoveRef = remove
                 repo.remove(remove)
                 ProcessResult2.first("Removed: ${remove.name}")
             }
-            else -> ProcessResult2(null, null) // no-op (Unit sentinel values)
+            else -> ProcessResult2(null, null)
         }
     } catch (e: Exception) {
         ProcessResult2.second("Error: ${e.message}")
