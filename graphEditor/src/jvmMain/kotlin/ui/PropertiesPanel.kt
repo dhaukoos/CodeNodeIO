@@ -963,6 +963,9 @@ fun ConnectionPropertiesPanel(
     flowGraph: FlowGraph,
     ipTypeRegistry: IPTypeRegistry? = null,
     onIPTypeChanged: ((String, String) -> Unit)? = null,
+    debugger: io.codenode.circuitsimulator.DataFlowDebugger? = null,
+    isPaused: Boolean = false,
+    isAnimateDataFlow: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     val sourceNode = flowGraph.findNode(connection.sourceNodeId)
@@ -1129,6 +1132,49 @@ fun ConnectionPropertiesPanel(
                                 }
                             }
                         }
+                    }
+                }
+
+                // Transit Snapshot section (debug data inspection)
+                if (isPaused && isAnimateDataFlow && debugger != null) {
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    Text(
+                        text = "Transit Snapshot",
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colors.primary
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+
+                    val snapshotFlow = remember(connection.id, debugger) {
+                        debugger.getSnapshot(connection.id)
+                    }
+                    val snapshotValue = snapshotFlow?.collectAsState()?.value
+
+                    if (snapshotValue != null) {
+                        val displayText = snapshotValue.toString().let {
+                            if (it.length > 500) it.take(500) + "..." else it
+                        }
+                        OutlinedTextField(
+                            value = displayText,
+                            onValueChange = {},
+                            modifier = Modifier.fillMaxWidth(),
+                            readOnly = true,
+                            textStyle = androidx.compose.ui.text.TextStyle(fontSize = 11.sp),
+                            label = { Text("Most Recent Value", fontSize = 10.sp) },
+                            colors = TextFieldDefaults.outlinedTextFieldColors(
+                                backgroundColor = MaterialTheme.colors.surface,
+                                focusedBorderColor = MaterialTheme.colors.primary,
+                                unfocusedBorderColor = MaterialTheme.colors.onSurface.copy(alpha = 0.3f)
+                            )
+                        )
+                    } else {
+                        Text(
+                            text = "No data captured",
+                            fontSize = 11.sp,
+                            color = MaterialTheme.colors.onSurface.copy(alpha = 0.5f)
+                        )
                     }
                 }
             }
@@ -1406,6 +1452,9 @@ fun CompactPropertiesPanelWithViewModel(
     onGraphNodePortTypeChanged: (String, String) -> Unit = { _, _ -> },
     onCreateRepositoryNode: (() -> Unit)? = null,
     repositoryExists: Boolean = false,
+    debugger: io.codenode.circuitsimulator.DataFlowDebugger? = null,
+    isPaused: Boolean = false,
+    isAnimateDataFlow: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     val vmState by viewModel.state.collectAsState()
@@ -1436,6 +1485,9 @@ fun CompactPropertiesPanelWithViewModel(
             onIPTypeChanged = { connectionId, ipTypeId ->
                 viewModel.updateConnectionIPType(connectionId, ipTypeId)
             },
+            debugger = debugger,
+            isPaused = isPaused,
+            isAnimateDataFlow = isAnimateDataFlow,
             modifier = modifier.width(280.dp)
         )
     } else if (selectedGraphNode != null) {

@@ -79,6 +79,7 @@ class In2AnyOut1Runtime<A : Any, B : Any, R : Any>(
                             val result = process(lastValue1, lastValue2)
                             outChannel.send(result)
                             onEmit?.invoke(codeNode.name, 0)
+                            onEmitValue?.invoke(codeNode.name, 0, result)
                         }
                         inChannel2.onReceive { value ->
                             lastValue2 = value
@@ -87,6 +88,7 @@ class In2AnyOut1Runtime<A : Any, B : Any, R : Any>(
                             val result = process(lastValue1, lastValue2)
                             outChannel.send(result)
                             onEmit?.invoke(codeNode.name, 0)
+                            onEmitValue?.invoke(codeNode.name, 0, result)
                         }
                     }
                 }

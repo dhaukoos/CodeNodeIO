@@ -54,6 +54,14 @@ open class NodeRuntime(
     var onEmit: ((String, Int) -> Unit)? = null
 
     /**
+     * Optional callback invoked when this node emits an IP on an output port,
+     * including the emitted value. Used for data flow debugging/inspection.
+     * Parameters: (nodeName: String, portIndex: Int, value: Any?)
+     * Set by RuntimeSession when debug mode (animateDataFlow) is enabled.
+     */
+    var onEmitValue: ((String, Int, Any?) -> Unit)? = null
+
+    /**
      * Runtime job reference for lifecycle control.
      * Tracks the active coroutine when the node is running.
      */

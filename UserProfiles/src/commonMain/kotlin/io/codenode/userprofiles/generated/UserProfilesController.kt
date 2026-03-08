@@ -55,6 +55,7 @@ class UserProfilesController(
     private var wasRunningBeforePause: Boolean = false
 
     private var emissionObserver: ((String, Int) -> Unit)? = null
+    private var valueObserver: ((String, Int, Any?) -> Unit)? = null
 
     val save: StateFlow<Any?> = flow.saveFlow
     val update: StateFlow<Any?> = flow.updateFlow
@@ -80,8 +81,9 @@ class UserProfilesController(
 
         flow.userProfileCUD.executionState = ExecutionState.RUNNING
 
-        // Apply emission observer to all runtimes
+        // Apply emission and value observers to all runtimes
         applyEmissionObserver()
+        applyValueObserver()
 
         scope.launch {
             flow.start(scope)
@@ -186,6 +188,18 @@ class UserProfilesController(
         flow.userProfileRepository.onEmit = obs
         flow.userProfileCUD.onEmit = obs
         flow.userProfilesDisplay.onEmit = obs
+    }
+
+    override fun setValueObserver(observer: ((String, Int, Any?) -> Unit)?) {
+        valueObserver = observer
+        applyValueObserver()
+    }
+
+    private fun applyValueObserver() {
+        val obs = valueObserver
+        flow.userProfileRepository.onEmitValue = obs
+        flow.userProfileCUD.onEmitValue = obs
+        flow.userProfilesDisplay.onEmitValue = obs
     }
 
     val currentFlowGraph: FlowGraph

@@ -100,10 +100,12 @@ class SourceOut2Runtime<U : Any, V : Any>(
                         result.out1?.let {
                             out1.send(it)
                             onEmit?.invoke(codeNode.name, 0)
+                            onEmitValue?.invoke(codeNode.name, 0, it)
                         }
                         result.out2?.let {
                             out2.send(it)
                             onEmit?.invoke(codeNode.name, 1)
+                            onEmitValue?.invoke(codeNode.name, 1, it)
                         }
                     }
                 }

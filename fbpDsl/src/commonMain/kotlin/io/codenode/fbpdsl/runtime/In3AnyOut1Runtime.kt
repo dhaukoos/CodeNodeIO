@@ -74,6 +74,7 @@ class In3AnyOut1Runtime<A : Any, B : Any, C : Any, R : Any>(
                             val result = process(lastValue1, lastValue2, lastValue3)
                             outChannel.send(result)
                             onEmit?.invoke(codeNode.name, 0)
+                            onEmitValue?.invoke(codeNode.name, 0, result)
                         }
                         inChannel2.onReceive { value ->
                             lastValue2 = value
@@ -82,6 +83,7 @@ class In3AnyOut1Runtime<A : Any, B : Any, C : Any, R : Any>(
                             val result = process(lastValue1, lastValue2, lastValue3)
                             outChannel.send(result)
                             onEmit?.invoke(codeNode.name, 0)
+                            onEmitValue?.invoke(codeNode.name, 0, result)
                         }
                         inChannel3.onReceive { value ->
                             lastValue3 = value
@@ -90,6 +92,7 @@ class In3AnyOut1Runtime<A : Any, B : Any, C : Any, R : Any>(
                             val result = process(lastValue1, lastValue2, lastValue3)
                             outChannel.send(result)
                             onEmit?.invoke(codeNode.name, 0)
+                            onEmitValue?.invoke(codeNode.name, 0, result)
                         }
                     }
                 }

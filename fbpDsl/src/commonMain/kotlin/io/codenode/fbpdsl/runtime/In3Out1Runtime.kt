@@ -108,6 +108,7 @@ class In3Out1Runtime<A : Any, B : Any, C : Any, R : Any>(
                     val result = process(value1, value2, value3)
                     outChannel.send(result)
                     onEmit?.invoke(codeNode.name, 0)
+                    onEmitValue?.invoke(codeNode.name, 0, result)
                 }
             } catch (e: ClosedReceiveChannelException) {
                 // Input channel closed - graceful shutdown

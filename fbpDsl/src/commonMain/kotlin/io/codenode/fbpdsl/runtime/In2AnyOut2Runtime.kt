@@ -74,10 +74,12 @@ class In2AnyOut2Runtime<A : Any, B : Any, U : Any, V : Any>(
                             result.out1?.let {
                                 outChannel1.send(it)
                                 onEmit?.invoke(codeNode.name, 0)
+                                onEmitValue?.invoke(codeNode.name, 0, it)
                             }
                             result.out2?.let {
                                 outChannel2.send(it)
                                 onEmit?.invoke(codeNode.name, 1)
+                                onEmitValue?.invoke(codeNode.name, 1, it)
                             }
                         }
                         inChannel2.onReceive { value ->
@@ -88,10 +90,12 @@ class In2AnyOut2Runtime<A : Any, B : Any, U : Any, V : Any>(
                             result.out1?.let {
                                 outChannel1.send(it)
                                 onEmit?.invoke(codeNode.name, 0)
+                                onEmitValue?.invoke(codeNode.name, 0, it)
                             }
                             result.out2?.let {
                                 outChannel2.send(it)
                                 onEmit?.invoke(codeNode.name, 1)
+                                onEmitValue?.invoke(codeNode.name, 1, it)
                             }
                         }
                     }

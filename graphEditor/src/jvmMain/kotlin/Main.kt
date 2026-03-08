@@ -381,9 +381,10 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
         moduleRootDir?.name?.let { ModuleSessionFactory.createSession(it, graphState.flowGraph) }
     }
 
-    // Collect animation state from the session
+    // Collect animation and debug state from the session
     val animateDataFlow = runtimeSession?.animateDataFlow?.collectAsState()?.value ?: false
     val activeAnimations = runtimeSession?.animationController?.activeAnimations?.collectAsState()?.value ?: emptyList()
+    val runtimeExecutionState = runtimeSession?.executionState?.collectAsState()?.value ?: ExecutionState.IDLE
 
     // Stop previous session when it's replaced or removed
     DisposableEffect(runtimeSession) {
@@ -1086,7 +1087,10 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                         },
                         repositoryExists = selectedIPType?.let { ipType ->
                             customNodes.any { it.isRepository && it.sourceIPTypeId == ipType.id }
-                        } ?: false
+                        } ?: false,
+                        debugger = runtimeSession?.debugger,
+                        isPaused = runtimeExecutionState == ExecutionState.PAUSED,
+                        isAnimateDataFlow = animateDataFlow
                     )
                     }
 

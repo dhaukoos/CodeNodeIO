@@ -77,14 +77,17 @@ class In2AnyOut3Runtime<A : Any, B : Any, U : Any, V : Any, W : Any>(
                             result.out1?.let {
                                 outChannel1.send(it)
                                 onEmit?.invoke(codeNode.name, 0)
+                                onEmitValue?.invoke(codeNode.name, 0, it)
                             }
                             result.out2?.let {
                                 outChannel2.send(it)
                                 onEmit?.invoke(codeNode.name, 1)
+                                onEmitValue?.invoke(codeNode.name, 1, it)
                             }
                             result.out3?.let {
                                 outChannel3.send(it)
                                 onEmit?.invoke(codeNode.name, 2)
+                                onEmitValue?.invoke(codeNode.name, 2, it)
                             }
                         }
                         inChannel2.onReceive { value ->
@@ -95,14 +98,17 @@ class In2AnyOut3Runtime<A : Any, B : Any, U : Any, V : Any, W : Any>(
                             result.out1?.let {
                                 outChannel1.send(it)
                                 onEmit?.invoke(codeNode.name, 0)
+                                onEmitValue?.invoke(codeNode.name, 0, it)
                             }
                             result.out2?.let {
                                 outChannel2.send(it)
                                 onEmit?.invoke(codeNode.name, 1)
+                                onEmitValue?.invoke(codeNode.name, 1, it)
                             }
                             result.out3?.let {
                                 outChannel3.send(it)
                                 onEmit?.invoke(codeNode.name, 2)
+                                onEmitValue?.invoke(codeNode.name, 2, it)
                             }
                         }
                     }

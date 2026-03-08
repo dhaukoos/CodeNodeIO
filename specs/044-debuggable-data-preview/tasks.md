@@ -27,9 +27,9 @@
 
 **Purpose**: Core infrastructure that MUST be complete before user story work begins.
 
-- [ ] T001 Create `DataFlowDebugger` class with per-connection snapshot storage (`Map<String, MutableStateFlow<Any?>>`) in `circuitSimulator/src/commonMain/kotlin/io/codenode/circuitsimulator/DataFlowDebugger.kt`
-- [ ] T002 Add `onEmitValue: ((String, Int, Any?) -> Unit)?` callback to `NodeRuntime` base class in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/NodeRuntime.kt`
-- [ ] T003 Update all runtime emission sites to pass the emitted value to `onEmitValue` callback alongside existing `onEmit` calls — files in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/` (SourceRuntime.kt, SourceOut2Runtime.kt, SourceOut3Runtime.kt, TransformerRuntime.kt, FilterRuntime.kt, In1Out2Runtime.kt, In1Out3Runtime.kt, In2Out1Runtime.kt, In2Out2Runtime.kt, In2Out3Runtime.kt, In3Out1Runtime.kt, In3Out2Runtime.kt, In3Out3Runtime.kt, In2AnyOut1Runtime.kt, In2AnyOut2Runtime.kt, In2AnyOut3Runtime.kt, In3AnyOut1Runtime.kt, In3AnyOut2Runtime.kt, In3AnyOut3Runtime.kt)
+- [x] T001 Create `DataFlowDebugger` class with per-connection snapshot storage (`Map<String, MutableStateFlow<Any?>>`) in `circuitSimulator/src/commonMain/kotlin/io/codenode/circuitsimulator/DataFlowDebugger.kt`
+- [x] T002 Add `onEmitValue: ((String, Int, Any?) -> Unit)?` callback to `NodeRuntime` base class in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/NodeRuntime.kt`
+- [x] T003 Update all runtime emission sites to pass the emitted value to `onEmitValue` callback alongside existing `onEmit` calls — files in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/` (SourceRuntime.kt, SourceOut2Runtime.kt, SourceOut3Runtime.kt, TransformerRuntime.kt, FilterRuntime.kt, In1Out2Runtime.kt, In1Out3Runtime.kt, In2Out1Runtime.kt, In2Out2Runtime.kt, In2Out3Runtime.kt, In3Out1Runtime.kt, In3Out2Runtime.kt, In3Out3Runtime.kt, In2AnyOut1Runtime.kt, In2AnyOut2Runtime.kt, In2AnyOut3Runtime.kt, In3AnyOut1Runtime.kt, In3AnyOut2Runtime.kt, In3AnyOut3Runtime.kt)
 
 **Checkpoint**: DataFlowDebugger exists and runtimes can report emitted values via callback.
 
@@ -43,10 +43,10 @@
 
 ### Implementation for User Story 1
 
-- [ ] T004 [US1] Wire `DataFlowDebugger` into `RuntimeSession` — instantiate debugger, create emission value observer using `nodePortToConnections` mapping pattern from `DataFlowAnimationController`, and assign `onEmitValue` callbacks on runtimes during start. File: `circuitSimulator/src/commonMain/kotlin/io/codenode/circuitsimulator/RuntimeSession.kt`
-- [ ] T005 [US1] Expose debugger snapshot state from `RuntimeSession` so it can be passed to the UI composable chain. File: `circuitSimulator/src/commonMain/kotlin/io/codenode/circuitsimulator/RuntimeSession.kt`
-- [ ] T006 [US1] Pass debugger snapshot state through composable parameters to `PropertiesPanel` in `graphEditor/src/jvmMain/kotlin/Main.kt`
-- [ ] T007 [US1] Display captured transit snapshot value in the Properties panel below existing connection properties when a connection is selected and execution is paused. Show value via `toString()` in a read-only text area. Show "No data captured" when no snapshot exists. File: `graphEditor/src/jvmMain/kotlin/ui/PropertiesPanel.kt`
+- [x] T004 [US1] Wire `DataFlowDebugger` into `RuntimeSession` — instantiate debugger, create emission value observer using `nodePortToConnections` mapping pattern from `DataFlowAnimationController`, and assign `onEmitValue` callbacks on runtimes during start. File: `circuitSimulator/src/commonMain/kotlin/io/codenode/circuitsimulator/RuntimeSession.kt`
+- [x] T005 [US1] Expose debugger snapshot state from `RuntimeSession` so it can be passed to the UI composable chain. File: `circuitSimulator/src/commonMain/kotlin/io/codenode/circuitsimulator/RuntimeSession.kt`
+- [x] T006 [US1] Pass debugger snapshot state through composable parameters to `PropertiesPanel` in `graphEditor/src/jvmMain/kotlin/Main.kt`
+- [x] T007 [US1] Display captured transit snapshot value in the Properties panel below existing connection properties when a connection is selected and execution is paused. Show value via `toString()` in a read-only text area. Show "No data captured" when no snapshot exists. File: `graphEditor/src/jvmMain/kotlin/ui/PropertiesPanel.kt`
 
 **Checkpoint**: US1 complete — pausing and selecting a connection shows the most recent data value.
 
@@ -60,8 +60,8 @@
 
 ### Implementation for User Story 2
 
-- [ ] T008 [US2] Ensure `DataFlowDebugger` only captures values when `animateDataFlow` is true — guard the `onEmitValue` callback assignment so it is only wired when animation is enabled. File: `circuitSimulator/src/commonMain/kotlin/io/codenode/circuitsimulator/RuntimeSession.kt`
-- [ ] T009 [US2] Clear all snapshots in `DataFlowDebugger` when `stop()` is called or when `animateDataFlow` is toggled off. File: `circuitSimulator/src/commonMain/kotlin/io/codenode/circuitsimulator/RuntimeSession.kt` and `circuitSimulator/src/commonMain/kotlin/io/codenode/circuitsimulator/DataFlowDebugger.kt`
+- [x] T008 [US2] Ensure `DataFlowDebugger` only captures values when `animateDataFlow` is true — guard the `onEmitValue` callback assignment so it is only wired when animation is enabled. File: `circuitSimulator/src/commonMain/kotlin/io/codenode/circuitsimulator/RuntimeSession.kt`
+- [x] T009 [US2] Clear all snapshots in `DataFlowDebugger` when `stop()` is called or when `animateDataFlow` is toggled off. File: `circuitSimulator/src/commonMain/kotlin/io/codenode/circuitsimulator/RuntimeSession.kt` and `circuitSimulator/src/commonMain/kotlin/io/codenode/circuitsimulator/DataFlowDebugger.kt`
 
 **Checkpoint**: US2 complete — no capture overhead when animation disabled; snapshots cleared on stop/toggle-off.
 
@@ -71,8 +71,8 @@
 
 **Purpose**: Validation and edge case handling.
 
-- [ ] T010 Handle large data values gracefully — truncate `toString()` output if it exceeds a reasonable length (e.g., 500 characters) in the Properties panel display. File: `graphEditor/src/jvmMain/kotlin/ui/PropertiesPanel.kt`
-- [ ] T011 Run quickstart.md verification scenarios (StopWatch, UserProfiles, No Debug Mode) to validate end-to-end behavior
+- [x] T010 Handle large data values gracefully — truncate `toString()` output if it exceeds a reasonable length (e.g., 500 characters) in the Properties panel display. File: `graphEditor/src/jvmMain/kotlin/ui/PropertiesPanel.kt`
+- [x] T011 Run quickstart.md verification scenarios (StopWatch, UserProfiles, No Debug Mode) to validate end-to-end behavior
 
 ---
 

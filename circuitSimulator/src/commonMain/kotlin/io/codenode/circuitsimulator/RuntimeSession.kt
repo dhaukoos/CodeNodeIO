@@ -48,6 +48,9 @@ class RuntimeSession(
     /** Animation controller managing dot animations along connections */
     val animationController = DataFlowAnimationController()
 
+    /** Debugger for capturing per-connection transit snapshots */
+    val debugger = DataFlowDebugger()
+
     private val _animateDataFlow = MutableStateFlow(false)
     /** Whether data flow animation is enabled */
     val animateDataFlow: StateFlow<Boolean> = _animateDataFlow.asStateFlow()
@@ -81,6 +84,10 @@ class RuntimeSession(
             )
             controller.setEmissionObserver(observer)
 
+            // Wire value observer for debug snapshots
+            val valueObserver = debugger.createValueObserver(flowGraph)
+            controller.setValueObserver(valueObserver)
+
             // Start frame loop if execution is already running
             if (_executionState.value == ExecutionState.RUNNING || _executionState.value == ExecutionState.PAUSED) {
                 animationScope?.cancel()
@@ -90,8 +97,10 @@ class RuntimeSession(
             }
         } else {
             controller.setEmissionObserver(null)
+            controller.setValueObserver(null)
             animationController.clear()
             animationController.stopFrameLoop()
+            debugger.clear()
             animationScope?.cancel()
             animationScope = null
         }
@@ -121,6 +130,10 @@ class RuntimeSession(
             )
             controller.setEmissionObserver(observer)
 
+            // Wire value observer for debug snapshots
+            val valueObserver = debugger.createValueObserver(flowGraph)
+            controller.setValueObserver(valueObserver)
+
             animationScope?.cancel()
             val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
             animationScope = scope
@@ -147,6 +160,8 @@ class RuntimeSession(
         animationController.clear()
         animationController.stopFrameLoop()
         controller.setEmissionObserver(null)
+        controller.setValueObserver(null)
+        debugger.clear()
         animationScope?.cancel()
         animationScope = null
 

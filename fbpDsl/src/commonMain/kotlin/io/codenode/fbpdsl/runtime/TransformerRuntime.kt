@@ -90,6 +90,7 @@ class TransformerRuntime<TIn : Any, TOut : Any>(
                     val transformed = transform(value)
                     outChannel.send(transformed)
                     onEmit?.invoke(codeNode.name, 0)
+                    onEmitValue?.invoke(codeNode.name, 0, transformed)
                 }
             } catch (e: ClosedReceiveChannelException) {
                 // Input channel closed - graceful shutdown

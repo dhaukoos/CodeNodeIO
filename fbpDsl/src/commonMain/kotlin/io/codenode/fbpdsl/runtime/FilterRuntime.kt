@@ -89,6 +89,7 @@ class FilterRuntime<T : Any>(
                     if (predicate(value)) {
                         outChannel.send(value)
                         onEmit?.invoke(codeNode.name, 0)
+                        onEmitValue?.invoke(codeNode.name, 0, value)
                     }
                     // Otherwise drop the value
                 }

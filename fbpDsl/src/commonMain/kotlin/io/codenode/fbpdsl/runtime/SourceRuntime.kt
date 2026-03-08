@@ -80,6 +80,7 @@ class SourceRuntime<T : Any>(
                     if (executionState == ExecutionState.RUNNING) {
                         outputChannel?.send(value)
                         onEmit?.invoke(codeNode.name, 0)
+                        onEmitValue?.invoke(codeNode.name, 0, value)
                     }
                 }
 
