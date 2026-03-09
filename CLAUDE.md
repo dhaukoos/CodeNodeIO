@@ -80,9 +80,9 @@ tests/
 Kotlin 1.9+, Go 1.21+: Follow standard conventions
 
 ## Recent Changes
+- 046-persistence-dependency-injection: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + Compose Multiplatform 1.7.3 + kotlinx-coroutines 1.8.0, Room 2.8.4 (KMP), KSP 2.1.21-2.0.1, SQLite Bundled 2.6.2
 - 045-refactor-userprofiles-module: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + Compose Multiplatform 1.7.3 + kotlinx-coroutines 1.8.0, Room 2.8.4 (KMP), KSP 2.1.21-2.0.1, SQLite Bundled 2.6.2
 - 044-debuggable-data-preview: Added Kotlin 2.1.21 (Kotlin Multiplatform) + Compose Desktop 1.7.3 + kotlinx-coroutines 1.8.0 (channels, StateFlow), Compose Material (UI)
-- 043-dataflow-refinements: Added Kotlin 2.1.21 (Kotlin Multiplatform) + kotlinx-coroutines 1.8.0 + kotlinx-coroutines (channels, StateFlow, select), kotlinx-serialization 1.6.0
 
 
 <!-- MANUAL ADDITIONS START -->
