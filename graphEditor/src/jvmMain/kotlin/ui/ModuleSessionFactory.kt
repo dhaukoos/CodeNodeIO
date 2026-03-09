@@ -14,7 +14,7 @@ import io.codenode.stopwatch.stopWatchFlowGraph
 import io.codenode.userprofiles.UserProfilesViewModel
 import io.codenode.userprofiles.generated.UserProfilesController
 import io.codenode.userprofiles.generated.UserProfilesControllerAdapter
-import io.codenode.userprofiles.persistence.UserProfileDao
+import io.codenode.persistence.UserProfileDao
 import io.codenode.userprofiles.userProfilesFlowGraph
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject

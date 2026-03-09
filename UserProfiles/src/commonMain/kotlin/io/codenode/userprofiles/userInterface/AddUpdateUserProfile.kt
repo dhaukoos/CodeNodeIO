@@ -12,7 +12,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import io.codenode.userprofiles.persistence.UserProfileEntity
+import io.codenode.persistence.UserProfileEntity
 
 @Composable
 fun AddUpdateUserProfile(

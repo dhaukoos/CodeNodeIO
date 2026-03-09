@@ -1,4 +1,4 @@
-package io.codenode.userprofiles.persistence
+package io.codenode.persistence
 
 import kotlinx.coroutines.flow.Flow
 

@@ -2,8 +2,8 @@ package io.codenode.userprofiles.processingLogic
 
 import io.codenode.fbpdsl.runtime.In3AnyOut2ProcessBlock
 import io.codenode.fbpdsl.runtime.ProcessResult2
-import io.codenode.userprofiles.persistence.UserProfileEntity
-import io.codenode.userprofiles.persistence.UserProfileRepository
+import io.codenode.persistence.UserProfileEntity
+import io.codenode.persistence.UserProfileRepository
 import io.codenode.userprofiles.UserProfilesPersistence
 
 /**

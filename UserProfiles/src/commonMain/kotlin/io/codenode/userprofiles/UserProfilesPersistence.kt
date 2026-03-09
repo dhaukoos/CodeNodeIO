@@ -1,7 +1,7 @@
 package io.codenode.userprofiles
 
-import io.codenode.userprofiles.persistence.UserProfileDao
-import io.codenode.userprofiles.persistence.UserProfileRepository
+import io.codenode.persistence.UserProfileDao
+import io.codenode.persistence.UserProfileRepository
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.koin.dsl.module
