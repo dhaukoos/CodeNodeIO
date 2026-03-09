@@ -1,4 +1,4 @@
-package io.codenode.persistence
+package io.codenode.userprofiles.persistence
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey

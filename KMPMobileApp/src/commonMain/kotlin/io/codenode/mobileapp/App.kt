@@ -29,6 +29,7 @@ import io.codenode.userprofiles.UserProfilesViewModel
 import io.codenode.userprofiles.generated.UserProfilesController
 import io.codenode.userprofiles.generated.UserProfilesControllerAdapter
 import io.codenode.userprofiles.userProfilesFlowGraph
+import io.codenode.userprofiles.UserProfilesPersistence
 import io.codenode.userprofiles.userInterface.UserProfiles
 
 /**
@@ -66,7 +67,9 @@ fun MainContent() {
             it.start()
         }
     }
-    val userProfilesViewModel = remember { UserProfilesViewModel(UserProfilesControllerAdapter(userProfilesController)) }
+    val userProfilesViewModel = remember {
+        UserProfilesViewModel(UserProfilesControllerAdapter(userProfilesController), UserProfilesPersistence.dao)
+    }
 
     var selectedTab by remember { mutableStateOf(0) }
     val tabs = listOf("StopWatch", "UserProfiles")

@@ -7,8 +7,6 @@
 plugins {
     kotlin("multiplatform")
     id("com.android.library")
-    id("com.google.devtools.ksp")
-    id("androidx.room")
 }
 
 kotlin {
@@ -40,6 +38,7 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
+                implementation(project(":UserProfiles"))
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0")
                 // Room KMP persistence — exposed as api since public types extend RoomDatabase
                 api("androidx.room:room-runtime:2.8.4")
@@ -70,14 +69,3 @@ android {
     }
 }
 
-dependencies {
-    add("kspJvm", "androidx.room:room-compiler:2.8.4")
-    add("kspAndroid", "androidx.room:room-compiler:2.8.4")
-    add("kspIosX64", "androidx.room:room-compiler:2.8.4")
-    add("kspIosArm64", "androidx.room:room-compiler:2.8.4")
-    add("kspIosSimulatorArm64", "androidx.room:room-compiler:2.8.4")
-}
-
-room {
-    schemaDirectory("$projectDir/schemas")
-}

@@ -59,6 +59,8 @@ kotlin {
             implementation(project(":StopWatch"))
             implementation(project(":UserProfiles"))
             implementation(project(":persistence"))
+            // Koin DI
+            implementation("io.insert-koin:koin-core:4.0.0")
             // JetBrains Multiplatform ViewModel
             implementation("org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose:2.8.0")
         }

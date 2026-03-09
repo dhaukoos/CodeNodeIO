@@ -3,6 +3,7 @@ package io.codenode.persistence
 import android.app.Application
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import io.codenode.userprofiles.persistence.AppDatabase
 
 private lateinit var appContext: Application
 

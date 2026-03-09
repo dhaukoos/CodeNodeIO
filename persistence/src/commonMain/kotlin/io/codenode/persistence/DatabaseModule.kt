@@ -2,6 +2,7 @@ package io.codenode.persistence
 
 import androidx.room.RoomDatabase
 import androidx.sqlite.driver.bundled.BundledSQLiteDriver
+import io.codenode.userprofiles.persistence.AppDatabase
 
 object DatabaseModule {
     private var instance: AppDatabase? = null

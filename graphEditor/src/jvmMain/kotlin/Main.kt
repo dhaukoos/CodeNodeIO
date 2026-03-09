@@ -78,6 +78,10 @@ import io.codenode.grapheditor.ui.IPPalette
 import io.codenode.grapheditor.ui.ConnectionContextMenu
 import io.codenode.grapheditor.ui.NavigationBreadcrumbBar
 import io.codenode.grapheditor.ui.NavigationZoomOutButton
+import io.codenode.persistence.DatabaseModule
+import io.codenode.userprofiles.userProfilesModule
+import org.koin.core.context.startKoin
+import org.koin.dsl.module
 import io.codenode.grapheditor.ui.FlowGraphPropertiesDialog
 import io.codenode.fbpdsl.model.FlowGraph.TargetPlatform
 import io.codenode.grapheditor.compilation.CompilationService
@@ -1569,7 +1573,17 @@ private fun findModuleRoot(startDir: File?): File? {
 /**
  * Main entry point for the standalone Graph Editor application
  */
-fun main() = application {
+fun main() {
+    startKoin {
+        modules(
+            module {
+                single { DatabaseModule.getDatabase().userProfileDao() }
+            },
+            userProfilesModule
+        )
+    }
+
+    application {
     val windowState = rememberWindowState(
         width = 1400.dp,
         height = 900.dp
@@ -1581,5 +1595,6 @@ fun main() = application {
         title = "CodeNodeIO Graph Editor - Visual Flow-Based Programming"
     ) {
         GraphEditorApp()
+    }
     }
 }

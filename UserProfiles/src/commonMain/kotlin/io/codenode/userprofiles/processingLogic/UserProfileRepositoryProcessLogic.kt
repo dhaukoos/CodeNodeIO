@@ -2,9 +2,9 @@ package io.codenode.userprofiles.processingLogic
 
 import io.codenode.fbpdsl.runtime.In3AnyOut2ProcessBlock
 import io.codenode.fbpdsl.runtime.ProcessResult2
-import io.codenode.persistence.DatabaseModule
-import io.codenode.persistence.UserProfileEntity
-import io.codenode.persistence.UserProfileRepository
+import io.codenode.userprofiles.persistence.UserProfileEntity
+import io.codenode.userprofiles.persistence.UserProfileRepository
+import io.codenode.userprofiles.UserProfilesPersistence
 
 /**
  * Tick function for the UserProfileRepository node.
@@ -29,7 +29,7 @@ private var lastRemoveRef: Any? = null
 
 val userProfileRepositoryTick: In3AnyOut2ProcessBlock<Any, Any, Any, Any, Any> = { save, update, remove ->
     try {
-        val repo = UserProfileRepository(DatabaseModule.getDatabase().userProfileDao())
+        val repo = UserProfileRepository(UserProfilesPersistence.dao)
         val isFreshSave = save is UserProfileEntity && save !== lastSaveRef
         val isFreshUpdate = update is UserProfileEntity && update !== lastUpdateRef
         val isFreshRemove = remove is UserProfileEntity && remove !== lastRemoveRef

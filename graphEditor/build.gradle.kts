@@ -23,6 +23,9 @@ kotlin {
                 implementation(project(":circuitSimulator"))
                 implementation(project(":StopWatch"))
                 implementation(project(":UserProfiles"))
+                implementation(project(":persistence"))
+                // Koin DI
+                implementation("io.insert-koin:koin-core:4.0.0")
                 // Compose Multiplatform dependencies (using compose DSL)
                 implementation(compose.ui)
                 implementation(compose.foundation)
