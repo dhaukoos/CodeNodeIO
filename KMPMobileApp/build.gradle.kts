@@ -58,6 +58,7 @@ kotlin {
             implementation(project(":fbpDsl"))
             implementation(project(":StopWatch"))
             implementation(project(":UserProfiles"))
+            implementation(project(":persistence"))
             // JetBrains Multiplatform ViewModel
             implementation("org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose:2.8.0")
         }

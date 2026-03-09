@@ -7,7 +7,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import io.codenode.userprofiles.persistence.initializeDatabaseContext
+import io.codenode.persistence.initializeDatabaseContext
 
 /**
  * Main Activity for the Android application.

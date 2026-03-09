@@ -31,4 +31,6 @@
 
 ## Notes
 
-- All items pass. Spec is ready for `/speckit.clarify` or `/speckit.plan`.
+- All items pass. Spec is ready for `/speckit.implement`.
+- US1 was rewritten to use a shared `persistence` module (replacing the original KMPMobileApp approach which was architecturally blocked).
+- Research documents the architectural constraints that led to this approach (R1, R2).

@@ -9,15 +9,12 @@ package io.codenode.userprofiles.generated
 import io.codenode.userprofiles.processingLogic.userProfileRepositoryTick
 
 import io.codenode.userprofiles.UserProfilesState
+import io.codenode.userprofiles.createUserProfileCUD
+import io.codenode.userprofiles.createUserProfilesDisplay
 
 import io.codenode.fbpdsl.model.CodeNodeFactory
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.drop
-import kotlinx.coroutines.launch
-import io.codenode.fbpdsl.runtime.ProcessResult2
-import io.codenode.fbpdsl.runtime.ProcessResult3
 
 /**
  * Flow orchestrator for: UserProfiles
@@ -47,43 +44,9 @@ class UserProfilesFlow {
         process = userProfileRepositoryTick
     )
 
-    internal val userProfileCUD = CodeNodeFactory.createSourceOut3<Any, Any, Any>(
-        name = "UserProfileCUD",
-        generate = { emit ->
-            coroutineScope {
-                launch {
-                    UserProfilesState._save.drop(1).collect { save ->
-                        if (save != null) {
-                            emit(ProcessResult3(save, null, null))
-                            UserProfilesState._save.value = null
-                        }
-                    }
-                }
-                launch {
-                    UserProfilesState._update.drop(1).collect { update ->
-                        if (update != null) {
-                            emit(ProcessResult3(null, update, null))
-                            UserProfilesState._update.value = null
-                        }
-                    }
-                }
-                launch {
-                    UserProfilesState._remove.drop(1).collect { remove ->
-                        if (remove != null) {
-                            emit(ProcessResult3(null, null, remove))
-                            UserProfilesState._remove.value = null
-                        }
-                    }
-                }
-            }
-        }    )
+    internal val userProfileCUD = createUserProfileCUD()
 
-    internal val userProfilesDisplay = CodeNodeFactory.createSinkIn2<Any, Any>(
-        name = "UserProfilesDisplay",
-        consume = { result, error ->
-            UserProfilesState._result.value = result
-            UserProfilesState._error.value = error
-        }    )
+    internal val userProfilesDisplay = createUserProfilesDisplay()
 
     /**
      * Starts the flow with the given coroutine scope.

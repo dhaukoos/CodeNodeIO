@@ -49,6 +49,9 @@ include(":kotlinCompiler")
 include(":goCompiler")
 include(":idePlugin")
 
+// Shared modules
+include(":persistence")
+
 // Mobile app module
 include(":KMPMobileApp")
 

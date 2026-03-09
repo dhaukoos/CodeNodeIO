@@ -12,8 +12,6 @@ plugins {
     id("org.jetbrains.compose")
     id("org.jetbrains.kotlin.plugin.compose")
     id("com.android.library")
-    id("com.google.devtools.ksp")
-    id("androidx.room")
 }
 
 kotlin {
@@ -47,6 +45,7 @@ kotlin {
         val commonMain by getting {
             dependencies {
                 implementation(project(":fbpDsl"))
+                implementation(project(":persistence"))
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0")
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
                 // KMP-compatible lifecycle support (works on all platforms)
@@ -59,9 +58,6 @@ kotlin {
                 implementation("org.jetbrains.compose.ui:ui:1.7.3")
                 // JetBrains Multiplatform ViewModel
                 implementation("org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose:2.8.0")
-                // Room KMP persistence
-                implementation("androidx.room:room-runtime:2.8.4")
-                implementation("androidx.sqlite:sqlite-bundled:2.6.2")
             }
         }
 
@@ -94,14 +90,3 @@ android {
     }
 }
 
-dependencies {
-    add("kspJvm", "androidx.room:room-compiler:2.8.4")
-    add("kspAndroid", "androidx.room:room-compiler:2.8.4")
-    add("kspIosX64", "androidx.room:room-compiler:2.8.4")
-    add("kspIosArm64", "androidx.room:room-compiler:2.8.4")
-    add("kspIosSimulatorArm64", "androidx.room:room-compiler:2.8.4")
-}
-
-room {
-    schemaDirectory("$projectDir/schemas")
-}

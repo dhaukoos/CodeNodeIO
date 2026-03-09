@@ -15,9 +15,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import io.codenode.userprofiles.generated.UserProfilesControllerInterface
-import io.codenode.userprofiles.persistence.DatabaseModule
-import io.codenode.userprofiles.persistence.UserProfileEntity
-import io.codenode.userprofiles.persistence.UserProfileRepository
+import io.codenode.persistence.DatabaseModule
+import io.codenode.persistence.UserProfileEntity
+import io.codenode.persistence.UserProfileRepository
 
 // ===== MODULE PROPERTIES START =====
 // Auto-generated from source output ports and sink input ports. Do not edit this section manually.

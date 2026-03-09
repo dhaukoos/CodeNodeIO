@@ -1,5 +1,5 @@
 package io.codenode.userprofiles
 
-import io.codenode.userprofiles.persistence.UserProfileEntity
+import io.codenode.persistence.UserProfileEntity
 
 typealias UserProfile = UserProfileEntity
