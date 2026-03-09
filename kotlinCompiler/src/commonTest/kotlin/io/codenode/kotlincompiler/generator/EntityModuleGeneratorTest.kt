@@ -1,0 +1,210 @@
+/*
+ * EntityModuleGeneratorTest
+ * End-to-end tests for the EntityModuleGenerator orchestrator.
+ * Validates GeoLocation module generation matches UserProfiles patterns.
+ * License: Apache 2.0
+ */
+
+package io.codenode.kotlincompiler.generator
+
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertTrue
+import kotlin.test.assertNotNull
+
+class EntityModuleGeneratorTest {
+
+    private val generator = EntityModuleGenerator()
+    private val geoLocationSpec = EntityModuleSpec.fromIPType(
+        ipTypeName = "GeoLocation",
+        sourceIPTypeId = "test-geo-id",
+        properties = listOf(
+            EntityProperty("latitude", "Double", isRequired = true),
+            EntityProperty("longitude", "Double", isRequired = true),
+            EntityProperty("label", "String", isRequired = true),
+            EntityProperty("altitude", "Double", isRequired = false),
+            EntityProperty("isActive", "Boolean", isRequired = true)
+        )
+    )
+
+    @Test
+    fun generateModule_producesAllExpectedModuleFiles() {
+        val output = generator.generateModule(geoLocationSpec)
+
+        // Verify the .flow.kt file
+        val flowKtKey = output.moduleFiles.keys.find { it.endsWith("GeoLocations.flow.kt") }
+        assertNotNull(flowKtKey, "Should generate GeoLocations.flow.kt")
+
+        // Verify CUD stub
+        val cudKey = output.moduleFiles.keys.find { it.endsWith("GeoLocationCUD.kt") }
+        assertNotNull(cudKey, "Should generate GeoLocationCUD.kt")
+
+        // Verify Display stub
+        val displayKey = output.moduleFiles.keys.find { it.endsWith("GeoLocationsDisplay.kt") }
+        assertNotNull(displayKey, "Should generate GeoLocationsDisplay.kt")
+
+        // Verify ViewModel
+        val vmKey = output.moduleFiles.keys.find { it.endsWith("GeoLocationsViewModel.kt") }
+        assertNotNull(vmKey, "Should generate GeoLocationsViewModel.kt")
+
+        // Verify Persistence Koin module
+        val persKey = output.moduleFiles.keys.find { it.endsWith("GeoLocationsPersistence.kt") }
+        assertNotNull(persKey, "Should generate GeoLocationsPersistence.kt")
+
+        // Verify 4 generated runtime files
+        val generatedKeys = output.moduleFiles.keys.filter { it.contains("/generated/") }
+        assertTrue(generatedKeys.size >= 4, "Should generate at least 4 runtime files in generated/")
+        assertTrue(generatedKeys.any { it.endsWith("GeoLocationsFlow.kt") }, "Should generate GeoLocationsFlow.kt")
+        assertTrue(generatedKeys.any { it.endsWith("GeoLocationsController.kt") }, "Should generate GeoLocationsController.kt")
+        assertTrue(generatedKeys.any { it.endsWith("GeoLocationsControllerInterface.kt") }, "Should generate GeoLocationsControllerInterface.kt")
+        assertTrue(generatedKeys.any { it.endsWith("GeoLocationsControllerAdapter.kt") }, "Should generate GeoLocationsControllerAdapter.kt")
+
+        // Verify UI files
+        val uiKeys = output.moduleFiles.keys.filter { it.contains("/userInterface/") }
+        assertTrue(uiKeys.any { it.endsWith("GeoLocations.kt") }, "Should generate GeoLocations.kt UI")
+        assertTrue(uiKeys.any { it.endsWith("AddUpdateGeoLocation.kt") }, "Should generate AddUpdateGeoLocation.kt UI")
+        assertTrue(uiKeys.any { it.endsWith("GeoLocationRow.kt") }, "Should generate GeoLocationRow.kt UI")
+    }
+
+    @Test
+    fun generateModule_producesAllPersistenceFiles() {
+        val output = generator.generateModule(geoLocationSpec)
+
+        assertTrue(output.persistenceFiles.keys.any { it.endsWith("GeoLocationEntity.kt") },
+            "Should generate GeoLocationEntity.kt")
+        assertTrue(output.persistenceFiles.keys.any { it.endsWith("GeoLocationDao.kt") },
+            "Should generate GeoLocationDao.kt")
+        assertTrue(output.persistenceFiles.keys.any { it.endsWith("GeoLocationRepository.kt") },
+            "Should generate GeoLocationRepository.kt")
+    }
+
+    @Test
+    fun generateModule_flowKtContainsThreeNodesAndConnections() {
+        val output = generator.generateModule(geoLocationSpec)
+        val flowKt = output.moduleFiles.entries.find { it.key.endsWith("GeoLocations.flow.kt") }!!.value
+
+        assertTrue(flowKt.contains("GeoLocationCUD"), "flow.kt should reference GeoLocationCUD")
+        assertTrue(flowKt.contains("GeoLocationRepository"), "flow.kt should reference GeoLocationRepository")
+        assertTrue(flowKt.contains("GeoLocationsDisplay"), "flow.kt should reference GeoLocationsDisplay")
+    }
+
+    @Test
+    fun generateModule_viewModelContainsCrudMethods() {
+        val output = generator.generateModule(geoLocationSpec)
+        val vm = output.moduleFiles.entries.find { it.key.endsWith("GeoLocationsViewModel.kt") }!!.value
+
+        assertTrue(vm.contains("geoLocationDao: GeoLocationDao"), "ViewModel should have DAO constructor param")
+        assertTrue(vm.contains("fun addEntity("), "ViewModel should have addEntity method")
+        assertTrue(vm.contains("fun updateEntity("), "ViewModel should have updateEntity method")
+        assertTrue(vm.contains("fun removeEntity("), "ViewModel should have removeEntity method")
+        assertTrue(vm.contains("GeoLocationRepository("), "ViewModel should observe repository")
+        assertTrue(vm.contains("import io.codenode.persistence.GeoLocationDao"), "ViewModel should import DAO")
+        assertTrue(vm.contains("import io.codenode.persistence.GeoLocationEntity"), "ViewModel should import Entity")
+    }
+
+    @Test
+    fun generateModule_persistenceEntityHasCorrectFields() {
+        val output = generator.generateModule(geoLocationSpec)
+        val entity = output.persistenceFiles.entries.find { it.key.endsWith("GeoLocationEntity.kt") }!!.value
+
+        assertTrue(entity.contains("latitude"), "Entity should have latitude field")
+        assertTrue(entity.contains("longitude"), "Entity should have longitude field")
+        assertTrue(entity.contains("label"), "Entity should have label field")
+        assertTrue(entity.contains("altitude"), "Entity should have altitude field")
+        assertTrue(entity.contains("isActive"), "Entity should have isActive field")
+    }
+
+    @Test
+    fun generateModule_uiListViewHasButtons() {
+        val output = generator.generateModule(geoLocationSpec)
+        val listView = output.moduleFiles.entries.find {
+            it.key.contains("/userInterface/") && it.key.endsWith("GeoLocations.kt")
+        }!!.value
+
+        assertTrue(listView.contains("@Composable"), "List view should be a composable")
+        assertTrue(listView.contains("fun GeoLocations("), "List view should have correct name")
+    }
+
+    @Test
+    fun generateModule_uiFormHasPropertyFields() {
+        val output = generator.generateModule(geoLocationSpec)
+        val form = output.moduleFiles.entries.find { it.key.endsWith("AddUpdateGeoLocation.kt") }!!.value
+
+        assertTrue(form.contains("@Composable"), "Form should be a composable")
+        assertTrue(form.contains("fun AddUpdateGeoLocation("), "Form should have correct name")
+        assertTrue(form.contains("latitude"), "Form should have latitude field")
+        assertTrue(form.contains("longitude"), "Form should have longitude field")
+        assertTrue(form.contains("label"), "Form should have label field")
+    }
+
+    @Test
+    fun generateModule_flowGraphHasCorrectStructure() {
+        val output = generator.generateModule(geoLocationSpec)
+        val flowGraph = output.flowGraph
+
+        assertEquals("GeoLocations", flowGraph.name.pascalCase())
+        val nodes = flowGraph.getAllNodes()
+        assertEquals(3, nodes.size, "FlowGraph should have 3 nodes")
+        assertEquals(5, flowGraph.connections.size, "FlowGraph should have 5 connections")
+    }
+
+    @Test
+    fun generateModule_cudStubHasReactiveSourceFlows() {
+        val output = generator.generateModule(geoLocationSpec)
+        val cud = output.moduleFiles.entries.find { it.key.endsWith("GeoLocationCUD.kt") }!!.value
+
+        assertTrue(cud.contains("GeoLocationsState"), "CUD should reference module state")
+        assertTrue(cud.contains("_save"), "CUD should reference _save flow")
+        assertTrue(cud.contains("_update"), "CUD should reference _update flow")
+        assertTrue(cud.contains("_remove"), "CUD should reference _remove flow")
+    }
+
+    @Test
+    fun generateModule_displayStubHandlesTwoInputs() {
+        val output = generator.generateModule(geoLocationSpec)
+        val display = output.moduleFiles.entries.find { it.key.endsWith("GeoLocationsDisplay.kt") }!!.value
+
+        assertTrue(display.contains("GeoLocationsState"), "Display should reference module state")
+        assertTrue(display.contains("_result") || display.contains("result"),
+            "Display should handle result input")
+        assertTrue(display.contains("_error") || display.contains("error"),
+            "Display should handle error input")
+    }
+
+    // Edge case: entity with no properties (only auto-generated id)
+    @Test
+    fun generateModule_emptyProperties_producesValidOutput() {
+        val emptySpec = EntityModuleSpec.fromIPType(
+            ipTypeName = "EmptyItem",
+            sourceIPTypeId = "test-empty-id",
+            properties = emptyList()
+        )
+        val output = generator.generateModule(emptySpec)
+
+        // All key files should still be generated
+        assertTrue(output.moduleFiles.isNotEmpty(), "Should produce module files")
+        assertTrue(output.persistenceFiles.isNotEmpty(), "Should produce persistence files")
+
+        // ViewModel should still be valid
+        val vm = output.moduleFiles.entries.find { it.key.endsWith("EmptyItemsViewModel.kt") }!!.value
+        assertTrue(vm.contains("class EmptyItemsViewModel"), "ViewModel class should be generated")
+
+        // UI list view should be valid
+        val listView = output.moduleFiles.entries.find {
+            it.key.contains("/userInterface/") && it.key.endsWith("EmptyItems.kt")
+        }!!.value
+        assertTrue(listView.contains("fun EmptyItems("), "List view should be generated")
+
+        // Form view should be valid even without fields
+        val form = output.moduleFiles.entries.find { it.key.endsWith("AddUpdateEmptyItem.kt") }!!.value
+        assertTrue(form.contains("fun AddUpdateEmptyItem("), "Form should be generated")
+
+        // Row view should be valid
+        val row = output.moduleFiles.entries.find { it.key.endsWith("EmptyItemRow.kt") }!!.value
+        assertTrue(row.contains("fun EmptyItemRow("), "Row should be generated")
+
+        // Entity should just have an id
+        val entity = output.persistenceFiles.entries.find { it.key.endsWith("EmptyItemEntity.kt") }!!.value
+        assertTrue(entity.contains("EmptyItemEntity"), "Entity should be generated")
+    }
+}

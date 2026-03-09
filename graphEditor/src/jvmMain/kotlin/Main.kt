@@ -65,6 +65,8 @@ import io.codenode.grapheditor.ui.IPGeneratorPanel
 import io.codenode.grapheditor.state.rememberPropertyChangeTracker
 import io.codenode.grapheditor.serialization.FlowKtParser
 import io.codenode.grapheditor.save.ModuleSaveService
+import io.codenode.kotlincompiler.generator.EntityModuleSpec
+import io.codenode.kotlincompiler.generator.EntityProperty
 import io.codenode.fbpdsl.model.NodeTypeDefinition
 import io.codenode.fbpdsl.model.PortTemplate
 import io.codenode.fbpdsl.model.Port
@@ -80,6 +82,7 @@ import io.codenode.grapheditor.ui.NavigationBreadcrumbBar
 import io.codenode.grapheditor.ui.NavigationZoomOutButton
 import io.codenode.persistence.DatabaseModule
 import io.codenode.userprofiles.userProfilesModule
+import io.codenode.geolocations.geoLocationsModule
 import org.koin.core.context.startKoin
 import org.koin.dsl.module
 import io.codenode.grapheditor.ui.FlowGraphPropertiesDialog
@@ -1075,22 +1078,77 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                                 statusMessage = "Changed port type to: $typeName"
                             }
                         },
-                        onCreateRepositoryNode = selectedIPType?.let { ipType ->
+                        onCreateRepositoryModule = selectedIPType?.let { ipType ->
                             val props = ipTypeRegistry.getCustomTypeProperties(ipType.id)
                             if (props != null && props.isNotEmpty()) {
                                 {
+                                    // Create all 3 node definitions for the entity module
+                                    val cudDef = CustomNodeDefinition.createCUD(
+                                        ipTypeName = ipType.typeName,
+                                        sourceIPTypeId = ipType.id
+                                    )
                                     val repoDef = CustomNodeDefinition.createRepository(
                                         ipTypeName = ipType.typeName,
                                         sourceIPTypeId = ipType.id
                                     )
+                                    val displayDef = CustomNodeDefinition.createDisplay(
+                                        ipTypeName = ipType.typeName,
+                                        sourceIPTypeId = ipType.id
+                                    )
+                                    customNodeRepository.add(cudDef)
                                     customNodeRepository.add(repoDef)
+                                    customNodeRepository.add(displayDef)
                                     customNodes = customNodeRepository.getAll()
-                                    statusMessage = "Created ${repoDef.name} node"
+
+                                    // Build EntityModuleSpec and save the entity module
+                                    val entityProps = props.map { prop ->
+                                        EntityProperty(
+                                            name = prop.name,
+                                            kotlinType = when (prop.typeId) {
+                                                "ip_int" -> "Int"
+                                                "ip_double" -> "Double"
+                                                "ip_boolean" -> "Boolean"
+                                                "ip_string" -> "String"
+                                                else -> "String"
+                                            },
+                                            isRequired = prop.isRequired
+                                        )
+                                    }
+                                    val spec = EntityModuleSpec.fromIPType(
+                                        ipTypeName = ipType.typeName,
+                                        sourceIPTypeId = ipType.id,
+                                        properties = entityProps
+                                    )
+
+                                    // Prompt user for output directory and save
+                                    val outputDir = showDirectoryChooser("Save Entity Module To")
+                                    if (outputDir != null) {
+                                        val persistenceDir = java.io.File(
+                                            outputDir.parentFile,
+                                            "persistence/src/commonMain/kotlin/io/codenode/persistence"
+                                        )
+                                        val result = moduleSaveService.saveEntityModule(
+                                            spec = spec,
+                                            moduleOutputDir = outputDir,
+                                            persistenceDir = persistenceDir
+                                        )
+                                        if (result.success) {
+                                            val created = result.filesCreated.size
+                                            val overwritten = result.filesOverwritten.size
+                                            statusMessage = "Created ${spec.pluralName} module: $created created, $overwritten overwritten"
+                                        } else {
+                                            statusMessage = "Module creation error: ${result.errorMessage}"
+                                        }
+                                    }
+
+                                    statusMessage = "Created ${spec.pluralName} entity module nodes"
                                 }
                             } else null
                         },
-                        repositoryExists = selectedIPType?.let { ipType ->
-                            customNodes.any { it.isRepository && it.sourceIPTypeId == ipType.id }
+                        moduleExists = selectedIPType?.let { ipType ->
+                            customNodes.any { it.isCudSource && it.sourceIPTypeId == ipType.id } &&
+                            customNodes.any { it.isRepository && it.sourceIPTypeId == ipType.id } &&
+                            customNodes.any { it.isDisplay && it.sourceIPTypeId == ipType.id }
                         } ?: false,
                         debugger = runtimeSession?.debugger,
                         isPaused = runtimeExecutionState == ExecutionState.PAUSED,
@@ -1578,8 +1636,10 @@ fun main() {
         modules(
             module {
                 single { DatabaseModule.getDatabase().userProfileDao() }
+                single { DatabaseModule.getDatabase().geoLocationDao() }
             },
-            userProfilesModule
+            userProfilesModule,
+            geoLocationsModule
         )
     }
 

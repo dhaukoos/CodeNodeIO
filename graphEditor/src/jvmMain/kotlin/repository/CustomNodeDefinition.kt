@@ -31,6 +31,8 @@ data class CustomNodeDefinition(
     val createdAt: Long,
     val anyInput: Boolean = false,
     val isRepository: Boolean = false,
+    val isCudSource: Boolean = false,
+    val isDisplay: Boolean = false,
     val sourceIPTypeId: String? = null,
     val sourceIPTypeName: String? = null
 ) {
@@ -77,6 +79,50 @@ data class CustomNodeDefinition(
                 sourceIPTypeName = ipTypeName
             )
         }
+
+        /**
+         * Factory method to create a CUD (Create/Update/Delete) source node definition.
+         * Source node with 0 inputs and 3 outputs (save, update, remove).
+         *
+         * @param ipTypeName Name of the source IP type (e.g., "GeoLocation")
+         * @param sourceIPTypeId ID of the source custom IP type
+         * @return CustomNodeDefinition configured as a CUD source node
+         */
+        fun createCUD(ipTypeName: String, sourceIPTypeId: String): CustomNodeDefinition {
+            return CustomNodeDefinition(
+                id = "custom_node_${UUID.randomUUID()}",
+                name = "${ipTypeName}CUD",
+                inputCount = 0,
+                outputCount = 3,
+                genericType = "sourceout3",
+                createdAt = System.currentTimeMillis(),
+                isCudSource = true,
+                sourceIPTypeId = sourceIPTypeId,
+                sourceIPTypeName = ipTypeName
+            )
+        }
+
+        /**
+         * Factory method to create a Display sink node definition.
+         * Sink node with 2 inputs (entities, error) and 0 outputs.
+         *
+         * @param ipTypeName Name of the source IP type (e.g., "GeoLocation")
+         * @param sourceIPTypeId ID of the source custom IP type
+         * @return CustomNodeDefinition configured as a Display sink node
+         */
+        fun createDisplay(ipTypeName: String, sourceIPTypeId: String): CustomNodeDefinition {
+            return CustomNodeDefinition(
+                id = "custom_node_${UUID.randomUUID()}",
+                name = "${ipTypeName}sDisplay",
+                inputCount = 2,
+                outputCount = 0,
+                genericType = "in2sink",
+                createdAt = System.currentTimeMillis(),
+                isDisplay = true,
+                sourceIPTypeId = sourceIPTypeId,
+                sourceIPTypeName = ipTypeName
+            )
+        }
     }
 
     /**
@@ -96,6 +142,30 @@ data class CustomNodeDefinition(
                 outputNames = listOf("result", "error")
             )
                 .addConfigurationDefault("_repository", "true")
+                .addConfigurationDefault("_sourceIPTypeId", sourceIPTypeId!!)
+                .addConfigurationDefault("_sourceIPTypeName", sourceIPTypeName)
+        }
+        if (isCudSource && sourceIPTypeName != null) {
+            return createGenericNodeType(
+                numInputs = inputCount,
+                numOutputs = outputCount,
+                customName = name,
+                customDescription = "${sourceIPTypeName} CUD source with save/update/remove outputs",
+                outputNames = listOf("save", "update", "remove")
+            )
+                .addConfigurationDefault("_cudSource", "true")
+                .addConfigurationDefault("_sourceIPTypeId", sourceIPTypeId!!)
+                .addConfigurationDefault("_sourceIPTypeName", sourceIPTypeName)
+        }
+        if (isDisplay && sourceIPTypeName != null) {
+            return createGenericNodeType(
+                numInputs = inputCount,
+                numOutputs = outputCount,
+                customName = name,
+                customDescription = "${sourceIPTypeName} display sink with entities and error inputs",
+                inputNames = listOf("entities", "error")
+            )
+                .addConfigurationDefault("_display", "true")
                 .addConfigurationDefault("_sourceIPTypeId", sourceIPTypeId!!)
                 .addConfigurationDefault("_sourceIPTypeName", sourceIPTypeName)
         }

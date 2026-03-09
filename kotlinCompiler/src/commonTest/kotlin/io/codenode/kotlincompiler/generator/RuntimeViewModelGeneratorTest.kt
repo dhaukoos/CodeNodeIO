@@ -386,6 +386,155 @@ class RuntimeViewModelGeneratorTest {
         assertTrue(result.contains("// User-editable section below"))
     }
 
+    // ========== Entity Module Detection Tests ==========
+
+    @Test
+    fun `entity module generates DAO constructor parameter`() {
+        val flowGraph = createEntityModuleFlow()
+        val result = generator.generate(flowGraph, basePackage, generatedPackage)
+
+        assertTrue(result.contains("geoLocationDao: GeoLocationDao"))
+    }
+
+    @Test
+    fun `entity module generates addEntity method`() {
+        val flowGraph = createEntityModuleFlow()
+        val result = generator.generate(flowGraph, basePackage, generatedPackage)
+
+        assertTrue(result.contains("fun addEntity(geoLocation: GeoLocationEntity)"))
+    }
+
+    @Test
+    fun `entity module generates updateEntity method`() {
+        val flowGraph = createEntityModuleFlow()
+        val result = generator.generate(flowGraph, basePackage, generatedPackage)
+
+        assertTrue(result.contains("fun updateEntity(geoLocation: GeoLocationEntity)"))
+    }
+
+    @Test
+    fun `entity module generates removeEntity method`() {
+        val flowGraph = createEntityModuleFlow()
+        val result = generator.generate(flowGraph, basePackage, generatedPackage)
+
+        assertTrue(result.contains("fun removeEntity(geoLocation: GeoLocationEntity)"))
+    }
+
+    @Test
+    fun `entity module generates repository observation in init block`() {
+        val flowGraph = createEntityModuleFlow()
+        val result = generator.generate(flowGraph, basePackage, generatedPackage)
+
+        assertTrue(result.contains("init {"))
+        assertTrue(result.contains("GeoLocationRepository(geoLocationDao)"))
+        assertTrue(result.contains("repo.observeAll().collect"))
+    }
+
+    @Test
+    fun `entity module generates persistence imports`() {
+        val flowGraph = createEntityModuleFlow()
+        val result = generator.generate(flowGraph, basePackage, generatedPackage)
+
+        assertTrue(result.contains("import io.codenode.persistence.GeoLocationDao"))
+        assertTrue(result.contains("import io.codenode.persistence.GeoLocationEntity"))
+        assertTrue(result.contains("import io.codenode.persistence.GeoLocationRepository"))
+    }
+
+    @Test
+    fun `entity module generates viewModelScope import`() {
+        val flowGraph = createEntityModuleFlow()
+        val result = generator.generate(flowGraph, basePackage, generatedPackage)
+
+        assertTrue(result.contains("import androidx.lifecycle.viewModelScope"))
+        assertTrue(result.contains("import kotlinx.coroutines.launch"))
+    }
+
+    @Test
+    fun `entity module generates profiles state in module properties`() {
+        val flowGraph = createEntityModuleFlow()
+        val result = generator.generate(flowGraph, basePackage, generatedPackage)
+
+        assertTrue(result.contains("internal val _geoLocations = MutableStateFlow<List<GeoLocationEntity>>(emptyList())"))
+    }
+
+    @Test
+    fun `entity module generates geoLocations property in ViewModel`() {
+        val flowGraph = createEntityModuleFlow()
+        val result = generator.generate(flowGraph, basePackage, generatedPackage)
+
+        assertTrue(result.contains("val geoLocations: StateFlow<List<GeoLocationEntity>>"))
+    }
+
+    @Test
+    fun `non-entity flow does not generate CRUD methods`() {
+        val flowGraph = createStopWatchLikeFlow()
+        val result = generator.generate(flowGraph, basePackage, generatedPackage)
+
+        assertFalse(result.contains("fun addEntity"))
+        assertFalse(result.contains("fun updateEntity"))
+        assertFalse(result.contains("fun removeEntity"))
+    }
+
+    // ========== Helper: Entity Module FlowGraph ==========
+
+    private fun createEntityModuleFlow(): FlowGraph {
+        val cudNode = CodeNode(
+            id = "cud",
+            name = "GeoLocationCUD",
+            codeNodeType = CodeNodeType.GENERIC,
+            position = Node.Position(100.0, 400.0),
+            outputPorts = listOf(
+                outputPort("cud_save", "save", Any::class, "cud"),
+                outputPort("cud_update", "update", Any::class, "cud"),
+                outputPort("cud_remove", "remove", Any::class, "cud")
+            ),
+            configuration = mapOf(
+                "_cudSource" to "true",
+                "_sourceIPTypeId" to "ip_test",
+                "_sourceIPTypeName" to "GeoLocation"
+            )
+        )
+        val repoNode = CodeNode(
+            id = "repo",
+            name = "GeoLocationRepository",
+            codeNodeType = CodeNodeType.GENERIC,
+            position = Node.Position(400.0, 400.0),
+            inputPorts = listOf(
+                inputPort("repo_save", "save", Any::class, "repo"),
+                inputPort("repo_update", "update", Any::class, "repo"),
+                inputPort("repo_remove", "remove", Any::class, "repo")
+            ),
+            outputPorts = listOf(
+                outputPort("repo_result", "result", Any::class, "repo"),
+                outputPort("repo_error", "error", Any::class, "repo")
+            ),
+            configuration = mapOf(
+                "_repository" to "true",
+                "_sourceIPTypeId" to "ip_test",
+                "_sourceIPTypeName" to "GeoLocation"
+            )
+        )
+        val displayNode = CodeNode(
+            id = "display",
+            name = "GeoLocationsDisplay",
+            codeNodeType = CodeNodeType.GENERIC,
+            position = Node.Position(700.0, 400.0),
+            inputPorts = listOf(
+                inputPort("disp_result", "result", Any::class, "display"),
+                inputPort("disp_error", "error", Any::class, "display")
+            ),
+            configuration = mapOf(
+                "_display" to "true",
+                "_sourceIPTypeId" to "ip_test",
+                "_sourceIPTypeName" to "GeoLocation"
+            )
+        )
+        return createFlowGraph(
+            name = "GeoLocations",
+            nodes = listOf(cudNode, repoNode, displayNode)
+        )
+    }
+
     // ========== Helper: StopWatch-like FlowGraph ==========
 
     private fun createStopWatchLikeFlow(): FlowGraph {

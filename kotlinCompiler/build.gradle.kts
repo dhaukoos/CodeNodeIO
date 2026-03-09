@@ -59,3 +59,14 @@ tasks.register<JavaExec>("regenerateStopWatch") {
     dependsOn("jvmMainClasses")
 }
 
+// Task to generate GeoLocations module for validation
+tasks.register<JavaExec>("generateGeoLocationModule") {
+    description = "Generate GeoLocations entity module for end-to-end validation"
+    group = "generation"
+    mainClass.set("io.codenode.kotlincompiler.GenerateGeoLocationModuleKt")
+    classpath = kotlin.jvm().compilations["main"].runtimeDependencyFiles +
+            kotlin.jvm().compilations["main"].output.allOutputs
+    workingDir = rootDir
+    dependsOn("jvmMainClasses")
+}
+

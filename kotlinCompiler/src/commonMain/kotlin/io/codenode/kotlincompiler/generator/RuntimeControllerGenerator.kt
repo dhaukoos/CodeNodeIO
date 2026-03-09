@@ -139,7 +139,8 @@ class RuntimeControllerGenerator {
         if (observableProps.isEmpty()) return
 
         observableProps.forEach { prop ->
-            appendLine("    val ${prop.name}: StateFlow<${prop.typeName}> = flow.${prop.name}Flow")
+            val typeStr = if (prop.defaultValue == "null") "${prop.typeName}?" else prop.typeName
+            appendLine("    val ${prop.name}: StateFlow<$typeStr> = flow.${prop.name}Flow")
         }
         appendLine()
     }
@@ -182,19 +183,23 @@ class RuntimeControllerGenerator {
         appendLine("            flow.start(scope)")
 
         // Prime source node output channels with initial state values
+        // Skip entity CUD source nodes (they use stubs that handle their own collection)
         if (hasSourcesWithState) {
-            appendLine()
-            sourceNodes.forEach { node ->
-                val varName = node.name.camelCase()
-                val nodeProps = node.outputPorts.mapNotNull { port ->
-                    observableProps.find { prop ->
-                        prop.sourceNodeName == node.name && prop.sourcePortName == port.name
+            val nonEntitySourceNodes = sourceNodes.filter { it.configuration["_cudSource"] != "true" }
+            if (nonEntitySourceNodes.isNotEmpty()) {
+                appendLine()
+                nonEntitySourceNodes.forEach { node ->
+                    val varName = node.name.camelCase()
+                    val nodeProps = node.outputPorts.mapNotNull { port ->
+                        observableProps.find { prop ->
+                            prop.sourceNodeName == node.name && prop.sourcePortName == port.name
+                        }
                     }
-                }
-                val outputCount = node.outputPorts.size
-                nodeProps.forEachIndexed { index, prop ->
-                    val channelProp = if (outputCount == 1) "outputChannel" else "outputChannel${index + 1}"
-                    appendLine("            flow.$varName.$channelProp?.send(${flowName}State._${prop.name}.value)")
+                    val outputCount = node.outputPorts.size
+                    nodeProps.forEachIndexed { index, prop ->
+                        val channelProp = if (outputCount == 1) "outputChannel" else "outputChannel${index + 1}"
+                        appendLine("            flow.$varName.$channelProp?.send(${flowName}State._${prop.name}.value)")
+                    }
                 }
             }
         }

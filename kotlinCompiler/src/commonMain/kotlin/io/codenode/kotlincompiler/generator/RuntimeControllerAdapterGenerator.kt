@@ -87,7 +87,8 @@ class RuntimeControllerAdapterGenerator {
 
     private fun StringBuilder.generateObservableStateDelegation(observableProps: List<ObservableProperty>) {
         observableProps.forEach { prop ->
-            appendLine("    override val ${prop.name}: StateFlow<${prop.typeName}>")
+            val typeStr = if (prop.defaultValue == "null") "${prop.typeName}?" else prop.typeName
+            appendLine("    override val ${prop.name}: StateFlow<$typeStr>")
             appendLine("        get() = controller.${prop.name}")
             appendLine()
         }

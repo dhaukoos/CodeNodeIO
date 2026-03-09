@@ -44,6 +44,7 @@ class ModuleGenerator {
         const val COROUTINES_VERSION = "1.8.0"
         const val SERIALIZATION_VERSION = "1.6.0"
         const val LIFECYCLE_VERSION = "2.8.0"
+        const val KOIN_VERSION = "4.0.0"
 
         /**
          * Maps Connection.channelCapacity to the appropriate Channel constructor argument.
@@ -207,7 +208,7 @@ class ModuleGenerator {
      * @param moduleName The module name
      * @return Generated build.gradle.kts content
      */
-    fun generateBuildGradle(flowGraph: FlowGraph, moduleName: String): String {
+    fun generateBuildGradle(flowGraph: FlowGraph, moduleName: String, isEntityModule: Boolean = false): String {
         return buildString {
             // Header
             appendLine("/*")
@@ -303,10 +304,24 @@ class ModuleGenerator {
             appendLine("        val commonMain by getting {")
             appendLine("            dependencies {")
             appendLine("                implementation(project(\":fbpDsl\"))")
+            if (isEntityModule) {
+                appendLine("                implementation(project(\":persistence\"))")
+                appendLine("                // Koin DI")
+                appendLine("                implementation(\"io.insert-koin:koin-core:$KOIN_VERSION\")")
+            }
             appendLine("                implementation(\"org.jetbrains.kotlinx:kotlinx-coroutines-core:$COROUTINES_VERSION\")")
             appendLine("                implementation(\"org.jetbrains.kotlinx:kotlinx-serialization-json:$SERIALIZATION_VERSION\")")
             appendLine("                // KMP-compatible lifecycle support (works on all platforms)")
             appendLine("                implementation(\"org.jetbrains.androidx.lifecycle:lifecycle-runtime-compose:$LIFECYCLE_VERSION\")")
+            if (isEntityModule) {
+                appendLine("                // Compose UI dependencies (for userInterface composables)")
+                appendLine("                implementation(\"org.jetbrains.compose.runtime:runtime:$COMPOSE_VERSION\")")
+                appendLine("                implementation(\"org.jetbrains.compose.foundation:foundation:$COMPOSE_VERSION\")")
+                appendLine("                implementation(\"org.jetbrains.compose.material3:material3:$COMPOSE_VERSION\")")
+                appendLine("                implementation(\"org.jetbrains.compose.ui:ui:$COMPOSE_VERSION\")")
+                appendLine("                // JetBrains Multiplatform ViewModel")
+                appendLine("                implementation(\"org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose:$LIFECYCLE_VERSION\")")
+            }
             appendLine("            }")
             appendLine("        }")
             appendLine()

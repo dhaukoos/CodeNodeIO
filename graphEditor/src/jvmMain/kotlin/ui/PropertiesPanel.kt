@@ -1214,8 +1214,8 @@ private fun ConnectionInfoRow(
 fun IPTypePropertiesPanel(
     ipType: InformationPacketType,
     ipTypeRegistry: IPTypeRegistry,
-    onCreateRepositoryNode: (() -> Unit)? = null,
-    repositoryExists: Boolean = false,
+    onCreateRepositoryModule: (() -> Unit)? = null,
+    moduleExists: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     Surface(
@@ -1315,17 +1315,17 @@ fun IPTypePropertiesPanel(
                     }
                 }
 
-                // Create Repository Node button (visible only for custom types with properties)
-                if (onCreateRepositoryNode != null) {
+                // Create Repository Module button (visible only for custom types with properties)
+                if (onCreateRepositoryModule != null) {
                     Spacer(modifier = Modifier.height(16.dp))
 
                     Button(
-                        onClick = { onCreateRepositoryNode() },
-                        enabled = !repositoryExists,
+                        onClick = { onCreateRepositoryModule() },
+                        enabled = !moduleExists,
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Text(
-                            text = if (repositoryExists) "Repository exists" else "Create Repository Node",
+                            text = if (moduleExists) "Module exists" else "Create Repository Module",
                             fontSize = 12.sp
                         )
                     }
@@ -1450,8 +1450,8 @@ fun CompactPropertiesPanelWithViewModel(
     onGraphNodeNameChanged: (String) -> Unit = {},
     onGraphNodePortNameChanged: (String, String) -> Unit = { _, _ -> },
     onGraphNodePortTypeChanged: (String, String) -> Unit = { _, _ -> },
-    onCreateRepositoryNode: (() -> Unit)? = null,
-    repositoryExists: Boolean = false,
+    onCreateRepositoryModule: (() -> Unit)? = null,
+    moduleExists: Boolean = false,
     debugger: io.codenode.circuitsimulator.DataFlowDebugger? = null,
     isPaused: Boolean = false,
     isAnimateDataFlow: Boolean = false,
@@ -1473,8 +1473,8 @@ fun CompactPropertiesPanelWithViewModel(
         IPTypePropertiesPanel(
             ipType = selectedIPType,
             ipTypeRegistry = ipTypeRegistry,
-            onCreateRepositoryNode = onCreateRepositoryNode,
-            repositoryExists = repositoryExists,
+            onCreateRepositoryModule = onCreateRepositoryModule,
+            moduleExists = moduleExists,
             modifier = modifier.width(280.dp)
         )
     } else if (selectedConnection != null && flowGraph != null) {

@@ -86,7 +86,8 @@ class RuntimeControllerInterfaceGenerator {
 
     private fun StringBuilder.generateObservableStateDeclarations(observableProps: List<ObservableProperty>) {
         observableProps.forEach { prop ->
-            appendLine("    val ${prop.name}: StateFlow<${prop.typeName}>")
+            val typeStr = if (prop.defaultValue == "null") "${prop.typeName}?" else prop.typeName
+            appendLine("    val ${prop.name}: StateFlow<$typeStr>")
         }
         appendLine()
     }

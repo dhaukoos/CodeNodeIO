@@ -101,6 +101,18 @@ class RuntimeFlowGenerator {
         // Import {ModuleName}State from viewModel package
         if (hasObservableState) {
             appendLine("import $viewModelPackage.${flowName}State")
+        }
+
+        // Import entity stub functions (CUD source, Display sink)
+        val cudNode = codeNodes.find { it.configuration["_cudSource"] == "true" }
+        val displayNode = codeNodes.find { it.configuration["_display"] == "true" }
+        if (cudNode != null) {
+            appendLine("import $viewModelPackage.create${cudNode.name.pascalCase()}")
+        }
+        if (displayNode != null) {
+            appendLine("import $viewModelPackage.create${displayNode.name.pascalCase()}")
+        }
+        if (hasObservableState || cudNode != null || displayNode != null) {
             appendLine()
         }
 
@@ -111,8 +123,11 @@ class RuntimeFlowGenerator {
             appendLine("import kotlinx.coroutines.flow.StateFlow")
         }
 
-        // Reactive source imports
-        val sourceNodes = codeNodes.filter { it.inputPorts.isEmpty() && it.outputPorts.isNotEmpty() }
+        // Reactive source imports (only for non-entity source nodes)
+        val sourceNodes = codeNodes.filter {
+            it.inputPorts.isEmpty() && it.outputPorts.isNotEmpty() &&
+            it.configuration["_cudSource"] != "true"
+        }
         if (sourceNodes.isNotEmpty() && hasObservableState) {
             val maxOutputs = sourceNodes.maxOf { it.outputPorts.size }
             if (maxOutputs >= 2) {
@@ -151,7 +166,8 @@ class RuntimeFlowGenerator {
     ) {
         appendLine("    // Observable state delegated from module state")
         observableProps.forEach { prop ->
-            appendLine("    val ${prop.name}Flow: StateFlow<${prop.typeName}> = ${flowName}State.${prop.name}Flow")
+            val typeStr = if (prop.defaultValue == "null") "${prop.typeName}?" else prop.typeName
+            appendLine("    val ${prop.name}Flow: StateFlow<$typeStr> = ${flowName}State.${prop.name}Flow")
         }
         appendLine()
     }
@@ -165,6 +181,21 @@ class RuntimeFlowGenerator {
         appendLine("    // Runtime instances")
         codeNodes.forEach { node ->
             val varName = node.name.camelCase()
+            val isCudSource = node.configuration["_cudSource"] == "true"
+            val isDisplaySink = node.configuration["_display"] == "true"
+
+            // Entity CUD source and Display sink nodes use stub functions
+            if (isCudSource) {
+                appendLine("    internal val $varName = create${node.name.pascalCase()}()")
+                appendLine()
+                return@forEach
+            }
+            if (isDisplaySink) {
+                appendLine("    internal val $varName = create${node.name.pascalCase()}()")
+                appendLine()
+                return@forEach
+            }
+
             val anyInput = node.configuration["_genericType"]?.contains("any") == true
             val factoryMethod = runtimeTypeResolver.getFactoryMethodName(node, anyInput)
             val typeParams = getFactoryTypeParams(node)

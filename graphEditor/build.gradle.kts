@@ -23,6 +23,7 @@ kotlin {
                 implementation(project(":circuitSimulator"))
                 implementation(project(":StopWatch"))
                 implementation(project(":UserProfiles"))
+                implementation(project(":GeoLocations"))
                 implementation(project(":persistence"))
                 // Koin DI
                 implementation("io.insert-koin:koin-core:4.0.0")

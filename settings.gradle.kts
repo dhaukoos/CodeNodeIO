@@ -58,4 +58,5 @@ include(":KMPMobileApp")
 // Generated modules (from FlowGraph compilation)
 include(":StopWatch")
 include(":UserProfiles")
+include(":GeoLocations")
 

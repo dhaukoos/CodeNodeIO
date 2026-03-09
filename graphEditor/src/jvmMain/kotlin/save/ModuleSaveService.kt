@@ -19,6 +19,8 @@ import io.codenode.kotlincompiler.generator.UserInterfaceStubGenerator
 import io.codenode.kotlincompiler.generator.RepositoryCodeGenerator
 import io.codenode.kotlincompiler.generator.EntityProperty
 import io.codenode.kotlincompiler.generator.EntityInfo
+import io.codenode.kotlincompiler.generator.EntityModuleSpec
+import io.codenode.kotlincompiler.generator.EntityModuleGenerator
 import java.io.File
 
 /**
@@ -204,6 +206,115 @@ class ModuleSaveService {
                 success = false,
                 errorMessage = "Failed to save module: ${e.message}"
             )
+        }
+    }
+
+    private val entityModuleGenerator = EntityModuleGenerator()
+
+    /**
+     * Saves a complete entity CRUD module generated from an EntityModuleSpec.
+     *
+     * Creates the module directory, writes all entity module files (nodes, FlowGraph,
+     * ViewModel, UI, persistence wiring), and writes persistence files (Entity, DAO,
+     * Repository) to the shared persistence module. Regenerates AppDatabase.kt with
+     * all known entities.
+     *
+     * @param spec The entity module specification
+     * @param moduleOutputDir Parent directory where the module will be created
+     * @param persistenceDir The persistence module source directory
+     * @return ModuleSaveResult with success status and file tracking
+     */
+    fun saveEntityModule(
+        spec: EntityModuleSpec,
+        moduleOutputDir: File,
+        persistenceDir: File
+    ): ModuleSaveResult {
+        return try {
+            val output = entityModuleGenerator.generateModule(spec)
+            val moduleDir = File(moduleOutputDir, spec.pluralName)
+
+            val filesCreated = mutableListOf<String>()
+            val filesOverwritten = mutableListOf<String>()
+
+            // Create module directory structure
+            createDirectoryStructure(moduleDir, spec.basePackage, output.flowGraph)
+            createDirectoryStructure(moduleDir, "${spec.basePackage}.$GENERATED_SUBPACKAGE", output.flowGraph)
+            createDirectoryStructure(moduleDir, "${spec.basePackage}.$PROCESSING_LOGIC_SUBPACKAGE", output.flowGraph)
+            createDirectoryStructure(moduleDir, "${spec.basePackage}.$USER_INTERFACE_SUBPACKAGE", output.flowGraph)
+
+            // Write build.gradle.kts (only if new)
+            writeFileIfNew(
+                File(moduleDir, "build.gradle.kts"),
+                moduleGenerator.generateBuildGradle(output.flowGraph, spec.pluralName, isEntityModule = true),
+                "build.gradle.kts",
+                filesCreated
+            )
+
+            // Write all module files
+            for ((relativePath, content) in output.moduleFiles) {
+                val file = File(moduleDir, relativePath)
+                file.parentFile.mkdirs()
+                writeFileAlways(file, content, relativePath, filesCreated, filesOverwritten)
+            }
+
+            // Write persistence files to the shared persistence module
+            for ((relativePath, content) in output.persistenceFiles) {
+                val file = File(persistenceDir, relativePath.removePrefix("src/commonMain/kotlin/${spec.persistencePackage.replace(".", "/")}/"))
+                    .let { File(persistenceDir, it.name) }
+                if (!file.exists()) {
+                    file.writeText(content)
+                    filesCreated.add("persistence/${file.name}")
+                }
+            }
+
+            // Regenerate AppDatabase.kt with all entities
+            regenerateAppDatabase(persistenceDir, spec, filesOverwritten)
+
+            ModuleSaveResult(
+                success = true,
+                moduleDir = moduleDir,
+                filesCreated = filesCreated,
+                filesOverwritten = filesOverwritten
+            )
+        } catch (e: Exception) {
+            ModuleSaveResult(
+                success = false,
+                errorMessage = "Failed to save entity module: ${e.message}"
+            )
+        }
+    }
+
+    /**
+     * Scans the persistence directory for all *Entity.kt files, collects entity info,
+     * and regenerates AppDatabase.kt with the complete entity list.
+     */
+    private fun regenerateAppDatabase(
+        persistenceDir: File,
+        spec: EntityModuleSpec,
+        filesOverwritten: MutableList<String>
+    ) {
+        val persistencePackage = spec.persistencePackage
+
+        // Scan for all Entity files in the persistence directory
+        val entityFiles = persistenceDir.listFiles()
+            ?.filter { it.isFile && it.name.endsWith("Entity.kt") && it.name != "BaseEntity.kt" }
+            ?: emptyList()
+
+        val entityInfos = entityFiles.map { file ->
+            val entityClassName = file.nameWithoutExtension // e.g., "UserProfileEntity"
+            val entityName = entityClassName.removeSuffix("Entity") // e.g., "UserProfile"
+            EntityInfo(
+                entityName = entityName,
+                tableName = entityName.lowercase() + "s",
+                daoName = "${entityName}Dao"
+            )
+        }
+
+        if (entityInfos.isNotEmpty()) {
+            val appDatabaseContent = repositoryCodeGenerator.generateDatabase(entityInfos, persistencePackage)
+            val appDatabaseFile = File(persistenceDir, "AppDatabase.kt")
+            appDatabaseFile.writeText(appDatabaseContent)
+            filesOverwritten.add("persistence/AppDatabase.kt")
         }
     }
 
