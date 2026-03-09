@@ -61,6 +61,8 @@ Auto-generated from all feature plans. Last updated: 2026-01-13
 - Kotlin 2.1.21 (Kotlin Multiplatform) + Compose Desktop 1.7.3 + kotlinx-coroutines 1.8.0 (channels, StateFlow), Compose Material (UI) (044-debuggable-data-preview)
 - N/A (in-memory snapshots, transient per runtime session) (044-debuggable-data-preview)
 - Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + Compose Multiplatform 1.7.3 + kotlinx-coroutines 1.8.0, Room 2.8.4 (KMP), KSP 2.1.21-2.0.1, SQLite Bundled 2.6.2 (045-refactor-userprofiles-module)
+- Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + Compose Desktop 1.7.3 + kotlinx-coroutines 1.8.0, kotlinx-serialization 1.6.0, lifecycle-viewmodel-compose 2.8.0, Room 2.8.4 (KMP), KSP 2.1.21-2.0.1, Koin 4.0.0 (047-entity-module-generator)
+- Room (KMP) with BundledSQLiteDriver — all persistence components in shared `persistence` module (feature 046 architecture) (047-entity-module-generator)
 
 - Kotlin 1.9+, Go 1.21+ (001-ide-plugin-platform)
 
@@ -80,9 +82,9 @@ tests/
 Kotlin 1.9+, Go 1.21+: Follow standard conventions
 
 ## Recent Changes
+- 047-entity-module-generator: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + Compose Desktop 1.7.3 + kotlinx-coroutines 1.8.0, kotlinx-serialization 1.6.0, lifecycle-viewmodel-compose 2.8.0, Room 2.8.4 (KMP), KSP 2.1.21-2.0.1, Koin 4.0.0
 - 046-persistence-dependency-injection: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + Compose Multiplatform 1.7.3 + kotlinx-coroutines 1.8.0, Room 2.8.4 (KMP), KSP 2.1.21-2.0.1, SQLite Bundled 2.6.2
 - 045-refactor-userprofiles-module: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + Compose Multiplatform 1.7.3 + kotlinx-coroutines 1.8.0, Room 2.8.4 (KMP), KSP 2.1.21-2.0.1, SQLite Bundled 2.6.2
-- 044-debuggable-data-preview: Added Kotlin 2.1.21 (Kotlin Multiplatform) + Compose Desktop 1.7.3 + kotlinx-coroutines 1.8.0 (channels, StateFlow), Compose Material (UI)
 
 
 <!-- MANUAL ADDITIONS START -->
