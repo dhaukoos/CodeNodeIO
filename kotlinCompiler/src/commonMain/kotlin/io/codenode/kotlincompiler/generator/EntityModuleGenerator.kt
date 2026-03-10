@@ -95,14 +95,12 @@ class EntityModuleGenerator {
         moduleFiles["src/commonMain/kotlin/$generatedPath/${pluralName}ControllerAdapter.kt"] =
             runtimeControllerAdapterGenerator.generate(flowGraph, generatedPackage)
 
-        // 7. Processing logic stubs (only for nodes that need them — the repository processor)
-        val codeNodes = flowGraph.getAllCodeNodes()
-        for (codeNode in codeNodes) {
-            if (stubGenerator.shouldGenerateStub(codeNode)) {
-                val stubFileName = stubGenerator.getStubFileName(codeNode)
-                moduleFiles["src/commonMain/kotlin/$processingLogicPath/$stubFileName"] =
-                    stubGenerator.generateStub(codeNode, processingLogicPackage)
-            }
+        // 7. Processing logic for repository node (fully implemented, not a stub)
+        val repoNode = flowGraph.getAllCodeNodes().find { it.configuration["_repository"] == "true" }
+        if (repoNode != null) {
+            val stubFileName = stubGenerator.getStubFileName(repoNode)
+            moduleFiles["src/commonMain/kotlin/$processingLogicPath/$stubFileName"] =
+                generateRepositoryProcessLogic(spec, processingLogicPackage)
         }
 
         // 8. UI composable files
@@ -135,5 +133,76 @@ class EntityModuleGenerator {
             persistenceFiles = persistenceFiles,
             flowGraph = flowGraph
         )
+    }
+
+    private fun generateRepositoryProcessLogic(spec: EntityModuleSpec, packageName: String): String {
+        val entityName = spec.entityName
+        val pluralName = spec.pluralName
+        val entityClass = "${entityName}Entity"
+        val repoClass = "${entityName}Repository"
+        val persistenceObject = "${pluralName}Persistence"
+        // Use "name" property for display if it exists, otherwise use "id"
+        val displayProp = if (spec.properties.any { it.name == "name" }) "name" else "id"
+
+        return buildString {
+            appendLine("package $packageName")
+            appendLine()
+            appendLine("import io.codenode.fbpdsl.runtime.In3AnyOut2TickBlock")
+            appendLine("import io.codenode.fbpdsl.runtime.ProcessResult2")
+            appendLine("import io.codenode.persistence.$entityClass")
+            appendLine("import io.codenode.persistence.$repoClass")
+            appendLine("import io.codenode.${pluralName.lowercase()}.$persistenceObject")
+            appendLine()
+            appendLine("/**")
+            appendLine(" * Tick function for the ${entityName}Repository node.")
+            appendLine(" *")
+            appendLine(" * Node type: Processor (3 any-inputs, 2 outputs)")
+            appendLine(" *")
+            appendLine(" * Inputs:")
+            appendLine(" *   - save: $entityClass (or Unit sentinel for no-op)")
+            appendLine(" *   - update: $entityClass (or Unit sentinel for no-op)")
+            appendLine(" *   - remove: $entityClass (or Unit sentinel for no-op)")
+            appendLine(" *")
+            appendLine(" * Outputs:")
+            appendLine(" *   - result: Any (success message)")
+            appendLine(" *   - error: Any (error message)")
+            appendLine(" *")
+            appendLine(" * Uses In3AnyOut2 (fires on any input). Per-channel identity tracking")
+            appendLine(" * prevents stale cached values from re-triggering operations.")
+            appendLine(" */")
+            appendLine("private var lastSaveRef: Any? = null")
+            appendLine("private var lastUpdateRef: Any? = null")
+            appendLine("private var lastRemoveRef: Any? = null")
+            appendLine()
+            appendLine("val ${entityName.replaceFirstChar { it.lowercase() }}RepositoryTick: In3AnyOut2TickBlock<Any, Any, Any, Any, Any> = { save, update, remove ->")
+            appendLine("    try {")
+            appendLine("        val repo = $repoClass($persistenceObject.dao)")
+            appendLine("        val isFreshSave = save is $entityClass && save !== lastSaveRef")
+            appendLine("        val isFreshUpdate = update is $entityClass && update !== lastUpdateRef")
+            appendLine("        val isFreshRemove = remove is $entityClass && remove !== lastRemoveRef")
+            appendLine()
+            appendLine("        when {")
+            appendLine("            isFreshSave -> {")
+            appendLine("                lastSaveRef = save")
+            appendLine("                repo.save(save)")
+            appendLine("                ProcessResult2.first(\"Saved: \${save.$displayProp}\")")
+            appendLine("            }")
+            appendLine("            isFreshUpdate -> {")
+            appendLine("                lastUpdateRef = update")
+            appendLine("                repo.update(update)")
+            appendLine("                ProcessResult2.first(\"Updated: \${update.$displayProp}\")")
+            appendLine("            }")
+            appendLine("            isFreshRemove -> {")
+            appendLine("                lastRemoveRef = remove")
+            appendLine("                repo.remove(remove)")
+            appendLine("                ProcessResult2.first(\"Removed: \${remove.$displayProp}\")")
+            appendLine("            }")
+            appendLine("            else -> ProcessResult2(null, null)")
+            appendLine("        }")
+            appendLine("    } catch (e: Exception) {")
+            appendLine("        ProcessResult2.second(\"Error: \${e.message}\")")
+            appendLine("    }")
+            appendLine("}")
+        }
     }
 }

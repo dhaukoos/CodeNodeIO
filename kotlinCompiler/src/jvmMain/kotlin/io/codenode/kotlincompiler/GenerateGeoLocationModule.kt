@@ -8,11 +8,9 @@ fun main() {
         ipTypeName = "GeoLocation",
         sourceIPTypeId = "test-geo-id",
         properties = listOf(
-            EntityProperty("latitude", "Double", isRequired = true),
-            EntityProperty("longitude", "Double", isRequired = true),
-            EntityProperty("label", "String", isRequired = true),
-            EntityProperty("altitude", "Double", isRequired = false),
-            EntityProperty("isActive", "Boolean", isRequired = true)
+            EntityProperty("name", "String", isRequired = true),
+            EntityProperty("lat", "Double", isRequired = true),
+            EntityProperty("lon", "Double", isRequired = true)
         )
     )
 

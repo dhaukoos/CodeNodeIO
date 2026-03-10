@@ -241,6 +241,7 @@ class RuntimeFlowGenerator {
         "Float" -> "0.0f"
         "String" -> "\"\""
         "Boolean" -> "false"
+        "Any" -> "Unit"
         else -> "TODO(\"Provide initial value for $typeName\")"
     }
 

@@ -19,11 +19,9 @@ class EntityModuleGeneratorTest {
         ipTypeName = "GeoLocation",
         sourceIPTypeId = "test-geo-id",
         properties = listOf(
-            EntityProperty("latitude", "Double", isRequired = true),
-            EntityProperty("longitude", "Double", isRequired = true),
-            EntityProperty("label", "String", isRequired = true),
-            EntityProperty("altitude", "Double", isRequired = false),
-            EntityProperty("isActive", "Boolean", isRequired = true)
+            EntityProperty("name", "String", isRequired = true),
+            EntityProperty("lat", "Double", isRequired = true),
+            EntityProperty("lon", "Double", isRequired = true)
         )
     )
 
@@ -107,11 +105,9 @@ class EntityModuleGeneratorTest {
         val output = generator.generateModule(geoLocationSpec)
         val entity = output.persistenceFiles.entries.find { it.key.endsWith("GeoLocationEntity.kt") }!!.value
 
-        assertTrue(entity.contains("latitude"), "Entity should have latitude field")
-        assertTrue(entity.contains("longitude"), "Entity should have longitude field")
-        assertTrue(entity.contains("label"), "Entity should have label field")
-        assertTrue(entity.contains("altitude"), "Entity should have altitude field")
-        assertTrue(entity.contains("isActive"), "Entity should have isActive field")
+        assertTrue(entity.contains("name"), "Entity should have name field")
+        assertTrue(entity.contains("lat"), "Entity should have lat field")
+        assertTrue(entity.contains("lon"), "Entity should have lon field")
     }
 
     @Test
@@ -132,9 +128,9 @@ class EntityModuleGeneratorTest {
 
         assertTrue(form.contains("@Composable"), "Form should be a composable")
         assertTrue(form.contains("fun AddUpdateGeoLocation("), "Form should have correct name")
-        assertTrue(form.contains("latitude"), "Form should have latitude field")
-        assertTrue(form.contains("longitude"), "Form should have longitude field")
-        assertTrue(form.contains("label"), "Form should have label field")
+        assertTrue(form.contains("name"), "Form should have name field")
+        assertTrue(form.contains("lat"), "Form should have lat field")
+        assertTrue(form.contains("lon"), "Form should have lon field")
     }
 
     @Test

@@ -14,6 +14,7 @@ object DatabaseModule {
 fun getRoomDatabase(builder: RoomDatabase.Builder<AppDatabase>): AppDatabase {
     return builder
         .setDriver(BundledSQLiteDriver())
+        .fallbackToDestructiveMigration(dropAllTables = true)
         .build()
 }
 

@@ -21,11 +21,9 @@ fun AddUpdateGeoLocation(
     onCancel: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    var latitudeText by remember { mutableStateOf(existingItem?.latitude?.toString() ?: "") }
-    var longitudeText by remember { mutableStateOf(existingItem?.longitude?.toString() ?: "") }
-    var labelText by remember { mutableStateOf(existingItem?.label?.toString() ?: "") }
-    var altitudeText by remember { mutableStateOf(existingItem?.altitude?.toString() ?: "") }
-    var isActive by remember { mutableStateOf(existingItem?.isActive ?: true) }
+    var nameText by remember { mutableStateOf(existingItem?.name?.toString() ?: "") }
+    var latText by remember { mutableStateOf(existingItem?.lat?.toString() ?: "") }
+    var lonText by remember { mutableStateOf(existingItem?.lon?.toString() ?: "") }
 
     val isUpdate = existingItem != null
 
@@ -39,61 +37,38 @@ fun AddUpdateGeoLocation(
         )
 
         OutlinedTextField(
-            value = latitudeText,
+            value = nameText,
+            onValueChange = { nameText = it },
+            label = { Text("name") },
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        OutlinedTextField(
+            value = latText,
             onValueChange = { newValue ->
                 if (newValue.isEmpty() || newValue.toDoubleOrNull() != null) {
-                    latitudeText = newValue
+                    latText = newValue
                 }
             },
-            label = { Text("latitude") },
+            label = { Text("lat") },
             singleLine = true,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
             modifier = Modifier.fillMaxWidth()
         )
 
         OutlinedTextField(
-            value = longitudeText,
+            value = lonText,
             onValueChange = { newValue ->
                 if (newValue.isEmpty() || newValue.toDoubleOrNull() != null) {
-                    longitudeText = newValue
+                    lonText = newValue
                 }
             },
-            label = { Text("longitude") },
+            label = { Text("lon") },
             singleLine = true,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
             modifier = Modifier.fillMaxWidth()
         )
-
-        OutlinedTextField(
-            value = labelText,
-            onValueChange = { labelText = it },
-            label = { Text("label") },
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        OutlinedTextField(
-            value = altitudeText,
-            onValueChange = { newValue ->
-                if (newValue.isEmpty() || newValue.toDoubleOrNull() != null) {
-                    altitudeText = newValue
-                }
-            },
-            label = { Text("altitude (optional)") },
-            singleLine = true,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        Row(
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Checkbox(
-                checked = isActive,
-                onCheckedChange = { isActive = it }
-            )
-            Text("isActive")
-        }
 
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -106,11 +81,9 @@ fun AddUpdateGeoLocation(
                 onClick = {
                     val item = GeoLocationEntity(
                         id = existingItem?.id ?: 0,
-                        latitude = latitudeText.toDoubleOrNull() ?: 0.0,
-                        longitude = longitudeText.toDoubleOrNull() ?: 0.0,
-                        label = labelText.trim(),
-                        altitude = altitudeText.toDoubleOrNull(),
-                        isActive = isActive
+                        name = nameText.trim(),
+                        lat = latText.toDoubleOrNull() ?: 0.0,
+                        lon = lonText.toDoubleOrNull() ?: 0.0
                     )
                     onSave(item)
                 }

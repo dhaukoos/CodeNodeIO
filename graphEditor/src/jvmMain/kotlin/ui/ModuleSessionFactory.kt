@@ -15,7 +15,12 @@ import io.codenode.userprofiles.UserProfilesViewModel
 import io.codenode.userprofiles.generated.UserProfilesController
 import io.codenode.userprofiles.generated.UserProfilesControllerAdapter
 import io.codenode.persistence.UserProfileDao
+import io.codenode.persistence.GeoLocationDao
 import io.codenode.userprofiles.userProfilesFlowGraph
+import io.codenode.geolocations.GeoLocationsViewModel
+import io.codenode.geolocations.generated.GeoLocationsController
+import io.codenode.geolocations.generated.GeoLocationsControllerAdapter
+import io.codenode.geolocations.geoLocationsFlowGraph
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 
@@ -28,6 +33,7 @@ import org.koin.core.component.inject
 object ModuleSessionFactory : KoinComponent {
 
     private val userProfileDao: UserProfileDao by inject()
+    private val geoLocationDao: GeoLocationDao by inject()
 
     /**
      * Creates a RuntimeSession for the given module name.
@@ -42,6 +48,7 @@ object ModuleSessionFactory : KoinComponent {
         return when (moduleName) {
             "StopWatch" -> createStopWatchSession(editorFlowGraph)
             "UserProfiles" -> createUserProfilesSession(editorFlowGraph)
+            "GeoLocations" -> createGeoLocationsSession(editorFlowGraph)
             else -> null
         }
     }
@@ -59,5 +66,13 @@ object ModuleSessionFactory : KoinComponent {
         val adapter = UserProfilesControllerAdapter(controller)
         val viewModel = UserProfilesViewModel(adapter, userProfileDao)
         return RuntimeSession(controller, viewModel, editorFlowGraph ?: userProfilesFlowGraph)
+    }
+
+    private fun createGeoLocationsSession(editorFlowGraph: FlowGraph?): RuntimeSession {
+        val controller = GeoLocationsController(geoLocationsFlowGraph)
+        controller.start()
+        val adapter = GeoLocationsControllerAdapter(controller)
+        val viewModel = GeoLocationsViewModel(adapter, geoLocationDao)
+        return RuntimeSession(controller, viewModel, editorFlowGraph ?: geoLocationsFlowGraph)
     }
 }

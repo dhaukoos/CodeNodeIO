@@ -54,6 +54,7 @@ import io.codenode.grapheditor.ui.ModuleSessionFactory
 import io.codenode.grapheditor.ui.RuntimePreviewPanel
 import io.codenode.grapheditor.ui.StopWatchPreviewProvider
 import io.codenode.grapheditor.ui.UserProfilesPreviewProvider
+import io.codenode.grapheditor.ui.GeoLocationsPreviewProvider
 import io.codenode.circuitsimulator.ConnectionAnimation
 import io.codenode.circuitsimulator.RuntimeSession
 import io.codenode.grapheditor.ui.PropertiesPanelState
@@ -338,6 +339,7 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
     remember {
         StopWatchPreviewProvider.register()
         UserProfilesPreviewProvider.register()
+        GeoLocationsPreviewProvider.register()
         true // return value for remember block
     }
 

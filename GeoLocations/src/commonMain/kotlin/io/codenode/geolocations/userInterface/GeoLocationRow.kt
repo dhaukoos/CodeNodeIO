@@ -34,27 +34,17 @@ fun GeoLocationRow(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
-            text = "latitude: ${item.latitude}",
+            text = "name: ${item.name}",
             style = MaterialTheme.typography.bodyMedium,
             modifier = Modifier.weight(1f)
         )
         Text(
-            text = "longitude: ${item.longitude}",
+            text = "lat: ${item.lat}",
             style = MaterialTheme.typography.bodyMedium,
             modifier = Modifier.padding(horizontal = 8.dp)
         )
         Text(
-            text = "label: ${item.label}",
-            style = MaterialTheme.typography.bodyMedium,
-            modifier = Modifier.padding(horizontal = 8.dp)
-        )
-        Text(
-            text = "altitude: ${item.altitude ?: "N/A"}",
-            style = MaterialTheme.typography.bodyMedium,
-            modifier = Modifier.padding(horizontal = 8.dp)
-        )
-        Text(
-            text = if (item.isActive) "isActive: Yes" else "isActive: No",
+            text = "lon: ${item.lon}",
             style = MaterialTheme.typography.bodyMedium,
             modifier = Modifier.padding(horizontal = 8.dp)
         )

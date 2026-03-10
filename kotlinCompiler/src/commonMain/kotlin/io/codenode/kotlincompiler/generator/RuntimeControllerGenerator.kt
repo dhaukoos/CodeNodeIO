@@ -47,7 +47,7 @@ class RuntimeControllerGenerator {
             generateKDoc(flowName)
             appendLine("class ${flowName}Controller(")
             appendLine("    private var flowGraph: FlowGraph")
-            appendLine(") {")
+            appendLine(") : ModuleController {")
             appendLine()
             generateFields(flowName)
             generateObservableState(observableProps)
@@ -62,6 +62,8 @@ class RuntimeControllerGenerator {
             generateSetNodeConfigMethod(flowName)
             generateBindToLifecycleMethod()
             generateSetAttenuationDelayMethod(codeNodes)
+            generateSetEmissionObserverMethod(codeNodes)
+            generateSetValueObserverMethod(codeNodes)
             generateCurrentFlowGraphGetter()
             appendLine("}")
             appendLine()
@@ -92,6 +94,7 @@ class RuntimeControllerGenerator {
         appendLine("import io.codenode.fbpdsl.model.FlowExecutionStatus")
         appendLine("import io.codenode.fbpdsl.model.ExecutionState")
         appendLine("import io.codenode.fbpdsl.model.ControlConfig")
+        appendLine("import io.codenode.fbpdsl.runtime.ModuleController")
         appendLine("import io.codenode.fbpdsl.runtime.RuntimeRegistry")
         appendLine("import androidx.lifecycle.Lifecycle")
         appendLine("import androidx.lifecycle.LifecycleEventObserver")
@@ -133,6 +136,9 @@ class RuntimeControllerGenerator {
         appendLine()
         appendLine("    private var wasRunningBeforePause: Boolean = false")
         appendLine()
+        appendLine("    private var emissionObserver: ((String, Int) -> Unit)? = null")
+        appendLine("    private var valueObserver: ((String, Int, Any?) -> Unit)? = null")
+        appendLine()
     }
 
     private fun StringBuilder.generateObservableState(observableProps: List<ObservableProperty>) {
@@ -147,7 +153,7 @@ class RuntimeControllerGenerator {
 
     private fun StringBuilder.generateExecutionState() {
         appendLine("    private val _executionState = MutableStateFlow(ExecutionState.IDLE)")
-        appendLine("    val executionState: StateFlow<ExecutionState> = _executionState.asStateFlow()")
+        appendLine("    override val executionState: StateFlow<ExecutionState> = _executionState.asStateFlow()")
         appendLine()
     }
 
@@ -157,7 +163,7 @@ class RuntimeControllerGenerator {
         observableProps: List<ObservableProperty>,
         hasSourcesWithState: Boolean
     ) {
-        appendLine("    fun start(): FlowGraph {")
+        appendLine("    override fun start(): FlowGraph {")
         appendLine("        flowGraph = controller.startAll()")
         appendLine("        controller = RootControlNode.createFor(flowGraph, \"${flowName}Controller\", registry)")
         appendLine("        _executionState.value = ExecutionState.RUNNING")
@@ -212,7 +218,7 @@ class RuntimeControllerGenerator {
     }
 
     private fun StringBuilder.generatePauseMethod(flowName: String) {
-        appendLine("    fun pause(): FlowGraph {")
+        appendLine("    override fun pause(): FlowGraph {")
         appendLine("        flowGraph = controller.pauseAll()")
         appendLine("        controller = RootControlNode.createFor(flowGraph, \"${flowName}Controller\", registry)")
         appendLine("        _executionState.value = ExecutionState.PAUSED")
@@ -222,7 +228,7 @@ class RuntimeControllerGenerator {
     }
 
     private fun StringBuilder.generateResumeMethod(flowName: String) {
-        appendLine("    fun resume(): FlowGraph {")
+        appendLine("    override fun resume(): FlowGraph {")
         appendLine("        flowGraph = controller.resumeAll()")
         appendLine("        controller = RootControlNode.createFor(flowGraph, \"${flowName}Controller\", registry)")
         appendLine("        _executionState.value = ExecutionState.RUNNING")
@@ -232,7 +238,7 @@ class RuntimeControllerGenerator {
     }
 
     private fun StringBuilder.generateStopMethod(flowName: String) {
-        appendLine("    fun stop(): FlowGraph {")
+        appendLine("    override fun stop(): FlowGraph {")
         appendLine("        flowGraph = controller.stopAll()")
         appendLine("        controller = RootControlNode.createFor(flowGraph, \"${flowName}Controller\", registry)")
         appendLine("        _executionState.value = ExecutionState.IDLE")
@@ -247,7 +253,7 @@ class RuntimeControllerGenerator {
     }
 
     private fun StringBuilder.generateResetMethod(codeNodes: List<CodeNode>) {
-        appendLine("    fun reset(): FlowGraph {")
+        appendLine("    override fun reset(): FlowGraph {")
         appendLine("        wasRunningBeforePause = false")
         appendLine("        stop()")
         appendLine("        flow.reset()")
@@ -316,9 +322,39 @@ class RuntimeControllerGenerator {
         appendLine("     * When non-null and > 0, processors delay between receive and process.")
         appendLine("     * When null or 0, processors process immediately (default behavior).")
         appendLine("     */")
-        appendLine("    fun setAttenuationDelay(ms: Long?) {")
+        appendLine("    override fun setAttenuationDelay(ms: Long?) {")
         codeNodes.forEach { node ->
             appendLine("        flow.${node.name.camelCase()}.attenuationDelayMs = ms")
+        }
+        appendLine("    }")
+        appendLine()
+    }
+
+    private fun StringBuilder.generateSetEmissionObserverMethod(codeNodes: List<CodeNode>) {
+        appendLine("    override fun setEmissionObserver(observer: ((String, Int) -> Unit)?) {")
+        appendLine("        emissionObserver = observer")
+        appendLine("        applyEmissionObserver()")
+        appendLine("    }")
+        appendLine()
+        appendLine("    private fun applyEmissionObserver() {")
+        appendLine("        val obs = emissionObserver")
+        codeNodes.forEach { node ->
+            appendLine("        flow.${node.name.camelCase()}.onEmit = obs")
+        }
+        appendLine("    }")
+        appendLine()
+    }
+
+    private fun StringBuilder.generateSetValueObserverMethod(codeNodes: List<CodeNode>) {
+        appendLine("    override fun setValueObserver(observer: ((String, Int, Any?) -> Unit)?) {")
+        appendLine("        valueObserver = observer")
+        appendLine("        applyValueObserver()")
+        appendLine("    }")
+        appendLine()
+        appendLine("    private fun applyValueObserver() {")
+        appendLine("        val obs = valueObserver")
+        codeNodes.forEach { node ->
+            appendLine("        flow.${node.name.camelCase()}.onEmitValue = obs")
         }
         appendLine("    }")
         appendLine()
