@@ -67,6 +67,7 @@ import io.codenode.grapheditor.state.rememberPropertyChangeTracker
 import io.codenode.grapheditor.serialization.FlowKtParser
 import io.codenode.grapheditor.save.ModuleSaveService
 import io.codenode.kotlincompiler.generator.EntityModuleSpec
+import io.codenode.kotlincompiler.generator.pluralize
 import io.codenode.kotlincompiler.generator.EntityProperty
 import io.codenode.fbpdsl.model.NodeTypeDefinition
 import io.codenode.fbpdsl.model.PortTemplate
@@ -381,6 +382,8 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
     var showFlowGraphPropertiesDialog by remember { mutableStateOf(false) }
     val saveLocationRegistry = remember { mutableMapOf<String, File>() }
     var statusMessage by remember { mutableStateOf("Ready - Create a new graph or open an existing one") }
+    var showRemoveConfirmDialog by remember { mutableStateOf(false) }
+    var removeTargetIPType by remember { mutableStateOf<InformationPacketType?>(null) }
 
     // Create/recreate RuntimeSession synchronously when module changes
     // (must be synchronous so runtimeSession is always in sync with moduleRootDir
@@ -1147,6 +1150,12 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                                 }
                             } else null
                         },
+                        onRemoveRepositoryModule = selectedIPType?.let { ipType ->
+                            {
+                                removeTargetIPType = ipType
+                                showRemoveConfirmDialog = true
+                            }
+                        },
                         moduleExists = selectedIPType?.let { ipType ->
                             customNodes.any { it.isCudSource && it.sourceIPTypeId == ipType.id } &&
                             customNodes.any { it.isRepository && it.sourceIPTypeId == ipType.id } &&
@@ -1340,6 +1349,71 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                     graphState.setGraph(graphState.flowGraph.withTargetPlatforms(current), markDirty = true)
                 },
                 onDismiss = { showFlowGraphPropertiesDialog = false }
+            )
+        }
+
+        // Remove Repository Module confirmation dialog
+        if (showRemoveConfirmDialog && removeTargetIPType != null) {
+            val ipType = removeTargetIPType!!
+            val moduleName = pluralize(ipType.typeName)
+            AlertDialog(
+                onDismissRequest = {
+                    showRemoveConfirmDialog = false
+                    removeTargetIPType = null
+                },
+                title = { Text("Remove Module") },
+                text = {
+                    Text(
+                        "Are you sure you want to remove the $moduleName module? " +
+                        "This will delete the module directory, persistence files, and Gradle entries."
+                    )
+                },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            showRemoveConfirmDialog = false
+                            removeTargetIPType = null
+
+                            val projectDir = showDirectoryChooser("Select Project Root")
+                            if (projectDir != null) {
+                                val entityName = ipType.typeName
+                                val moduleDir = File(projectDir, moduleName)
+                                val persistenceDir = File(
+                                    projectDir,
+                                    "persistence/src/commonMain/kotlin/io/codenode/persistence"
+                                )
+
+                                val result = moduleSaveService.removeEntityModule(
+                                    entityName = entityName,
+                                    moduleName = moduleName,
+                                    moduleDir = moduleDir,
+                                    persistenceDir = persistenceDir,
+                                    projectDir = projectDir,
+                                    customNodeRepository = customNodeRepository,
+                                    sourceIPTypeId = ipType.id
+                                )
+
+                                customNodes = customNodeRepository.getAll()
+                                statusMessage = result
+                            }
+                        },
+                        colors = ButtonDefaults.buttonColors(
+                            backgroundColor = MaterialTheme.colors.error
+                        )
+                    ) {
+                        Text("Remove", color = MaterialTheme.colors.onError)
+                    }
+                },
+                dismissButton = {
+                    OutlinedButton(
+                        onClick = {
+                            showRemoveConfirmDialog = false
+                            removeTargetIPType = null
+                        }
+                    ) {
+                        Text("Cancel")
+                    }
+                }
             )
         }
         }

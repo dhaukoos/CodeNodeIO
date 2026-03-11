@@ -21,6 +21,7 @@ import io.codenode.kotlincompiler.generator.EntityProperty
 import io.codenode.kotlincompiler.generator.EntityInfo
 import io.codenode.kotlincompiler.generator.EntityModuleSpec
 import io.codenode.kotlincompiler.generator.EntityModuleGenerator
+import io.codenode.grapheditor.repository.FileCustomNodeRepository
 import java.io.File
 
 /**
@@ -361,6 +362,159 @@ class ModuleSaveService {
                     filesOverwritten.add("graphEditor/build.gradle.kts")
                 }
             }
+        }
+    }
+
+    /**
+     * Removes a previously created entity module and all its artifacts.
+     *
+     * Cleans up: custom node definitions, module directory, persistence files,
+     * AppDatabase.kt, and Gradle entries. Each step is independent and tolerant
+     * of missing artifacts.
+     *
+     * @param entityName PascalCase entity name (e.g., "GeoLocation")
+     * @param moduleName Plural module name (e.g., "GeoLocations")
+     * @param moduleDir Path to the module directory
+     * @param persistenceDir Path to the persistence source directory
+     * @param projectDir Project root directory (contains settings.gradle.kts)
+     * @param customNodeRepository Repository for custom node CRUD
+     * @param sourceIPTypeId UUID of the source IP Type
+     * @return Summary string describing what was removed
+     */
+    fun removeEntityModule(
+        entityName: String,
+        moduleName: String,
+        moduleDir: File,
+        persistenceDir: File,
+        projectDir: File,
+        customNodeRepository: FileCustomNodeRepository,
+        sourceIPTypeId: String
+    ): String {
+        val results = mutableListOf<String>()
+
+        // 1. Remove custom node definitions matching sourceIPTypeId
+        try {
+            val nodesToRemove = customNodeRepository.getAll()
+                .filter { it.sourceIPTypeId == sourceIPTypeId }
+            var nodesRemoved = 0
+            for (node in nodesToRemove) {
+                if (customNodeRepository.remove(node.id)) {
+                    nodesRemoved++
+                }
+            }
+            if (nodesRemoved > 0) results.add("$nodesRemoved node${if (nodesRemoved != 1) "s" else ""}")
+        } catch (e: Exception) {
+            results.add("node removal failed: ${e.message}")
+        }
+
+        // 2. Delete module directory recursively
+        try {
+            if (moduleDir.exists()) {
+                moduleDir.deleteRecursively()
+                results.add("module directory")
+            }
+        } catch (e: Exception) {
+            results.add("directory deletion failed: ${e.message}")
+        }
+
+        // 3. Remove persistence files
+        try {
+            val persistenceFileNames = listOf(
+                "${entityName}Entity.kt",
+                "${entityName}Dao.kt",
+                "${entityName}Repository.kt"
+            )
+            var persistenceRemoved = 0
+            for (fileName in persistenceFileNames) {
+                val file = File(persistenceDir, fileName)
+                if (file.exists() && file.delete()) {
+                    persistenceRemoved++
+                }
+            }
+            if (persistenceRemoved > 0) results.add("$persistenceRemoved persistence file${if (persistenceRemoved != 1) "s" else ""}")
+        } catch (e: Exception) {
+            results.add("persistence removal failed: ${e.message}")
+        }
+
+        // 4. Regenerate AppDatabase.kt from remaining entities
+        try {
+            val entityFiles = persistenceDir.listFiles()
+                ?.filter { it.isFile && it.name.endsWith("Entity.kt") && it.name != "BaseEntity.kt" }
+                ?: emptyList()
+
+            val entityInfos = entityFiles.map { file ->
+                val entityClassName = file.nameWithoutExtension
+                val name = entityClassName.removeSuffix("Entity")
+                EntityInfo(
+                    entityName = name,
+                    tableName = name.lowercase() + "s",
+                    daoName = "${name}Dao"
+                )
+            }
+
+            val persistencePackage = "io.codenode.persistence"
+            if (entityInfos.isNotEmpty()) {
+                val appDatabaseContent = repositoryCodeGenerator.generateDatabase(entityInfos, persistencePackage)
+                File(persistenceDir, "AppDatabase.kt").writeText(appDatabaseContent)
+                results.add("AppDatabase updated")
+            } else {
+                // No entities left — write minimal AppDatabase
+                val appDatabaseFile = File(persistenceDir, "AppDatabase.kt")
+                appDatabaseFile.writeText(buildString {
+                    appendLine("package io.codenode.persistence")
+                    appendLine()
+                    appendLine("import androidx.room.Database")
+                    appendLine("import androidx.room.RoomDatabase")
+                    appendLine("import androidx.room.RoomDatabaseConstructor")
+                    appendLine("import androidx.room.ConstructedBy")
+                    appendLine()
+                    appendLine("@Database(entities = [], version = 1)")
+                    appendLine("@ConstructedBy(AppDatabaseConstructor::class)")
+                    appendLine("abstract class AppDatabase : RoomDatabase()")
+                    appendLine()
+                    appendLine("@Suppress(\"EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA\")")
+                    appendLine("expect object AppDatabaseConstructor : RoomDatabaseConstructor<AppDatabase>")
+                })
+                results.add("AppDatabase updated (no entities)")
+            }
+        } catch (e: Exception) {
+            results.add("AppDatabase regeneration failed: ${e.message}")
+        }
+
+        // 5. Remove Gradle entries
+        try {
+            var gradleRemoved = 0
+            val includeEntry = "include(\":$moduleName\")"
+            val settingsFile = File(projectDir, "settings.gradle.kts")
+            if (settingsFile.exists()) {
+                val lines = settingsFile.readLines()
+                val filtered = lines.filter { it.trim() != includeEntry }
+                if (filtered.size < lines.size) {
+                    settingsFile.writeText(filtered.joinToString("\n") + "\n")
+                    gradleRemoved++
+                }
+            }
+
+            val implEntry = "implementation(project(\":$moduleName\"))"
+            val buildFile = File(projectDir, "graphEditor/build.gradle.kts")
+            if (buildFile.exists()) {
+                val lines = buildFile.readLines()
+                val filtered = lines.filter { !it.trim().contains(implEntry) }
+                if (filtered.size < lines.size) {
+                    buildFile.writeText(filtered.joinToString("\n") + "\n")
+                    gradleRemoved++
+                }
+            }
+
+            if (gradleRemoved > 0) results.add("$gradleRemoved gradle entr${if (gradleRemoved != 1) "ies" else "y"}")
+        } catch (e: Exception) {
+            results.add("gradle removal failed: ${e.message}")
+        }
+
+        return if (results.isNotEmpty()) {
+            "Removed $moduleName module: ${results.joinToString(", ")}"
+        } else {
+            "No artifacts found to remove for $moduleName"
         }
     }
 

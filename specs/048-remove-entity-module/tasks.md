@@ -27,12 +27,12 @@ _(No tasks — all infrastructure already exists from feature 047.)_
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete.
 
-- [ ] T001 Implement `removeEntityModule()` method in `graphEditor/src/jvmMain/kotlin/save/ModuleSaveService.kt` — accepts entityName, moduleName, moduleDir, persistenceDir, projectDir, customNodeRepository, sourceIPTypeId; returns summary string
-- [ ] T002 Implement custom node removal logic within `removeEntityModule()` — filter `customNodeRepository.getAll()` by `sourceIPTypeId`, call `remove(id)` for each match, count removed
-- [ ] T003 Implement module directory deletion within `removeEntityModule()` — call `moduleDir.deleteRecursively()` if exists, track success
-- [ ] T004 Implement persistence file removal within `removeEntityModule()` — delete `{entityName}Entity.kt`, `{entityName}Dao.kt`, `{entityName}Repository.kt` from persistenceDir, skip missing files
-- [ ] T005 Implement AppDatabase regeneration within `removeEntityModule()` — reuse existing scan pattern from `regenerateAppDatabase()` to scan remaining `*Entity.kt` files and regenerate `AppDatabase.kt`
-- [ ] T006 Implement Gradle entry removal within `removeEntityModule()` — remove `include(":moduleName")` from `settings.gradle.kts` and `implementation(project(":moduleName"))` from `graphEditor/build.gradle.kts` by reading lines, filtering, writing back
+- [x] T001 Implement `removeEntityModule()` method in `graphEditor/src/jvmMain/kotlin/save/ModuleSaveService.kt` — accepts entityName, moduleName, moduleDir, persistenceDir, projectDir, customNodeRepository, sourceIPTypeId; returns summary string
+- [x] T002 Implement custom node removal logic within `removeEntityModule()` — filter `customNodeRepository.getAll()` by `sourceIPTypeId`, call `remove(id)` for each match, count removed
+- [x] T003 Implement module directory deletion within `removeEntityModule()` — call `moduleDir.deleteRecursively()` if exists, track success
+- [x] T004 Implement persistence file removal within `removeEntityModule()` — delete `{entityName}Entity.kt`, `{entityName}Dao.kt`, `{entityName}Repository.kt` from persistenceDir, skip missing files
+- [x] T005 Implement AppDatabase regeneration within `removeEntityModule()` — reuse existing scan pattern from `regenerateAppDatabase()` to scan remaining `*Entity.kt` files and regenerate `AppDatabase.kt`
+- [x] T006 Implement Gradle entry removal within `removeEntityModule()` — remove `include(":moduleName")` from `settings.gradle.kts` and `implementation(project(":moduleName"))` from `graphEditor/build.gradle.kts` by reading lines, filtering, writing back
 
 **Checkpoint**: Removal service is complete and can be called from UI code.
 
@@ -46,9 +46,9 @@ _(No tasks — all infrastructure already exists from feature 047.)_
 
 ### Implementation for User Story 1
 
-- [ ] T007 [US1] Update `IPTypePropertiesPanel` in `graphEditor/src/jvmMain/kotlin/ui/PropertiesPanel.kt` — add `onRemoveRepositoryModule` callback parameter, replace disabled "Module exists" button with enabled "Remove Repository Module" button when `moduleExists` is true
-- [ ] T008 [US1] Add `onRemoveRepositoryModule` lambda in `graphEditor/src/jvmMain/kotlin/Main.kt` — wire the removal button to call `moduleSaveService.removeEntityModule()` with correct parameters derived from selected IP Type
-- [ ] T009 [US1] Reload `customNodes` state after removal in `graphEditor/src/jvmMain/kotlin/Main.kt` — set `customNodes = customNodeRepository.getAll()` after removal completes so the UI reflects the updated state and "Create Repository Module" button reappears
+- [x] T007 [US1] Update `IPTypePropertiesPanel` in `graphEditor/src/jvmMain/kotlin/ui/PropertiesPanel.kt` — add `onRemoveRepositoryModule` callback parameter, replace disabled "Module exists" button with enabled "Remove Repository Module" button when `moduleExists` is true
+- [x] T008 [US1] Add `onRemoveRepositoryModule` lambda in `graphEditor/src/jvmMain/kotlin/Main.kt` — wire the removal button to call `moduleSaveService.removeEntityModule()` with correct parameters derived from selected IP Type
+- [x] T009 [US1] Reload `customNodes` state after removal in `graphEditor/src/jvmMain/kotlin/Main.kt` — set `customNodes = customNodeRepository.getAll()` after removal completes so the UI reflects the updated state and "Create Repository Module" button reappears
 
 **Checkpoint**: User Story 1 is fully functional — modules can be created and removed via UI buttons.
 
@@ -62,9 +62,9 @@ _(No tasks — all infrastructure already exists from feature 047.)_
 
 ### Implementation for User Story 2
 
-- [ ] T010 [US2] Add `showRemoveConfirmDialog` state variable and `entityToRemove` tracking state in `graphEditor/src/jvmMain/kotlin/Main.kt`
-- [ ] T011 [US2] Implement `AlertDialog` composable in `graphEditor/src/jvmMain/kotlin/Main.kt` — title "Remove Module", message includes entity name, "Remove" confirm button triggers removal, "Cancel" button dismisses dialog
-- [ ] T012 [US2] Update the `onRemoveRepositoryModule` lambda in `graphEditor/src/jvmMain/kotlin/Main.kt` — instead of calling removal directly, set `showRemoveConfirmDialog = true` and store the selected IP Type info; move actual removal logic into the dialog's confirm action
+- [x] T010 [US2] Add `showRemoveConfirmDialog` state variable and `entityToRemove` tracking state in `graphEditor/src/jvmMain/kotlin/Main.kt`
+- [x] T011 [US2] Implement `AlertDialog` composable in `graphEditor/src/jvmMain/kotlin/Main.kt` — title "Remove Module", message includes entity name, "Remove" confirm button triggers removal, "Cancel" button dismisses dialog
+- [x] T012 [US2] Update the `onRemoveRepositoryModule` lambda in `graphEditor/src/jvmMain/kotlin/Main.kt` — instead of calling removal directly, set `showRemoveConfirmDialog = true` and store the selected IP Type info; move actual removal logic into the dialog's confirm action
 
 **Checkpoint**: User Stories 1 AND 2 work together — removal requires explicit confirmation.
 
@@ -78,8 +78,8 @@ _(No tasks — all infrastructure already exists from feature 047.)_
 
 ### Implementation for User Story 3
 
-- [ ] T013 [US3] Update `removeEntityModule()` return value in `graphEditor/src/jvmMain/kotlin/save/ModuleSaveService.kt` — build a detailed summary string tracking counts for each artifact category (nodes removed, directory deleted, persistence files removed, AppDatabase regenerated, gradle entries removed)
-- [ ] T014 [US3] Display removal result in status bar in `graphEditor/src/jvmMain/kotlin/Main.kt` — set `statusMessage` state with the summary string returned from `removeEntityModule()` after the confirmation dialog's confirm action completes
+- [x] T013 [US3] Update `removeEntityModule()` return value in `graphEditor/src/jvmMain/kotlin/save/ModuleSaveService.kt` — build a detailed summary string tracking counts for each artifact category (nodes removed, directory deleted, persistence files removed, AppDatabase regenerated, gradle entries removed)
+- [x] T014 [US3] Display removal result in status bar in `graphEditor/src/jvmMain/kotlin/Main.kt` — set `statusMessage` state with the summary string returned from `removeEntityModule()` after the confirmation dialog's confirm action completes
 
 **Checkpoint**: All three user stories are complete — removal with confirmation and status feedback.
 
@@ -89,7 +89,7 @@ _(No tasks — all infrastructure already exists from feature 047.)_
 
 **Purpose**: Edge case handling and graceful degradation.
 
-- [ ] T015 Verify graceful handling of partial cleanup in `graphEditor/src/jvmMain/kotlin/save/ModuleSaveService.kt` — ensure each removal step is wrapped in try/catch so missing artifacts don't prevent remaining cleanup
+- [x] T015 Verify graceful handling of partial cleanup in `graphEditor/src/jvmMain/kotlin/save/ModuleSaveService.kt` — ensure each removal step is wrapped in try/catch so missing artifacts don't prevent remaining cleanup
 - [ ] T016 Run quickstart.md validation — create a test module, remove it, verify all artifacts cleaned up and create button reappears
 
 ---

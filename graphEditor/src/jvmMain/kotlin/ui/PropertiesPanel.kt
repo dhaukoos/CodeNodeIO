@@ -1215,6 +1215,7 @@ fun IPTypePropertiesPanel(
     ipType: InformationPacketType,
     ipTypeRegistry: IPTypeRegistry,
     onCreateRepositoryModule: (() -> Unit)? = null,
+    onRemoveRepositoryModule: (() -> Unit)? = null,
     moduleExists: Boolean = false,
     modifier: Modifier = Modifier
 ) {
@@ -1315,19 +1316,35 @@ fun IPTypePropertiesPanel(
                     }
                 }
 
-                // Create Repository Module button (visible only for custom types with properties)
+                // Create/Remove Repository Module button (visible only for custom types with properties)
                 if (onCreateRepositoryModule != null) {
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    Button(
-                        onClick = { onCreateRepositoryModule() },
-                        enabled = !moduleExists,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text(
-                            text = if (moduleExists) "Module exists" else "Create Repository Module",
-                            fontSize = 12.sp
-                        )
+                    if (moduleExists && onRemoveRepositoryModule != null) {
+                        Button(
+                            onClick = { onRemoveRepositoryModule() },
+                            colors = ButtonDefaults.buttonColors(
+                                backgroundColor = MaterialTheme.colors.error
+                            ),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(
+                                text = "Remove Repository Module",
+                                fontSize = 12.sp,
+                                color = MaterialTheme.colors.onError
+                            )
+                        }
+                    } else {
+                        Button(
+                            onClick = { onCreateRepositoryModule() },
+                            enabled = !moduleExists,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(
+                                text = "Create Repository Module",
+                                fontSize = 12.sp
+                            )
+                        }
                     }
                 }
             }
@@ -1451,6 +1468,7 @@ fun CompactPropertiesPanelWithViewModel(
     onGraphNodePortNameChanged: (String, String) -> Unit = { _, _ -> },
     onGraphNodePortTypeChanged: (String, String) -> Unit = { _, _ -> },
     onCreateRepositoryModule: (() -> Unit)? = null,
+    onRemoveRepositoryModule: (() -> Unit)? = null,
     moduleExists: Boolean = false,
     debugger: io.codenode.circuitsimulator.DataFlowDebugger? = null,
     isPaused: Boolean = false,
@@ -1474,6 +1492,7 @@ fun CompactPropertiesPanelWithViewModel(
             ipType = selectedIPType,
             ipTypeRegistry = ipTypeRegistry,
             onCreateRepositoryModule = onCreateRepositoryModule,
+            onRemoveRepositoryModule = onRemoveRepositoryModule,
             moduleExists = moduleExists,
             modifier = modifier.width(280.dp)
         )
