@@ -59,14 +59,15 @@ data class EntityModuleSpec(
             )
         }
 
-        private fun pluralize(name: String): String = when {
-            name.endsWith("s", ignoreCase = true) -> "${name}es"
-            name.endsWith("y", ignoreCase = true) && !name.endsWith("ay", ignoreCase = true)
-                && !name.endsWith("ey", ignoreCase = true) && !name.endsWith("oy", ignoreCase = true)
-                && !name.endsWith("uy", ignoreCase = true) -> "${name.dropLast(1)}ies"
-            name.endsWith("x", ignoreCase = true) || name.endsWith("sh", ignoreCase = true)
-                || name.endsWith("ch", ignoreCase = true) -> "${name}es"
-            else -> "${name}s"
-        }
     }
+}
+
+fun pluralize(name: String): String = when {
+    name.endsWith("s", ignoreCase = true) -> "${name}es"
+    name.endsWith("y", ignoreCase = true) && !name.endsWith("ay", ignoreCase = true)
+        && !name.endsWith("ey", ignoreCase = true) && !name.endsWith("oy", ignoreCase = true)
+        && !name.endsWith("uy", ignoreCase = true) -> "${name.dropLast(1)}ies"
+    name.endsWith("x", ignoreCase = true) || name.endsWith("sh", ignoreCase = true)
+        || name.endsWith("ch", ignoreCase = true) -> "${name}es"
+    else -> "${name}s"
 }

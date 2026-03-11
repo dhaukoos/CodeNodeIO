@@ -267,7 +267,7 @@ class RuntimeViewModelGenerator {
 
         val entityName = repoNode.configuration["_sourceIPTypeName"] ?: return null
         val entityNameLower = entityName.replaceFirstChar { it.lowercase() }
-        val pluralNameLower = "${entityNameLower}s"
+        val pluralNameLower = pluralize(entityNameLower)
 
         return EntityModuleInfo(
             entityName = entityName,
