@@ -270,6 +270,9 @@ class ModuleSaveService {
             // Regenerate AppDatabase.kt with all entities
             regenerateAppDatabase(persistenceDir, spec, filesOverwritten)
 
+            // Add module to settings.gradle.kts and graphEditor/build.gradle.kts
+            addModuleToGradleFiles(moduleOutputDir, spec.pluralName, filesOverwritten)
+
             ModuleSaveResult(
                 success = true,
                 moduleDir = moduleDir,
@@ -315,6 +318,49 @@ class ModuleSaveService {
             val appDatabaseFile = File(persistenceDir, "AppDatabase.kt")
             appDatabaseFile.writeText(appDatabaseContent)
             filesOverwritten.add("persistence/AppDatabase.kt")
+        }
+    }
+
+    /**
+     * Adds the module include to settings.gradle.kts and the implementation dependency
+     * to graphEditor/build.gradle.kts, if not already present.
+     */
+    private fun addModuleToGradleFiles(
+        projectDir: File,
+        moduleName: String,
+        filesOverwritten: MutableList<String>
+    ) {
+        val includeEntry = "include(\":$moduleName\")"
+        val implEntry = "implementation(project(\":$moduleName\"))"
+
+        // Update settings.gradle.kts
+        val settingsFile = File(projectDir, "settings.gradle.kts")
+        if (settingsFile.exists()) {
+            val content = settingsFile.readText()
+            if (!content.contains(includeEntry)) {
+                // Append before the final blank lines
+                val trimmed = content.trimEnd()
+                settingsFile.writeText("$trimmed\n$includeEntry\n")
+                filesOverwritten.add("settings.gradle.kts")
+            }
+        }
+
+        // Update graphEditor/build.gradle.kts
+        val buildFile = File(projectDir, "graphEditor/build.gradle.kts")
+        if (buildFile.exists()) {
+            val content = buildFile.readText()
+            if (!content.contains(implEntry)) {
+                // Insert after the last implementation(project(":...")) line
+                val insertAfter = "implementation(project(\":persistence\"))"
+                if (content.contains(insertAfter)) {
+                    val updated = content.replace(
+                        insertAfter,
+                        "$insertAfter\n                $implEntry"
+                    )
+                    buildFile.writeText(updated)
+                    filesOverwritten.add("graphEditor/build.gradle.kts")
+                }
+            }
         }
     }
 
