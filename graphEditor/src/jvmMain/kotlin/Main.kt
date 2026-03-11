@@ -1126,7 +1126,7 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                                     val outputDir = showDirectoryChooser("Save Entity Module To")
                                     if (outputDir != null) {
                                         val persistenceDir = java.io.File(
-                                            outputDir.parentFile,
+                                            outputDir,
                                             "persistence/src/commonMain/kotlin/io/codenode/persistence"
                                         )
                                         val result = moduleSaveService.saveEntityModule(
