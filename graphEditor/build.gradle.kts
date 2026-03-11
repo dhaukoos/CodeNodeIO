@@ -25,6 +25,7 @@ kotlin {
                 implementation(project(":UserProfiles"))
                 implementation(project(":GeoLocations"))
                 implementation(project(":persistence"))
+                implementation(project(":Addresses"))
                 // Koin DI
                 implementation("io.insert-koin:koin-core:4.0.0")
                 // Compose Multiplatform dependencies (using compose DSL)

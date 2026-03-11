@@ -55,6 +55,7 @@ import io.codenode.grapheditor.ui.RuntimePreviewPanel
 import io.codenode.grapheditor.ui.StopWatchPreviewProvider
 import io.codenode.grapheditor.ui.UserProfilesPreviewProvider
 import io.codenode.grapheditor.ui.GeoLocationsPreviewProvider
+import io.codenode.grapheditor.ui.AddressesPreviewProvider
 import io.codenode.circuitsimulator.ConnectionAnimation
 import io.codenode.circuitsimulator.RuntimeSession
 import io.codenode.grapheditor.ui.PropertiesPanelState
@@ -67,7 +68,6 @@ import io.codenode.grapheditor.state.rememberPropertyChangeTracker
 import io.codenode.grapheditor.serialization.FlowKtParser
 import io.codenode.grapheditor.save.ModuleSaveService
 import io.codenode.kotlincompiler.generator.EntityModuleSpec
-import io.codenode.kotlincompiler.generator.pluralize
 import io.codenode.kotlincompiler.generator.EntityProperty
 import io.codenode.fbpdsl.model.NodeTypeDefinition
 import io.codenode.fbpdsl.model.PortTemplate
@@ -85,6 +85,7 @@ import io.codenode.grapheditor.ui.NavigationZoomOutButton
 import io.codenode.persistence.DatabaseModule
 import io.codenode.userprofiles.userProfilesModule
 import io.codenode.geolocations.geoLocationsModule
+import io.codenode.addresses.addressesModule
 import org.koin.core.context.startKoin
 import org.koin.dsl.module
 import io.codenode.grapheditor.ui.FlowGraphPropertiesDialog
@@ -341,6 +342,7 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
         StopWatchPreviewProvider.register()
         UserProfilesPreviewProvider.register()
         GeoLocationsPreviewProvider.register()
+        AddressesPreviewProvider.register()
         true // return value for remember block
     }
 
@@ -1355,7 +1357,11 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
         // Remove Repository Module confirmation dialog
         if (showRemoveConfirmDialog && removeTargetIPType != null) {
             val ipType = removeTargetIPType!!
-            val moduleName = pluralize(ipType.typeName)
+            val moduleName = EntityModuleSpec.fromIPType(
+                ipTypeName = ipType.typeName,
+                sourceIPTypeId = ipType.id,
+                properties = emptyList()
+            ).pluralName
             AlertDialog(
                 onDismissRequest = {
                     showRemoveConfirmDialog = false
@@ -1374,28 +1380,30 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                             showRemoveConfirmDialog = false
                             removeTargetIPType = null
 
-                            val projectDir = showDirectoryChooser("Select Project Root")
-                            if (projectDir != null) {
-                                val entityName = ipType.typeName
-                                val moduleDir = File(projectDir, moduleName)
-                                val persistenceDir = File(
-                                    projectDir,
-                                    "persistence/src/commonMain/kotlin/io/codenode/persistence"
-                                )
-
-                                val result = moduleSaveService.removeEntityModule(
-                                    entityName = entityName,
-                                    moduleName = moduleName,
-                                    moduleDir = moduleDir,
-                                    persistenceDir = persistenceDir,
-                                    projectDir = projectDir,
-                                    customNodeRepository = customNodeRepository,
-                                    sourceIPTypeId = ipType.id
-                                )
-
-                                customNodes = customNodeRepository.getAll()
-                                statusMessage = result
+                            // user.dir may be graphEditor/ when launched via Gradle — walk up to find settings.gradle.kts
+                            var projectDir = File(System.getProperty("user.dir"))
+                            while (!File(projectDir, "settings.gradle.kts").exists() && projectDir.parentFile != null) {
+                                projectDir = projectDir.parentFile
                             }
+                            val entityName = ipType.typeName
+                            val moduleDir = File(projectDir, moduleName)
+                            val persistenceDir = File(
+                                projectDir,
+                                "persistence/src/commonMain/kotlin/io/codenode/persistence"
+                            )
+
+                            val result = moduleSaveService.removeEntityModule(
+                                entityName = entityName,
+                                moduleName = moduleName,
+                                moduleDir = moduleDir,
+                                persistenceDir = persistenceDir,
+                                projectDir = projectDir,
+                                customNodeRepository = customNodeRepository,
+                                sourceIPTypeId = ipType.id
+                            )
+
+                            customNodes = customNodeRepository.getAll()
+                            statusMessage = result
                         },
                         colors = ButtonDefaults.buttonColors(
                             backgroundColor = MaterialTheme.colors.error
@@ -1713,6 +1721,7 @@ fun main() {
             module {
                 single { DatabaseModule.getDatabase().userProfileDao() }
                 single { DatabaseModule.getDatabase().geoLocationDao() }
+                single { DatabaseModule.getDatabase().addressDao() }
             },
             userProfilesModule,
             geoLocationsModule

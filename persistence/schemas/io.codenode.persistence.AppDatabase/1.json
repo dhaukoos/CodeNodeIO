@@ -2,11 +2,11 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "d8f5863ddadcfcd64d7ce6fd83e20035",
+    "identityHash": "08fd9989060f99fd6e607f9ace27f47f",
     "entities": [
       {
-        "tableName": "userprofiles",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `age` INTEGER, `isActive` INTEGER NOT NULL)",
+        "tableName": "addresss",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `Street` TEXT NOT NULL, `City` TEXT NOT NULL, `State` TEXT NOT NULL, `Zip` INTEGER NOT NULL)",
         "fields": [
           {
             "fieldPath": "id",
@@ -15,19 +15,26 @@
             "notNull": true
           },
           {
-            "fieldPath": "name",
-            "columnName": "name",
+            "fieldPath": "Street",
+            "columnName": "Street",
             "affinity": "TEXT",
             "notNull": true
           },
           {
-            "fieldPath": "age",
-            "columnName": "age",
-            "affinity": "INTEGER"
+            "fieldPath": "City",
+            "columnName": "City",
+            "affinity": "TEXT",
+            "notNull": true
           },
           {
-            "fieldPath": "isActive",
-            "columnName": "isActive",
+            "fieldPath": "State",
+            "columnName": "State",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "Zip",
+            "columnName": "Zip",
             "affinity": "INTEGER",
             "notNull": true
           }
@@ -74,11 +81,46 @@
             "id"
           ]
         }
+      },
+      {
+        "tableName": "userprofiles",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `age` INTEGER, `isActive` INTEGER NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "age",
+            "columnName": "age",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "isActive",
+            "columnName": "isActive",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        }
       }
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'd8f5863ddadcfcd64d7ce6fd83e20035')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '08fd9989060f99fd6e607f9ace27f47f')"
     ]
   }
 }

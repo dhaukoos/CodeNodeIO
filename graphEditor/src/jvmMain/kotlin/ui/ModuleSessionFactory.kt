@@ -23,6 +23,11 @@ import io.codenode.geolocations.generated.GeoLocationsControllerAdapter
 import io.codenode.geolocations.geoLocationsFlowGraph
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
+import io.codenode.addresses.AddressesViewModel
+import io.codenode.addresses.generated.AddressesController
+import io.codenode.addresses.generated.AddressesControllerAdapter
+import io.codenode.persistence.AddressDao
+import io.codenode.addresses.addressesFlowGraph
 
 /**
  * Factory for creating module-specific RuntimeSession instances.
@@ -34,6 +39,7 @@ object ModuleSessionFactory : KoinComponent {
 
     private val userProfileDao: UserProfileDao by inject()
     private val geoLocationDao: GeoLocationDao by inject()
+    private val addressDao: AddressDao by inject()
 
     /**
      * Creates a RuntimeSession for the given module name.
@@ -49,6 +55,7 @@ object ModuleSessionFactory : KoinComponent {
             "StopWatch" -> createStopWatchSession(editorFlowGraph)
             "UserProfiles" -> createUserProfilesSession(editorFlowGraph)
             "GeoLocations" -> createGeoLocationsSession(editorFlowGraph)
+            "Addresses" -> createAddressesSession(editorFlowGraph)
             else -> null
         }
     }
@@ -74,5 +81,13 @@ object ModuleSessionFactory : KoinComponent {
         val adapter = GeoLocationsControllerAdapter(controller)
         val viewModel = GeoLocationsViewModel(adapter, geoLocationDao)
         return RuntimeSession(controller, viewModel, editorFlowGraph ?: geoLocationsFlowGraph)
+    }
+
+    private fun createAddressesSession(editorFlowGraph: FlowGraph?): RuntimeSession {
+        val controller = AddressesController(addressesFlowGraph)
+        controller.start()
+        val adapter = AddressesControllerAdapter(controller)
+        val viewModel = AddressesViewModel(adapter, addressDao)
+        return RuntimeSession(controller, viewModel, editorFlowGraph ?: addressesFlowGraph)
     }
 }

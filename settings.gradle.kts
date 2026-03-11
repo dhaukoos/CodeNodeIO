@@ -59,4 +59,4 @@ include(":KMPMobileApp")
 include(":StopWatch")
 include(":UserProfiles")
 include(":GeoLocations")
-
+include(":Addresses")
