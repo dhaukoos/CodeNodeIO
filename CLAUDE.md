@@ -65,6 +65,8 @@ Auto-generated from all feature plans. Last updated: 2026-01-13
 - Room (KMP) with BundledSQLiteDriver — all persistence components in shared `persistence` module (feature 046 architecture) (047-entity-module-generator)
 - Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + Compose Desktop 1.7.3, kotlinx-coroutines 1.8.0, kotlinx-serialization 1.6.0, Room 2.8.4 (KMP), Koin 4.0.0 (048-remove-entity-module)
 - Room (KMP) with BundledSQLiteDriver — persistence module; FileCustomNodeRepository (JSON at `~/.codenode/custom-nodes.json`) (048-remove-entity-module)
+- Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + Compose Desktop 1.7.3 (ImageBitmap, Canvas, Image composable), kotlinx-coroutines 1.8.0 (049-image-filter-pipeline)
+- N/A (in-memory image processing, no persistence) (049-image-filter-pipeline)
 
 - Kotlin 1.9+, Go 1.21+ (001-ide-plugin-platform)
 
@@ -84,9 +86,9 @@ tests/
 Kotlin 1.9+, Go 1.21+: Follow standard conventions
 
 ## Recent Changes
+- 049-image-filter-pipeline: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + Compose Desktop 1.7.3 (ImageBitmap, Canvas, Image composable), kotlinx-coroutines 1.8.0
 - 048-remove-entity-module: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + Compose Desktop 1.7.3, kotlinx-coroutines 1.8.0, kotlinx-serialization 1.6.0, Room 2.8.4 (KMP), Koin 4.0.0
 - 047-entity-module-generator: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + Compose Desktop 1.7.3 + kotlinx-coroutines 1.8.0, kotlinx-serialization 1.6.0, lifecycle-viewmodel-compose 2.8.0, Room 2.8.4 (KMP), KSP 2.1.21-2.0.1, Koin 4.0.0
-- 046-persistence-dependency-injection: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + Compose Multiplatform 1.7.3 + kotlinx-coroutines 1.8.0, Room 2.8.4 (KMP), KSP 2.1.21-2.0.1, SQLite Bundled 2.6.2
 
 
 <!-- MANUAL ADDITIONS START -->
