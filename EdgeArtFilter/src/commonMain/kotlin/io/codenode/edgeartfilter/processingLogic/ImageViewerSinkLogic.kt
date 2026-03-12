@@ -13,7 +13,7 @@ import io.codenode.fbpdsl.runtime.ContinuousSinkBlock
  */
 val imageViewerConsume: ContinuousSinkBlock<ImageData> = { imageData ->
     val meta = imageData.metadata
-    val totalMs = listOf("grayscale_ms", "edgedetect_ms", "overlay_ms")
+    val totalMs = listOf("grayscale_ms", "sepia_ms", "edgedetect_ms", "overlay_ms")
         .mapNotNull { meta[it]?.toLongOrNull() }
         .sum()
 

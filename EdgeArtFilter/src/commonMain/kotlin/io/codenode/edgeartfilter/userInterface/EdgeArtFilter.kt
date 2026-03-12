@@ -90,6 +90,7 @@ fun EdgeArtFilter(
             val meta = imageData.metadata
             val timingKeys = listOf(
                 "grayscale_ms" to "Grayscale",
+                "sepia_ms" to "Sepia",
                 "edgedetect_ms" to "Edge Detect",
                 "overlay_ms" to "Color Overlay",
                 "total_ms" to "Total"

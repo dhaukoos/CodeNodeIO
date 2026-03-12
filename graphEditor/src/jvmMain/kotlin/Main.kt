@@ -62,6 +62,8 @@ import io.codenode.circuitsimulator.RuntimeSession
 import io.codenode.grapheditor.ui.PropertiesPanelState
 import io.codenode.grapheditor.repository.CustomNodeDefinition
 import io.codenode.grapheditor.repository.FileCustomNodeRepository
+import io.codenode.grapheditor.model.CustomIPTypeDefinition
+import io.codenode.grapheditor.model.IPProperty
 import io.codenode.grapheditor.repository.FileIPTypeRepository
 import io.codenode.grapheditor.viewmodel.IPGeneratorViewModel
 import io.codenode.grapheditor.ui.IPGeneratorPanel
@@ -77,6 +79,7 @@ import io.codenode.fbpdsl.model.CodeNode
 import io.codenode.fbpdsl.model.CodeNodeType
 import io.codenode.fbpdsl.factory.getCommonGenericNodeTypes
 import io.codenode.fbpdsl.model.GraphNode
+import io.codenode.fbpdsl.model.IPColor
 import io.codenode.fbpdsl.model.InformationPacketType
 import io.codenode.grapheditor.state.IPTypeRegistry
 import io.codenode.grapheditor.ui.IPPalette
@@ -360,6 +363,7 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
             CustomNodeDefinition.create("EdgeDetector", inputCount = 1, outputCount = 1),
             CustomNodeDefinition.create("ColorOverlay", inputCount = 2, outputCount = 1),
             CustomNodeDefinition.create("ImageViewer", inputCount = 1, outputCount = 0),
+            CustomNodeDefinition.create("SepiaTransformer", inputCount = 1, outputCount = 1),
         )
         for (node in edgeArtFilterNodes) {
             if (node.name !in existingNames) {
@@ -376,9 +380,26 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
     }
 
     // Combine built-in node types with custom nodes
+    // EdgeArtFilter nodes get color coding: source/sink → UI_COMPONENT (Green),
+    // processing nodes → TRANSFORMER (Blue) for visual differentiation
+    val edgeArtFilterSourceSinkNames = setOf("ImagePicker", "ImageViewer")
+    val edgeArtFilterProcessorNames = setOf(
+        "GrayscaleTransformer", "EdgeDetector", "ColorOverlay", "SepiaTransformer"
+    )
     val builtInNodeTypes = remember { createSampleNodeTypes() }
     val nodeTypes = remember(customNodes) {
-        builtInNodeTypes + customNodes.map { it.toNodeTypeDefinition() }
+        builtInNodeTypes + customNodes.map { customNode ->
+            val nodeDef = customNode.toNodeTypeDefinition()
+            when (customNode.name) {
+                in edgeArtFilterSourceSinkNames -> nodeDef.copy(
+                    category = NodeTypeDefinition.NodeCategory.UI_COMPONENT
+                )
+                in edgeArtFilterProcessorNames -> nodeDef.copy(
+                    category = NodeTypeDefinition.NodeCategory.TRANSFORMER
+                )
+                else -> nodeDef
+            }
+        }
     }
     val ipTypeRegistry = remember { IPTypeRegistry.withDefaults() }
     val ipTypeRepository = remember { FileIPTypeRepository() }
@@ -389,6 +410,23 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
         ipTypeRepository.getAllDefinitions().forEach { definition ->
             ipTypeRegistry.registerCustomType(definition)
         }
+
+        // Register EdgeArtFilter ImageData IP type if not already present
+        if (!ipTypeRegistry.contains("ip_imagedata")) {
+            val imageDataType = CustomIPTypeDefinition(
+                id = "ip_imagedata",
+                typeName = "ImageData",
+                properties = listOf(
+                    IPProperty("width", "ip_int"),
+                    IPProperty("height", "ip_int"),
+                    IPProperty("metadata", "ip_string", isRequired = false)
+                ),
+                color = IPColor(0, 188, 212) // Cyan
+            )
+            ipTypeRegistry.registerCustomType(imageDataType)
+            ipTypeRepository.add(imageDataType)
+        }
+
         ipTypesVersion++
     }
     val ipTypes = remember(ipTypesVersion) { ipTypeRegistry.getAllTypes() }

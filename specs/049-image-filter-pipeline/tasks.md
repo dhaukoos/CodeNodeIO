@@ -95,8 +95,8 @@
 
 **Independent Test**: Observe the graph layout showing fan-out from ImagePicker, and verify ColorOverlay receives inputs from both paths before producing output.
 
-- [ ] T023 [US3] Verify fan-out wiring in `EdgeArtFilterFlow.kt` — confirm ImagePicker output channel is wired to both GrayscaleTransformer.inputChannel and ColorOverlay.inputChannel1, and that ColorOverlay.inputChannel2 receives from EdgeDetector.outputChannel; ensure ColorOverlay's In2Out1Runtime `select {}` blocks until both inputs arrive
-- [ ] T024 [US3] Verify graph layout visually distinguishes the branching/merging connections — ensure custom node definitions for ImagePicker include 1 output port with connections to 2 targets, and ColorOverlay shows 2 input ports ("original" and "edges")
+- [x] T023 [US3] Verify fan-out wiring in `EdgeArtFilterFlow.kt` — confirm ImagePicker output channel is wired to both GrayscaleTransformer.inputChannel and ColorOverlay.inputChannel1, and that ColorOverlay.inputChannel2 receives from EdgeDetector.outputChannel; ensure ColorOverlay's In2Out1Runtime `select {}` blocks until both inputs arrive
+- [x] T024 [US3] Verify graph layout visually distinguishes the branching/merging connections — ensure custom node definitions for ImagePicker include 1 output port with connections to 2 targets, and ColorOverlay shows 2 input ports ("original" and "edges")
 
 **Checkpoint**: Fan-out and fan-in are visually clear and functionally correct
 
@@ -108,8 +108,8 @@
 
 **Independent Test**: Replace GrayscaleTransformer with SepiaTransformer in the graph, re-run, and verify sepia-toned output instead of grayscale edges.
 
-- [ ] T025 [P] [US4] Implement SepiaTransformer processing logic in `EdgeArtFilter/src/commonMain/kotlin/io/codenode/edgeartfilter/processingLogic/SepiaTransformerProcessLogic.kt` — per-pixel sepia matrix: newR=min(255, 0.393*R+0.769*G+0.189*B), newG=min(255, 0.349*R+0.686*G+0.168*B), newB=min(255, 0.272*R+0.534*G+0.131*B), add `sepia_ms` to metadata
-- [ ] T026 [US4] Create SepiaTransformer custom node definition and register via FileCustomNodeRepository — same port configuration as GrayscaleTransformer (input: "image" ImageData, output: "result" ImageData) so it can be swapped in-place
+- [x] T025 [P] [US4] Implement SepiaTransformer processing logic in `EdgeArtFilter/src/commonMain/kotlin/io/codenode/edgeartfilter/processingLogic/SepiaTransformerProcessLogic.kt` — per-pixel sepia matrix: newR=min(255, 0.393*R+0.769*G+0.189*B), newG=min(255, 0.349*R+0.686*G+0.168*B), newB=min(255, 0.272*R+0.534*G+0.131*B), add `sepia_ms` to metadata
+- [x] T026 [US4] Create SepiaTransformer custom node definition and register via FileCustomNodeRepository — same port configuration as GrayscaleTransformer (input: "image" ImageData, output: "result" ImageData) so it can be swapped in-place
 
 **Checkpoint**: Users can swap GrayscaleTransformer with SepiaTransformer and get a different visual effect without code changes
 
@@ -119,8 +119,8 @@
 
 **Purpose**: Color coding, edge cases, and final validation
 
-- [ ] T027 [P] Apply visual color coding to custom node definitions per FR-012 — source/sink nodes (ImagePicker, ImageViewer) get one color scheme, processing nodes (Grayscale, EdgeDetector, ColorOverlay, Sepia) get a different color scheme in the graph editor
-- [ ] T028 Run quickstart.md validation — construct the 5-node pipeline in the graph editor, connect all nodes, select an image, verify neon edge composite appears, swap GrayscaleTransformer with SepiaTransformer, re-run, verify different effect
+- [x] T027 [P] Apply visual color coding to custom node definitions per FR-012 — source/sink nodes (ImagePicker, ImageViewer) get one color scheme, processing nodes (Grayscale, EdgeDetector, ColorOverlay, Sepia) get a different color scheme in the graph editor
+- [x] T028 Run quickstart.md validation — construct the 5-node pipeline in the graph editor, connect all nodes, select an image, verify neon edge composite appears, swap GrayscaleTransformer with SepiaTransformer, re-run, verify different effect
 
 ---
 
