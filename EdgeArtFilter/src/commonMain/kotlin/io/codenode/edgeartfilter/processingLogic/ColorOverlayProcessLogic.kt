@@ -4,6 +4,7 @@ import io.codenode.edgeartfilter.ImageData
 import io.codenode.edgeartfilter.createImageBitmapFromPixels
 import io.codenode.edgeartfilter.readPixelArray
 import io.codenode.fbpdsl.runtime.In2Out1ProcessBlock
+import kotlin.time.TimeSource
 
 /**
  * Process logic for the ColorOverlay node (2 inputs, 1 output).
@@ -16,7 +17,7 @@ import io.codenode.fbpdsl.runtime.In2Out1ProcessBlock
  * Adds `overlay_ms` to metadata.
  */
 val colorOverlayProcess: In2Out1ProcessBlock<ImageData, ImageData, ImageData> = { original, edges ->
-    val startTime = System.currentTimeMillis()
+    val mark = TimeSource.Monotonic.markNow()
 
     val origPixels = original.bitmap.readPixelArray()
     val edgePixels = edges.bitmap.readPixelArray()
@@ -44,7 +45,7 @@ val colorOverlayProcess: In2Out1ProcessBlock<ImageData, ImageData, ImageData> = 
         }
     }
 
-    val elapsed = System.currentTimeMillis() - startTime
+    val elapsed = mark.elapsedNow().inWholeMilliseconds
     val bitmap = createImageBitmapFromPixels(output, width, height)
 
     // Merge metadata from both inputs

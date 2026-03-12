@@ -4,6 +4,7 @@ import io.codenode.edgeartfilter.ImageData
 import io.codenode.edgeartfilter.createImageBitmapFromPixels
 import io.codenode.edgeartfilter.readPixelArray
 import io.codenode.fbpdsl.runtime.ContinuousTransformBlock
+import kotlin.time.TimeSource
 
 /**
  * Transform logic for the GrayscaleTransformer node.
@@ -14,7 +15,7 @@ import io.codenode.fbpdsl.runtime.ContinuousTransformBlock
  * Alpha channel is preserved. Adds `grayscale_ms` to metadata.
  */
 val grayscaleTransform: ContinuousTransformBlock<ImageData, ImageData> = { input ->
-    val startTime = System.currentTimeMillis()
+    val mark = TimeSource.Monotonic.markNow()
 
     val pixels = input.bitmap.readPixelArray()
     val width = input.width
@@ -32,7 +33,7 @@ val grayscaleTransform: ContinuousTransformBlock<ImageData, ImageData> = { input
         pixels[i] = (a shl 24) or (gray shl 16) or (gray shl 8) or gray
     }
 
-    val elapsed = System.currentTimeMillis() - startTime
+    val elapsed = mark.elapsedNow().inWholeMilliseconds
     val bitmap = createImageBitmapFromPixels(pixels, width, height)
 
     ImageData(

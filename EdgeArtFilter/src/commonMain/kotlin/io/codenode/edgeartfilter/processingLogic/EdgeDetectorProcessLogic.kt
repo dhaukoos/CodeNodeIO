@@ -6,6 +6,7 @@ import io.codenode.edgeartfilter.readPixelArray
 import io.codenode.fbpdsl.runtime.ContinuousTransformBlock
 import kotlinx.coroutines.delay
 import kotlin.math.sqrt
+import kotlin.time.TimeSource
 
 /**
  * Transform logic for the EdgeDetector node.
@@ -19,7 +20,7 @@ import kotlin.math.sqrt
  * Adds `edgedetect_ms` to metadata.
  */
 val edgeDetectorTransform: ContinuousTransformBlock<ImageData, ImageData> = { input ->
-    val startTime = System.currentTimeMillis()
+    val mark = TimeSource.Monotonic.markNow()
 
     // Simulated processing delay for demo (shows async UI responsiveness)
     delay(500)
@@ -72,7 +73,7 @@ val edgeDetectorTransform: ContinuousTransformBlock<ImageData, ImageData> = { in
         output[y * width + width - 1] = 0xFF.shl(24)       // right column
     }
 
-    val elapsed = System.currentTimeMillis() - startTime
+    val elapsed = mark.elapsedNow().inWholeMilliseconds
     val bitmap = createImageBitmapFromPixels(output, width, height)
 
     ImageData(
