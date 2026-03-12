@@ -82,8 +82,8 @@
 
 **Independent Test**: Run the pipeline with a test image and verify that processing time metadata for each node is displayed alongside the output image.
 
-- [ ] T021 [US2] Verify and enhance timing metadata in all processing logic files (`GrayscaleTransformerProcessLogic.kt`, `EdgeDetectorProcessLogic.kt`, `ColorOverlayProcessLogic.kt`) — ensure each node wraps its processing in `System.currentTimeMillis()` before/after and adds timing key to metadata map, add `total_ms` computation in ImageViewerSinkLogic
-- [ ] T022 [US2] Add metadata display panel to ImageViewer UI in `EdgeArtFilter/src/commonMain/kotlin/io/codenode/edgeartfilter/userInterface/EdgeArtFilter.kt` — show per-node timing breakdown (grayscale_ms, edgedetect_ms, overlay_ms, total_ms) as text overlay or panel below the rendered image
+- [x] T021 [US2] Verify and enhance timing metadata in all processing logic files (`GrayscaleTransformerProcessLogic.kt`, `EdgeDetectorProcessLogic.kt`, `ColorOverlayProcessLogic.kt`) — ensure each node wraps its processing in `System.currentTimeMillis()` before/after and adds timing key to metadata map, add `total_ms` computation in ImageViewerSinkLogic
+- [x] T022 [US2] Add metadata display panel to ImageViewer UI in `EdgeArtFilter/src/commonMain/kotlin/io/codenode/edgeartfilter/userInterface/EdgeArtFilter.kt` — show per-node timing breakdown (grayscale_ms, edgedetect_ms, overlay_ms, total_ms) as text overlay or panel below the rendered image
 
 **Checkpoint**: Users can now see processing metadata alongside results, identifying bottleneck nodes
 
