@@ -26,6 +26,7 @@ kotlin {
                 implementation(project(":GeoLocations"))
                 implementation(project(":persistence"))
                 implementation(project(":Addresses"))
+                implementation(project(":EdgeArtFilter"))
                 // Koin DI
                 implementation("io.insert-koin:koin-core:4.0.0")
                 // Compose Multiplatform dependencies (using compose DSL)

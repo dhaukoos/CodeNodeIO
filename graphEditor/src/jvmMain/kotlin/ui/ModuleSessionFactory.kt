@@ -28,6 +28,10 @@ import io.codenode.addresses.generated.AddressesController
 import io.codenode.addresses.generated.AddressesControllerAdapter
 import io.codenode.persistence.AddressDao
 import io.codenode.addresses.addressesFlowGraph
+import io.codenode.edgeartfilter.EdgeArtFilterViewModel
+import io.codenode.edgeartfilter.generated.EdgeArtFilterController
+import io.codenode.edgeartfilter.generated.EdgeArtFilterControllerAdapter
+import io.codenode.edgeartfilter.edgeArtFilterFlowGraph
 
 /**
  * Factory for creating module-specific RuntimeSession instances.
@@ -56,6 +60,7 @@ object ModuleSessionFactory : KoinComponent {
             "UserProfiles" -> createUserProfilesSession(editorFlowGraph)
             "GeoLocations" -> createGeoLocationsSession(editorFlowGraph)
             "Addresses" -> createAddressesSession(editorFlowGraph)
+            "EdgeArtFilter" -> createEdgeArtFilterSession(editorFlowGraph)
             else -> null
         }
     }
@@ -89,5 +94,12 @@ object ModuleSessionFactory : KoinComponent {
         val adapter = AddressesControllerAdapter(controller)
         val viewModel = AddressesViewModel(adapter, addressDao)
         return RuntimeSession(controller, viewModel, editorFlowGraph ?: addressesFlowGraph)
+    }
+
+    private fun createEdgeArtFilterSession(editorFlowGraph: FlowGraph?): RuntimeSession {
+        val controller = EdgeArtFilterController(edgeArtFilterFlowGraph)
+        val adapter = EdgeArtFilterControllerAdapter(controller)
+        val viewModel = EdgeArtFilterViewModel(adapter)
+        return RuntimeSession(controller, viewModel, editorFlowGraph ?: edgeArtFilterFlowGraph)
     }
 }

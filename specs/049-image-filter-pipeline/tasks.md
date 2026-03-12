@@ -17,9 +17,9 @@
 
 **Purpose**: Create EdgeArtFilter KMP module scaffolding and configure Gradle integration
 
-- [ ] T001 Create EdgeArtFilter module directory structure: `EdgeArtFilter/src/commonMain/kotlin/io/codenode/edgeartfilter/`, `processingLogic/`, `generated/`, `userInterface/`
-- [ ] T002 Create `EdgeArtFilter/build.gradle.kts` with KMP commonMain config, Compose Desktop dependency, and fbpDsl project dependency (follow StopWatch/UserProfiles pattern)
-- [ ] T003 Add EdgeArtFilter module to `settings.gradle.kts` include list and graphEditor `build.gradle.kts` dependencies
+- [x] T001 Create EdgeArtFilter module directory structure: `EdgeArtFilter/src/commonMain/kotlin/io/codenode/edgeartfilter/`, `processingLogic/`, `generated/`, `userInterface/`
+- [x] T002 Create `EdgeArtFilter/build.gradle.kts` with KMP commonMain config, Compose Desktop dependency, and fbpDsl project dependency (follow StopWatch/UserProfiles pattern)
+- [x] T003 Add EdgeArtFilter module to `settings.gradle.kts` include list and graphEditor `build.gradle.kts` dependencies
 
 ---
 
@@ -29,7 +29,7 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T004 Create ImageData data class in `EdgeArtFilter/src/commonMain/kotlin/io/codenode/edgeartfilter/ImageData.kt` with fields: `bitmap: ImageBitmap`, `width: Int`, `height: Int`, `metadata: Map<String, String> = emptyMap()`
+- [x] T004 Create ImageData data class in `EdgeArtFilter/src/commonMain/kotlin/io/codenode/edgeartfilter/ImageData.kt` with fields: `bitmap: ImageBitmap`, `width: Int`, `height: Int`, `metadata: Map<String, String> = emptyMap()`
 
 **Checkpoint**: Foundation ready — user story implementation can now begin
 
@@ -43,34 +43,34 @@
 
 ### FlowGraph Definition
 
-- [ ] T005 [US1] Create FlowGraph definition in `EdgeArtFilter/src/commonMain/kotlin/io/codenode/edgeartfilter/EdgeArtFilter.flow.kt` with 5 nodes (ImagePicker source, GrayscaleTransformer transformer, EdgeDetector transformer, ColorOverlay In2Out1, ImageViewer sink) and connections: ImagePicker.image→GrayscaleTransformer.image, ImagePicker.image→ColorOverlay.original (fan-out), GrayscaleTransformer.result→EdgeDetector.image, EdgeDetector.edges→ColorOverlay.edges (fan-in), ColorOverlay.composite→ImageViewer.image
+- [x] T005 [US1] Create FlowGraph definition in `EdgeArtFilter/src/commonMain/kotlin/io/codenode/edgeartfilter/EdgeArtFilter.flow.kt` with 5 nodes (ImagePicker source, GrayscaleTransformer transformer, EdgeDetector transformer, ColorOverlay In2Out1, ImageViewer sink) and connections: ImagePicker.image→GrayscaleTransformer.image, ImagePicker.image→ColorOverlay.original (fan-out), GrayscaleTransformer.result→EdgeDetector.image, EdgeDetector.edges→ColorOverlay.edges (fan-in), ColorOverlay.composite→ImageViewer.image
 
 ### Processing Logic (all parallel — separate files, no interdependencies)
 
-- [ ] T006 [P] [US1] Implement ImagePicker source logic in `EdgeArtFilter/src/commonMain/kotlin/io/codenode/edgeartfilter/processingLogic/ImagePickerSourceLogic.kt` — open file chooser dialog, load selected image into ImageBitmap, wrap in ImageData with `source` metadata key, emit on output port; no emission if user cancels
-- [ ] T007 [P] [US1] Implement GrayscaleTransformer processing logic in `EdgeArtFilter/src/commonMain/kotlin/io/codenode/edgeartfilter/processingLogic/GrayscaleTransformerProcessLogic.kt` — per-pixel luminosity formula `gray = 0.299*R + 0.587*G + 0.114*B`, set R=G=B=gray, preserve alpha, add `grayscale_ms` to metadata
-- [ ] T008 [P] [US1] Implement EdgeDetector processing logic in `EdgeArtFilter/src/commonMain/kotlin/io/codenode/edgeartfilter/processingLogic/EdgeDetectorProcessLogic.kt` — Sobel 3x3 convolution with Gx `[[-1,0,1],[-2,0,2],[-1,0,1]]` and Gy `[[-1,-2,-1],[0,0,0],[1,2,1]]` kernels, magnitude = `sqrt(Gx^2+Gy^2)` clamped 0-255, configurable simulated delay (default 500ms), add `edgedetect_ms` to metadata
-- [ ] T009 [P] [US1] Implement ColorOverlay processing logic in `EdgeArtFilter/src/commonMain/kotlin/io/codenode/edgeartfilter/processingLogic/ColorOverlayProcessLogic.kt` — In2Out1ProcessBlock receiving original image + edge map, for each pixel: if edge brightness > threshold use neon cyan/green color, else use original pixel (optionally darkened), add `overlay_ms` to metadata
-- [ ] T010 [P] [US1] Implement ImageViewer sink logic in `EdgeArtFilter/src/commonMain/kotlin/io/codenode/edgeartfilter/processingLogic/ImageViewerSinkLogic.kt` — update ViewModel state with received ImageData for UI rendering
+- [x] T006 [P] [US1] Implement ImagePicker source logic in `EdgeArtFilter/src/commonMain/kotlin/io/codenode/edgeartfilter/processingLogic/ImagePickerSourceLogic.kt` — open file chooser dialog, load selected image into ImageBitmap, wrap in ImageData with `source` metadata key, emit on output port; no emission if user cancels
+- [x] T007 [P] [US1] Implement GrayscaleTransformer processing logic in `EdgeArtFilter/src/commonMain/kotlin/io/codenode/edgeartfilter/processingLogic/GrayscaleTransformerProcessLogic.kt` — per-pixel luminosity formula `gray = 0.299*R + 0.587*G + 0.114*B`, set R=G=B=gray, preserve alpha, add `grayscale_ms` to metadata
+- [x] T008 [P] [US1] Implement EdgeDetector processing logic in `EdgeArtFilter/src/commonMain/kotlin/io/codenode/edgeartfilter/processingLogic/EdgeDetectorProcessLogic.kt` — Sobel 3x3 convolution with Gx `[[-1,0,1],[-2,0,2],[-1,0,1]]` and Gy `[[-1,-2,-1],[0,0,0],[1,2,1]]` kernels, magnitude = `sqrt(Gx^2+Gy^2)` clamped 0-255, configurable simulated delay (default 500ms), add `edgedetect_ms` to metadata
+- [x] T009 [P] [US1] Implement ColorOverlay processing logic in `EdgeArtFilter/src/commonMain/kotlin/io/codenode/edgeartfilter/processingLogic/ColorOverlayProcessLogic.kt` — In2Out1ProcessBlock receiving original image + edge map, for each pixel: if edge brightness > threshold use neon cyan/green color, else use original pixel (optionally darkened), add `overlay_ms` to metadata
+- [x] T010 [P] [US1] Implement ImageViewer sink logic in `EdgeArtFilter/src/commonMain/kotlin/io/codenode/edgeartfilter/processingLogic/ImageViewerSinkLogic.kt` — update ViewModel state with received ImageData for UI rendering
 
 ### Generated Runtime Files
 
-- [ ] T011 [US1] Create runtime wiring in `EdgeArtFilter/src/commonMain/kotlin/io/codenode/edgeartfilter/generated/EdgeArtFilterFlow.kt` — instantiate all 5 node runtimes (SourceRuntime for ImagePicker, TransformerRuntime for Grayscale/EdgeDetector, In2Out1Runtime for ColorOverlay, SinkRuntime for ImageViewer), wire channels per FlowGraph connections including fan-out from ImagePicker
-- [ ] T012 [P] [US1] Create controller in `EdgeArtFilter/src/commonMain/kotlin/io/codenode/edgeartfilter/generated/EdgeArtFilterController.kt` — lifecycle management (start/stop/pause/resume all node runtimes), follows StopWatch controller pattern
-- [ ] T013 [P] [US1] Create controller interface in `EdgeArtFilter/src/commonMain/kotlin/io/codenode/edgeartfilter/generated/EdgeArtFilterControllerInterface.kt` — defines start/stop/pause/resume contract
-- [ ] T014 [P] [US1] Create controller adapter in `EdgeArtFilter/src/commonMain/kotlin/io/codenode/edgeartfilter/generated/EdgeArtFilterControllerAdapter.kt` — bridges controller interface to runtime, follows existing adapter pattern
+- [x] T011 [US1] Create runtime wiring in `EdgeArtFilter/src/commonMain/kotlin/io/codenode/edgeartfilter/generated/EdgeArtFilterFlow.kt` — instantiate all 5 node runtimes (SourceRuntime for ImagePicker, TransformerRuntime for Grayscale/EdgeDetector, In2Out1Runtime for ColorOverlay, SinkRuntime for ImageViewer), wire channels per FlowGraph connections including fan-out from ImagePicker
+- [x] T012 [P] [US1] Create controller in `EdgeArtFilter/src/commonMain/kotlin/io/codenode/edgeartfilter/generated/EdgeArtFilterController.kt` — lifecycle management (start/stop/pause/resume all node runtimes), follows StopWatch controller pattern
+- [x] T013 [P] [US1] Create controller interface in `EdgeArtFilter/src/commonMain/kotlin/io/codenode/edgeartfilter/generated/EdgeArtFilterControllerInterface.kt` — defines start/stop/pause/resume contract
+- [x] T014 [P] [US1] Create controller adapter in `EdgeArtFilter/src/commonMain/kotlin/io/codenode/edgeartfilter/generated/EdgeArtFilterControllerAdapter.kt` — bridges controller interface to runtime, follows existing adapter pattern
 
 ### ViewModel & UI
 
-- [ ] T015 [US1] Create ViewModel in `EdgeArtFilter/src/commonMain/kotlin/io/codenode/edgeartfilter/EdgeArtFilterViewModel.kt` — exposes `StateFlow<ImageData?>` for processed image state, provides start/stop/selectImage actions, uses lifecycle-viewmodel-compose
-- [ ] T016 [US1] Create UI composable in `EdgeArtFilter/src/commonMain/kotlin/io/codenode/edgeartfilter/userInterface/EdgeArtFilter.kt` — renders ImageBitmap via Compose Image composable, file picker button to trigger pipeline, displays basic image output
+- [x] T015 [US1] Create ViewModel in `EdgeArtFilter/src/commonMain/kotlin/io/codenode/edgeartfilter/EdgeArtFilterViewModel.kt` — exposes `StateFlow<ImageData?>` for processed image state, provides start/stop/selectImage actions, uses lifecycle-viewmodel-compose
+- [x] T016 [US1] Create UI composable in `EdgeArtFilter/src/commonMain/kotlin/io/codenode/edgeartfilter/userInterface/EdgeArtFilter.kt` — renders ImageBitmap via Compose Image composable, file picker button to trigger pipeline, displays basic image output
 
 ### GraphEditor Integration
 
-- [ ] T017 [US1] Create 5 custom node definitions for the graph editor (ImagePicker, GrayscaleTransformer, EdgeDetector, ColorOverlay, ImageViewer) and register them via FileCustomNodeRepository — set appropriate port names/types per data-model.md, use ImageData as port type
-- [ ] T018 [US1] Create PreviewProvider in `graphEditor/src/jvmMain/kotlin/ui/EdgeArtFilterPreviewProvider.kt` — register EdgeArtFilter composable with PreviewRegistry for Runtime Preview panel
-- [ ] T019 [US1] Add ModuleSessionFactory entry in `graphEditor/src/jvmMain/kotlin/ui/ModuleSessionFactory.kt` — add "EdgeArtFilter" when-branch creating RuntimeSession with Controller, Adapter, ViewModel
-- [ ] T020 [US1] Wire Main.kt integration in `graphEditor/src/jvmMain/kotlin/Main.kt` — add EdgeArtFilter Koin module, PreviewProvider.register() call, module import
+- [x] T017 [US1] Create 5 custom node definitions for the graph editor (ImagePicker, GrayscaleTransformer, EdgeDetector, ColorOverlay, ImageViewer) and register them via FileCustomNodeRepository — set appropriate port names/types per data-model.md, use ImageData as port type
+- [x] T018 [US1] Create PreviewProvider in `graphEditor/src/jvmMain/kotlin/ui/EdgeArtFilterPreviewProvider.kt` — register EdgeArtFilter composable with PreviewRegistry for Runtime Preview panel
+- [x] T019 [US1] Add ModuleSessionFactory entry in `graphEditor/src/jvmMain/kotlin/ui/ModuleSessionFactory.kt` — add "EdgeArtFilter" when-branch creating RuntimeSession with Controller, Adapter, ViewModel
+- [x] T020 [US1] Wire Main.kt integration in `graphEditor/src/jvmMain/kotlin/Main.kt` — add EdgeArtFilter Koin module, PreviewProvider.register() call, module import
 
 **Checkpoint**: At this point, User Story 1 should be fully functional — user can construct the 5-node pipeline, select an image, and see the neon edge composite in the ImageViewer
 

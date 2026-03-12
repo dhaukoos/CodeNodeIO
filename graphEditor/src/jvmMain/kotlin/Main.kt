@@ -56,6 +56,7 @@ import io.codenode.grapheditor.ui.StopWatchPreviewProvider
 import io.codenode.grapheditor.ui.UserProfilesPreviewProvider
 import io.codenode.grapheditor.ui.GeoLocationsPreviewProvider
 import io.codenode.grapheditor.ui.AddressesPreviewProvider
+import io.codenode.grapheditor.ui.EdgeArtFilterPreviewProvider
 import io.codenode.circuitsimulator.ConnectionAnimation
 import io.codenode.circuitsimulator.RuntimeSession
 import io.codenode.grapheditor.ui.PropertiesPanelState
@@ -343,12 +344,29 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
         UserProfilesPreviewProvider.register()
         GeoLocationsPreviewProvider.register()
         AddressesPreviewProvider.register()
+        EdgeArtFilterPreviewProvider.register()
         true // return value for remember block
     }
 
     // Load custom nodes on startup
     LaunchedEffect(Unit) {
         customNodeRepository.load()
+
+        // Register EdgeArtFilter custom nodes if not already present
+        val existingNames = customNodeRepository.getAll().map { it.name }.toSet()
+        val edgeArtFilterNodes = listOf(
+            CustomNodeDefinition.create("ImagePicker", inputCount = 0, outputCount = 2),
+            CustomNodeDefinition.create("GrayscaleTransformer", inputCount = 1, outputCount = 1),
+            CustomNodeDefinition.create("EdgeDetector", inputCount = 1, outputCount = 1),
+            CustomNodeDefinition.create("ColorOverlay", inputCount = 2, outputCount = 1),
+            CustomNodeDefinition.create("ImageViewer", inputCount = 1, outputCount = 0),
+        )
+        for (node in edgeArtFilterNodes) {
+            if (node.name !in existingNames) {
+                customNodeRepository.add(node)
+            }
+        }
+
         customNodes = customNodeRepository.getAll()
     }
 
