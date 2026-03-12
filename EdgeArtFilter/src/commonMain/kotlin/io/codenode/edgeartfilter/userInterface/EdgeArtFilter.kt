@@ -14,6 +14,7 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import io.codenode.edgeartfilter.EdgeArtFilterViewModel
+import io.codenode.edgeartfilter.pickImageFile
 import io.codenode.fbpdsl.model.ExecutionState
 
 /**
@@ -46,6 +47,24 @@ fun EdgeArtFilter(
             style = MaterialTheme.typography.titleSmall,
             modifier = Modifier.padding(bottom = 8.dp)
         )
+
+        // Pick image button
+        Button(
+            onClick = {
+                val imageData = pickImageFile()
+                if (imageData != null) {
+                    viewModel.selectImage(
+                        bitmap = imageData.bitmap,
+                        width = imageData.width,
+                        height = imageData.height,
+                        sourcePath = imageData.metadata["source"] ?: ""
+                    )
+                }
+            },
+            modifier = Modifier.padding(bottom = 8.dp)
+        ) {
+            Text("Pick Image")
+        }
 
         // Processed image display
         val imageData = processedImage

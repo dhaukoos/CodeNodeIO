@@ -11,6 +11,12 @@ import androidx.compose.ui.graphics.ImageBitmap
 expect fun createImageBitmapFromPixels(pixels: IntArray, width: Int, height: Int): ImageBitmap
 
 /**
+ * Opens a platform file chooser filtered to PNG images and loads the selected file
+ * as an ImageData packet. Returns null if the user cancels.
+ */
+expect fun pickImageFile(): ImageData?
+
+/**
  * Reads all pixels from an ImageBitmap into an ARGB IntArray.
  *
  * Each pixel is packed as: (alpha << 24) | (red << 16) | (green << 8) | blue
