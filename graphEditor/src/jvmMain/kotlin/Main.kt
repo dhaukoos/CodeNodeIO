@@ -1292,7 +1292,8 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
         // File dialogs
         if (showOpenDialog) {
             LaunchedEffect(Unit) {
-                val file = showFileOpenDialog()
+                val openResult = showFileOpenDialog()
+                val file = openResult.file
                 if (file != null) {
                     try {
                         // T062: Only support .flow.kt files (removed .flow.kts support)
@@ -1312,6 +1313,8 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                     } catch (e: Exception) {
                         statusMessage = "Error opening: ${e.message}"
                     }
+                } else if (openResult.error != null) {
+                    statusMessage = openResult.error
                 }
                 showOpenDialog = false
             }
@@ -1704,20 +1707,51 @@ fun StatusBar(
 }
 
 /**
- * Show file open dialog for .flow.kt files
+ * Result of a file open dialog operation.
  */
-fun showFileOpenDialog(): File? {
+data class FileOpenResult(val file: File? = null, val error: String? = null)
+
+/**
+ * Show file open dialog for .flow.kt files or module directories.
+ *
+ * Accepts both files and directories. When a directory (module folder) is selected,
+ * resolves the .flow.kt file at the conventional path:
+ *   {moduleDir}/src/commonMain/kotlin/io/codenode/{modulename}/{ModuleName}.flow.kt
+ */
+fun showFileOpenDialog(): FileOpenResult {
     val fileChooser = JFileChooser().apply {
-        dialogTitle = "Open Flow Graph"
-        // T062: Only accept .flow.kt (compiled) files
+        dialogTitle = "Open Flow Graph or Module Folder"
+        fileSelectionMode = JFileChooser.FILES_AND_DIRECTORIES
         fileFilter = FileNameExtensionFilter("Flow Graph Files (*.flow.kt)", "kt")
+        isAcceptAllFileFilterUsed = true
     }
 
-    return if (fileChooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
-        fileChooser.selectedFile
+    if (fileChooser.showOpenDialog(null) != JFileChooser.APPROVE_OPTION) return FileOpenResult()
+
+    val selected = fileChooser.selectedFile
+    if (selected.isFile) return FileOpenResult(file = selected)
+
+    // Directory selected — find .flow.kt at the conventional module path
+    val flowFile = resolveFlowKtFromModule(selected)
+    return if (flowFile != null) {
+        FileOpenResult(file = flowFile)
     } else {
-        null
+        FileOpenResult(error = "No .flow.kt found in ${selected.name}/src/commonMain/kotlin/io/codenode/...")
     }
+}
+
+/**
+ * Resolves the .flow.kt file from a module directory.
+ *
+ * Looks at: {moduleDir}/src/commonMain/kotlin/io/codenode/{modulename}/{ModuleName}.flow.kt
+ * The module name is derived from the directory name (lowercased for the package path,
+ * original case for the filename).
+ */
+private fun resolveFlowKtFromModule(moduleDir: File): File? {
+    val moduleName = moduleDir.name
+    val packageName = moduleName.lowercase()
+    val flowFile = moduleDir.resolve("src/commonMain/kotlin/io/codenode/$packageName/$moduleName.flow.kt")
+    return if (flowFile.exists()) flowFile else null
 }
 
 /**
