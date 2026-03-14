@@ -23,9 +23,9 @@
 
 **Purpose**: Create the new `nodes` module and foundational types needed by all stories
 
-- [ ] T001 Define `NodeCategory` enum (SOURCE, TRANSFORMER, PROCESSOR, SINK) and `PortSpec` data class in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/CodeNodeDefinition.kt`
-- [ ] T002 Define `CodeNodeDefinition` interface with properties (name, category, description, inputPorts, outputPorts) and methods (createRuntime, toNodeTypeDefinition) in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/CodeNodeDefinition.kt`
-- [ ] T003 Create the `nodes` Gradle module with KMP configuration and `fbpDsl` dependency in `nodes/build.gradle.kts` and register it in `settings.gradle.kts`
+- [x] T001 Define `NodeCategory` enum (SOURCE, TRANSFORMER, PROCESSOR, SINK) and `PortSpec` data class in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/CodeNodeDefinition.kt`
+- [x] T002 Define `CodeNodeDefinition` interface with properties (name, category, description, inputPorts, outputPorts) and methods (createRuntime, toNodeTypeDefinition) in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/CodeNodeDefinition.kt`
+- [x] T003 Create the `nodes` Gradle module with KMP configuration and `fbpDsl` dependency in `nodes/build.gradle.kts` and register it in `settings.gradle.kts`
 
 **Checkpoint**: Foundation types compile, `nodes` module builds successfully
 
@@ -37,11 +37,11 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T004 Implement `NodeDefinitionRegistry` with `discoverAll()`, `getByName()`, `getAllForPalette()`, and `isCompiled()` methods in `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/state/NodeDefinitionRegistry.kt`
-- [ ] T005 Implement classpath scanning in `NodeDefinitionRegistry.discoverAll()` to discover compiled `CodeNodeDefinition` implementations from Module and Project levels
-- [ ] T006 Implement filesystem scanning in `NodeDefinitionRegistry.discoverAll()` to parse `~/.codenode/nodes/*.kt` for `NodeTemplateMeta` (Universal level, metadata only)
-- [ ] T007 Implement legacy loading in `NodeDefinitionRegistry.discoverAll()` to load existing `CustomNodeDefinition` entries from `CustomNodeRepository` for backward compatibility
-- [ ] T008 Implement `getAllForPalette()` to merge compiled nodes, template nodes, and legacy nodes into a unified `List<NodeTypeDefinition>` with correct ordering (compiled first, then templates, then legacy)
+- [x] T004 Implement `NodeDefinitionRegistry` with `discoverAll()`, `getByName()`, `getAllForPalette()`, and `isCompiled()` methods in `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/state/NodeDefinitionRegistry.kt`
+- [x] T005 Implement classpath scanning in `NodeDefinitionRegistry.discoverAll()` to discover compiled `CodeNodeDefinition` implementations from Module and Project levels
+- [x] T006 Implement filesystem scanning in `NodeDefinitionRegistry.discoverAll()` to parse `~/.codenode/nodes/*.kt` for `NodeTemplateMeta` (Universal level, metadata only)
+- [x] T007 Implement legacy loading in `NodeDefinitionRegistry.discoverAll()` to load existing `CustomNodeDefinition` entries from `CustomNodeRepository` for backward compatibility
+- [x] T008 Implement `getAllForPalette()` to merge compiled nodes, template nodes, and legacy nodes into a unified `List<NodeTypeDefinition>` with correct ordering (compiled first, then templates, then legacy)
 
 **Checkpoint**: Registry discovers nodes from all three sources and provides palette-ready entries
 
@@ -55,12 +55,12 @@
 
 ### Implementation for User Story 1
 
-- [ ] T009 [US1] Add `NodeCategory` selector (Source, Transformer, Processor, Sink) to the Node Generator UI in `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/NodeGeneratorPanel.kt`
-- [ ] T010 [US1] Add placement level selector (Module, Project, Universal) with Project as default to the Node Generator UI in `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/NodeGeneratorPanel.kt`
-- [ ] T011 [US1] Add `category` and `placementLevel` state properties to `NodeGeneratorViewModel` in `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/viewmodel/NodeGeneratorViewModel.kt`
-- [ ] T012 [US1] Implement file generation logic in `NodeGeneratorViewModel` that produces a `{NodeName}CodeNode.kt` Kotlin object implementing `CodeNodeDefinition` with correct port configuration and pass-through processing logic placeholder
-- [ ] T013 [US1] Implement file path resolution in `NodeGeneratorViewModel` for each placement level: Module → `{Module}/src/commonMain/kotlin/io/codenode/{module}/nodes/`, Project → `nodes/src/commonMain/kotlin/io/codenode/nodes/`, Universal → `~/.codenode/nodes/`
-- [ ] T014 [US1] Implement name conflict detection in `NodeGeneratorViewModel` that checks all three levels via `NodeDefinitionRegistry` before generating, and shows an error if a node with the same name already exists
+- [x] T009 [US1] Add `NodeCategory` selector (Source, Transformer, Processor, Sink) to the Node Generator UI in `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/NodeGeneratorPanel.kt`
+- [x] T010 [US1] Add placement level selector (Module, Project, Universal) with Project as default to the Node Generator UI in `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/NodeGeneratorPanel.kt`
+- [x] T011 [US1] Add `category` and `placementLevel` state properties to `NodeGeneratorViewModel` in `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/viewmodel/NodeGeneratorViewModel.kt`
+- [x] T012 [US1] Implement file generation logic in `NodeGeneratorViewModel` that produces a `{NodeName}CodeNode.kt` Kotlin object implementing `CodeNodeDefinition` with correct port configuration and pass-through processing logic placeholder
+- [x] T013 [US1] Implement file path resolution in `NodeGeneratorViewModel` for each placement level: Module → `{Module}/src/commonMain/kotlin/io/codenode/{module}/nodes/`, Project → `nodes/src/commonMain/kotlin/io/codenode/nodes/`, Universal → `~/.codenode/nodes/`
+- [x] T014 [US1] Implement name conflict detection in `NodeGeneratorViewModel` that checks all three levels via `NodeDefinitionRegistry` before generating, and shows an error if a node with the same name already exists
 
 **Checkpoint**: Node Generator creates compilable self-contained node files at the correct location for any category and level
 

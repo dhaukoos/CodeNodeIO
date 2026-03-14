@@ -51,6 +51,7 @@ include(":idePlugin")
 
 // Shared modules
 include(":persistence")
+include(":nodes")
 
 // Mobile app module
 include(":KMPMobileApp")

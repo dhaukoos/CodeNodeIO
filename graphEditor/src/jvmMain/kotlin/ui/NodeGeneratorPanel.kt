@@ -19,7 +19,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.codenode.grapheditor.viewmodel.NodeGeneratorViewModel
 import io.codenode.grapheditor.viewmodel.NodeGeneratorPanelState
+import io.codenode.grapheditor.viewmodel.PlacementLevel
 import io.codenode.grapheditor.repository.CustomNodeDefinition
+import io.codenode.fbpdsl.runtime.NodeCategory
 
 /**
  * Node Generator panel composable for creating custom node types.
@@ -49,12 +51,17 @@ fun NodeGeneratorPanel(
         onInputDropdownExpandedChange = { viewModel.setInputDropdownExpanded(it) },
         onOutputDropdownExpandedChange = { viewModel.setOutputDropdownExpanded(it) },
         onAnyInputChange = { viewModel.setAnyInput(it) },
+        onCategoryChange = { viewModel.setCategory(it) },
+        onCategoryDropdownExpandedChange = { viewModel.setCategoryDropdownExpanded(it) },
+        onLevelChange = { viewModel.setPlacementLevel(it) },
+        onLevelDropdownExpandedChange = { viewModel.setLevelDropdownExpanded(it) },
         onCancel = { viewModel.reset() },
         onCreate = {
             viewModel.createNode()?.let { node ->
                 onNodeCreated(node)
             }
         },
+        onGenerateCodeNode = { viewModel.generateCodeNode() },
         modifier = modifier
     )
 }
@@ -73,8 +80,13 @@ private fun NodeGeneratorPanelContent(
     onInputDropdownExpandedChange: (Boolean) -> Unit,
     onOutputDropdownExpandedChange: (Boolean) -> Unit,
     onAnyInputChange: (Boolean) -> Unit,
+    onCategoryChange: (NodeCategory) -> Unit,
+    onCategoryDropdownExpandedChange: (Boolean) -> Unit,
+    onLevelChange: (PlacementLevel) -> Unit,
+    onLevelDropdownExpandedChange: (Boolean) -> Unit,
     onCancel: () -> Unit,
     onCreate: () -> Unit,
+    onGenerateCodeNode: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val portOptions = listOf(0, 1, 2, 3)
@@ -122,6 +134,82 @@ private fun NodeGeneratorPanelContent(
                     backgroundColor = Color.White
                 )
             )
+
+            // Category dropdown
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = "Category",
+                    fontSize = 12.sp,
+                    color = Color(0xFF757575)
+                )
+                Box {
+                    OutlinedButton(
+                        onClick = { onCategoryDropdownExpandedChange(true) },
+                        modifier = Modifier.width(120.dp)
+                    ) {
+                        Text(state.category.name.lowercase().replaceFirstChar { it.uppercase() }, fontSize = 12.sp)
+                        Spacer(Modifier.weight(1f))
+                        Text("▼", fontSize = 10.sp)
+                    }
+                    DropdownMenu(
+                        expanded = state.categoryDropdownExpanded,
+                        onDismissRequest = { onCategoryDropdownExpandedChange(false) }
+                    ) {
+                        NodeCategory.entries.forEach { cat ->
+                            DropdownMenuItem(
+                                onClick = {
+                                    onCategoryChange(cat)
+                                    onCategoryDropdownExpandedChange(false)
+                                }
+                            ) {
+                                Text(cat.name.lowercase().replaceFirstChar { it.uppercase() })
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Placement level dropdown
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = "Level",
+                    fontSize = 12.sp,
+                    color = Color(0xFF757575)
+                )
+                Box {
+                    OutlinedButton(
+                        onClick = { onLevelDropdownExpandedChange(true) },
+                        modifier = Modifier.width(120.dp)
+                    ) {
+                        Text(state.placementLevel.displayName, fontSize = 12.sp)
+                        Spacer(Modifier.weight(1f))
+                        Text("▼", fontSize = 10.sp)
+                    }
+                    DropdownMenu(
+                        expanded = state.levelDropdownExpanded,
+                        onDismissRequest = { onLevelDropdownExpandedChange(false) }
+                    ) {
+                        PlacementLevel.entries.forEach { level ->
+                            DropdownMenuItem(
+                                onClick = {
+                                    onLevelChange(level)
+                                    onLevelDropdownExpandedChange(false)
+                                }
+                            ) {
+                                Text(level.displayName)
+                            }
+                        }
+                    }
+                }
+            }
 
             // Input count dropdown
             Row(
@@ -238,6 +326,24 @@ private fun NodeGeneratorPanelContent(
                 }
             }
 
+            // Error/success messages
+            state.generationError?.let { error ->
+                Text(
+                    text = error,
+                    fontSize = 10.sp,
+                    color = Color(0xFFFF5722),
+                    modifier = Modifier.padding(vertical = 2.dp)
+                )
+            }
+            state.generationSuccess?.let { success ->
+                Text(
+                    text = success,
+                    fontSize = 10.sp,
+                    color = Color(0xFF4CAF50),
+                    modifier = Modifier.padding(vertical = 2.dp)
+                )
+            }
+
             Divider(color = Color(0xFFE0E0E0))
 
             // Buttons
@@ -253,7 +359,7 @@ private fun NodeGeneratorPanelContent(
                     Text("Cancel")
                 }
 
-                // Create button - disabled when !state.isValid
+                // Create button (legacy CustomNodeDefinition)
                 Button(
                     onClick = onCreate,
                     enabled = state.isValid,
@@ -265,6 +371,19 @@ private fun NodeGeneratorPanelContent(
                 ) {
                     Text("Create", color = Color.White)
                 }
+            }
+
+            // Generate CodeNode button
+            Button(
+                onClick = onGenerateCodeNode,
+                enabled = state.isValid,
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(
+                    backgroundColor = Color(0xFF4CAF50),
+                    disabledBackgroundColor = Color(0xFFBDBDBD)
+                )
+            ) {
+                Text("Generate CodeNode", color = Color.White)
             }
         }
     }
