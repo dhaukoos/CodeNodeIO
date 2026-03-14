@@ -326,9 +326,21 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
     val customNodeRepository = remember { FileCustomNodeRepository() }
     var customNodes by remember { mutableStateOf(emptyList<io.codenode.grapheditor.repository.CustomNodeDefinition>()) }
 
+    // Find the multi-module project root by walking up to settings.gradle.kts
+    val projectRoot = remember {
+        var dir = File(System.getProperty("user.dir"))
+        while (dir.parentFile != null && !File(dir, "settings.gradle.kts").exists()) {
+            dir = dir.parentFile
+        }
+        dir
+    }
+
     // NodeGeneratorViewModel for the Node Generator Panel
     val nodeGeneratorViewModel = remember(customNodeRepository) {
-        NodeGeneratorViewModel(customNodeRepository)
+        NodeGeneratorViewModel(
+            customNodeRepository = customNodeRepository,
+            projectRoot = projectRoot
+        )
     }
 
     // NodePaletteViewModel for the Node Palette

@@ -226,10 +226,10 @@ class NodeGeneratorViewModel(
         val fileName = "${nodeName}CodeNode.kt"
         return when (level) {
             PlacementLevel.MODULE -> {
-                // Module level requires knowing which module -- use project root heuristic
-                // For now, the generated file goes into a "nodes" subdirectory of the current project
+                // Module level: place in the currently-loaded module's nodes directory
+                // For now, defaults to EdgeArtFilter; future: driven by active module context
                 val root = projectRoot ?: return null
-                root.resolve("nodes/src/commonMain/kotlin/io/codenode/nodes/$fileName")
+                root.resolve("EdgeArtFilter/src/commonMain/kotlin/io/codenode/edgeartfilter/nodes/$fileName")
             }
             PlacementLevel.PROJECT -> {
                 val root = projectRoot ?: return null
