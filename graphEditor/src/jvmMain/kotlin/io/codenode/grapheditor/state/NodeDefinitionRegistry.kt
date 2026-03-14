@@ -145,6 +145,32 @@ class NodeDefinitionRegistry(
         compiledNodes[node.name] = node
     }
 
+    /**
+     * Registers a template node from its metadata directly.
+     * Used for immediate palette registration after generating a new CodeNode file.
+     *
+     * @param template The template metadata to register
+     */
+    fun registerTemplate(template: NodeTemplateMeta) {
+        templateNodes[template.name] = template
+    }
+
+    /**
+     * Scans an additional directory for .kt template files and adds them to templateNodes.
+     * Used to discover Project-level and Module-level source files that aren't compiled yet.
+     *
+     * @param directory The directory to scan for .kt files containing CodeNodeDefinition objects
+     */
+    fun scanDirectory(directory: File) {
+        if (!directory.isDirectory) return
+        directory.listFiles(java.io.FileFilter { it.extension == "kt" })?.forEach { file ->
+            val meta = parseTemplateMetadata(file)
+            if (meta != null) {
+                templateNodes[meta.name] = meta
+            }
+        }
+    }
+
     // ========== Discovery Methods ==========
 
     /**

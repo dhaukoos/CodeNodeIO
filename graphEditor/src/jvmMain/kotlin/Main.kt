@@ -24,6 +24,7 @@ import io.codenode.grapheditor.state.GraphState
 import io.codenode.grapheditor.state.SelectableElement
 import io.codenode.grapheditor.state.rememberUndoRedoManager
 import io.codenode.grapheditor.state.AddNodeCommand
+import io.codenode.grapheditor.state.NodeDefinitionRegistry
 import io.codenode.grapheditor.viewmodel.SharedStateProvider
 import io.codenode.grapheditor.viewmodel.LocalSharedState
 import io.codenode.grapheditor.viewmodel.NodeGeneratorViewModel
@@ -335,10 +336,18 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
         dir
     }
 
+    // T015: Central registry for discovering self-contained node definitions
+    val registry = remember(customNodeRepository) {
+        NodeDefinitionRegistry(customNodeRepository)
+    }
+    // Track registry version to trigger recomposition when nodes are discovered
+    var registryVersion by remember { mutableStateOf(0) }
+
     // NodeGeneratorViewModel for the Node Generator Panel
     val nodeGeneratorViewModel = remember(customNodeRepository) {
         NodeGeneratorViewModel(
             customNodeRepository = customNodeRepository,
+            registry = registry,
             projectRoot = projectRoot
         )
     }
@@ -368,7 +377,7 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
         true // return value for remember block
     }
 
-    // Load custom nodes on startup
+    // Load custom nodes and discover all node definitions on startup
     LaunchedEffect(Unit) {
         customNodeRepository.load()
 
@@ -389,6 +398,13 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
         }
 
         customNodes = customNodeRepository.getAll()
+
+        // T015: Discover compiled, template, and legacy nodes from all sources
+        registry.discoverAll()
+        // Also scan project-level and module-level source directories for uncompiled nodes
+        registry.scanDirectory(projectRoot.resolve("nodes/src/commonMain/kotlin/io/codenode/nodes"))
+        registry.scanDirectory(projectRoot.resolve("EdgeArtFilter/src/commonMain/kotlin/io/codenode/edgeartfilter/nodes"))
+        registryVersion++
     }
 
     // Update NodePaletteViewModel with deletable node names when custom nodes change
@@ -396,18 +412,22 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
         nodePaletteViewModel.updateDeletableNodeNames(customNodes.map { it.name }.toSet())
     }
 
-    // Combine built-in node types with custom nodes
-    // EdgeArtFilter nodes get color coding: source/sink → UI_COMPONENT (Green),
-    // processing nodes → TRANSFORMER (Blue) for visual differentiation
+    // T016: Combine built-in node types with registry-discovered nodes
+    // Registry merges compiled CodeNodeDefinitions, templates, and legacy custom nodes
+    // with correct categories already applied by toNodeTypeDefinition()
     val edgeArtFilterSourceSinkNames = setOf("ImagePicker", "ImageViewer")
     val edgeArtFilterProcessorNames = setOf(
         "GrayscaleTransformer", "EdgeDetector", "ColorOverlay", "SepiaTransformer"
     )
     val builtInNodeTypes = remember { createSampleNodeTypes() }
-    val nodeTypes = remember(customNodes) {
-        builtInNodeTypes + customNodes.map { customNode ->
-            val nodeDef = customNode.toNodeTypeDefinition()
-            when (customNode.name) {
+    val nodeTypes = remember(customNodes, registryVersion) {
+        val registryNodes = registry.getAllForPalette()
+
+        // Built-in sample types + registry-discovered nodes (compiled + template + legacy)
+        // Legacy nodes from the registry already have correct types, but EdgeArtFilter
+        // nodes still need color-coding overrides until they are migrated to CodeNodeDefinitions
+        builtInNodeTypes + registryNodes.map { nodeDef ->
+            when (nodeDef.name) {
                 in edgeArtFilterSourceSinkNames -> nodeDef.copy(
                     category = NodeTypeDefinition.NodeCategory.UI_COMPONENT
                 )
@@ -798,6 +818,10 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                             onNodeCreated = { node ->
                                 // Refresh custom nodes list after creation
                                 customNodes = customNodeRepository.getAll()
+                            },
+                            onCodeNodeGenerated = {
+                                // Refresh palette to include the newly generated node
+                                registryVersion++
                             }
                         )
 

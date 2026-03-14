@@ -38,6 +38,7 @@ import io.codenode.fbpdsl.runtime.NodeCategory
 fun NodeGeneratorPanel(
     viewModel: NodeGeneratorViewModel,
     onNodeCreated: (CustomNodeDefinition) -> Unit,
+    onCodeNodeGenerated: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val state by viewModel.state.collectAsState()
@@ -61,7 +62,9 @@ fun NodeGeneratorPanel(
                 onNodeCreated(node)
             }
         },
-        onGenerateCodeNode = { viewModel.generateCodeNode() },
+        onGenerateCodeNode = {
+            viewModel.generateCodeNode()?.let { onCodeNodeGenerated() }
+        },
         modifier = modifier
     )
 }

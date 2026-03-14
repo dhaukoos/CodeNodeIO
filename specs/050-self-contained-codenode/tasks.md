@@ -74,9 +74,9 @@
 
 ### Implementation for User Story 2
 
-- [ ] T015 [US2] Replace hardcoded node registration in `graphEditor/src/jvmMain/kotlin/Main.kt` with `NodeDefinitionRegistry.discoverAll()` call on startup to populate the palette
-- [ ] T016 [US2] Wire `NodeDefinitionRegistry.getAllForPalette()` into the `nodeTypes` list used by the Node Palette display in `graphEditor/src/jvmMain/kotlin/Main.kt`
-- [ ] T017 [US2] Ensure `CodeNodeDefinition.toNodeTypeDefinition()` produces a `NodeTypeDefinition` with correct name, category (mapped to `NodeTypeDefinition.NodeCategory`), port templates, and configuration so palette display and canvas instantiation work correctly
+- [x] T015 [US2] Replace hardcoded node registration in `graphEditor/src/jvmMain/kotlin/Main.kt` with `NodeDefinitionRegistry.discoverAll()` call on startup to populate the palette
+- [x] T016 [US2] Wire `NodeDefinitionRegistry.getAllForPalette()` into the `nodeTypes` list used by the Node Palette display in `graphEditor/src/jvmMain/kotlin/Main.kt`
+- [x] T017 [US2] Ensure `CodeNodeDefinition.toNodeTypeDefinition()` produces a `NodeTypeDefinition` with correct name, category (mapped to `NodeTypeDefinition.NodeCategory`), port templates, and configuration so palette display and canvas instantiation work correctly
 
 **Checkpoint**: Self-contained nodes appear in palette with correct category colors, can be placed on canvas with correct ports
 

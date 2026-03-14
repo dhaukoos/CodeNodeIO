@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.update
 import io.codenode.grapheditor.repository.CustomNodeDefinition
 import io.codenode.grapheditor.repository.CustomNodeRepository
 import io.codenode.grapheditor.state.NodeDefinitionRegistry
+import io.codenode.grapheditor.state.NodeTemplateMeta
 import io.codenode.fbpdsl.runtime.NodeCategory
 import java.io.File
 
@@ -227,6 +228,20 @@ class NodeGeneratorViewModel(
             return null
         }
 
+        // Register immediately so the node appears in the palette without restart
+        reg?.registerTemplate(
+            NodeTemplateMeta(
+                name = nodeName,
+                category = currentState.category,
+                inputCount = currentState.inputCount,
+                outputCount = currentState.outputCount,
+                filePath = outputFile.absolutePath
+            )
+        )
+
+        // Append to ServiceLoader file so the node is discovered as "compiled" after rebuild
+        appendToServiceLoader(nodeName, currentState.placementLevel)
+
         _state.update { it.copy(
             generationSuccess = "Generated ${outputFile.name}",
             generationError = null
@@ -255,6 +270,35 @@ class NodeGeneratorViewModel(
                 val home = System.getProperty("user.home")
                 File(home, ".codenode/nodes/$fileName")
             }
+        }
+    }
+
+    /**
+     * Appends the generated node's fully qualified class name to the ServiceLoader
+     * services file so it will be discovered as a compiled node after the next build.
+     */
+    private fun appendToServiceLoader(nodeName: String, level: PlacementLevel) {
+        val root = projectRoot ?: return
+        val (servicesDir, fqcn) = when (level) {
+            PlacementLevel.PROJECT -> Pair(
+                root.resolve("nodes/src/jvmMain/resources/META-INF/services"),
+                "io.codenode.nodes.${nodeName}CodeNode"
+            )
+            PlacementLevel.MODULE -> Pair(
+                root.resolve("EdgeArtFilter/src/jvmMain/resources/META-INF/services"),
+                "io.codenode.edgeartfilter.nodes.${nodeName}CodeNode"
+            )
+            PlacementLevel.UNIVERSAL -> return // Universal nodes aren't compiled via Gradle
+        }
+        val servicesFile = File(servicesDir, "io.codenode.fbpdsl.runtime.CodeNodeDefinition")
+        try {
+            servicesDir.mkdirs()
+            val existing = if (servicesFile.exists()) servicesFile.readText() else ""
+            if (fqcn !in existing) {
+                servicesFile.appendText("$fqcn\n")
+            }
+        } catch (_: Exception) {
+            // Non-fatal: node still works as template, just won't auto-discover after compile
         }
     }
 
