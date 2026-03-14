@@ -43,8 +43,15 @@ data class NodeGeneratorPanelState(
     val categoryDropdownExpanded: Boolean = false,
     val levelDropdownExpanded: Boolean = false,
     val generationError: String? = null,
-    val generationSuccess: String? = null
+    val generationSuccess: String? = null,
+    val moduleLoaded: Boolean = false
 ) : BaseState {
+    /**
+     * Computed property: available placement levels based on whether a module is loaded.
+     */
+    val availableLevels: List<PlacementLevel>
+        get() = if (moduleLoaded) PlacementLevel.entries.toList()
+                else PlacementLevel.entries.filter { it != PlacementLevel.MODULE }
     /**
      * Computed property: form is valid when name is non-blank AND
      * at least one port exists (not both 0/0).
@@ -139,6 +146,15 @@ class NodeGeneratorViewModel(
 
     fun setLevelDropdownExpanded(expanded: Boolean) {
         _state.update { it.copy(levelDropdownExpanded = expanded) }
+    }
+
+    fun setModuleLoaded(loaded: Boolean) {
+        _state.update {
+            // If module becomes unloaded and MODULE was selected, fall back to PROJECT
+            val newLevel = if (!loaded && it.placementLevel == PlacementLevel.MODULE)
+                PlacementLevel.PROJECT else it.placementLevel
+            it.copy(moduleLoaded = loaded, placementLevel = newLevel)
+        }
     }
 
     /**
@@ -247,7 +263,7 @@ class NodeGeneratorViewModel(
      */
     private fun resolvePackageName(level: PlacementLevel): String {
         return when (level) {
-            PlacementLevel.MODULE -> "io.codenode.nodes"
+            PlacementLevel.MODULE -> "io.codenode.edgeartfilter.nodes"
             PlacementLevel.PROJECT -> "io.codenode.nodes"
             PlacementLevel.UNIVERSAL -> "io.codenode.nodes"
         }
@@ -270,8 +286,8 @@ class NodeGeneratorViewModel(
             "PortSpec(\"output$it\", Any::class)"
         }
 
-        val inputPortsExpr = if (inputCount == 0) "emptyList()" else "listOf($inputPortsList)"
-        val outputPortsExpr = if (outputCount == 0) "emptyList()" else "listOf($outputPortsList)"
+        val inputPortsExpr = if (inputCount == 0) "emptyList<PortSpec>()" else "listOf($inputPortsList)"
+        val outputPortsExpr = if (outputCount == 0) "emptyList<PortSpec>()" else "listOf($outputPortsList)"
 
         val (runtimeFactory, blockType, blockImpl) = generateRuntimeBlock(
             category, inputCount, outputCount

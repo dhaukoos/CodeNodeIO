@@ -343,6 +343,11 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
         )
     }
 
+    // Keep Node Generator's moduleLoaded state in sync with moduleRootDir
+    LaunchedEffect(moduleRootDir) {
+        nodeGeneratorViewModel.setModuleLoaded(moduleRootDir != null)
+    }
+
     // NodePaletteViewModel for the Node Palette
     val nodePaletteViewModel = remember(customNodeRepository) {
         NodePaletteViewModel(

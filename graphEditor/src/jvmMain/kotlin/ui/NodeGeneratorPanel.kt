@@ -197,7 +197,7 @@ private fun NodeGeneratorPanelContent(
                         expanded = state.levelDropdownExpanded,
                         onDismissRequest = { onLevelDropdownExpandedChange(false) }
                     ) {
-                        PlacementLevel.entries.forEach { level ->
+                        state.availableLevels.forEach { level ->
                             DropdownMenuItem(
                                 onClick = {
                                     onLevelChange(level)
