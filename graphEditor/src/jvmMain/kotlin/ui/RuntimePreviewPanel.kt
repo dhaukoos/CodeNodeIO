@@ -8,6 +8,8 @@ package io.codenode.grapheditor.ui
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChevronLeft
@@ -32,8 +34,8 @@ import java.io.File
  *
  * Provides:
  * - Execution state indicator
- * - Start/Stop/Pause/Resume buttons with contextual enable/disable
- * - Attenuation slider (0ms to 5000ms)
+ * - Start/Stop toggle button and Pause/Resume toggle button
+ * - Collapsible speed attenuation section with slider and animate toggle
  * - Preview composable dropdown (discovers composables from loaded module)
  * - Preview area rendering the selected composable
  *
@@ -70,6 +72,9 @@ fun RuntimePreviewPanel(
     }
     var dropdownExpanded by remember { mutableStateOf(false) }
 
+    // Collapsible state for Speed Attenuation section
+    var attenuationExpanded by remember { mutableStateOf(false) }
+
     CollapsiblePanel(
         isExpanded = isExpanded,
         onToggle = onToggle,
@@ -80,7 +85,8 @@ fun RuntimePreviewPanel(
                 modifier = Modifier
                     .width(360.dp)
                     .fillMaxHeight()
-                    .padding(12.dp),
+                    .padding(12.dp)
+                    .verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 // Header
@@ -112,154 +118,171 @@ fun RuntimePreviewPanel(
                     )
                 }
 
-                // Control buttons
+                // Control buttons — Start/Stop toggle + Pause/Resume toggle
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(4.dp),
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    // Start button - only when Idle
-                    Button(
-                        onClick = { runtimeSession?.start() },
-                        enabled = runtimeSession != null && executionState == ExecutionState.IDLE,
-                        modifier = Modifier.weight(1f),
-                        colors = ButtonDefaults.buttonColors(
-                            backgroundColor = Color(0xFF4CAF50)
-                        ),
-                        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp)
-                    ) {
-                        Icon(
-                            Icons.Default.PlayArrow,
-                            contentDescription = "Start",
-                            modifier = Modifier.size(16.dp),
-                            tint = Color.White
-                        )
-                        Spacer(Modifier.width(2.dp))
-                        Text("Start", fontSize = 11.sp, color = Color.White)
+                    // Start/Stop toggle button
+                    val isRunningOrPaused = executionState == ExecutionState.RUNNING || executionState == ExecutionState.PAUSED
+                    if (isRunningOrPaused) {
+                        // Show Stop
+                        Button(
+                            onClick = { runtimeSession?.stop() },
+                            enabled = runtimeSession != null,
+                            modifier = Modifier.weight(1f),
+                            colors = ButtonDefaults.buttonColors(
+                                backgroundColor = Color(0xFFF44336)
+                            ),
+                            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp)
+                        ) {
+                            Icon(
+                                Icons.Default.Stop,
+                                contentDescription = "Stop",
+                                modifier = Modifier.size(16.dp),
+                                tint = Color.White
+                            )
+                            Spacer(Modifier.width(2.dp))
+                            Text("Stop", fontSize = 11.sp, color = Color.White)
+                        }
+                    } else {
+                        // Show Start
+                        Button(
+                            onClick = { runtimeSession?.start() },
+                            enabled = runtimeSession != null && executionState == ExecutionState.IDLE,
+                            modifier = Modifier.weight(1f),
+                            colors = ButtonDefaults.buttonColors(
+                                backgroundColor = Color(0xFF4CAF50)
+                            ),
+                            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp)
+                        ) {
+                            Icon(
+                                Icons.Default.PlayArrow,
+                                contentDescription = "Start",
+                                modifier = Modifier.size(16.dp),
+                                tint = Color.White
+                            )
+                            Spacer(Modifier.width(2.dp))
+                            Text("Start", fontSize = 11.sp, color = Color.White)
+                        }
                     }
 
-                    // Pause button - only when Running
-                    Button(
-                        onClick = { runtimeSession?.pause() },
-                        enabled = runtimeSession != null && executionState == ExecutionState.RUNNING,
-                        modifier = Modifier.weight(1f),
-                        colors = ButtonDefaults.buttonColors(
-                            backgroundColor = Color(0xFFFF9800)
-                        ),
-                        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp)
-                    ) {
-                        Icon(
-                            Icons.Default.Pause,
-                            contentDescription = "Pause",
-                            modifier = Modifier.size(16.dp),
-                            tint = Color.White
-                        )
-                        Spacer(Modifier.width(2.dp))
-                        Text("Pause", fontSize = 11.sp, color = Color.White)
-                    }
-                }
-
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(4.dp),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    // Resume button - only when Paused
-                    Button(
-                        onClick = { runtimeSession?.resume() },
-                        enabled = runtimeSession != null && executionState == ExecutionState.PAUSED,
-                        modifier = Modifier.weight(1f),
-                        colors = ButtonDefaults.buttonColors(
-                            backgroundColor = Color(0xFF2196F3)
-                        ),
-                        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp)
-                    ) {
-                        Icon(
-                            Icons.Default.PlayArrow,
-                            contentDescription = "Resume",
-                            modifier = Modifier.size(16.dp),
-                            tint = Color.White
-                        )
-                        Spacer(Modifier.width(2.dp))
-                        Text("Resume", fontSize = 11.sp, color = Color.White)
-                    }
-
-                    // Stop button - when Running or Paused
-                    Button(
-                        onClick = { runtimeSession?.stop() },
-                        enabled = runtimeSession != null && (executionState == ExecutionState.RUNNING || executionState == ExecutionState.PAUSED),
-                        modifier = Modifier.weight(1f),
-                        colors = ButtonDefaults.buttonColors(
-                            backgroundColor = Color(0xFFF44336)
-                        ),
-                        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp)
-                    ) {
-                        Icon(
-                            Icons.Default.Stop,
-                            contentDescription = "Stop",
-                            modifier = Modifier.size(16.dp),
-                            tint = Color.White
-                        )
-                        Spacer(Modifier.width(2.dp))
-                        Text("Stop", fontSize = 11.sp, color = Color.White)
+                    // Pause/Resume toggle button
+                    if (executionState == ExecutionState.PAUSED) {
+                        // Show Resume
+                        Button(
+                            onClick = { runtimeSession?.resume() },
+                            enabled = runtimeSession != null,
+                            modifier = Modifier.weight(1f),
+                            colors = ButtonDefaults.buttonColors(
+                                backgroundColor = Color(0xFF2196F3)
+                            ),
+                            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp)
+                        ) {
+                            Icon(
+                                Icons.Default.PlayArrow,
+                                contentDescription = "Resume",
+                                modifier = Modifier.size(16.dp),
+                                tint = Color.White
+                            )
+                            Spacer(Modifier.width(2.dp))
+                            Text("Resume", fontSize = 11.sp, color = Color.White)
+                        }
+                    } else {
+                        // Show Pause
+                        Button(
+                            onClick = { runtimeSession?.pause() },
+                            enabled = runtimeSession != null && executionState == ExecutionState.RUNNING,
+                            modifier = Modifier.weight(1f),
+                            colors = ButtonDefaults.buttonColors(
+                                backgroundColor = Color(0xFFFF9800)
+                            ),
+                            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp)
+                        ) {
+                            Icon(
+                                Icons.Default.Pause,
+                                contentDescription = "Pause",
+                                modifier = Modifier.size(16.dp),
+                                tint = Color.White
+                            )
+                            Spacer(Modifier.width(2.dp))
+                            Text("Pause", fontSize = 11.sp, color = Color.White)
+                        }
                     }
                 }
 
                 Divider()
 
-                // Attenuation slider
-                Text(
-                    text = "Speed Attenuation",
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Medium
-                )
-
-                Text(
-                    text = "Delay: ${attenuationMs}ms",
-                    fontSize = 11.sp,
-                    color = Color.Gray
-                )
-
-                Slider(
-                    value = attenuationMs.toFloat(),
-                    onValueChange = { value ->
-                        // Snap to nearest 100ms interval
-                        val snapped = (value / 100f).toLong() * 100L
-                        runtimeSession?.setAttenuation(snapped)
-                    },
-                    enabled = runtimeSession != null,
-                    valueRange = 0f..2000f,
-                    steps = 19,
-                    modifier = Modifier.fillMaxWidth()
-                )
-
+                // Speed Attenuation — collapsible section
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { attenuationExpanded = !attenuationExpanded },
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text("0ms", fontSize = 10.sp, color = Color.Gray)
-                    Text("2000ms", fontSize = 10.sp, color = Color.Gray)
+                    Text(
+                        text = if (attenuationExpanded) "\u25BC" else "\u25B6",
+                        fontSize = 12.sp,
+                        modifier = Modifier.padding(end = 8.dp)
+                    )
+                    Text(
+                        text = "Speed Attenuation",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF212121)
+                    )
                 }
 
-                // Animate Data Flow toggle
-                val animationEnabled = runtimeSession != null && attenuationMs >= 500L
-                Column {
+                if (attenuationExpanded) {
+                    Text(
+                        text = "Delay: ${attenuationMs}ms",
+                        fontSize = 11.sp,
+                        color = Color.Gray
+                    )
+
+                    Slider(
+                        value = attenuationMs.toFloat(),
+                        onValueChange = { value ->
+                            // Snap to nearest 100ms interval
+                            val snapped = (value / 100f).toLong() * 100L
+                            runtimeSession?.setAttenuation(snapped)
+                        },
+                        enabled = runtimeSession != null,
+                        valueRange = 0f..2000f,
+                        steps = 19,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
+                        horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Text("Animate Data Flow", fontSize = 11.sp)
-                        Switch(
-                            checked = animateDataFlow,
-                            onCheckedChange = { onAnimateDataFlowChanged(it) },
-                            enabled = animationEnabled
-                        )
+                        Text("0ms", fontSize = 10.sp, color = Color.Gray)
+                        Text("2000ms", fontSize = 10.sp, color = Color.Gray)
                     }
-                    if (!animationEnabled) {
-                        Text(
-                            text = "Requires \u2265500ms attenuation",
-                            fontSize = 9.sp,
-                            color = Color.Gray
-                        )
+
+                    // Animate Data Flow toggle
+                    val animationEnabled = runtimeSession != null && attenuationMs >= 500L
+                    Column {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text("Animate Data Flow", fontSize = 11.sp)
+                            Switch(
+                                checked = animateDataFlow,
+                                onCheckedChange = { onAnimateDataFlowChanged(it) },
+                                enabled = animationEnabled
+                            )
+                        }
+                        if (!animationEnabled) {
+                            Text(
+                                text = "Requires \u2265500ms attenuation",
+                                fontSize = 9.sp,
+                                color = Color.Gray
+                            )
+                        }
                     }
                 }
 
@@ -328,7 +351,7 @@ fun RuntimePreviewPanel(
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .weight(1f),
+                        .defaultMinSize(minHeight = 200.dp),
                     contentAlignment = Alignment.TopCenter
                 ) {
                     if (runtimeSession == null) {
