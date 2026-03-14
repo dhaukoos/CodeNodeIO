@@ -26,4 +26,15 @@ interface ModuleController {
     fun setAttenuationDelay(ms: Long?)
     fun setEmissionObserver(observer: ((String, Int) -> Unit)?)
     fun setValueObserver(observer: ((String, Int, Any?) -> Unit)?)
+
+    /**
+     * Optional lookup function for resolving node names to CodeNodeDefinitions.
+     * When set, controllers can use this to dynamically create runtimes via
+     * `createRuntime(instanceName)` instead of hardcoded processing logic.
+     *
+     * Set by the graphEditor's ModuleSessionFactory from NodeDefinitionRegistry.
+     */
+    var nodeDefinitionLookup: ((String) -> CodeNodeDefinition?)?
+        get() = null
+        set(_) {}
 }

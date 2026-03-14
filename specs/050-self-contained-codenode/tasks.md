@@ -90,9 +90,9 @@
 
 ### Implementation for User Story 3
 
-- [ ] T018 [US3] Modify runtime flow execution to look up node definitions by name from `NodeDefinitionRegistry.getByName()` instead of hardcoded processing logic references in `graphEditor/src/jvmMain/kotlin/Main.kt` (or the runtime preview wiring logic)
-- [ ] T019 [US3] Implement `createRuntime()` dispatch in the runtime resolution path so that each node's processing logic is obtained by calling `CodeNodeDefinition.createRuntime(instanceName)` and wiring the returned `NodeRuntime` into the channel pipeline
-- [ ] T020 [US3] Verify port signature compatibility check: when a user swaps a node, the system should warn if the replacement node's port count or types don't match the existing connections
+- [x] T018 [US3] Modify runtime flow execution to look up node definitions by name from `NodeDefinitionRegistry.getByName()` instead of hardcoded processing logic references in `graphEditor/src/jvmMain/kotlin/Main.kt` (or the runtime preview wiring logic)
+- [x] T019 [US3] Implement `createRuntime()` dispatch in the runtime resolution path so that each node's processing logic is obtained by calling `CodeNodeDefinition.createRuntime(instanceName)` and wiring the returned `NodeRuntime` into the channel pipeline
+- [x] T020 [US3] Verify port signature compatibility check: when a user swaps a node, the system should warn if the replacement node's port count or types don't match the existing connections
 
 **Checkpoint**: Swapping a transformer node on the canvas and re-running produces the new node's output
 

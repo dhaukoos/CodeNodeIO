@@ -404,6 +404,8 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
         // Also scan project-level and module-level source directories for uncompiled nodes
         registry.scanDirectory(projectRoot.resolve("nodes/src/commonMain/kotlin/io/codenode/nodes"))
         registry.scanDirectory(projectRoot.resolve("EdgeArtFilter/src/commonMain/kotlin/io/codenode/edgeartfilter/nodes"))
+        // T018: Make registry available for runtime node resolution
+        ModuleSessionFactory.registry = registry
         registryVersion++
     }
 

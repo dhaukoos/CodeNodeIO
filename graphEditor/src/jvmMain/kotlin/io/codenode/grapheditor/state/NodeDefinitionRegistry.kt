@@ -136,6 +136,45 @@ class NodeDefinitionRegistry(
     }
 
     /**
+     * Checks port signature compatibility between two nodes.
+     * Returns null if compatible, or a warning message if port counts differ.
+     *
+     * @param existingName Name of the node being replaced
+     * @param replacementName Name of the replacement node
+     * @return Warning message if incompatible, null if compatible
+     */
+    fun checkPortCompatibility(existingName: String, replacementName: String): String? {
+        val existing = getPortCounts(existingName) ?: return null
+        val replacement = getPortCounts(replacementName) ?: return null
+
+        val warnings = mutableListOf<String>()
+        if (existing.first != replacement.first) {
+            warnings.add("input count differs (${existing.first} vs ${replacement.first})")
+        }
+        if (existing.second != replacement.second) {
+            warnings.add("output count differs (${existing.second} vs ${replacement.second})")
+        }
+        return if (warnings.isEmpty()) null
+        else "Port mismatch: ${warnings.joinToString(", ")}"
+    }
+
+    /**
+     * Gets the (inputCount, outputCount) for a node by name from any source.
+     */
+    private fun getPortCounts(name: String): Pair<Int, Int>? {
+        compiledNodes[name]?.let {
+            return Pair(it.inputPorts.size, it.outputPorts.size)
+        }
+        templateNodes[name]?.let {
+            return Pair(it.inputCount, it.outputCount)
+        }
+        legacyNodes.find { it.name == name }?.let {
+            return Pair(it.inputCount, it.outputCount)
+        }
+        return null
+    }
+
+    /**
      * Registers a compiled CodeNodeDefinition directly.
      * Used for programmatic registration (e.g., from module-level nodes).
      *

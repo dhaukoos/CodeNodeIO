@@ -32,6 +32,7 @@ import io.codenode.edgeartfilter.EdgeArtFilterViewModel
 import io.codenode.edgeartfilter.generated.EdgeArtFilterController
 import io.codenode.edgeartfilter.generated.EdgeArtFilterControllerAdapter
 import io.codenode.edgeartfilter.edgeArtFilterFlowGraph
+import io.codenode.grapheditor.state.NodeDefinitionRegistry
 
 /**
  * Factory for creating module-specific RuntimeSession instances.
@@ -44,6 +45,9 @@ object ModuleSessionFactory : KoinComponent {
     private val userProfileDao: UserProfileDao by inject()
     private val geoLocationDao: GeoLocationDao by inject()
     private val addressDao: AddressDao by inject()
+
+    /** Registry for looking up compiled CodeNodeDefinitions by name */
+    var registry: NodeDefinitionRegistry? = null
 
     /**
      * Creates a RuntimeSession for the given module name.
@@ -98,8 +102,18 @@ object ModuleSessionFactory : KoinComponent {
 
     private fun createEdgeArtFilterSession(editorFlowGraph: FlowGraph?): RuntimeSession {
         val controller = EdgeArtFilterController(edgeArtFilterFlowGraph)
+        wireNodeDefinitionLookup(controller)
         val adapter = EdgeArtFilterControllerAdapter(controller)
         val viewModel = EdgeArtFilterViewModel(adapter)
         return RuntimeSession(controller, viewModel, editorFlowGraph ?: edgeArtFilterFlowGraph)
+    }
+
+    /**
+     * Wires the NodeDefinitionRegistry lookup into a controller so it can
+     * resolve node names to CodeNodeDefinitions for dynamic runtime creation.
+     */
+    private fun wireNodeDefinitionLookup(controller: io.codenode.fbpdsl.runtime.ModuleController) {
+        val reg = registry ?: return
+        controller.nodeDefinitionLookup = { name -> reg.getByName(name) }
     }
 }
