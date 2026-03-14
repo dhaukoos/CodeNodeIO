@@ -106,7 +106,7 @@
 
 ### Implementation for User Story 4
 
-- [ ] T021 [US4] Verify that `CodeNodeDefinition.createRuntime()` returns a `NodeRuntime` that can be started, fed input, and produce output in isolation — document the test pattern in a sample test file at `nodes/src/commonTest/kotlin/io/codenode/nodes/CodeNodeStandaloneTestExample.kt`
+- [x] T021 [US4] Verify that `CodeNodeDefinition.createRuntime()` returns a `NodeRuntime` that can be started, fed input, and produce output in isolation — document the test pattern in a sample test file at `nodes/src/commonTest/kotlin/io/codenode/nodes/CodeNodeStandaloneTestExample.kt`
 
 **Checkpoint**: A standalone unit test demonstrates creating, running, and asserting on a self-contained node without any flow graph infrastructure
 
@@ -120,16 +120,16 @@
 
 ### Implementation for User Story 5
 
-- [ ] T022 [P] [US5] Create `ImagePickerCodeNode` object implementing `CodeNodeDefinition` (Source: 0 in, 2 out, `SourceOut2Block<ImageData, ImageData>`) embedding the `imagePickerGenerate` logic in `EdgeArtFilter/src/commonMain/kotlin/io/codenode/edgeartfilter/nodes/ImagePickerCodeNode.kt`
-- [ ] T023 [P] [US5] Create `GrayscaleTransformerCodeNode` object implementing `CodeNodeDefinition` (Transformer: 1 in, 1 out, `ContinuousTransformBlock<ImageData, ImageData>`) embedding the `grayscaleTransform` logic in `EdgeArtFilter/src/commonMain/kotlin/io/codenode/edgeartfilter/nodes/GrayscaleTransformerCodeNode.kt`
-- [ ] T024 [P] [US5] Create `EdgeDetectorCodeNode` object implementing `CodeNodeDefinition` (Transformer: 1 in, 1 out, `ContinuousTransformBlock<ImageData, ImageData>`) embedding the `edgeDetectorTransform` logic in `EdgeArtFilter/src/commonMain/kotlin/io/codenode/edgeartfilter/nodes/EdgeDetectorCodeNode.kt`
-- [ ] T025 [P] [US5] Create `ColorOverlayCodeNode` object implementing `CodeNodeDefinition` (Processor: 2 in, 1 out, `In2Out1ProcessBlock<ImageData, ImageData, ImageData>`) embedding the `colorOverlayProcess` logic in `EdgeArtFilter/src/commonMain/kotlin/io/codenode/edgeartfilter/nodes/ColorOverlayCodeNode.kt`
-- [ ] T026 [P] [US5] Create `SepiaTransformerCodeNode` object implementing `CodeNodeDefinition` (Transformer: 1 in, 1 out, `ContinuousTransformBlock<ImageData, ImageData>`) embedding the `sepiaTransform` logic in `EdgeArtFilter/src/commonMain/kotlin/io/codenode/edgeartfilter/nodes/SepiaTransformerCodeNode.kt`
-- [ ] T027 [P] [US5] Create `ImageViewerCodeNode` object implementing `CodeNodeDefinition` (Sink: 1 in, 0 out, `ContinuousSinkBlock<ImageData>`) embedding the `imageViewerConsume` logic in `EdgeArtFilter/src/commonMain/kotlin/io/codenode/edgeartfilter/nodes/ImageViewerCodeNode.kt`
-- [ ] T028 [US5] Remove the hardcoded `edgeArtFilterNodes` list, `edgeArtFilterSourceSinkNames`/`edgeArtFilterProcessorNames` color-coding overrides, and manual `CustomNodeDefinition.create()` calls from `graphEditor/src/jvmMain/kotlin/Main.kt` — these nodes are now discovered via the registry
-- [ ] T029 [US5] Remove the 6 legacy processing logic files from `EdgeArtFilter/src/commonMain/kotlin/io/codenode/edgeartfilter/processingLogic/` (ImagePickerSourceLogic.kt, GrayscaleTransformerProcessLogic.kt, EdgeDetectorProcessLogic.kt, ColorOverlayProcessLogic.kt, SepiaTransformerProcessLogic.kt, ImageViewerSinkLogic.kt)
-- [ ] T030 [US5] Update any remaining references in the EdgeArtFilter runtime wiring (e.g., `EdgeArtFilterFlow.kt` or generated flow files) to use `NodeDefinitionRegistry.getByName()` + `createRuntime()` instead of importing the old processing logic variables directly
-- [ ] T031 [US5] Verify EdgeArtFilter runtime preview produces identical visual output and that SepiaTransformer/GrayscaleTransformer hot-swap works on the canvas
+- [x] T022 [P] [US5] Create `ImagePickerCodeNode` object implementing `CodeNodeDefinition` (Source: 0 in, 2 out, `SourceOut2Block<ImageData, ImageData>`) embedding the `imagePickerGenerate` logic in `EdgeArtFilter/src/commonMain/kotlin/io/codenode/edgeartfilter/nodes/ImagePickerCodeNode.kt`
+- [x] T023 [P] [US5] Create `GrayscaleTransformerCodeNode` object implementing `CodeNodeDefinition` (Transformer: 1 in, 1 out, `ContinuousTransformBlock<ImageData, ImageData>`) embedding the `grayscaleTransform` logic in `EdgeArtFilter/src/commonMain/kotlin/io/codenode/edgeartfilter/nodes/GrayscaleTransformerCodeNode.kt`
+- [x] T024 [P] [US5] Create `EdgeDetectorCodeNode` object implementing `CodeNodeDefinition` (Transformer: 1 in, 1 out, `ContinuousTransformBlock<ImageData, ImageData>`) embedding the `edgeDetectorTransform` logic in `EdgeArtFilter/src/commonMain/kotlin/io/codenode/edgeartfilter/nodes/EdgeDetectorCodeNode.kt`
+- [x] T025 [P] [US5] Create `ColorOverlayCodeNode` object implementing `CodeNodeDefinition` (Processor: 2 in, 1 out, `In2Out1ProcessBlock<ImageData, ImageData, ImageData>`) embedding the `colorOverlayProcess` logic in `EdgeArtFilter/src/commonMain/kotlin/io/codenode/edgeartfilter/nodes/ColorOverlayCodeNode.kt`
+- [x] T026 [P] [US5] Create `SepiaTransformerCodeNode` object implementing `CodeNodeDefinition` (Transformer: 1 in, 1 out, `ContinuousTransformBlock<ImageData, ImageData>`) embedding the `sepiaTransform` logic in `EdgeArtFilter/src/commonMain/kotlin/io/codenode/edgeartfilter/nodes/SepiaTransformerCodeNode.kt`
+- [x] T027 [P] [US5] Create `ImageViewerCodeNode` object implementing `CodeNodeDefinition` (Sink: 1 in, 0 out, `ContinuousSinkBlock<ImageData>`) embedding the `imageViewerConsume` logic in `EdgeArtFilter/src/commonMain/kotlin/io/codenode/edgeartfilter/nodes/ImageViewerCodeNode.kt`
+- [x] T028 [US5] Remove the hardcoded `edgeArtFilterNodes` list, `edgeArtFilterSourceSinkNames`/`edgeArtFilterProcessorNames` color-coding overrides, and manual `CustomNodeDefinition.create()` calls from `graphEditor/src/jvmMain/kotlin/Main.kt` — these nodes are now discovered via the registry
+- [x] T029 [US5] Remove the 6 legacy processing logic files from `EdgeArtFilter/src/commonMain/kotlin/io/codenode/edgeartfilter/processingLogic/` (ImagePickerSourceLogic.kt, GrayscaleTransformerProcessLogic.kt, EdgeDetectorProcessLogic.kt, ColorOverlayProcessLogic.kt, SepiaTransformerProcessLogic.kt, ImageViewerSinkLogic.kt)
+- [x] T030 [US5] Update any remaining references in the EdgeArtFilter runtime wiring (e.g., `EdgeArtFilterFlow.kt` or generated flow files) to use `NodeDefinitionRegistry.getByName()` + `createRuntime()` instead of importing the old processing logic variables directly
+- [x] T031 [US5] Verify EdgeArtFilter runtime preview produces identical visual output and that SepiaTransformer/GrayscaleTransformer hot-swap works on the canvas
 
 **Checkpoint**: EdgeArtFilter runs entirely on self-contained nodes. Legacy processing logic files and hardcoded registration removed. Hot-swap verified.
 
@@ -139,9 +139,9 @@
 
 **Purpose**: Cleanup and validation across all stories
 
-- [ ] T032 Verify `./gradlew :fbpDsl:jvmTest` passes with no regressions
-- [ ] T033 Verify `./gradlew build` succeeds for all modules (fbpDsl, nodes, graphEditor, EdgeArtFilter)
-- [ ] T034 Run quickstart.md Step 7 validation: generate a new node, add logic, build, swap on canvas, run preview
+- [x] T032 Verify `./gradlew :fbpDsl:jvmTest` passes with no regressions
+- [x] T033 Verify `./gradlew build` succeeds for all modules (fbpDsl, nodes, graphEditor, EdgeArtFilter)
+- [x] T034 Run quickstart.md Step 7 validation: generate a new node, add logic, build, swap on canvas, run preview
 
 ---
 

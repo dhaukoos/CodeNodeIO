@@ -58,6 +58,12 @@ import io.codenode.grapheditor.ui.UserProfilesPreviewProvider
 import io.codenode.grapheditor.ui.GeoLocationsPreviewProvider
 import io.codenode.grapheditor.ui.AddressesPreviewProvider
 import io.codenode.grapheditor.ui.EdgeArtFilterPreviewProvider
+import io.codenode.edgeartfilter.nodes.ImagePickerCodeNode
+import io.codenode.edgeartfilter.nodes.GrayscaleTransformerCodeNode
+import io.codenode.edgeartfilter.nodes.EdgeDetectorCodeNode
+import io.codenode.edgeartfilter.nodes.ColorOverlayCodeNode
+import io.codenode.edgeartfilter.nodes.SepiaTransformerCodeNode
+import io.codenode.edgeartfilter.nodes.ImageViewerCodeNode
 import io.codenode.circuitsimulator.ConnectionAnimation
 import io.codenode.circuitsimulator.RuntimeSession
 import io.codenode.grapheditor.ui.PropertiesPanelState
@@ -381,26 +387,17 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
     LaunchedEffect(Unit) {
         customNodeRepository.load()
 
-        // Register EdgeArtFilter custom nodes if not already present
-        val existingNames = customNodeRepository.getAll().map { it.name }.toSet()
-        val edgeArtFilterNodes = listOf(
-            CustomNodeDefinition.create("ImagePicker", inputCount = 0, outputCount = 2),
-            CustomNodeDefinition.create("GrayscaleTransformer", inputCount = 1, outputCount = 1),
-            CustomNodeDefinition.create("EdgeDetector", inputCount = 1, outputCount = 1),
-            CustomNodeDefinition.create("ColorOverlay", inputCount = 2, outputCount = 1),
-            CustomNodeDefinition.create("ImageViewer", inputCount = 1, outputCount = 0),
-            CustomNodeDefinition.create("SepiaTransformer", inputCount = 1, outputCount = 1),
-        )
-        for (node in edgeArtFilterNodes) {
-            if (node.name !in existingNames) {
-                customNodeRepository.add(node)
-            }
-        }
-
         customNodes = customNodeRepository.getAll()
 
         // T015: Discover compiled, template, and legacy nodes from all sources
         registry.discoverAll()
+        // Register EdgeArtFilter CodeNode objects directly (Kotlin objects don't work with ServiceLoader)
+        registry.register(ImagePickerCodeNode)
+        registry.register(GrayscaleTransformerCodeNode)
+        registry.register(EdgeDetectorCodeNode)
+        registry.register(ColorOverlayCodeNode)
+        registry.register(SepiaTransformerCodeNode)
+        registry.register(ImageViewerCodeNode)
         // Also scan project-level and module-level source directories for uncompiled nodes
         registry.scanDirectory(projectRoot.resolve("nodes/src/commonMain/kotlin/io/codenode/nodes"))
         registry.scanDirectory(projectRoot.resolve("EdgeArtFilter/src/commonMain/kotlin/io/codenode/edgeartfilter/nodes"))
@@ -417,28 +414,13 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
     // T016: Combine built-in node types with registry-discovered nodes
     // Registry merges compiled CodeNodeDefinitions, templates, and legacy custom nodes
     // with correct categories already applied by toNodeTypeDefinition()
-    val edgeArtFilterSourceSinkNames = setOf("ImagePicker", "ImageViewer")
-    val edgeArtFilterProcessorNames = setOf(
-        "GrayscaleTransformer", "EdgeDetector", "ColorOverlay", "SepiaTransformer"
-    )
     val builtInNodeTypes = remember { createSampleNodeTypes() }
     val nodeTypes = remember(customNodes, registryVersion) {
         val registryNodes = registry.getAllForPalette()
 
         // Built-in sample types + registry-discovered nodes (compiled + template + legacy)
-        // Legacy nodes from the registry already have correct types, but EdgeArtFilter
-        // nodes still need color-coding overrides until they are migrated to CodeNodeDefinitions
-        builtInNodeTypes + registryNodes.map { nodeDef ->
-            when (nodeDef.name) {
-                in edgeArtFilterSourceSinkNames -> nodeDef.copy(
-                    category = NodeTypeDefinition.NodeCategory.UI_COMPONENT
-                )
-                in edgeArtFilterProcessorNames -> nodeDef.copy(
-                    category = NodeTypeDefinition.NodeCategory.TRANSFORMER
-                )
-                else -> nodeDef
-            }
-        }
+        // Self-contained CodeNodeDefinitions provide correct categories via toNodeTypeDefinition()
+        builtInNodeTypes + registryNodes
     }
     val ipTypeRegistry = remember { IPTypeRegistry.withDefaults() }
     val ipTypeRepository = remember { FileIPTypeRepository() }
