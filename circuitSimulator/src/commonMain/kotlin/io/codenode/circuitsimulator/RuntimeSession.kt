@@ -56,7 +56,7 @@ class RuntimeSession(
     val animateDataFlow: StateFlow<Boolean> = _animateDataFlow.asStateFlow()
 
     /** Minimum attenuation (ms) required to enable animation */
-    val animationAttenuationThreshold: Long = 500L
+    val animationAttenuationThreshold: Long = 200L
 
     /** Tracks whether the controller was already running before RuntimeSession.start() */
     private var preStarted = false

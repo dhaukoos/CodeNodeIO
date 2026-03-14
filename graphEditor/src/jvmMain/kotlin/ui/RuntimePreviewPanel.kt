@@ -243,13 +243,13 @@ fun RuntimePreviewPanel(
                     Slider(
                         value = attenuationMs.toFloat(),
                         onValueChange = { value ->
-                            // Snap to nearest 100ms interval
-                            val snapped = (value / 100f).toLong() * 100L
+                            // Snap to nearest 200ms interval
+                            val snapped = (value / 200f).toLong() * 200L
                             runtimeSession?.setAttenuation(snapped)
                         },
                         enabled = runtimeSession != null,
                         valueRange = 0f..2000f,
-                        steps = 19,
+                        steps = 9,
                         modifier = Modifier.fillMaxWidth()
                     )
 
@@ -262,7 +262,7 @@ fun RuntimePreviewPanel(
                     }
 
                     // Animate Data Flow toggle
-                    val animationEnabled = runtimeSession != null && attenuationMs >= 500L
+                    val animationEnabled = runtimeSession != null && attenuationMs >= 200L
                     Column {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
@@ -278,7 +278,7 @@ fun RuntimePreviewPanel(
                         }
                         if (!animationEnabled) {
                             Text(
-                                text = "Requires \u2265500ms attenuation",
+                                text = "Requires \u2265200ms attenuation",
                                 fontSize = 9.sp,
                                 color = Color.Gray
                             )
