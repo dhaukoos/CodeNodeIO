@@ -85,10 +85,16 @@ fun RuntimePreviewPanel(
                 modifier = Modifier
                     .width(360.dp)
                     .fillMaxHeight()
-                    .padding(12.dp)
-                    .verticalScroll(rememberScrollState()),
+                    .padding(12.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
+                // Scrollable controls section
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .verticalScroll(rememberScrollState()),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
                 // Header
                 Text(
                     text = "Runtime Preview",
@@ -347,11 +353,13 @@ fun RuntimePreviewPanel(
                     }
                 }
 
-                // Preview area - renders selected composable
+                } // end scrollable controls section
+
+                // Preview area - renders selected composable (non-scrollable, fills remaining space)
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .defaultMinSize(minHeight = 200.dp),
+                        .weight(1f),
                     contentAlignment = Alignment.TopCenter
                 ) {
                     if (runtimeSession == null) {
