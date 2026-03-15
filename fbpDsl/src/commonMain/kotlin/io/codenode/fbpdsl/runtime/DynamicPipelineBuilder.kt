@@ -73,32 +73,38 @@ object DynamicPipelineBuilder {
         }
 
         // Check 2: All connections reference valid ports
+        // Port matching is index-based: find the port by ID in the canvas CodeNode's
+        // port list, then verify the index is within the CodeNodeDefinition's port count.
+        // This avoids name mismatches between DSL port names (e.g. "image") and
+        // CodeNodeDefinition PortSpec names (e.g. "output1").
         for (conn in flowGraph.connections) {
             val sourceDef = resolvedDefs[conn.sourceNodeId]
             val targetDef = resolvedDefs[conn.targetNodeId]
 
             if (sourceDef != null) {
-                val sourcePortName = extractPortName(conn.sourcePortId, conn.sourceNodeId)
-                val outputIndex = sourceDef.outputPorts.indexOfFirst { it.name == sourcePortName }
-                if (outputIndex < 0) {
+                val sourceNode = flowGraph.findNode(conn.sourceNodeId) as? CodeNode
+                val outputIndex = sourceNode?.outputPorts?.indexOfFirst { it.id == conn.sourcePortId } ?: -1
+                if (outputIndex < 0 || outputIndex >= sourceDef.outputPorts.size) {
+                    val portName = extractPortName(conn.sourcePortId, conn.sourceNodeId)
                     errors.add(ValidationError(
                         type = ValidationErrorType.INVALID_PORT,
                         nodeId = conn.sourceNodeId,
                         nodeName = sourceDef.name,
-                        message = "Output port '$sourcePortName' not found on node '${sourceDef.name}'"
+                        message = "Output port '$portName' (index $outputIndex) not valid on node '${sourceDef.name}' (has ${sourceDef.outputPorts.size} output ports)"
                     ))
                 }
             }
 
             if (targetDef != null) {
-                val targetPortName = extractPortName(conn.targetPortId, conn.targetNodeId)
-                val inputIndex = targetDef.inputPorts.indexOfFirst { it.name == targetPortName }
-                if (inputIndex < 0) {
+                val targetNode = flowGraph.findNode(conn.targetNodeId) as? CodeNode
+                val inputIndex = targetNode?.inputPorts?.indexOfFirst { it.id == conn.targetPortId } ?: -1
+                if (inputIndex < 0 || inputIndex >= targetDef.inputPorts.size) {
+                    val portName = extractPortName(conn.targetPortId, conn.targetNodeId)
                     errors.add(ValidationError(
                         type = ValidationErrorType.INVALID_PORT,
                         nodeId = conn.targetNodeId,
                         nodeName = targetDef.name,
-                        message = "Input port '$targetPortName' not found on node '${targetDef.name}'"
+                        message = "Input port '$portName' (index $inputIndex) not valid on node '${targetDef.name}' (has ${targetDef.inputPorts.size} input ports)"
                     ))
                 }
             }
@@ -323,13 +329,13 @@ class DynamicPipeline(
         for (conn in flowGraph.connections) {
             val sourceRuntime = runtimes[conn.sourceNodeId] ?: continue
             val targetRuntime = runtimes[conn.targetNodeId] ?: continue
-            val sourceDef = definitions[conn.sourceNodeId] ?: continue
-            val targetDef = definitions[conn.targetNodeId] ?: continue
 
-            val sourcePortName = DynamicPipelineBuilder.extractPortName(conn.sourcePortId, conn.sourceNodeId)
-            val targetPortName = DynamicPipelineBuilder.extractPortName(conn.targetPortId, conn.targetNodeId)
-            val outputIndex = sourceDef.outputPorts.indexOfFirst { it.name == sourcePortName }
-            val inputIndex = targetDef.inputPorts.indexOfFirst { it.name == targetPortName }
+            // Index-based port matching: find port by ID in the canvas CodeNode's
+            // port list to get the positional index for runtime channel wiring
+            val sourceNode = flowGraph.findNode(conn.sourceNodeId) as? CodeNode ?: continue
+            val targetNode = flowGraph.findNode(conn.targetNodeId) as? CodeNode ?: continue
+            val outputIndex = sourceNode.outputPorts.indexOfFirst { it.id == conn.sourcePortId }
+            val inputIndex = targetNode.inputPorts.indexOfFirst { it.id == conn.targetPortId }
 
             if (outputIndex < 0 || inputIndex < 0) continue
 

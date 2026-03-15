@@ -46,11 +46,11 @@
 
 ### Implementation for User Story 1
 
-- [ ] T008 [US1] Modify `ModuleSessionFactory.kt` to check `DynamicPipelineBuilder.canBuildDynamic()` before creating a session in `graphEditor/src/jvmMain/kotlin/ui/ModuleSessionFactory.kt` — if all canvas nodes are resolvable, create a `DynamicPipelineController` + existing ViewModel; otherwise fall back to existing per-module factory method (per research.md R4 fallback detection)
-- [ ] T009 [US1] Wire `NodeDefinitionRegistry` as the `NodeDefinitionLookup` for `DynamicPipelineBuilder` in `graphEditor/src/jvmMain/kotlin/ui/ModuleSessionFactory.kt` — adapt `registry.getByName(name)` to satisfy the lookup interface
-- [ ] T010 [US1] Pass the canvas `FlowGraph` to `DynamicPipelineController` on construction in `graphEditor/src/jvmMain/kotlin/ui/ModuleSessionFactory.kt` — the controller reads node/connection topology from this FlowGraph on each `start()` call
-- [ ] T011 [US1] Surface validation errors in `DynamicPipelineController.start()` — when `validate()` returns errors, set execution state back to IDLE and expose error messages via a `StateFlow<String?>` or callback that `RuntimePreviewPanel` can display in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/DynamicPipelineController.kt`
-- [ ] T012 [US1] Display validation error messages in `RuntimePreviewPanel` when `DynamicPipelineController` reports errors in `graphEditor/src/jvmMain/kotlin/ui/RuntimePreviewPanel.kt` — show red text identifying unresolvable nodes or invalid connections
+- [X] T008 [US1] Modify `ModuleSessionFactory.kt` to check `DynamicPipelineBuilder.canBuildDynamic()` before creating a session in `graphEditor/src/jvmMain/kotlin/ui/ModuleSessionFactory.kt` — if all canvas nodes are resolvable, create a `DynamicPipelineController` + existing ViewModel; otherwise fall back to existing per-module factory method (per research.md R4 fallback detection)
+- [X] T009 [US1] Wire `NodeDefinitionRegistry` as the `NodeDefinitionLookup` for `DynamicPipelineBuilder` in `graphEditor/src/jvmMain/kotlin/ui/ModuleSessionFactory.kt` — adapt `registry.getByName(name)` to satisfy the lookup interface
+- [X] T010 [US1] Pass the canvas `FlowGraph` to `DynamicPipelineController` on construction in `graphEditor/src/jvmMain/kotlin/ui/ModuleSessionFactory.kt` — the controller reads node/connection topology from this FlowGraph on each `start()` call
+- [X] T011 [US1] Surface validation errors in `DynamicPipelineController.start()` — when `validate()` returns errors, set execution state back to IDLE and expose error messages via a `StateFlow<String?>` or callback that `RuntimePreviewPanel` can display in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/DynamicPipelineController.kt`
+- [X] T012 [US1] Display validation error messages in `RuntimePreviewPanel` when `DynamicPipelineController` reports errors in `graphEditor/src/jvmMain/kotlin/ui/RuntimePreviewPanel.kt` — show red text identifying unresolvable nodes or invalid connections
 
 **Checkpoint**: EdgeArtFilter runs dynamically from canvas — identical output to hardcoded pipeline
 

@@ -8,6 +8,7 @@ package io.codenode.circuitsimulator
 
 import io.codenode.fbpdsl.model.ExecutionState
 import io.codenode.fbpdsl.model.FlowGraph
+import io.codenode.fbpdsl.runtime.DynamicPipelineController
 import io.codenode.fbpdsl.runtime.ModuleController
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -57,6 +58,14 @@ class RuntimeSession(
 
     /** Minimum attenuation (ms) required to enable animation */
     val animationAttenuationThreshold: Long = 200L
+
+    /**
+     * Validation error from the last failed dynamic pipeline start, or null if no error.
+     * Only non-null when the controller is a DynamicPipelineController.
+     */
+    val validationError: StateFlow<String?>
+        get() = (controller as? DynamicPipelineController)?.validationError
+            ?: MutableStateFlow(null)
 
     /** Tracks whether the controller was already running before RuntimeSession.start() */
     private var preStarted = false

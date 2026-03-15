@@ -31,7 +31,10 @@ import io.codenode.addresses.addressesFlowGraph
 import io.codenode.edgeartfilter.EdgeArtFilterViewModel
 import io.codenode.edgeartfilter.generated.EdgeArtFilterController
 import io.codenode.edgeartfilter.generated.EdgeArtFilterControllerAdapter
+import io.codenode.edgeartfilter.generated.EdgeArtFilterControllerInterface
 import io.codenode.edgeartfilter.edgeArtFilterFlowGraph
+import io.codenode.fbpdsl.runtime.DynamicPipelineBuilder
+import io.codenode.fbpdsl.runtime.DynamicPipelineController
 import io.codenode.grapheditor.state.NodeDefinitionRegistry
 
 /**
@@ -52,13 +55,33 @@ object ModuleSessionFactory : KoinComponent {
     /**
      * Creates a RuntimeSession for the given module name.
      *
+     * If all canvas nodes have CodeNodeDefinitions in the registry, creates a
+     * DynamicPipelineController for dynamic pipeline execution. Otherwise falls
+     * back to the module's existing generated Controller/Flow.
+     *
      * @param moduleName The module directory name (e.g., "StopWatch", "UserProfiles")
      * @param editorFlowGraph The editor's FlowGraph for animation connection mapping.
      *   This must be the same FlowGraph instance that the Canvas uses to render connections,
      *   so that animation connection IDs match the rendered connections.
+     * @param flowGraphProvider Optional provider returning the current canvas FlowGraph.
+     *   Used by DynamicPipelineController to re-read the FlowGraph on each start().
      * @return A configured RuntimeSession, or null for unknown modules
      */
-    fun createSession(moduleName: String, editorFlowGraph: FlowGraph? = null): RuntimeSession? {
+    fun createSession(
+        moduleName: String,
+        editorFlowGraph: FlowGraph? = null,
+        flowGraphProvider: (() -> FlowGraph)? = null
+    ): RuntimeSession? {
+        // Try dynamic pipeline if registry is available and FlowGraph has nodes
+        val reg = registry
+        if (reg != null && editorFlowGraph != null && flowGraphProvider != null) {
+            val lookup: (String) -> io.codenode.fbpdsl.runtime.CodeNodeDefinition? = { name -> reg.getByName(name) }
+            if (DynamicPipelineBuilder.canBuildDynamic(editorFlowGraph, lookup)) {
+                return createDynamicSession(moduleName, editorFlowGraph, flowGraphProvider, lookup)
+            }
+        }
+
+        // Fallback to module-specific factory
         return when (moduleName) {
             "StopWatch" -> createStopWatchSession(editorFlowGraph)
             "UserProfiles" -> createUserProfilesSession(editorFlowGraph)
@@ -98,6 +121,41 @@ object ModuleSessionFactory : KoinComponent {
         val adapter = AddressesControllerAdapter(controller)
         val viewModel = AddressesViewModel(adapter, addressDao)
         return RuntimeSession(controller, viewModel, editorFlowGraph ?: addressesFlowGraph)
+    }
+
+    /**
+     * Creates a RuntimeSession using DynamicPipelineController.
+     * The controller reads the canvas FlowGraph on each start() call.
+     * The ViewModel is still created per-module for module-specific UI state.
+     */
+    private fun createDynamicSession(
+        moduleName: String,
+        editorFlowGraph: FlowGraph,
+        flowGraphProvider: () -> FlowGraph,
+        lookup: (String) -> io.codenode.fbpdsl.runtime.CodeNodeDefinition?
+    ): RuntimeSession? {
+        val controller = DynamicPipelineController(
+            flowGraphProvider = flowGraphProvider,
+            lookup = lookup
+        )
+
+        // Create the module-specific ViewModel using an adapter from ModuleController
+        val viewModel: Any = when (moduleName) {
+            "EdgeArtFilter" -> {
+                val adapter = object : EdgeArtFilterControllerInterface {
+                    override val executionState get() = controller.executionState
+                    override fun start() = controller.start()
+                    override fun stop() = controller.stop()
+                    override fun reset() = controller.reset()
+                    override fun pause() = controller.pause()
+                    override fun resume() = controller.resume()
+                }
+                EdgeArtFilterViewModel(adapter)
+            }
+            else -> return null // Unknown module — can't create ViewModel
+        }
+
+        return RuntimeSession(controller, viewModel, editorFlowGraph)
     }
 
     private fun createEdgeArtFilterSession(editorFlowGraph: FlowGraph?): RuntimeSession {

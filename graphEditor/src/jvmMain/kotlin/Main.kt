@@ -469,7 +469,13 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
     // during the same recomposition — avoids ClassCastException on module switch)
     // Pass the editor's FlowGraph so animation connection IDs match the Canvas.
     val runtimeSession = remember(moduleRootDir) {
-        moduleRootDir?.name?.let { ModuleSessionFactory.createSession(it, graphState.flowGraph) }
+        moduleRootDir?.name?.let {
+            ModuleSessionFactory.createSession(
+                moduleName = it,
+                editorFlowGraph = graphState.flowGraph,
+                flowGraphProvider = { graphState.flowGraph }
+            )
+        }
     }
 
     // Collect animation and debug state from the session

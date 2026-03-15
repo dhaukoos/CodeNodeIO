@@ -59,6 +59,7 @@ fun RuntimePreviewPanel(
 ) {
     val executionState = runtimeSession?.executionState?.collectAsState()?.value ?: ExecutionState.IDLE
     val attenuationMs = runtimeSession?.attenuationDelayMs?.collectAsState()?.value ?: 0L
+    val validationError = runtimeSession?.validationError?.collectAsState()?.value
 
     // Discover composables from the loaded module
     val composables = remember(moduleRootDir) {
@@ -121,6 +122,19 @@ fun RuntimePreviewPanel(
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
                         color = stateColor
+                    )
+                }
+
+                // Validation error display
+                if (validationError != null) {
+                    Text(
+                        text = validationError,
+                        fontSize = 11.sp,
+                        color = Color.Red,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(Color(0x20FF0000))
+                            .padding(8.dp)
                     )
                 }
 
