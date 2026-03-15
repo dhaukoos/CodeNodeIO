@@ -69,6 +69,8 @@ Auto-generated from all feature plans. Last updated: 2026-01-13
 - N/A (in-memory image processing, no persistence) (049-image-filter-pipeline)
 - Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + Compose Desktop 1.7.3, kotlinx-coroutines 1.8.0, kotlinx-serialization 1.6.0, lifecycle-viewmodel-compose 2.8.0 (050-self-contained-codenode)
 - FileCustomNodeRepository (JSON at `~/.codenode/custom-nodes.json`) for legacy; classpath + filesystem scanning for new nodes (050-self-contained-codenode)
+- Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + Compose Desktop 1.7.3, kotlinx-coroutines 1.8.0 (channels, StateFlow, CoroutineScope), lifecycle-viewmodel-compose 2.8.0 (051-dynamic-runtime-pipeline)
+- N/A (in-memory pipeline state only) (051-dynamic-runtime-pipeline)
 
 - Kotlin 1.9+, Go 1.21+ (001-ide-plugin-platform)
 
@@ -88,9 +90,9 @@ tests/
 Kotlin 1.9+, Go 1.21+: Follow standard conventions
 
 ## Recent Changes
+- 051-dynamic-runtime-pipeline: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + Compose Desktop 1.7.3, kotlinx-coroutines 1.8.0 (channels, StateFlow, CoroutineScope), lifecycle-viewmodel-compose 2.8.0
 - 050-self-contained-codenode: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + Compose Desktop 1.7.3, kotlinx-coroutines 1.8.0, kotlinx-serialization 1.6.0, lifecycle-viewmodel-compose 2.8.0
 - 049-image-filter-pipeline: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + Compose Desktop 1.7.3 (ImageBitmap, Canvas, Image composable), kotlinx-coroutines 1.8.0
-- 048-remove-entity-module: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + Compose Desktop 1.7.3, kotlinx-coroutines 1.8.0, kotlinx-serialization 1.6.0, Room 2.8.4 (KMP), Koin 4.0.0
 
 
 <!-- MANUAL ADDITIONS START -->
