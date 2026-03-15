@@ -17,8 +17,8 @@
 
 **Purpose**: Ensure fbpDsl module has the interfaces needed for the dynamic pipeline builder to resolve node definitions without depending on graphEditor.
 
-- [ ] T001 Create `NodeDefinitionLookup` functional interface (a `(String) -> CodeNodeDefinition?` typealias or interface) in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/NodeDefinitionLookup.kt` so DynamicPipelineBuilder can resolve node names without importing graphEditor's `NodeDefinitionRegistry`
-- [ ] T002 Create `PipelineValidation.kt` with `PipelineValidationResult` and `ValidationError` data classes per data-model.md in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/PipelineValidation.kt`
+- [X] T001 Create `NodeDefinitionLookup` functional interface (a `(String) -> CodeNodeDefinition?` typealias or interface) in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/NodeDefinitionLookup.kt` so DynamicPipelineBuilder can resolve node names without importing graphEditor's `NodeDefinitionRegistry`
+- [X] T002 Create `PipelineValidation.kt` with `PipelineValidationResult` and `ValidationError` data classes per data-model.md in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/PipelineValidation.kt`
 
 ---
 
@@ -28,11 +28,11 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T003 Implement `DynamicPipelineBuilder.validate()` in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/DynamicPipelineBuilder.kt` — iterate `FlowGraph.getAllCodeNodes()`, resolve each node name via `NodeDefinitionLookup`, check connections reference valid ports, detect cycles; return `PipelineValidationResult` per contracts/dynamic-pipeline-builder.md
-- [ ] T004 Implement `DynamicPipelineBuilder.build()` in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/DynamicPipelineBuilder.kt` — call `createRuntime()` on each resolved `CodeNodeDefinition`, create `Channel<Any>(Channel.BUFFERED)` per connection, wire channels to runtime input/output properties using port index mapping from data-model.md (handle `TransformerRuntime`, `SinkRuntime`, `SourceOut2Runtime`, `In2Out1Runtime`, etc. naming inconsistencies), return `DynamicPipeline`
-- [ ] T005 Implement `DynamicPipelineBuilder.canBuildDynamic()` in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/DynamicPipelineBuilder.kt` — return true only if every `CodeNode` name in the FlowGraph has a `CodeNodeDefinition` in the lookup
-- [ ] T006 Implement `DynamicPipeline` data class in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/DynamicPipelineBuilder.kt` — holds `flowGraph`, `runtimes: Map<String, NodeRuntime>`, `channels: List<Channel<Any>>`, `scope: CoroutineScope`; provides `start(scope)`, `stop()`, `pause()`, `resume()` operations per data-model.md
-- [ ] T007 Implement `DynamicPipelineController` in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/DynamicPipelineController.kt` — implement `ModuleController` interface; delegates to `DynamicPipelineBuilder.validate()` + `build()` on `start()`, manages `RuntimeRegistry` for pause/resume propagation, supports `setAttenuationDelay()`, `setEmissionObserver()`, `setValueObserver()` per contracts/dynamic-pipeline-builder.md
+- [X] T003 Implement `DynamicPipelineBuilder.validate()` in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/DynamicPipelineBuilder.kt` — iterate `FlowGraph.getAllCodeNodes()`, resolve each node name via `NodeDefinitionLookup`, check connections reference valid ports, detect cycles; return `PipelineValidationResult` per contracts/dynamic-pipeline-builder.md
+- [X] T004 Implement `DynamicPipelineBuilder.build()` in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/DynamicPipelineBuilder.kt` — call `createRuntime()` on each resolved `CodeNodeDefinition`, create `Channel<Any>(Channel.BUFFERED)` per connection, wire channels to runtime input/output properties using port index mapping from data-model.md (handle `TransformerRuntime`, `SinkRuntime`, `SourceOut2Runtime`, `In2Out1Runtime`, etc. naming inconsistencies), return `DynamicPipeline`
+- [X] T005 Implement `DynamicPipelineBuilder.canBuildDynamic()` in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/DynamicPipelineBuilder.kt` — return true only if every `CodeNode` name in the FlowGraph has a `CodeNodeDefinition` in the lookup
+- [X] T006 Implement `DynamicPipeline` data class in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/DynamicPipelineBuilder.kt` — holds `flowGraph`, `runtimes: Map<String, NodeRuntime>`, `channels: List<Channel<Any>>`, `scope: CoroutineScope`; provides `start(scope)`, `stop()`, `pause()`, `resume()` operations per data-model.md
+- [X] T007 Implement `DynamicPipelineController` in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/DynamicPipelineController.kt` — implement `ModuleController` interface; delegates to `DynamicPipelineBuilder.validate()` + `build()` on `start()`, manages `RuntimeRegistry` for pause/resume propagation, supports `setAttenuationDelay()`, `setEmissionObserver()`, `setValueObserver()` per contracts/dynamic-pipeline-builder.md
 
 **Checkpoint**: Foundation ready — pipeline builder can construct and control dynamic pipelines from any FlowGraph
 
