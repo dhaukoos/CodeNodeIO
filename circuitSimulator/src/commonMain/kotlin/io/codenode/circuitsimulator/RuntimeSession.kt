@@ -30,13 +30,22 @@ import kotlinx.coroutines.flow.asStateFlow
  *
  * @param controller The module's controller implementing ModuleController
  * @param viewModel The module's ViewModel, stored opaquely for preview providers to cast
- * @param flowGraph The module's FlowGraph for connection lookups (animation)
+ * @param flowGraph The module's FlowGraph for connection lookups (animation).
+ *   For static modules, this is the module's FlowGraph. For dynamic pipeline modules,
+ *   prefer using [flowGraphProvider] so observers reflect canvas edits.
+ * @param flowGraphProvider Optional provider returning the current FlowGraph.
+ *   When set, observers (animation, debug) re-read the FlowGraph on each start(),
+ *   ensuring new connections after canvas edits are recognized.
  */
 class RuntimeSession(
     private val controller: ModuleController,
     val viewModel: Any,
-    private val flowGraph: FlowGraph? = null
+    private val flowGraph: FlowGraph? = null,
+    private val flowGraphProvider: (() -> FlowGraph?)? = null
 ) {
+
+    /** Returns the current FlowGraph — from provider if available, else static snapshot. */
+    private fun currentFlowGraph(): FlowGraph? = flowGraphProvider?.invoke() ?: flowGraph
 
     private val _executionState = MutableStateFlow(ExecutionState.IDLE)
     /** Current execution state of the runtime session */
@@ -86,15 +95,16 @@ class RuntimeSession(
 
         _animateDataFlow.value = enabled
 
-        if (enabled && flowGraph != null) {
+        val fg = currentFlowGraph()
+        if (enabled && fg != null) {
             val observer = animationController.createEmissionObserver(
-                flowGraph = flowGraph,
+                flowGraph = fg,
                 attenuationMs = { _attenuationDelayMs.value }
             )
             controller.setEmissionObserver(observer)
 
             // Wire value observer for debug snapshots
-            val valueObserver = debugger.createValueObserver(flowGraph)
+            val valueObserver = debugger.createValueObserver(fg)
             controller.setValueObserver(valueObserver)
 
             // Start frame loop if execution is already running
@@ -132,15 +142,16 @@ class RuntimeSession(
         controller.setAttenuationDelay(_attenuationDelayMs.value)
 
         // Wire emission observer before start so runtimes have it when they begin
-        if (_animateDataFlow.value && flowGraph != null) {
+        val fg = currentFlowGraph()
+        if (_animateDataFlow.value && fg != null) {
             val observer = animationController.createEmissionObserver(
-                flowGraph = flowGraph,
+                flowGraph = fg,
                 attenuationMs = { _attenuationDelayMs.value }
             )
             controller.setEmissionObserver(observer)
 
             // Wire value observer for debug snapshots
-            val valueObserver = debugger.createValueObserver(flowGraph)
+            val valueObserver = debugger.createValueObserver(fg)
             controller.setValueObserver(valueObserver)
 
             animationScope?.cancel()
@@ -151,6 +162,11 @@ class RuntimeSession(
 
         if (!alreadyRunning) {
             controller.start()
+            // Check if the controller actually started (validation may have failed)
+            if (controller.executionState.value != ExecutionState.RUNNING) {
+                // Controller failed to start — don't set RuntimeSession to RUNNING
+                return
+            }
         }
         _executionState.value = ExecutionState.RUNNING
     }

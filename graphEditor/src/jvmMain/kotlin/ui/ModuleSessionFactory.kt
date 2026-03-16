@@ -155,7 +155,7 @@ object ModuleSessionFactory : KoinComponent {
             else -> return null // Unknown module — can't create ViewModel
         }
 
-        return RuntimeSession(controller, viewModel, editorFlowGraph)
+        return RuntimeSession(controller, viewModel, editorFlowGraph, flowGraphProvider = flowGraphProvider)
     }
 
     private fun createEdgeArtFilterSession(editorFlowGraph: FlowGraph?): RuntimeSession {

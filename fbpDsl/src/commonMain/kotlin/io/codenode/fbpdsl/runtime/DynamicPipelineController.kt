@@ -8,7 +8,7 @@ package io.codenode.fbpdsl.runtime
 
 import io.codenode.fbpdsl.model.ExecutionState
 import io.codenode.fbpdsl.model.FlowGraph
-import io.codenode.fbpdsl.model.RootControlNode
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -52,7 +52,12 @@ class DynamicPipelineController(
     override fun start(): FlowGraph {
         _validationError.value = null
 
-        // Re-read the current canvas FlowGraph (picks up any changes)
+        // Clean up any previously running pipeline before rebuilding
+        if (pipeline != null) {
+            cleanupPipeline()
+        }
+
+        // Re-read the current canvas FlowGraph (picks up any canvas changes since last run)
         currentFlowGraph = flowGraphProvider()
 
         // Validate before building
@@ -63,9 +68,6 @@ class DynamicPipelineController(
             _executionState.value = ExecutionState.IDLE
             return currentFlowGraph
         }
-
-        // Clean up previous pipeline if any
-        cleanupPipeline()
 
         // Build and start
         val newPipeline = DynamicPipelineBuilder.build(currentFlowGraph, lookup)
@@ -78,8 +80,12 @@ class DynamicPipelineController(
         applyEmissionObserver(newPipeline)
         applyValueObserver(newPipeline)
 
-        // Create scope and start
-        val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+        // Create scope with exception handler to surface runtime errors in the UI
+        val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
+            _validationError.value = "Pipeline runtime error: ${throwable.message}"
+            _executionState.value = ExecutionState.IDLE
+        }
+        val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default + exceptionHandler)
         flowScope = scope
 
         _executionState.value = ExecutionState.RUNNING

@@ -15,6 +15,9 @@ enum class ValidationErrorType {
     /** A connection references a port that doesn't exist on the resolved node */
     INVALID_PORT,
 
+    /** A node has fewer ports than expected by connected edges (e.g., after hot-swap) */
+    PORT_COUNT_MISMATCH,
+
     /** The connection graph contains a cycle */
     CYCLE_DETECTED
 }

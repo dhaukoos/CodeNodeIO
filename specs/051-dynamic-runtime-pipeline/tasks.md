@@ -64,10 +64,10 @@
 
 ### Implementation for User Story 2
 
-- [ ] T013 [US2] Ensure `DynamicPipelineController.start()` re-reads the current canvas FlowGraph on every invocation (not cached from construction) — verify `build()` creates a fresh pipeline reflecting any canvas changes since the last run, in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/DynamicPipelineController.kt`
-- [ ] T014 [US2] Ensure `DynamicPipelineController.stop()` fully cleans up previous pipeline (close all channels, cancel scope, clear runtime map) so the next `start()` begins from a clean state in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/DynamicPipelineController.kt`
-- [ ] T015 [US2] Verify `DynamicPipelineBuilder.build()` handles port-compatible node substitutions — when a TRANSFORMER (1-in, 1-out) is replaced with another TRANSFORMER (1-in, 1-out), wiring succeeds identically in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/DynamicPipelineBuilder.kt`
-- [ ] T016 [US2] Add validation check for port mismatch when a replacement node has different port count than the node it replaces — connections referencing ports that don't exist on the new node produce a clear validation error in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/PipelineValidation.kt`
+- [X] T013 [US2] Ensure `DynamicPipelineController.start()` re-reads the current canvas FlowGraph on every invocation (not cached from construction) — verify `build()` creates a fresh pipeline reflecting any canvas changes since the last run, in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/DynamicPipelineController.kt`
+- [X] T014 [US2] Ensure `DynamicPipelineController.stop()` fully cleans up previous pipeline (close all channels, cancel scope, clear runtime map) so the next `start()` begins from a clean state in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/DynamicPipelineController.kt`
+- [X] T015 [US2] Verify `DynamicPipelineBuilder.build()` handles port-compatible node substitutions — when a TRANSFORMER (1-in, 1-out) is replaced with another TRANSFORMER (1-in, 1-out), wiring succeeds identically in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/DynamicPipelineBuilder.kt`
+- [X] T016 [US2] Add validation check for port mismatch when a replacement node has different port count than the node it replaces — connections referencing ports that don't exist on the new node produce a clear validation error in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/PipelineValidation.kt`
 
 **Checkpoint**: Node hot-swap works — swapping compatible nodes and re-running produces different output
 
