@@ -81,9 +81,9 @@
 
 ### Implementation for User Story 3
 
-- [ ] T017 [US3] Verify fallback path in `ModuleSessionFactory.kt` — when `canBuildDynamic()` returns false (e.g., StopWatch nodes not in registry), the factory creates the module's existing generated controller/session in `graphEditor/src/jvmMain/kotlin/ui/ModuleSessionFactory.kt`
-- [ ] T018 [US3] Ensure `DynamicPipelineController` lifecycle operations match existing `ModuleController` behavior — verify `executionState` transitions (IDLE→RUNNING→PAUSED→IDLE), `setAttenuationDelay()`, `setEmissionObserver()`, `setValueObserver()` all work identically to generated controllers in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/DynamicPipelineController.kt`
-- [ ] T019 [US3] Verify all existing modules load and run correctly with the fallback path — manual verification per quickstart.md Step 4 (StopWatch) and Step 5 (UserProfiles, GeoLocations, Addresses)
+- [X] T017 [US3] Verify fallback path in `ModuleSessionFactory.kt` — when `canBuildDynamic()` returns false (e.g., StopWatch nodes not in registry), the factory creates the module's existing generated controller/session in `graphEditor/src/jvmMain/kotlin/ui/ModuleSessionFactory.kt`
+- [X] T018 [US3] Ensure `DynamicPipelineController` lifecycle operations match existing `ModuleController` behavior — verify `executionState` transitions (IDLE→RUNNING→PAUSED→IDLE), `setAttenuationDelay()`, `setEmissionObserver()`, `setValueObserver()` all work identically to generated controllers in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/DynamicPipelineController.kt`
+- [X] T019 [US3] Verify all existing modules load and run correctly with the fallback path — manual verification per quickstart.md Step 4 (StopWatch) and Step 5 (UserProfiles, GeoLocations, Addresses)
 
 **Checkpoint**: All modules work — dynamic pipeline for EdgeArtFilter, fallback for everything else
 
@@ -93,10 +93,10 @@
 
 **Purpose**: Improvements that affect multiple user stories
 
-- [ ] T020 Verify `DynamicPipelineController` supports data flow animation — `setEmissionObserver()` and `setValueObserver()` are applied to all dynamic runtimes so Animate Data Flow toggle works in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/DynamicPipelineController.kt`
-- [ ] T021 Verify `DynamicPipelineController` supports speed attenuation — `setAttenuationDelay()` propagates to all runtimes in the dynamic pipeline in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/DynamicPipelineController.kt`
-- [ ] T022 Run full quickstart.md validation (Steps 1-6) — verify EdgeArtFilter dynamic pipeline, hot-swap, error handling, StopWatch fallback, all existing modules, and lifecycle operations
-- [ ] T023 Build verification — run `./gradlew :fbpDsl:jvmTest` and `./gradlew :graphEditor:run` to confirm no regressions
+- [X] T020 Verify `DynamicPipelineController` supports data flow animation — `setEmissionObserver()` and `setValueObserver()` are applied to all dynamic runtimes so Animate Data Flow toggle works in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/DynamicPipelineController.kt`
+- [X] T021 Verify `DynamicPipelineController` supports speed attenuation — `setAttenuationDelay()` propagates to all runtimes in the dynamic pipeline in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/DynamicPipelineController.kt`
+- [X] T022 Run full quickstart.md validation (Steps 1-6) — verify EdgeArtFilter dynamic pipeline, hot-swap, error handling, StopWatch fallback, all existing modules, and lifecycle operations
+- [X] T023 Build verification — run `./gradlew :fbpDsl:jvmTest` and `./gradlew :graphEditor:run` to confirm no regressions
 
 ---
 

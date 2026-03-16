@@ -250,10 +250,6 @@ class DynamicPipeline(
         val sourceIds = sortedIds.filter { isSourceRuntime(runtimes[it]!!) }
         val nonSourceIds = sortedIds.filter { !isSourceRuntime(runtimes[it]!!) }
 
-        println("[DynamicPipeline] Starting pipeline: ${runtimes.size} runtimes, ${flowGraph.connections.size} connections")
-        println("[DynamicPipeline] Sources: ${sourceIds.map { "${runtimes[it]!!.codeNode.name}(${runtimes[it]!!::class.simpleName})" }}")
-        println("[DynamicPipeline] Non-sources: ${nonSourceIds.map { "${runtimes[it]!!.codeNode.name}(${runtimes[it]!!::class.simpleName})" }}")
-
         // 1. Start sources (they create/recreate owned output channels)
         for (nodeId in sourceIds) {
             runtimes[nodeId]!!.start(scope) {}
@@ -264,9 +260,7 @@ class DynamicPipeline(
 
         // 3. Start non-source runtimes in topological order
         for (nodeId in nonSourceIds) {
-            val runtime = runtimes[nodeId]!!
-            println("[DynamicPipeline] Starting ${runtime.codeNode.name}: inputChannel=${getInputChannelStatus(runtime)}, outputChannel=${getOutputChannelStatus(runtime)}")
-            runtime.start(scope) {}
+            runtimes[nodeId]!!.start(scope) {}
         }
     }
 
@@ -348,45 +342,24 @@ class DynamicPipeline(
      */
     @Suppress("UNCHECKED_CAST")
     private fun wireConnections() {
-        println("[DynamicPipeline] wireConnections: ${flowGraph.connections.size} connections to wire")
         for (conn in flowGraph.connections) {
-            val sourceRuntime = runtimes[conn.sourceNodeId]
-            val targetRuntime = runtimes[conn.targetNodeId]
-            if (sourceRuntime == null || targetRuntime == null) {
-                println("[DynamicPipeline]   SKIP conn ${conn.id}: sourceRuntime=${sourceRuntime != null}, targetRuntime=${targetRuntime != null}")
-                continue
-            }
+            val sourceRuntime = runtimes[conn.sourceNodeId] ?: continue
+            val targetRuntime = runtimes[conn.targetNodeId] ?: continue
 
             // Index-based port matching: find port by ID in the canvas CodeNode's
             // port list to get the positional index for runtime channel wiring
-            val sourceNode = flowGraph.findNode(conn.sourceNodeId) as? CodeNode
-            val targetNode = flowGraph.findNode(conn.targetNodeId) as? CodeNode
-            if (sourceNode == null || targetNode == null) {
-                println("[DynamicPipeline]   SKIP conn ${conn.id}: sourceNode=${sourceNode != null}, targetNode=${targetNode != null}")
-                continue
-            }
+            val sourceNode = flowGraph.findNode(conn.sourceNodeId) as? CodeNode ?: continue
+            val targetNode = flowGraph.findNode(conn.targetNodeId) as? CodeNode ?: continue
             val outputIndex = sourceNode.outputPorts.indexOfFirst { it.id == conn.sourcePortId }
             val inputIndex = targetNode.inputPorts.indexOfFirst { it.id == conn.targetPortId }
 
-            if (outputIndex < 0 || inputIndex < 0) {
-                println("[DynamicPipeline]   SKIP conn ${conn.id}: ${sourceNode.name}[out$outputIndex] -> ${targetNode.name}[in$inputIndex] (port ID mismatch)")
-                println("[DynamicPipeline]     sourcePortId=${conn.sourcePortId}, available=${sourceNode.outputPorts.map { it.id }}")
-                println("[DynamicPipeline]     targetPortId=${conn.targetPortId}, available=${targetNode.inputPorts.map { it.id }}")
-                continue
-            }
-
-            println("[DynamicPipeline]   WIRE conn ${conn.id}: ${sourceNode.name}[out$outputIndex] -> ${targetNode.name}[in$inputIndex] (${sourceRuntime::class.simpleName} -> ${targetRuntime::class.simpleName})")
+            if (outputIndex < 0 || inputIndex < 0) continue
 
             if (isSourceRuntime(sourceRuntime) || isMultiOutputRuntime(sourceRuntime)) {
                 // Source/multi-output runtimes own their output channels (Channel type, private set)
                 // Read the channel and assign to downstream input
-                val channel = getOwnedOutputChannel(sourceRuntime, outputIndex)
-                if (channel == null) {
-                    println("[DynamicPipeline]     FAILED: getOwnedOutputChannel returned null for ${sourceRuntime::class.simpleName}[$outputIndex]")
-                    continue
-                }
+                val channel = getOwnedOutputChannel(sourceRuntime, outputIndex) ?: continue
                 setInputChannel(targetRuntime, inputIndex, channel)
-                println("[DynamicPipeline]     OK: owned channel wired")
             } else {
                 // Transformer/Filter/InXOut1 runtimes have SendChannel outputs
                 // Create intermediate Channel for both sides
@@ -394,7 +367,6 @@ class DynamicPipeline(
                 createdChannels.add(channel)
                 setOutputChannel(sourceRuntime, outputIndex, channel)
                 setInputChannel(targetRuntime, inputIndex, channel)
-                println("[DynamicPipeline]     OK: intermediate channel created and wired")
             }
         }
     }
@@ -440,24 +412,6 @@ class DynamicPipeline(
         }
 
         return sorted
-    }
-
-    private fun getInputChannelStatus(runtime: NodeRuntime): String {
-        return when (runtime) {
-            is TransformerRuntime<*, *> -> if (runtime.inputChannel != null) "SET" else "NULL"
-            is SinkRuntime<*> -> if (runtime.inputChannel != null) "SET" else "NULL"
-            is FilterRuntime<*> -> if (runtime.inputChannel != null) "SET" else "NULL"
-            is SinkIn2Runtime<*, *> -> "in1=${if (runtime.inputChannel1 != null) "SET" else "NULL"}, in2=${if (runtime.inputChannel2 != null) "SET" else "NULL"}"
-            else -> "N/A"
-        }
-    }
-
-    private fun getOutputChannelStatus(runtime: NodeRuntime): String {
-        return when (runtime) {
-            is TransformerRuntime<*, *> -> if (runtime.outputChannel != null) "SET" else "NULL"
-            is FilterRuntime<*> -> if (runtime.outputChannel != null) "SET" else "NULL"
-            else -> "N/A"
-        }
     }
 
     private fun isSourceRuntime(runtime: NodeRuntime): Boolean {
