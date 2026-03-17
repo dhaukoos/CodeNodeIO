@@ -28,10 +28,15 @@ import kotlinx.coroutines.launch
  * @param flowGraphProvider Returns the current canvas FlowGraph on each call.
  *        Called on every start() to pick up canvas changes.
  * @param lookup Function to resolve node names to CodeNodeDefinitions
+ * @param onReset Optional callback invoked during reset() to clear module-specific
+ *        state (e.g., StopWatchState.reset()). The dynamic pipeline is generic and
+ *        does not know about module state objects, so modules that need reset behavior
+ *        must provide this callback.
  */
 class DynamicPipelineController(
     private val flowGraphProvider: () -> FlowGraph,
-    private val lookup: NodeDefinitionLookup
+    private val lookup: NodeDefinitionLookup,
+    private val onReset: (() -> Unit)? = null
 ) : ModuleController {
 
     private val registry = RuntimeRegistry()
@@ -39,6 +44,7 @@ class DynamicPipelineController(
     private var flowScope: CoroutineScope? = null
     private var currentFlowGraph: FlowGraph = flowGraphProvider()
 
+    private var attenuationDelayMs: Long? = null
     private var emissionObserver: ((String, Int) -> Unit)? = null
     private var valueObserver: ((String, Int, Any?) -> Unit)? = null
 
@@ -76,7 +82,8 @@ class DynamicPipelineController(
         // Set registry on all runtimes
         newPipeline.setRegistry(registry)
 
-        // Apply observers
+        // Apply stored attenuation and observers
+        newPipeline.setAttenuationDelay(attenuationDelayMs)
         applyEmissionObserver(newPipeline)
         applyValueObserver(newPipeline)
 
@@ -117,10 +124,12 @@ class DynamicPipelineController(
 
     override fun reset(): FlowGraph {
         stop()
+        onReset?.invoke()
         return currentFlowGraph
     }
 
     override fun setAttenuationDelay(ms: Long?) {
+        attenuationDelayMs = ms
         pipeline?.setAttenuationDelay(ms)
     }
 

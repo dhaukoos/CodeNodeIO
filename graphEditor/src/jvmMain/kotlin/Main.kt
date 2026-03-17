@@ -64,6 +64,9 @@ import io.codenode.edgeartfilter.nodes.EdgeDetectorCodeNode
 import io.codenode.edgeartfilter.nodes.ColorOverlayCodeNode
 import io.codenode.edgeartfilter.nodes.SepiaTransformerCodeNode
 import io.codenode.edgeartfilter.nodes.ImageViewerCodeNode
+import io.codenode.stopwatch.nodes.TimerEmitterCodeNode
+import io.codenode.stopwatch.nodes.TimeIncrementerCodeNode
+import io.codenode.stopwatch.nodes.DisplayReceiverCodeNode
 import io.codenode.circuitsimulator.ConnectionAnimation
 import io.codenode.circuitsimulator.RuntimeSession
 import io.codenode.grapheditor.ui.PropertiesPanelState
@@ -398,6 +401,10 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
         registry.register(ColorOverlayCodeNode)
         registry.register(SepiaTransformerCodeNode)
         registry.register(ImageViewerCodeNode)
+        // Register StopWatch CodeNode objects directly
+        registry.register(TimerEmitterCodeNode)
+        registry.register(TimeIncrementerCodeNode)
+        registry.register(DisplayReceiverCodeNode)
         // Also scan project-level and module-level source directories for uncompiled nodes
         registry.scanDirectory(projectRoot.resolve("nodes/src/commonMain/kotlin/io/codenode/nodes"))
         registry.scanDirectory(projectRoot.resolve("EdgeArtFilter/src/commonMain/kotlin/io/codenode/edgeartfilter/nodes"))

@@ -33,6 +33,8 @@ import io.codenode.edgeartfilter.generated.EdgeArtFilterController
 import io.codenode.edgeartfilter.generated.EdgeArtFilterControllerAdapter
 import io.codenode.edgeartfilter.generated.EdgeArtFilterControllerInterface
 import io.codenode.edgeartfilter.edgeArtFilterFlowGraph
+import io.codenode.stopwatch.StopWatchState
+import io.codenode.stopwatch.generated.StopWatchControllerInterface
 import io.codenode.fbpdsl.runtime.DynamicPipelineBuilder
 import io.codenode.fbpdsl.runtime.DynamicPipelineController
 import io.codenode.grapheditor.state.NodeDefinitionRegistry
@@ -134,13 +136,35 @@ object ModuleSessionFactory : KoinComponent {
         flowGraphProvider: () -> FlowGraph,
         lookup: (String) -> io.codenode.fbpdsl.runtime.CodeNodeDefinition?
     ): RuntimeSession? {
+        // Determine module-specific reset callback
+        val onReset: (() -> Unit)? = when (moduleName) {
+            "StopWatch" -> { { StopWatchState.reset() } }
+            else -> null
+        }
+
         val controller = DynamicPipelineController(
             flowGraphProvider = flowGraphProvider,
-            lookup = lookup
+            lookup = lookup,
+            onReset = onReset
         )
 
         // Create the module-specific ViewModel using an adapter from ModuleController
         val viewModel: Any = when (moduleName) {
+            "StopWatch" -> {
+                val adapter = object : StopWatchControllerInterface {
+                    override val elapsedSeconds get() = StopWatchState.elapsedSecondsFlow
+                    override val elapsedMinutes get() = StopWatchState.elapsedMinutesFlow
+                    override val seconds get() = StopWatchState.secondsFlow
+                    override val minutes get() = StopWatchState.minutesFlow
+                    override val executionState get() = controller.executionState
+                    override fun start(): FlowGraph { controller.start(); return flowGraphProvider() }
+                    override fun stop(): FlowGraph { controller.stop(); return flowGraphProvider() }
+                    override fun reset(): FlowGraph { controller.reset(); return flowGraphProvider() }
+                    override fun pause(): FlowGraph { controller.pause(); return flowGraphProvider() }
+                    override fun resume(): FlowGraph { controller.resume(); return flowGraphProvider() }
+                }
+                StopWatchViewModel(adapter)
+            }
             "EdgeArtFilter" -> {
                 val adapter = object : EdgeArtFilterControllerInterface {
                     override val executionState get() = controller.executionState
