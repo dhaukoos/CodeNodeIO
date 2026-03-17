@@ -67,6 +67,15 @@ import io.codenode.edgeartfilter.nodes.ImageViewerCodeNode
 import io.codenode.stopwatch.nodes.TimerEmitterCodeNode
 import io.codenode.stopwatch.nodes.TimeIncrementerCodeNode
 import io.codenode.stopwatch.nodes.DisplayReceiverCodeNode
+import io.codenode.userprofiles.nodes.UserProfileCUDCodeNode
+import io.codenode.userprofiles.nodes.UserProfileRepositoryCodeNode
+import io.codenode.userprofiles.nodes.UserProfilesDisplayCodeNode
+import io.codenode.geolocations.nodes.GeoLocationCUDCodeNode
+import io.codenode.geolocations.nodes.GeoLocationRepositoryCodeNode
+import io.codenode.geolocations.nodes.GeoLocationsDisplayCodeNode
+import io.codenode.addresses.nodes.AddressCUDCodeNode
+import io.codenode.addresses.nodes.AddressRepositoryCodeNode
+import io.codenode.addresses.nodes.AddressesDisplayCodeNode
 import io.codenode.circuitsimulator.ConnectionAnimation
 import io.codenode.circuitsimulator.RuntimeSession
 import io.codenode.grapheditor.ui.PropertiesPanelState
@@ -405,6 +414,18 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
         registry.register(TimerEmitterCodeNode)
         registry.register(TimeIncrementerCodeNode)
         registry.register(DisplayReceiverCodeNode)
+        // Register UserProfiles CodeNode objects directly
+        registry.register(UserProfileCUDCodeNode)
+        registry.register(UserProfileRepositoryCodeNode)
+        registry.register(UserProfilesDisplayCodeNode)
+        // Register GeoLocations CodeNode objects directly
+        registry.register(GeoLocationCUDCodeNode)
+        registry.register(GeoLocationRepositoryCodeNode)
+        registry.register(GeoLocationsDisplayCodeNode)
+        // Register Addresses CodeNode objects directly
+        registry.register(AddressCUDCodeNode)
+        registry.register(AddressRepositoryCodeNode)
+        registry.register(AddressesDisplayCodeNode)
         // Also scan project-level and module-level source directories for uncompiled nodes
         registry.scanDirectory(projectRoot.resolve("nodes/src/commonMain/kotlin/io/codenode/nodes"))
         registry.scanDirectory(projectRoot.resolve("EdgeArtFilter/src/commonMain/kotlin/io/codenode/edgeartfilter/nodes"))

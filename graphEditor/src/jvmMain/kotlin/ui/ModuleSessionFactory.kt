@@ -35,6 +35,12 @@ import io.codenode.edgeartfilter.generated.EdgeArtFilterControllerInterface
 import io.codenode.edgeartfilter.edgeArtFilterFlowGraph
 import io.codenode.stopwatch.StopWatchState
 import io.codenode.stopwatch.generated.StopWatchControllerInterface
+import io.codenode.userprofiles.UserProfilesState
+import io.codenode.userprofiles.generated.UserProfilesControllerInterface
+import io.codenode.geolocations.GeoLocationsState
+import io.codenode.geolocations.generated.GeoLocationsControllerInterface
+import io.codenode.addresses.AddressesState
+import io.codenode.addresses.generated.AddressesControllerInterface
 import io.codenode.fbpdsl.runtime.DynamicPipelineBuilder
 import io.codenode.fbpdsl.runtime.DynamicPipelineController
 import io.codenode.grapheditor.state.NodeDefinitionRegistry
@@ -139,6 +145,9 @@ object ModuleSessionFactory : KoinComponent {
         // Determine module-specific reset callback
         val onReset: (() -> Unit)? = when (moduleName) {
             "StopWatch" -> { { StopWatchState.reset() } }
+            "UserProfiles" -> { { UserProfilesState.reset() } }
+            "GeoLocations" -> { { GeoLocationsState.reset() } }
+            "Addresses" -> { { AddressesState.reset() } }
             else -> null
         }
 
@@ -164,6 +173,54 @@ object ModuleSessionFactory : KoinComponent {
                     override fun resume(): FlowGraph { controller.resume(); return flowGraphProvider() }
                 }
                 StopWatchViewModel(adapter)
+            }
+            "UserProfiles" -> {
+                val adapter = object : UserProfilesControllerInterface {
+                    override val save get() = UserProfilesState.saveFlow
+                    override val update get() = UserProfilesState.updateFlow
+                    override val remove get() = UserProfilesState.removeFlow
+                    override val result get() = UserProfilesState.resultFlow
+                    override val error get() = UserProfilesState.errorFlow
+                    override val executionState get() = controller.executionState
+                    override fun start(): FlowGraph { controller.start(); return flowGraphProvider() }
+                    override fun stop(): FlowGraph { controller.stop(); return flowGraphProvider() }
+                    override fun reset(): FlowGraph { controller.reset(); return flowGraphProvider() }
+                    override fun pause(): FlowGraph { controller.pause(); return flowGraphProvider() }
+                    override fun resume(): FlowGraph { controller.resume(); return flowGraphProvider() }
+                }
+                UserProfilesViewModel(adapter, userProfileDao)
+            }
+            "GeoLocations" -> {
+                val adapter = object : GeoLocationsControllerInterface {
+                    override val save get() = GeoLocationsState.saveFlow
+                    override val update get() = GeoLocationsState.updateFlow
+                    override val remove get() = GeoLocationsState.removeFlow
+                    override val result get() = GeoLocationsState.resultFlow
+                    override val error get() = GeoLocationsState.errorFlow
+                    override val executionState get() = controller.executionState
+                    override fun start(): FlowGraph { controller.start(); return flowGraphProvider() }
+                    override fun stop(): FlowGraph { controller.stop(); return flowGraphProvider() }
+                    override fun reset(): FlowGraph { controller.reset(); return flowGraphProvider() }
+                    override fun pause(): FlowGraph { controller.pause(); return flowGraphProvider() }
+                    override fun resume(): FlowGraph { controller.resume(); return flowGraphProvider() }
+                }
+                GeoLocationsViewModel(adapter, geoLocationDao)
+            }
+            "Addresses" -> {
+                val adapter = object : AddressesControllerInterface {
+                    override val save get() = AddressesState.saveFlow
+                    override val update get() = AddressesState.updateFlow
+                    override val remove get() = AddressesState.removeFlow
+                    override val result get() = AddressesState.resultFlow
+                    override val error get() = AddressesState.errorFlow
+                    override val executionState get() = controller.executionState
+                    override fun start(): FlowGraph { controller.start(); return flowGraphProvider() }
+                    override fun stop(): FlowGraph { controller.stop(); return flowGraphProvider() }
+                    override fun reset(): FlowGraph { controller.reset(); return flowGraphProvider() }
+                    override fun pause(): FlowGraph { controller.pause(); return flowGraphProvider() }
+                    override fun resume(): FlowGraph { controller.resume(); return flowGraphProvider() }
+                }
+                AddressesViewModel(adapter, addressDao)
             }
             "EdgeArtFilter" -> {
                 val adapter = object : EdgeArtFilterControllerInterface {
