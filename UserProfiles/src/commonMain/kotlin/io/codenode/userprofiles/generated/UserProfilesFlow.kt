@@ -6,13 +6,15 @@
 
 package io.codenode.userprofiles.generated
 
-import io.codenode.userprofiles.processingLogic.userProfileRepositoryTick
+import io.codenode.userprofiles.nodes.UserProfileCUDCodeNode
+import io.codenode.userprofiles.nodes.UserProfileRepositoryCodeNode
+import io.codenode.userprofiles.nodes.UserProfilesDisplayCodeNode
 
 import io.codenode.userprofiles.UserProfilesState
-import io.codenode.userprofiles.createUserProfileCUD
-import io.codenode.userprofiles.createUserProfilesDisplay
 
-import io.codenode.fbpdsl.model.CodeNodeFactory
+import io.codenode.fbpdsl.runtime.SourceOut3Runtime
+import io.codenode.fbpdsl.runtime.In3AnyOut2Runtime
+import io.codenode.fbpdsl.runtime.SinkIn2Runtime
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.StateFlow
 
@@ -36,17 +38,11 @@ class UserProfilesFlow {
     val errorFlow: StateFlow<Any?> = UserProfilesState.errorFlow
 
     // Runtime instances
-    internal val userProfileRepository = CodeNodeFactory.createIn3AnyOut2Processor<Any, Any, Any, Any, Any>(
-        name = "UserProfileRepository",
-        initialValue1 = Unit,
-        initialValue2 = Unit,
-        initialValue3 = Unit,
-        process = userProfileRepositoryTick
-    )
+    internal val userProfileCUD = UserProfileCUDCodeNode.createRuntime("UserProfileCUD") as SourceOut3Runtime<Any, Any, Any>
 
-    internal val userProfileCUD = createUserProfileCUD()
+    internal val userProfileRepository = UserProfileRepositoryCodeNode.createRuntime("UserProfileRepository") as In3AnyOut2Runtime<Any, Any, Any, Any, Any>
 
-    internal val userProfilesDisplay = createUserProfilesDisplay()
+    internal val userProfilesDisplay = UserProfilesDisplayCodeNode.createRuntime("UserProfilesDisplay") as SinkIn2Runtime<Any, Any>
 
     /**
      * Starts the flow with the given coroutine scope.
@@ -85,4 +81,3 @@ class UserProfilesFlow {
         userProfilesDisplay.inputChannel2 = userProfileRepository.outputChannel2
     }
 }
-

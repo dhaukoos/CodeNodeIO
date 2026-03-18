@@ -6,16 +6,17 @@
 
 package io.codenode.stopwatch.generated
 
-import io.codenode.stopwatch.processingLogic.timeIncrementerTick
+import io.codenode.stopwatch.nodes.TimerEmitterCodeNode
+import io.codenode.stopwatch.nodes.TimeIncrementerCodeNode
+import io.codenode.stopwatch.nodes.DisplayReceiverCodeNode
 
 import io.codenode.stopwatch.StopWatchState
 
-import io.codenode.fbpdsl.model.CodeNodeFactory
+import io.codenode.fbpdsl.runtime.SourceOut2Runtime
+import io.codenode.fbpdsl.runtime.In2Out2Runtime
+import io.codenode.fbpdsl.runtime.SinkIn2AnyRuntime
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.drop
-import io.codenode.fbpdsl.runtime.ProcessResult2
 
 /**
  * Flow orchestrator for: StopWatch
@@ -36,33 +37,11 @@ class StopWatchFlow {
     val minutesFlow: StateFlow<Int> = StopWatchState.minutesFlow
 
     // Runtime instances
-    internal val timeIncrementer = CodeNodeFactory.createIn2Out2Processor<Int, Int, Int, Int>(
-        name = "TimeIncrementer",
-        process = timeIncrementerTick
-    )
+    internal val timerEmitter = TimerEmitterCodeNode.createRuntime("TimerEmitter") as SourceOut2Runtime<Int, Int>
 
-    internal val displayReceiver = CodeNodeFactory.createSinkIn2Any<Int, Int>(
-        name = "DisplayReceiver",
-        initialValue1 = 0,
-        initialValue2 = 0,
-        consume = { seconds, minutes ->
-            StopWatchState._seconds.value = seconds
-            StopWatchState._minutes.value = minutes
-        }
-    )
+    internal val timeIncrementer = TimeIncrementerCodeNode.createRuntime("TimeIncrementer") as In2Out2Runtime<Int, Int, Int, Int>
 
-    internal val timerEmitter = CodeNodeFactory.createSourceOut2<Int, Int>(
-        name = "TimerEmitter",
-        generate = { emit ->
-            combine(
-                StopWatchState._elapsedSeconds,
-                StopWatchState._elapsedMinutes
-            ) { elapsedSeconds, elapsedMinutes ->
-                ProcessResult2.both(elapsedSeconds, elapsedMinutes)
-            }.drop(1).collect { result ->
-                emit(result)
-            }
-        }    )
+    internal val displayReceiver = DisplayReceiverCodeNode.createRuntime("DisplayReceiver") as SinkIn2AnyRuntime<Int, Int>
 
     /**
      * Starts the flow with the given coroutine scope.
@@ -100,4 +79,3 @@ class StopWatchFlow {
         displayReceiver.inputChannel2 = timeIncrementer.outputChannel2
     }
 }
-

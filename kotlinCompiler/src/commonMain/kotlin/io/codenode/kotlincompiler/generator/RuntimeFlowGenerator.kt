@@ -11,14 +11,13 @@ import io.codenode.fbpdsl.model.FlowGraph
 
 /**
  * Generates a {Name}Flow.kt file that directly creates runtime instances
- * via CodeNodeFactory, wires connections, and delegates observable state
- * to {ModuleName}State from the viewModel package.
+ * via CodeNodeFactory or CodeNodeDefinition.createRuntime(), wires connections,
+ * and delegates observable state to {ModuleName}State from the viewModel package.
  *
  * The generated Flow class:
- * - Imports tick vals from the processingLogic package
+ * - For nodes with _codeNodeClass: imports the CodeNodeDefinition and uses createRuntime()
+ * - For legacy nodes: imports tick vals from the processingLogic package and uses CodeNodeFactory
  * - Imports {ModuleName}State from the viewModel package
- * - Creates runtime instances using CodeNodeFactory.create*() methods
- * - Wraps sink consume blocks to update {ModuleName}State + call user tick
  * - Provides start(scope)/stop()/reset()/wireConnections() methods
  */
 class RuntimeFlowGenerator {
@@ -92,8 +91,16 @@ class RuntimeFlowGenerator {
         viewModelPackage: String,
         flowName: String
     ) {
-        // Tick function imports from user stubs (source and sink nodes have no stubs)
-        codeNodes.filter { it.inputPorts.isNotEmpty() && it.outputPorts.isNotEmpty() }.forEach { node ->
+        val codeNodeClassNodes = codeNodes.filter { it.configuration["_codeNodeClass"] != null }
+        val legacyNodes = codeNodes.filter { it.configuration["_codeNodeClass"] == null }
+
+        // CodeNode imports (for nodes with _codeNodeClass)
+        codeNodeClassNodes.forEach { node ->
+            appendLine("import ${node.configuration["_codeNodeClass"]}")
+        }
+
+        // Tick function imports from user stubs (legacy processor nodes only)
+        legacyNodes.filter { it.inputPorts.isNotEmpty() && it.outputPorts.isNotEmpty() }.forEach { node ->
             appendLine("import $usecasesPackage.${node.name.camelCase()}Tick")
         }
         appendLine()
@@ -103,9 +110,9 @@ class RuntimeFlowGenerator {
             appendLine("import $viewModelPackage.${flowName}State")
         }
 
-        // Import entity stub functions (CUD source, Display sink)
-        val cudNode = codeNodes.find { it.configuration["_cudSource"] == "true" }
-        val displayNode = codeNodes.find { it.configuration["_display"] == "true" }
+        // Import entity stub functions (legacy CUD source, Display sink only)
+        val cudNode = legacyNodes.find { it.configuration["_cudSource"] == "true" }
+        val displayNode = legacyNodes.find { it.configuration["_display"] == "true" }
         if (cudNode != null) {
             appendLine("import $viewModelPackage.create${cudNode.name.pascalCase()}")
         }
@@ -116,15 +123,28 @@ class RuntimeFlowGenerator {
             appendLine()
         }
 
-        // Framework imports
-        appendLine("import io.codenode.fbpdsl.model.CodeNodeFactory")
+        // Framework imports — only import CodeNodeFactory if legacy nodes exist
+        if (legacyNodes.isNotEmpty()) {
+            appendLine("import io.codenode.fbpdsl.model.CodeNodeFactory")
+        }
         appendLine("import kotlinx.coroutines.CoroutineScope")
         if (hasObservableState) {
             appendLine("import kotlinx.coroutines.flow.StateFlow")
         }
 
-        // Reactive source imports (only for non-entity source nodes)
-        val sourceNodes = codeNodes.filter {
+        // Runtime type imports for CodeNode casts
+        val runtimeTypeImports = mutableSetOf<String>()
+        codeNodeClassNodes.forEach { node ->
+            val anyInput = node.configuration["_genericType"]?.contains("any") == true
+            val runtimeTypeName = runtimeTypeResolver.getRuntimeTypeName(node, anyInput)
+            // Extract just the class name (before the type params)
+            val className = runtimeTypeName.substringBefore("<")
+            runtimeTypeImports.add("import io.codenode.fbpdsl.runtime.$className")
+        }
+        runtimeTypeImports.sorted().forEach { appendLine(it) }
+
+        // Reactive source imports (only for non-entity legacy source nodes)
+        val sourceNodes = legacyNodes.filter {
             it.inputPorts.isEmpty() && it.outputPorts.isNotEmpty() &&
             it.configuration["_cudSource"] != "true"
         }
@@ -181,6 +201,19 @@ class RuntimeFlowGenerator {
         appendLine("    // Runtime instances")
         codeNodes.forEach { node ->
             val varName = node.name.camelCase()
+            val codeNodeClass = node.configuration["_codeNodeClass"]
+
+            // CodeNode-aware path: use CodeNodeDefinition.createRuntime()
+            if (codeNodeClass != null) {
+                val className = codeNodeClass.substringAfterLast(".")
+                val anyInput = node.configuration["_genericType"]?.contains("any") == true
+                val runtimeTypeName = runtimeTypeResolver.getRuntimeTypeName(node, anyInput)
+                appendLine("    internal val $varName = $className.createRuntime(\"${node.name}\") as $runtimeTypeName")
+                appendLine()
+                return@forEach
+            }
+
+            // Legacy path: use CodeNodeFactory
             val isCudSource = node.configuration["_cudSource"] == "true"
             val isDisplaySink = node.configuration["_display"] == "true"
 
