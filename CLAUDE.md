@@ -73,6 +73,8 @@ Auto-generated from all feature plans. Last updated: 2026-01-13
 - N/A (in-memory pipeline state only) (051-dynamic-runtime-pipeline)
 - Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + Compose Desktop 1.7.3, kotlinx-coroutines 1.8.0 (channels, StateFlow, select), kotlinx-serialization 1.6.0, lifecycle-viewmodel-compose 2.8.0, Room 2.8.4 (KMP), KSP 2.1.21-2.0.1, SQLite Bundled 2.6.2, Koin 4.0.0 (052-migrate-module-runtimes)
 - Room (KMP) with BundledSQLiteDriver for entity modules (UserProfiles, GeoLocations, Addresses); N/A for StopWatch (052-migrate-module-runtimes)
+- Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + kotlinx-coroutines 1.8.0, Compose Multiplatform 1.7.3, Room 2.8.4 (KMP), Koin 4.0.0 (053-codenode-flow-runtime)
+- Room (KMP) with BundledSQLiteDriver for entity modules; N/A for StopWatch (053-codenode-flow-runtime)
 
 - Kotlin 1.9+, Go 1.21+ (001-ide-plugin-platform)
 
@@ -92,9 +94,9 @@ tests/
 Kotlin 1.9+, Go 1.21+: Follow standard conventions
 
 ## Recent Changes
+- 053-codenode-flow-runtime: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + kotlinx-coroutines 1.8.0, Compose Multiplatform 1.7.3, Room 2.8.4 (KMP), Koin 4.0.0
 - 052-migrate-module-runtimes: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + Compose Desktop 1.7.3, kotlinx-coroutines 1.8.0 (channels, StateFlow, select), kotlinx-serialization 1.6.0, lifecycle-viewmodel-compose 2.8.0, Room 2.8.4 (KMP), KSP 2.1.21-2.0.1, SQLite Bundled 2.6.2, Koin 4.0.0
 - 051-dynamic-runtime-pipeline: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + Compose Desktop 1.7.3, kotlinx-coroutines 1.8.0 (channels, StateFlow, CoroutineScope), lifecycle-viewmodel-compose 2.8.0
-- 050-self-contained-codenode: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + Compose Desktop 1.7.3, kotlinx-coroutines 1.8.0, kotlinx-serialization 1.6.0, lifecycle-viewmodel-compose 2.8.0
 
 
 <!-- MANUAL ADDITIONS START -->

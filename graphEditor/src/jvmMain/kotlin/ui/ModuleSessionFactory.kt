@@ -8,39 +8,27 @@ package io.codenode.grapheditor.ui
 import io.codenode.circuitsimulator.RuntimeSession
 import io.codenode.fbpdsl.model.FlowGraph
 import io.codenode.stopwatch.StopWatchViewModel
-import io.codenode.stopwatch.generated.StopWatchController
-import io.codenode.stopwatch.generated.StopWatchControllerAdapter
-import io.codenode.stopwatch.stopWatchFlowGraph
+import io.codenode.stopwatch.StopWatchState
+import io.codenode.stopwatch.generated.StopWatchControllerInterface
 import io.codenode.userprofiles.UserProfilesViewModel
-import io.codenode.userprofiles.generated.UserProfilesController
-import io.codenode.userprofiles.generated.UserProfilesControllerAdapter
+import io.codenode.userprofiles.UserProfilesState
+import io.codenode.userprofiles.generated.UserProfilesControllerInterface
 import io.codenode.persistence.UserProfileDao
 import io.codenode.persistence.GeoLocationDao
-import io.codenode.userprofiles.userProfilesFlowGraph
+import io.codenode.persistence.AddressDao
 import io.codenode.geolocations.GeoLocationsViewModel
-import io.codenode.geolocations.generated.GeoLocationsController
-import io.codenode.geolocations.generated.GeoLocationsControllerAdapter
-import io.codenode.geolocations.geoLocationsFlowGraph
+import io.codenode.geolocations.GeoLocationsState
+import io.codenode.geolocations.generated.GeoLocationsControllerInterface
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import io.codenode.addresses.AddressesViewModel
-import io.codenode.addresses.generated.AddressesController
-import io.codenode.addresses.generated.AddressesControllerAdapter
-import io.codenode.persistence.AddressDao
-import io.codenode.addresses.addressesFlowGraph
+import io.codenode.addresses.AddressesState
+import io.codenode.addresses.generated.AddressesControllerInterface
 import io.codenode.edgeartfilter.EdgeArtFilterViewModel
 import io.codenode.edgeartfilter.generated.EdgeArtFilterController
 import io.codenode.edgeartfilter.generated.EdgeArtFilterControllerAdapter
 import io.codenode.edgeartfilter.generated.EdgeArtFilterControllerInterface
 import io.codenode.edgeartfilter.edgeArtFilterFlowGraph
-import io.codenode.stopwatch.StopWatchState
-import io.codenode.stopwatch.generated.StopWatchControllerInterface
-import io.codenode.userprofiles.UserProfilesState
-import io.codenode.userprofiles.generated.UserProfilesControllerInterface
-import io.codenode.geolocations.GeoLocationsState
-import io.codenode.geolocations.generated.GeoLocationsControllerInterface
-import io.codenode.addresses.AddressesState
-import io.codenode.addresses.generated.AddressesControllerInterface
 import io.codenode.fbpdsl.runtime.DynamicPipelineBuilder
 import io.codenode.fbpdsl.runtime.DynamicPipelineController
 import io.codenode.grapheditor.state.NodeDefinitionRegistry
@@ -48,8 +36,10 @@ import io.codenode.grapheditor.state.NodeDefinitionRegistry
 /**
  * Factory for creating module-specific RuntimeSession instances.
  *
- * Each supported module has a dedicated factory method that creates the
- * controller, adapter, viewmodel, and wraps them in a RuntimeSession.
+ * Modules with registered CodeNodeDefinitions (StopWatch, UserProfiles,
+ * GeoLocations, Addresses) use DynamicPipelineController for runtime
+ * pipeline construction. EdgeArtFilter still uses its generated controller
+ * as fallback until its migration is complete.
  */
 object ModuleSessionFactory : KoinComponent {
 
@@ -65,7 +55,8 @@ object ModuleSessionFactory : KoinComponent {
      *
      * If all canvas nodes have CodeNodeDefinitions in the registry, creates a
      * DynamicPipelineController for dynamic pipeline execution. Otherwise falls
-     * back to the module's existing generated Controller/Flow.
+     * back to EdgeArtFilter's generated Controller/Flow (the only module that
+     * still needs it).
      *
      * @param moduleName The module directory name (e.g., "StopWatch", "UserProfiles")
      * @param editorFlowGraph The editor's FlowGraph for animation connection mapping.
@@ -89,46 +80,11 @@ object ModuleSessionFactory : KoinComponent {
             }
         }
 
-        // Fallback to module-specific factory
+        // Fallback for EdgeArtFilter (only module still using generated controller)
         return when (moduleName) {
-            "StopWatch" -> createStopWatchSession(editorFlowGraph)
-            "UserProfiles" -> createUserProfilesSession(editorFlowGraph)
-            "GeoLocations" -> createGeoLocationsSession(editorFlowGraph)
-            "Addresses" -> createAddressesSession(editorFlowGraph)
             "EdgeArtFilter" -> createEdgeArtFilterSession(editorFlowGraph)
             else -> null
         }
-    }
-
-    private fun createStopWatchSession(editorFlowGraph: FlowGraph?): RuntimeSession {
-        val controller = StopWatchController(stopWatchFlowGraph)
-        val adapter = StopWatchControllerAdapter(controller)
-        val viewModel = StopWatchViewModel(adapter)
-        return RuntimeSession(controller, viewModel, editorFlowGraph ?: stopWatchFlowGraph)
-    }
-
-    private fun createUserProfilesSession(editorFlowGraph: FlowGraph?): RuntimeSession {
-        val controller = UserProfilesController(userProfilesFlowGraph)
-        controller.start()
-        val adapter = UserProfilesControllerAdapter(controller)
-        val viewModel = UserProfilesViewModel(adapter, userProfileDao)
-        return RuntimeSession(controller, viewModel, editorFlowGraph ?: userProfilesFlowGraph)
-    }
-
-    private fun createGeoLocationsSession(editorFlowGraph: FlowGraph?): RuntimeSession {
-        val controller = GeoLocationsController(geoLocationsFlowGraph)
-        controller.start()
-        val adapter = GeoLocationsControllerAdapter(controller)
-        val viewModel = GeoLocationsViewModel(adapter, geoLocationDao)
-        return RuntimeSession(controller, viewModel, editorFlowGraph ?: geoLocationsFlowGraph)
-    }
-
-    private fun createAddressesSession(editorFlowGraph: FlowGraph?): RuntimeSession {
-        val controller = AddressesController(addressesFlowGraph)
-        controller.start()
-        val adapter = AddressesControllerAdapter(controller)
-        val viewModel = AddressesViewModel(adapter, addressDao)
-        return RuntimeSession(controller, viewModel, editorFlowGraph ?: addressesFlowGraph)
     }
 
     /**

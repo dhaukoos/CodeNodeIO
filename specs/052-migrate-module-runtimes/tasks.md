@@ -87,7 +87,7 @@
 
 **Purpose**: Build verification and full quickstart validation
 
-- [ ] T023 Build verification — run `./gradlew :fbpDsl:jvmTest` to confirm no test regressions (SC-005)
+- [X] T023 Build verification — run `./gradlew :fbpDsl:jvmTest` to confirm no test regressions (SC-005) — 472/479 pass, 7 pre-existing ContinuousFactoryTest failures unrelated to migration
 - [ ] T024 Run full quickstart.md validation (Steps 1-7) — EdgeArtFilter baseline, StopWatch, all entity modules, cross-module switching, build verification
 
 ---
