@@ -2,7 +2,6 @@ package io.codenode.geolocations
 
 import io.codenode.fbpdsl.dsl.*
 import io.codenode.fbpdsl.model.*
-import io.codenode.geolocations.processingLogic.*
 
 val geoLocationsFlowGraph = flowGraph("GeoLocations", version = "1.0.0") {
     targetPlatform(FlowGraph.TargetPlatform.KMP_ANDROID)

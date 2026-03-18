@@ -54,15 +54,15 @@
 
 ### Implementation for User Story 3
 
-- [ ] T008 [P] [US3] Delete `StopWatch/src/commonMain/kotlin/io/codenode/stopwatch/processingLogic/TimeIncrementerProcessLogic.kt` and remove the empty `processingLogic/` directory.
-- [ ] T009 [P] [US3] Delete `UserProfiles/src/commonMain/kotlin/io/codenode/userprofiles/UserProfileCUD.kt` and `UserProfiles/src/commonMain/kotlin/io/codenode/userprofiles/UserProfilesDisplay.kt`.
-- [ ] T010 [P] [US3] Delete `GeoLocations/src/commonMain/kotlin/io/codenode/geolocations/GeoLocationCUD.kt` and `GeoLocations/src/commonMain/kotlin/io/codenode/geolocations/GeoLocationsDisplay.kt`.
-- [ ] T011 [P] [US3] Delete `Addresses/src/commonMain/kotlin/io/codenode/addresses/AddressCUD.kt` and `Addresses/src/commonMain/kotlin/io/codenode/addresses/AddressesDisplay.kt`.
-- [ ] T012 [P] [US3] Remove `import ...processingLogic.*` from `StopWatch/src/commonMain/kotlin/io/codenode/stopwatch/StopWatch.flow.kt`.
-- [ ] T013 [P] [US3] Remove `import ...processingLogic.*` from `UserProfiles/src/commonMain/kotlin/io/codenode/userprofiles/UserProfiles.flow.kt`.
-- [ ] T014 [P] [US3] Remove `import ...processingLogic.*` from `GeoLocations/src/commonMain/kotlin/io/codenode/geolocations/GeoLocations.flow.kt`.
-- [ ] T015 [P] [US3] Remove `import ...processingLogic.*` from `Addresses/src/commonMain/kotlin/io/codenode/addresses/Addresses.flow.kt`.
-- [ ] T016 [US3] Compile and verify — run `./gradlew :graphEditor:compileKotlinJvm` and `./gradlew :fbpDsl:jvmTest` to confirm no regressions after deletions.
+- [X] T008 [P] [US3] Delete `StopWatch/src/commonMain/kotlin/io/codenode/stopwatch/processingLogic/TimeIncrementerProcessLogic.kt` and remove the empty `processingLogic/` directory.
+- [X] T009 [P] [US3] Delete `UserProfiles/src/commonMain/kotlin/io/codenode/userprofiles/UserProfileCUD.kt` and `UserProfiles/src/commonMain/kotlin/io/codenode/userprofiles/UserProfilesDisplay.kt`. Also deleted `UserProfileRepositoryProcessLogic.kt` and `processingLogic/` directory (dead code not listed in original tasks).
+- [X] T010 [P] [US3] Delete `GeoLocations/src/commonMain/kotlin/io/codenode/geolocations/GeoLocationCUD.kt` and `GeoLocations/src/commonMain/kotlin/io/codenode/geolocations/GeoLocationsDisplay.kt`. Also deleted `GeoLocationRepositoryProcessLogic.kt` and `processingLogic/` directory (dead code not listed in original tasks).
+- [X] T011 [P] [US3] Delete `Addresses/src/commonMain/kotlin/io/codenode/addresses/AddressCUD.kt` and `Addresses/src/commonMain/kotlin/io/codenode/addresses/AddressesDisplay.kt`. Also deleted `AddressRepositoryProcessLogic.kt` and `processingLogic/` directory (dead code not listed in original tasks).
+- [X] T012 [P] [US3] Remove `import ...processingLogic.*` from `StopWatch/src/commonMain/kotlin/io/codenode/stopwatch/StopWatch.flow.kt`.
+- [X] T013 [P] [US3] Remove `import ...processingLogic.*` from `UserProfiles/src/commonMain/kotlin/io/codenode/userprofiles/UserProfiles.flow.kt`.
+- [X] T014 [P] [US3] Remove `import ...processingLogic.*` from `GeoLocations/src/commonMain/kotlin/io/codenode/geolocations/GeoLocations.flow.kt`.
+- [X] T015 [P] [US3] Remove `import ...processingLogic.*` from `Addresses/src/commonMain/kotlin/io/codenode/addresses/Addresses.flow.kt`.
+- [X] T016 [US3] Compile and verify — run `./gradlew :graphEditor:compileKotlinJvm` and `./gradlew :fbpDsl:jvmTest` to confirm no regressions after deletions.
 
 **Checkpoint**: Zero processingLogic files, zero CUD/Display stubs, zero processingLogic imports remain in the 4 migrated modules.
 
@@ -72,8 +72,8 @@
 
 **Purpose**: Final build verification and full quickstart validation
 
-- [ ] T017 Build verification — run `./gradlew :graphEditor:compileKotlinJvm` and `./gradlew :fbpDsl:jvmTest` to confirm no regressions (SC-005)
-- [ ] T018 Run full quickstart.md validation (Steps 1-6) — verify generated Flow files, KMPMobileApp compilation, graphEditor dynamic pipeline regression, dead code removal
+- [X] T017 Build verification — run `./gradlew :graphEditor:compileKotlinJvm` and `./gradlew :fbpDsl:jvmTest` to confirm no regressions (SC-005). Build succeeds, 479 tests pass, 7 pre-existing ContinuousFactoryTest failures only.
+- [X] T018 Run full quickstart.md validation (Steps 1-6) — verified: all 4 Flow files use CodeNode imports and createRuntime(), zero processingLogic references remain, all dead files/dirs deleted, RuntimeFlowGenerator has CodeNode-aware path with legacy fallback.
 
 ---
 
