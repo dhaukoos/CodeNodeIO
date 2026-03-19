@@ -51,7 +51,7 @@ fun NodePalette(
         onSearchQueryChange = { viewModel.setSearchQuery(it) },
         onCategoryToggle = { viewModel.toggleCategory(it) },
         onNodeSelected = onNodeSelected,
-        onNodeDeleted = { viewModel.deleteCustomNode(it) },
+        onNodeDeleted = {},
         modifier = modifier
     )
 }
@@ -131,7 +131,7 @@ private fun NodePaletteContent(
                         NodeTypeItem(
                             nodeType = nodeType,
                             onClick = { onNodeSelected(nodeType) },
-                            isDeletable = nodeType.name in state.deletableNodeNames,
+                            isDeletable = false,
                             onDelete = { onNodeDeleted(nodeType.name) }
                         )
                     }

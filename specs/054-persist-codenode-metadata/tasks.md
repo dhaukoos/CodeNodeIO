@@ -64,11 +64,11 @@
 
 ### Implementation for User Story 3
 
-- [ ] T005 [P] [US3] **DEFERRED** — Delete legacy repository files cannot be done yet: `FileCustomNodeRepository.kt`, `CustomNodeDefinition.kt`, `CustomNodeRepository.kt` are still actively used by the entity module generator (feature 047) for entity module creation, removal, moduleExists checks, and IP type property mapping. Requires entity module generator refactoring first.
+- [X] T005 [P] [US3] Deleted legacy repository files `FileCustomNodeRepository.kt`, `CustomNodeDefinition.kt`, `CustomNodeRepository.kt` after migrating entity module generator to track modules via `SerializableIPType.hasEntityModule` flag in `FileIPTypeRepository`.
 - [X] T006 [P] [US3] Remove `customNodeRepository` constructor parameter, `legacyNodes` property, `discoverLegacyNodes()` method, and the legacy merge block in `getAllForPalette()` from `NodeDefinitionRegistry` at `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/state/NodeDefinitionRegistry.kt` (~lines 45-46, 55, 106-113, 251-255) (research decision R4)
 - [X] T007 [P] [US3] Remove `customNodeRepository` constructor parameter and `createNode()` method from `NodeGeneratorViewModel` at `graphEditor/src/jvmMain/kotlin/viewmodel/NodeGeneratorViewModel.kt` (~lines 167-180) (research decision R6)
 - [X] T008 [P] [US3] Remove the legacy "Create" button and `onCreate` callback from `NodeGeneratorPanel` at `graphEditor/src/jvmMain/kotlin/ui/NodeGeneratorPanel.kt` (~lines 60-67) (research decision R6)
-- [X] T009 [US3] Clean up Main.kt: removed `customNodeRepository` from `NodeDefinitionRegistry` constructor, removed `customNodeRepository` from `NodeGeneratorViewModel` constructor, removed `onNodeCreated` callback from `NodeGeneratorPanel`, removed `customNodes` dependency from `nodeTypes` remember key. Note: `customNodeRepository` and `customNodes` state kept for entity module generator (feature 047) which still uses them.
+- [X] T009 [US3] Clean up Main.kt: removed `customNodeRepository`, `customNodes` state, all CustomNodeDefinition imports and usage. Entity module tracking migrated to `FileIPTypeRepository.hasEntityModule()`. Zero references to CustomNodeDefinition infrastructure remain.
 
 **Checkpoint**: All legacy CustomNodeDefinition infrastructure removed. US3 acceptance scenarios 1-3 should pass.
 

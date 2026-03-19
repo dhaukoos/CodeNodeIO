@@ -79,8 +79,6 @@ import io.codenode.addresses.nodes.AddressesDisplayCodeNode
 import io.codenode.circuitsimulator.ConnectionAnimation
 import io.codenode.circuitsimulator.RuntimeSession
 import io.codenode.grapheditor.ui.PropertiesPanelState
-import io.codenode.grapheditor.repository.CustomNodeDefinition
-import io.codenode.grapheditor.repository.FileCustomNodeRepository
 import io.codenode.grapheditor.model.CustomIPTypeDefinition
 import io.codenode.grapheditor.model.IPProperty
 import io.codenode.grapheditor.repository.FileIPTypeRepository
@@ -341,10 +339,6 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
     var isRuntimePanelExpanded by remember { mutableStateOf(false) }
     var moduleRootDir by remember { mutableStateOf<File?>(null) }
 
-    // Custom node repository and state
-    val customNodeRepository = remember { FileCustomNodeRepository() }
-    var customNodes by remember { mutableStateOf(emptyList<io.codenode.grapheditor.repository.CustomNodeDefinition>()) }
-
     // Find the multi-module project root by walking up to settings.gradle.kts
     val projectRoot = remember {
         var dir = File(System.getProperty("user.dir"))
@@ -373,14 +367,7 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
     }
 
     // NodePaletteViewModel for the Node Palette
-    val nodePaletteViewModel = remember(customNodeRepository) {
-        NodePaletteViewModel(
-            customNodeRepository = customNodeRepository,
-            onCustomNodesChanged = {
-                customNodes = customNodeRepository.getAll()
-            }
-        )
-    }
+    val nodePaletteViewModel = remember { NodePaletteViewModel() }
 
     // Initialize preview providers at startup
     remember {
@@ -392,11 +379,8 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
         true // return value for remember block
     }
 
-    // Load custom nodes and discover all node definitions on startup
+    // Discover all node definitions on startup
     LaunchedEffect(Unit) {
-        customNodeRepository.load()
-        customNodes = customNodeRepository.getAll()
-
         // Discover compiled and template nodes from all sources
         registry.discoverAll()
         // Register EdgeArtFilter CodeNode objects directly (Kotlin objects don't work with ServiceLoader)
@@ -428,11 +412,6 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
         // T018: Make registry available for runtime node resolution
         ModuleSessionFactory.registry = registry
         registryVersion++
-    }
-
-    // Update NodePaletteViewModel with deletable node names when custom nodes change
-    LaunchedEffect(customNodes) {
-        nodePaletteViewModel.updateDeletableNodeNames(customNodes.map { it.name }.toSet())
     }
 
     // T016: Combine built-in node types with registry-discovered nodes
@@ -679,13 +658,12 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
     }
 
     // Create SharedStateProvider for ViewModel pattern
-    val sharedState = remember(graphState, undoRedoManager, propertyChangeTracker, ipTypeRegistry, customNodeRepository) {
+    val sharedState = remember(graphState, undoRedoManager, propertyChangeTracker, ipTypeRegistry) {
         SharedStateProvider(
             graphState = graphState,
             undoRedoManager = undoRedoManager,
             propertyChangeTracker = propertyChangeTracker,
-            ipTypeRegistry = ipTypeRegistry,
-            customNodeRepository = customNodeRepository
+            ipTypeRegistry = ipTypeRegistry
         )
     }
 
@@ -1196,24 +1174,6 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                             val props = ipTypeRegistry.getCustomTypeProperties(ipType.id)
                             if (props != null && props.isNotEmpty()) {
                                 {
-                                    // Create all 3 node definitions for the entity module
-                                    val cudDef = CustomNodeDefinition.createCUD(
-                                        ipTypeName = ipType.typeName,
-                                        sourceIPTypeId = ipType.id
-                                    )
-                                    val repoDef = CustomNodeDefinition.createRepository(
-                                        ipTypeName = ipType.typeName,
-                                        sourceIPTypeId = ipType.id
-                                    )
-                                    val displayDef = CustomNodeDefinition.createDisplay(
-                                        ipTypeName = ipType.typeName,
-                                        sourceIPTypeId = ipType.id
-                                    )
-                                    customNodeRepository.add(cudDef)
-                                    customNodeRepository.add(repoDef)
-                                    customNodeRepository.add(displayDef)
-                                    customNodes = customNodeRepository.getAll()
-
                                     // Build EntityModuleSpec and save the entity module
                                     val entityProps = props.map { prop ->
                                         EntityProperty(
@@ -1247,6 +1207,8 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                                             persistenceDir = persistenceDir
                                         )
                                         if (result.success) {
+                                            ipTypeRepository.setEntityModule(ipType.id, true)
+                                            ipTypesVersion++
                                             val created = result.filesCreated.size
                                             val overwritten = result.filesOverwritten.size
                                             statusMessage = "Created ${spec.pluralName} module: $created created, $overwritten overwritten"
@@ -1254,8 +1216,6 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                                             statusMessage = "Module creation error: ${result.errorMessage}"
                                         }
                                     }
-
-                                    statusMessage = "Created ${spec.pluralName} entity module nodes"
                                 }
                             } else null
                         },
@@ -1266,9 +1226,7 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                             }
                         },
                         moduleExists = selectedIPType?.let { ipType ->
-                            customNodes.any { it.isCudSource && it.sourceIPTypeId == ipType.id } &&
-                            customNodes.any { it.isRepository && it.sourceIPTypeId == ipType.id } &&
-                            customNodes.any { it.isDisplay && it.sourceIPTypeId == ipType.id }
+                            ipTypeRepository.hasEntityModule(ipType.id)
                         } ?: false,
                         debugger = runtimeSession?.debugger,
                         isPaused = runtimeExecutionState == ExecutionState.PAUSED,
@@ -1394,24 +1352,22 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                     val shouldRegenerate = regenerateStubsOnSave
                     // Build IP type properties map for repository code generation
                     val ipTypePropertiesMap = buildMap {
-                        for (customNode in customNodes) {
-                            if (customNode.isRepository && customNode.sourceIPTypeId != null) {
-                                val props = ipTypeRegistry.getCustomTypeProperties(customNode.sourceIPTypeId)
-                                if (props != null) {
-                                    put(customNode.sourceIPTypeId, props.map { prop ->
-                                        io.codenode.kotlincompiler.generator.EntityProperty(
-                                            name = prop.name,
-                                            kotlinType = when (prop.typeId) {
-                                                "ip_int" -> "Int"
-                                                "ip_double" -> "Double"
-                                                "ip_boolean" -> "Boolean"
-                                                "ip_string" -> "String"
-                                                else -> "String" // ip_any and custom types → String
-                                            },
-                                            isRequired = prop.isRequired
-                                        )
-                                    })
-                                }
+                        for (ipTypeId in ipTypeRepository.getEntityModuleIPTypeIds()) {
+                            val props = ipTypeRegistry.getCustomTypeProperties(ipTypeId)
+                            if (props != null) {
+                                put(ipTypeId, props.map { prop ->
+                                    io.codenode.kotlincompiler.generator.EntityProperty(
+                                        name = prop.name,
+                                        kotlinType = when (prop.typeId) {
+                                            "ip_int" -> "Int"
+                                            "ip_double" -> "Double"
+                                            "ip_boolean" -> "Boolean"
+                                            "ip_string" -> "String"
+                                            else -> "String" // ip_any and custom types → String
+                                        },
+                                        isRequired = prop.isRequired
+                                    )
+                                })
                             }
                         }
                     }
@@ -1508,11 +1464,11 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                                 moduleDir = moduleDir,
                                 persistenceDir = persistenceDir,
                                 projectDir = projectDir,
-                                customNodeRepository = customNodeRepository,
                                 sourceIPTypeId = ipType.id
                             )
 
-                            customNodes = customNodeRepository.getAll()
+                            ipTypeRepository.setEntityModule(ipType.id, false)
+                            ipTypesVersion++
                             statusMessage = result
                         },
                         colors = ButtonDefaults.buttonColors(

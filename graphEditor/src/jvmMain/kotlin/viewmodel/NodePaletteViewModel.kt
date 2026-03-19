@@ -12,20 +12,17 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import io.codenode.fbpdsl.model.NodeTypeDefinition
-import io.codenode.grapheditor.repository.CustomNodeRepository
 
 /**
  * State data class for the Node Palette Panel.
- * Contains search, expansion state, and deletable node tracking.
+ * Contains search and expansion state.
  *
  * @param searchQuery Current search filter text
  * @param expandedCategories Set of categories that are currently expanded
- * @param deletableNodeNames Set of node names that can be deleted (custom nodes)
  */
 data class NodePaletteState(
     val searchQuery: String = "",
-    val expandedCategories: Set<NodeTypeDefinition.NodeCategory> = emptySet(),
-    val deletableNodeNames: Set<String> = emptySet()
+    val expandedCategories: Set<NodeTypeDefinition.NodeCategory> = emptySet()
 ) : BaseState
 
 /**
@@ -35,16 +32,8 @@ data class NodePaletteState(
  * This ViewModel encapsulates:
  * - Search query state for filtering nodes
  * - Category expansion/collapse state
- * - Deletable node tracking for custom nodes
- * - Custom node deletion through repository
- *
- * @param customNodeRepository Repository for managing custom node persistence
- * @param onCustomNodesChanged Callback invoked when custom nodes are modified (for refreshing node list)
  */
-class NodePaletteViewModel(
-    private val customNodeRepository: CustomNodeRepository,
-    private val onCustomNodesChanged: () -> Unit = {}
-) : ViewModel() {
+class NodePaletteViewModel : ViewModel() {
 
     private val _state = MutableStateFlow(NodePaletteState())
     val state: StateFlow<NodePaletteState> = _state.asStateFlow()
@@ -94,41 +83,6 @@ class NodePaletteViewModel(
     fun collapseCategory(category: NodeTypeDefinition.NodeCategory) {
         _state.update { currentState ->
             currentState.copy(expandedCategories = currentState.expandedCategories - category)
-        }
-    }
-
-    /**
-     * Updates the set of deletable node names.
-     * Called when the list of custom nodes changes.
-     *
-     * @param names Set of node names that can be deleted
-     */
-    fun updateDeletableNodeNames(names: Set<String>) {
-        _state.update { it.copy(deletableNodeNames = names) }
-    }
-
-    /**
-     * Deletes a custom node by its name.
-     * Finds the node in the repository and removes it.
-     *
-     * @param nodeName The name of the node to delete
-     * @return true if the node was found and deleted, false otherwise
-     */
-    fun deleteCustomNode(nodeName: String): Boolean {
-        val allNodes = customNodeRepository.getAll()
-        val nodeToDelete = allNodes.find { it.name == nodeName }
-
-        return if (nodeToDelete != null) {
-            val removed = customNodeRepository.remove(nodeToDelete.id)
-            if (removed) {
-                // Update deletable names after deletion
-                val updatedNames = customNodeRepository.getAll().map { it.name }.toSet()
-                _state.update { it.copy(deletableNodeNames = updatedNames) }
-                onCustomNodesChanged()
-            }
-            removed
-        } else {
-            false
         }
     }
 

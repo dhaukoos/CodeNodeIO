@@ -56,6 +56,7 @@ data class SerializableIPProperty(
  * @property color Visual color for the type
  * @property description Optional type description
  * @property properties Property definitions for this type
+ * @property hasEntityModule Whether an entity module has been generated for this type
  */
 @Serializable
 data class SerializableIPType(
@@ -64,7 +65,8 @@ data class SerializableIPType(
     val payloadTypeName: String = "Any",
     val color: IPColor,
     val description: String? = null,
-    val properties: List<SerializableIPProperty> = emptyList()
+    val properties: List<SerializableIPProperty> = emptyList(),
+    val hasEntityModule: Boolean = false
 ) {
     /**
      * Converts this serializable DTO to a domain [CustomIPTypeDefinition].

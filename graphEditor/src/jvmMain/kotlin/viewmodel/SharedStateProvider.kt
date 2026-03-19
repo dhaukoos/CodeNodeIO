@@ -11,8 +11,6 @@ import io.codenode.grapheditor.state.GraphState
 import io.codenode.grapheditor.state.UndoRedoManager
 import io.codenode.grapheditor.state.PropertyChangeTracker
 import io.codenode.grapheditor.state.IPTypeRegistry
-import io.codenode.grapheditor.repository.CustomNodeRepository
-
 /**
  * Container for shared state that multiple ViewModels need access to.
  *
@@ -33,7 +31,6 @@ import io.codenode.grapheditor.repository.CustomNodeRepository
  * ### Action Contract
  * - Actions are public methods on the ViewModel
  * - Actions do not return state - they update internal StateFlow
- * - Actions may return domain objects (e.g., `createNode(): CustomNodeDefinition?`)
  * - Actions that modify shared resources use injected dependencies
  *
  * ### Communication Contract
@@ -61,16 +58,12 @@ import io.codenode.grapheditor.repository.CustomNodeRepository
  *
  * @property ipTypeRegistry Registry of available InformationPacket types.
  *   Used by: IPPaletteViewModel for type selection
- *
- * @property customNodeRepository Repository for user-created custom node types.
- *   Used by: NodeGeneratorViewModel, NodePaletteViewModel
  */
 data class SharedStateProvider(
     val graphState: GraphState,
     val undoRedoManager: UndoRedoManager,
     val propertyChangeTracker: PropertyChangeTracker,
-    val ipTypeRegistry: IPTypeRegistry,
-    val customNodeRepository: CustomNodeRepository
+    val ipTypeRegistry: IPTypeRegistry
 )
 
 /**

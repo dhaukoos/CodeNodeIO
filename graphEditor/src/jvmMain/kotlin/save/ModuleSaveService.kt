@@ -20,7 +20,6 @@ import io.codenode.kotlincompiler.generator.EntityProperty
 import io.codenode.kotlincompiler.generator.EntityInfo
 import io.codenode.kotlincompiler.generator.EntityModuleSpec
 import io.codenode.kotlincompiler.generator.EntityModuleGenerator
-import io.codenode.grapheditor.repository.FileCustomNodeRepository
 import java.io.File
 
 /**
@@ -552,7 +551,6 @@ class ModuleSaveService {
      * @param moduleDir Path to the module directory
      * @param persistenceDir Path to the persistence source directory
      * @param projectDir Project root directory (contains settings.gradle.kts)
-     * @param customNodeRepository Repository for custom node CRUD
      * @param sourceIPTypeId UUID of the source IP Type
      * @return Summary string describing what was removed
      */
@@ -562,27 +560,11 @@ class ModuleSaveService {
         moduleDir: File,
         persistenceDir: File,
         projectDir: File,
-        customNodeRepository: FileCustomNodeRepository,
         sourceIPTypeId: String
     ): String {
         val results = mutableListOf<String>()
 
-        // 1. Remove custom node definitions matching sourceIPTypeId
-        try {
-            val nodesToRemove = customNodeRepository.getAll()
-                .filter { it.sourceIPTypeId == sourceIPTypeId }
-            var nodesRemoved = 0
-            for (node in nodesToRemove) {
-                if (customNodeRepository.remove(node.id)) {
-                    nodesRemoved++
-                }
-            }
-            if (nodesRemoved > 0) results.add("$nodesRemoved node${if (nodesRemoved != 1) "s" else ""}")
-        } catch (e: Exception) {
-            results.add("node removal failed: ${e.message}")
-        }
-
-        // 2. Delete module directory recursively
+        // 1. Delete module directory recursively
         try {
             if (moduleDir.exists()) {
                 moduleDir.deleteRecursively()

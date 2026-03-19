@@ -14,7 +14,7 @@ import java.io.File
 /**
  * File-based repository for persisting custom IP types to JSON.
  *
- * Follows the same pattern as [FileCustomNodeRepository]. Custom IP types are
+ * Custom IP types are
  * serialized as [SerializableIPType] DTOs and stored at ~/.codenode/custom-ip-types.json.
  *
  * @param filePath Path to the JSON storage file (defaults to ~/.codenode/custom-ip-types.json)
@@ -65,6 +65,33 @@ class FileIPTypeRepository(
         }
         return removed
     }
+
+    /**
+     * Marks an IP type as having (or not having) an entity module.
+     *
+     * @param id The type ID to update
+     * @param hasModule true if an entity module exists, false otherwise
+     * @return true if the type was found and updated
+     */
+    fun setEntityModule(id: String, hasModule: Boolean): Boolean {
+        val index = customTypes.indexOfFirst { it.id == id }
+        if (index < 0) return false
+        customTypes[index] = customTypes[index].copy(hasEntityModule = hasModule)
+        save()
+        return true
+    }
+
+    /**
+     * Returns whether an IP type has an entity module.
+     */
+    fun hasEntityModule(id: String): Boolean =
+        customTypes.any { it.id == id && it.hasEntityModule }
+
+    /**
+     * Returns all IP type IDs that have entity modules.
+     */
+    fun getEntityModuleIPTypeIds(): Set<String> =
+        customTypes.filter { it.hasEntityModule }.map { it.id }.toSet()
 
     /**
      * Loads custom IP types from the JSON file.
