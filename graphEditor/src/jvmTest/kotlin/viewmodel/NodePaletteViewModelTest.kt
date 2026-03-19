@@ -1,14 +1,12 @@
 /*
  * NodePaletteViewModelTest - Unit tests for NodePaletteViewModel
- * Verifies search, category expansion, and custom node deletion without Compose UI dependencies
+ * Verifies search and category expansion without Compose UI dependencies
  * License: Apache 2.0
  */
 
 package io.codenode.grapheditor.viewmodel
 
 import io.codenode.fbpdsl.model.NodeTypeDefinition
-import io.codenode.grapheditor.repository.CustomNodeDefinition
-import io.codenode.grapheditor.repository.CustomNodeRepository
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
@@ -16,43 +14,10 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
-/**
- * Fake repository for testing - stores nodes in memory
- */
-class FakePaletteNodeRepository : CustomNodeRepository {
-    private val nodes = mutableListOf<CustomNodeDefinition>()
-
-    override fun getAll(): List<CustomNodeDefinition> = nodes.toList()
-
-    override fun add(node: CustomNodeDefinition) {
-        nodes.add(node)
-    }
-
-    override fun load() {
-        // No-op for testing
-    }
-
-    override fun save() {
-        // No-op for testing
-    }
-
-    override fun remove(id: String): Boolean {
-        return nodes.removeIf { it.id == id }
-    }
-
-    fun addTestNode(name: String) {
-        val node = CustomNodeDefinition.create(name = name, inputCount = 1, outputCount = 1)
-        nodes.add(node)
-    }
-}
-
 class NodePaletteViewModelTest {
 
-    private fun createViewModel(
-        repository: CustomNodeRepository = FakePaletteNodeRepository(),
-        onCustomNodesChanged: () -> Unit = {}
-    ): NodePaletteViewModel {
-        return NodePaletteViewModel(repository, onCustomNodesChanged)
+    private fun createViewModel(): NodePaletteViewModel {
+        return NodePaletteViewModel()
     }
 
     @Test
@@ -62,7 +27,6 @@ class NodePaletteViewModelTest {
 
         assertEquals("", state.searchQuery)
         assertTrue(state.expandedCategories.isEmpty())
-        assertTrue(state.deletableNodeNames.isEmpty())
     }
 
     @Test
@@ -142,46 +106,6 @@ class NodePaletteViewModelTest {
         viewModel.collapseAllCategories()
 
         assertTrue(viewModel.state.first().expandedCategories.isEmpty())
-    }
-
-    @Test
-    fun `updateDeletableNodeNames updates state`() = runTest {
-        val viewModel = createViewModel()
-
-        val nodeNames = setOf("CustomNode1", "CustomNode2")
-        viewModel.updateDeletableNodeNames(nodeNames)
-
-        val state = viewModel.state.first()
-        assertEquals(nodeNames, state.deletableNodeNames)
-    }
-
-    @Test
-    fun `deleteCustomNode removes from repository and calls callback`() = runTest {
-        val repository = FakePaletteNodeRepository()
-        repository.addTestNode("MyCustomNode")
-
-        var callbackCalled = false
-        val viewModel = createViewModel(
-            repository = repository,
-            onCustomNodesChanged = { callbackCalled = true }
-        )
-
-        viewModel.updateDeletableNodeNames(setOf("MyCustomNode"))
-        val deleted = viewModel.deleteCustomNode("MyCustomNode")
-
-        assertTrue(deleted)
-        assertTrue(callbackCalled)
-        assertEquals(0, repository.getAll().size)
-    }
-
-    @Test
-    fun `deleteCustomNode returns false for non-existent node`() = runTest {
-        val repository = FakePaletteNodeRepository()
-        val viewModel = createViewModel(repository)
-
-        val deleted = viewModel.deleteCustomNode("NonExistent")
-
-        assertFalse(deleted)
     }
 
     @Test
