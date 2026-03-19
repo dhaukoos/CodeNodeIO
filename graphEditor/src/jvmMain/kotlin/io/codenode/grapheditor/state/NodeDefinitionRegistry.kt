@@ -9,8 +9,6 @@ package io.codenode.grapheditor.state
 import io.codenode.fbpdsl.model.NodeTypeDefinition
 import io.codenode.fbpdsl.runtime.CodeNodeDefinition
 import io.codenode.fbpdsl.runtime.NodeCategory
-import io.codenode.grapheditor.repository.CustomNodeDefinition
-import io.codenode.grapheditor.repository.CustomNodeRepository
 import java.io.File
 import java.util.ServiceLoader
 
@@ -35,24 +33,16 @@ data class NodeTemplateMeta(
 /**
  * Central registry that discovers and manages all available node definitions.
  *
- * Discovers nodes from three sources:
+ * Discovers nodes from two sources:
  * 1. **Compiled**: CodeNodeDefinition implementations on the classpath (Module + Project levels)
  * 2. **Templates**: .kt files in ~/.codenode/nodes/ (Universal level, metadata only)
- * 3. **Legacy**: CustomNodeDefinition entries from CustomNodeRepository (backward compatibility)
- *
- * @param customNodeRepository Optional legacy repository for backward compatibility
  */
-class NodeDefinitionRegistry(
-    private val customNodeRepository: CustomNodeRepository? = null
-) {
+class NodeDefinitionRegistry {
     /** Nodes discovered from classpath (Module + Project levels) */
     private val compiledNodes = mutableMapOf<String, CodeNodeDefinition>()
 
     /** Nodes discovered from Universal level (metadata only) */
     private val templateNodes = mutableMapOf<String, NodeTemplateMeta>()
-
-    /** Backward-compatible legacy custom nodes */
-    private val legacyNodes = mutableListOf<CustomNodeDefinition>()
 
     /**
      * Scans all three levels for node definitions. Populates internal maps.
@@ -65,7 +55,6 @@ class NodeDefinitionRegistry(
     fun discoverAll() {
         discoverCompiledNodes()
         discoverTemplateNodes()
-        discoverLegacyNodes()
     }
 
     /**
@@ -79,13 +68,9 @@ class NodeDefinitionRegistry(
     }
 
     /**
-     * Returns a merged list from all three sources, suitable for Node Palette display.
+     * Returns a merged list from compiled and template sources, suitable for Node Palette display.
      *
-     * Ordering: Compiled nodes first, then templates (marked as non-executable),
-     * then legacy custom nodes.
-     *
-     * Compiled nodes that overlap with legacy entries (by name) will replace
-     * the legacy entry to avoid duplicates.
+     * Ordering: Compiled nodes first, then templates (marked as non-executable).
      *
      * @return List of NodeTypeDefinitions for palette display
      */
@@ -101,14 +86,6 @@ class NodeDefinitionRegistry(
         templateNodes.values.forEach { template ->
             result.add(templateToNodeTypeDefinition(template))
         }
-
-        // Legacy nodes -- exclude any that have been superseded by compiled nodes
-        val compiledNames = compiledNodes.keys
-        legacyNodes
-            .filter { it.name !in compiledNames }
-            .forEach { legacy ->
-                result.add(legacy.toNodeTypeDefinition())
-            }
 
         return result
     }
@@ -132,7 +109,6 @@ class NodeDefinitionRegistry(
     fun nameExists(name: String): Boolean {
         return compiledNodes.containsKey(name)
                 || templateNodes.containsKey(name)
-                || legacyNodes.any { it.name == name }
     }
 
     /**
@@ -166,9 +142,6 @@ class NodeDefinitionRegistry(
             return Pair(it.inputPorts.size, it.outputPorts.size)
         }
         templateNodes[name]?.let {
-            return Pair(it.inputCount, it.outputCount)
-        }
-        legacyNodes.find { it.name == name }?.let {
             return Pair(it.inputCount, it.outputCount)
         }
         return null
@@ -243,15 +216,6 @@ class NodeDefinitionRegistry(
                 templateNodes[meta.name] = meta
             }
         }
-    }
-
-    /**
-     * Loads legacy custom node definitions from the CustomNodeRepository.
-     */
-    private fun discoverLegacyNodes() {
-        legacyNodes.clear()
-        val repo = customNodeRepository ?: return
-        legacyNodes.addAll(repo.getAll())
     }
 
     // ========== Parsing Helpers ==========

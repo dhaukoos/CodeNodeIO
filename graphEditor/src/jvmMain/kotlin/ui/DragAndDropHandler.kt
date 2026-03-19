@@ -264,7 +264,7 @@ fun createNodeFromType(nodeType: NodeTypeDefinition, position: Offset): CodeNode
         position = Node.Position(position.x.toDouble(), position.y.toDouble()),
         inputPorts = inputPorts,
         outputPorts = outputPorts,
-        configuration = emptyMap(),
+        configuration = nodeType.defaultConfiguration,
         parentNodeId = null,
         executionState = ExecutionState.IDLE,
         coroutineHandle = null

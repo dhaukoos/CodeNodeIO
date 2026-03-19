@@ -20,7 +20,6 @@ import androidx.compose.ui.unit.sp
 import io.codenode.grapheditor.viewmodel.NodeGeneratorViewModel
 import io.codenode.grapheditor.viewmodel.NodeGeneratorPanelState
 import io.codenode.grapheditor.viewmodel.PlacementLevel
-import io.codenode.grapheditor.repository.CustomNodeDefinition
 import io.codenode.fbpdsl.runtime.NodeCategory
 
 /**
@@ -37,7 +36,6 @@ import io.codenode.fbpdsl.runtime.NodeCategory
 @Composable
 fun NodeGeneratorPanel(
     viewModel: NodeGeneratorViewModel,
-    onNodeCreated: (CustomNodeDefinition) -> Unit,
     onCodeNodeGenerated: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
@@ -57,11 +55,6 @@ fun NodeGeneratorPanel(
         onLevelChange = { viewModel.setPlacementLevel(it) },
         onLevelDropdownExpandedChange = { viewModel.setLevelDropdownExpanded(it) },
         onCancel = { viewModel.reset() },
-        onCreate = {
-            viewModel.createNode()?.let { node ->
-                onNodeCreated(node)
-            }
-        },
         onGenerateCodeNode = {
             viewModel.generateCodeNode()?.let { onCodeNodeGenerated() }
         },
@@ -88,7 +81,6 @@ private fun NodeGeneratorPanelContent(
     onLevelChange: (PlacementLevel) -> Unit,
     onLevelDropdownExpandedChange: (Boolean) -> Unit,
     onCancel: () -> Unit,
-    onCreate: () -> Unit,
     onGenerateCodeNode: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -360,19 +352,6 @@ private fun NodeGeneratorPanelContent(
                     modifier = Modifier.weight(1f)
                 ) {
                     Text("Cancel")
-                }
-
-                // Create button (legacy CustomNodeDefinition)
-                Button(
-                    onClick = onCreate,
-                    enabled = state.isValid,
-                    modifier = Modifier.weight(1f),
-                    colors = ButtonDefaults.buttonColors(
-                        backgroundColor = Color(0xFF2196F3),
-                        disabledBackgroundColor = Color(0xFFBDBDBD)
-                    )
-                ) {
-                    Text("Create", color = Color.White)
                 }
             }
 

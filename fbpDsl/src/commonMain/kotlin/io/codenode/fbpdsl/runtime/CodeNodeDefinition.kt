@@ -138,7 +138,8 @@ interface CodeNodeDefinition {
             portTemplates = portTemplates,
             defaultConfiguration = mapOf(
                 "_genericType" to "in${inputPorts.size}out${outputPorts.size}",
-                "_codeNodeDefinition" to "true"
+                "_codeNodeDefinition" to "true",
+                "_codeNodeClass" to (this::class.qualifiedName ?: "")
             )
         )
     }

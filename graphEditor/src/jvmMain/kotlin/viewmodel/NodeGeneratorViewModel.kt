@@ -11,8 +11,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
-import io.codenode.grapheditor.repository.CustomNodeDefinition
-import io.codenode.grapheditor.repository.CustomNodeRepository
 import io.codenode.grapheditor.state.NodeDefinitionRegistry
 import io.codenode.grapheditor.state.NodeTemplateMeta
 import io.codenode.fbpdsl.runtime.NodeCategory
@@ -80,18 +78,12 @@ data class NodeGeneratorPanelState(
 
 /**
  * ViewModel for the Node Generator Panel.
- * Manages state and business logic for creating custom node types.
+ * Manages state and business logic for generating CodeNode files.
  *
- * Supports two creation modes:
- * 1. Legacy: Creates a CustomNodeDefinition (persisted to JSON repository)
- * 2. CodeNode: Generates a self-contained {NodeName}CodeNode.kt file
- *
- * @param customNodeRepository Repository for persisting custom node definitions
  * @param registry Optional registry for name conflict detection and CodeNode generation
  * @param projectRoot Optional project root directory for file path resolution
  */
 class NodeGeneratorViewModel(
-    private val customNodeRepository: CustomNodeRepository,
     var registry: NodeDefinitionRegistry? = null,
     var projectRoot: File? = null
 ) : ViewModel() {
@@ -156,27 +148,6 @@ class NodeGeneratorViewModel(
                 PlacementLevel.PROJECT else it.placementLevel
             it.copy(moduleLoaded = loaded, placementLevel = newLevel)
         }
-    }
-
-    /**
-     * Creates a new custom node definition (legacy mode).
-     * Adds the node to the repository and resets the form.
-     *
-     * @return The created CustomNodeDefinition, or null if state was invalid
-     */
-    fun createNode(): CustomNodeDefinition? {
-        val currentState = _state.value
-        if (!currentState.isValid) return null
-
-        val node = CustomNodeDefinition.create(
-            name = currentState.name.trim(),
-            inputCount = currentState.inputCount,
-            outputCount = currentState.outputCount,
-            anyInput = currentState.anyInput
-        )
-        customNodeRepository.add(node)
-        reset()
-        return node
     }
 
     /**

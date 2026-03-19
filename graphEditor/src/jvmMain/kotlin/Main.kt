@@ -355,16 +355,13 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
     }
 
     // T015: Central registry for discovering self-contained node definitions
-    val registry = remember(customNodeRepository) {
-        NodeDefinitionRegistry(customNodeRepository)
-    }
+    val registry = remember { NodeDefinitionRegistry() }
     // Track registry version to trigger recomposition when nodes are discovered
     var registryVersion by remember { mutableStateOf(0) }
 
     // NodeGeneratorViewModel for the Node Generator Panel
-    val nodeGeneratorViewModel = remember(customNodeRepository) {
+    val nodeGeneratorViewModel = remember {
         NodeGeneratorViewModel(
-            customNodeRepository = customNodeRepository,
             registry = registry,
             projectRoot = projectRoot
         )
@@ -398,10 +395,9 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
     // Load custom nodes and discover all node definitions on startup
     LaunchedEffect(Unit) {
         customNodeRepository.load()
-
         customNodes = customNodeRepository.getAll()
 
-        // T015: Discover compiled, template, and legacy nodes from all sources
+        // Discover compiled and template nodes from all sources
         registry.discoverAll()
         // Register EdgeArtFilter CodeNode objects directly (Kotlin objects don't work with ServiceLoader)
         registry.register(ImagePickerCodeNode)
@@ -440,13 +436,13 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
     }
 
     // T016: Combine built-in node types with registry-discovered nodes
-    // Registry merges compiled CodeNodeDefinitions, templates, and legacy custom nodes
+    // Registry merges compiled CodeNodeDefinitions and templates
     // with correct categories already applied by toNodeTypeDefinition()
     val builtInNodeTypes = remember { createSampleNodeTypes() }
-    val nodeTypes = remember(customNodes, registryVersion) {
+    val nodeTypes = remember(registryVersion) {
         val registryNodes = registry.getAllForPalette()
 
-        // Built-in sample types + registry-discovered nodes (compiled + template + legacy)
+        // Built-in sample types + registry-discovered nodes (compiled + template)
         // Self-contained CodeNodeDefinitions provide correct categories via toNodeTypeDefinition()
         builtInNodeTypes + registryNodes
     }
@@ -833,10 +829,6 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                         // Node Generator Panel
                         NodeGeneratorPanel(
                             viewModel = nodeGeneratorViewModel,
-                            onNodeCreated = { node ->
-                                // Refresh custom nodes list after creation
-                                customNodes = customNodeRepository.getAll()
-                            },
                             onCodeNodeGenerated = {
                                 // Refresh palette to include the newly generated node
                                 registryVersion++

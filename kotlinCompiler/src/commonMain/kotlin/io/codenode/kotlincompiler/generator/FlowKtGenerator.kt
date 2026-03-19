@@ -163,8 +163,9 @@ class FlowKtGenerator {
             builder.appendLine(")")
         }
 
-        // Add configuration (excluding internal keys prefixed with _)
-        node.configuration.filter { !it.key.startsWith("_") }.forEach { (key, value) ->
+        // Add configuration (excluding internal keys prefixed with _, except preserved metadata keys)
+        val preservedInternalKeys = setOf("_codeNodeClass", "_genericType", "_codeNodeDefinition")
+        node.configuration.filter { !it.key.startsWith("_") || it.key in preservedInternalKeys }.forEach { (key, value) ->
             builder.appendLine("${innerIndent}config(\"${escapeString(key)}\", \"${escapeString(value)}\")")
         }
 

@@ -9,7 +9,6 @@ package io.codenode.grapheditor.save
 import io.codenode.fbpdsl.model.FlowGraph
 import io.codenode.kotlincompiler.generator.FlowKtGenerator
 import io.codenode.kotlincompiler.generator.ModuleGenerator
-import io.codenode.kotlincompiler.generator.ProcessingLogicStubGenerator
 import io.codenode.kotlincompiler.generator.RuntimeFlowGenerator
 import io.codenode.kotlincompiler.generator.RuntimeControllerGenerator
 import io.codenode.kotlincompiler.generator.RuntimeControllerInterfaceGenerator
@@ -69,7 +68,6 @@ class ModuleSaveService {
 
     private val moduleGenerator = ModuleGenerator()
     private val flowKtGenerator = FlowKtGenerator()
-    private val stubGenerator = ProcessingLogicStubGenerator()
     private val runtimeFlowGenerator = RuntimeFlowGenerator()
     private val runtimeControllerGenerator = RuntimeControllerGenerator()
     private val runtimeControllerInterfaceGenerator = RuntimeControllerInterfaceGenerator()
@@ -145,18 +143,13 @@ class ModuleSaveService {
                 filesCreated
             )
 
-            // Only include processingLogic import if any nodes need stubs
-            val hasProcessingLogicNodes = flowGraph.getAllCodeNodes()
-                .any { stubGenerator.shouldGenerateStub(it) }
-            val flowKtProcessingLogicPackage = if (hasProcessingLogicNodes) processingLogicPackage else null
-
             // Write .flow.kt in source set (always overwrite)
             val basePackagePath = basePackage.replace(".", "/")
             val flowKtFileName = "${effectiveModuleName}.flow.kt"
             val flowKtRelativePath = "src/commonMain/kotlin/$basePackagePath/$flowKtFileName"
             writeFileAlways(
                 File(moduleDir, flowKtRelativePath),
-                flowKtGenerator.generateFlowKt(flowGraph, basePackage, flowKtProcessingLogicPackage, ipTypeNames),
+                flowKtGenerator.generateFlowKt(flowGraph, basePackage, null, ipTypeNames),
                 flowKtRelativePath,
                 filesCreated,
                 filesOverwritten
@@ -178,12 +171,6 @@ class ModuleSaveService {
             generateUserInterfaceStub(
                 flowGraph, moduleDir, userInterfacePackage, generatedPackage,
                 filesCreated
-            )
-
-            // Generate processing logic stubs (don't overwrite existing, unless regenerating)
-            generateProcessingLogicStubs(
-                flowGraph, moduleDir, processingLogicPackage,
-                filesCreated, filesOverwritten, regenerateStubs
             )
 
             // Generate persistence layer for repository nodes
@@ -994,66 +981,6 @@ class ModuleSaveService {
     }
 
     /**
-     * Generates ProcessingLogic stub files for each CodeNode in the FlowGraph.
-     *
-     * Creates one stub file per CodeNode, only if the file doesn't already exist
-     * (to preserve user implementations). When [regenerateStubs] is true,
-     * existing stubs are selectively regenerated: boilerplate (package, imports,
-     * KDoc, type alias, parameter names) is updated while the lambda body
-     * (user implementation) is preserved.
-     *
-     * @param flowGraph The flow graph containing CodeNodes
-     * @param moduleDir The module root directory
-     * @param packageName The package name for generated files
-     * @param filesCreated List to track created files
-     * @param filesOverwritten List to track overwritten files
-     * @param regenerateStubs When true, selectively regenerate existing stubs
-     */
-    private fun generateProcessingLogicStubs(
-        flowGraph: FlowGraph,
-        moduleDir: File,
-        packageName: String,
-        filesCreated: MutableList<String>,
-        filesOverwritten: MutableList<String>,
-        regenerateStubs: Boolean
-    ) {
-        val packagePath = packageName.replace(".", "/")
-        val sourceDir = File(moduleDir, "src/commonMain/kotlin/$packagePath")
-
-        // Get CodeNodes that need processing logic stubs (excludes sources and sinks)
-        val codeNodes = flowGraph.getAllCodeNodes()
-            .filter { stubGenerator.shouldGenerateStub(it) }
-
-        for (codeNode in codeNodes) {
-            val stubFileName = stubGenerator.getStubFileName(codeNode)
-            val stubFile = File(sourceDir, stubFileName)
-            val relativePath = "src/commonMain/kotlin/$packagePath/$stubFileName"
-
-            if (!stubFile.exists()) {
-                // New stub: generate fresh
-                val stubContent = stubGenerator.generateStub(codeNode, packageName)
-                stubFile.writeText(stubContent)
-                filesCreated.add(relativePath)
-            } else if (regenerateStubs) {
-                // Existing stub + regenerate flag: selectively regenerate
-                val existingContent = stubFile.readText()
-                val preservedBody = stubGenerator.extractLambdaBody(existingContent)
-                val newContent = if (preservedBody != null) {
-                    stubGenerator.generateStubWithPreservedBody(
-                        codeNode, packageName, preservedBody
-                    )
-                } else {
-                    // Could not parse lambda body — regenerate fresh
-                    stubGenerator.generateStub(codeNode, packageName)
-                }
-                stubFile.writeText(newContent)
-                filesOverwritten.add(relativePath)
-            }
-            // else: existing stub + no regenerate flag → preserve as-is (do nothing)
-        }
-    }
-
-    /**
      * Writes a file only if it doesn't already exist.
      * Tracks newly created files in [filesCreated].
      */
@@ -1261,22 +1188,15 @@ class ModuleSaveService {
 
         if (!sourceDir.exists()) return
 
-        val codeNodes = flowGraph.getAllCodeNodes()
-        val expectedFiles = codeNodes
-            .filter { stubGenerator.shouldGenerateStub(it) }
-            .map { stubGenerator.getStubFileName(it) }
-            .toSet()
-
+        // All ProcessLogic stubs are orphaned — CodeNodeDefinitions handle their own logic
         val existingComponentFiles = sourceDir.listFiles()
             ?.filter { it.isFile && it.name.endsWith("ProcessLogic.kt") }
             ?: emptyList()
 
         for (file in existingComponentFiles) {
-            if (file.name !in expectedFiles) {
-                val relativePath = "src/commonMain/kotlin/$packagePath/${file.name}"
-                file.delete()
-                filesDeleted.add(relativePath)
-            }
+            val relativePath = "src/commonMain/kotlin/$packagePath/${file.name}"
+            file.delete()
+            filesDeleted.add(relativePath)
         }
     }
 
