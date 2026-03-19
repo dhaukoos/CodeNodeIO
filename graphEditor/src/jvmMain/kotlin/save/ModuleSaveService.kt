@@ -6,6 +6,7 @@
 
 package io.codenode.grapheditor.save
 
+import io.codenode.fbpdsl.model.CodeNode
 import io.codenode.fbpdsl.model.FlowGraph
 import io.codenode.kotlincompiler.generator.FlowKtGenerator
 import io.codenode.kotlincompiler.generator.ModuleGenerator
@@ -102,10 +103,12 @@ class ModuleSaveService {
         moduleName: String? = null,
         regenerateStubs: Boolean = false,
         ipTypeProperties: Map<String, List<EntityProperty>> = emptyMap(),
-        ipTypeNames: Map<String, String> = emptyMap()
+        ipTypeNames: Map<String, String> = emptyMap(),
+        codeNodeClassLookup: (String) -> String? = { null }
     ): ModuleSaveResult {
         return try {
-            val effectiveModuleName = moduleName ?: deriveModuleName(flowGraph.name)
+            val enrichedFlowGraph = enrichWithCodeNodeMetadata(flowGraph, codeNodeClassLookup)
+            val effectiveModuleName = moduleName ?: deriveModuleName(enrichedFlowGraph.name)
 
             val basePackage = packageName ?: "$DEFAULT_PACKAGE_PREFIX.${effectiveModuleName.lowercase()}"
             val generatedPackage = "$basePackage.$GENERATED_SUBPACKAGE"
@@ -123,15 +126,15 @@ class ModuleSaveService {
             val filesDeleted = mutableListOf<String>()
 
             // Create source directory structure
-            createDirectoryStructure(moduleDir, basePackage, flowGraph)
-            createDirectoryStructure(moduleDir, generatedPackage, flowGraph)
-            createDirectoryStructure(moduleDir, processingLogicPackage, flowGraph)
-            createDirectoryStructure(moduleDir, userInterfacePackage, flowGraph)
+            createDirectoryStructure(moduleDir, basePackage, enrichedFlowGraph)
+            createDirectoryStructure(moduleDir, generatedPackage, enrichedFlowGraph)
+            createDirectoryStructure(moduleDir, processingLogicPackage, enrichedFlowGraph)
+            createDirectoryStructure(moduleDir, userInterfacePackage, enrichedFlowGraph)
 
             // Write gradle files (only if they don't exist)
             writeFileIfNew(
                 File(moduleDir, "build.gradle.kts"),
-                moduleGenerator.generateBuildGradle(flowGraph, effectiveModuleName),
+                moduleGenerator.generateBuildGradle(enrichedFlowGraph, effectiveModuleName),
                 "build.gradle.kts",
                 filesCreated
             )
@@ -148,7 +151,7 @@ class ModuleSaveService {
             val flowKtRelativePath = "src/commonMain/kotlin/$basePackagePath/$flowKtFileName"
             writeFileAlways(
                 File(moduleDir, flowKtRelativePath),
-                flowKtGenerator.generateFlowKt(flowGraph, basePackage, null, ipTypeNames),
+                flowKtGenerator.generateFlowKt(enrichedFlowGraph, basePackage, null, ipTypeNames),
                 flowKtRelativePath,
                 filesCreated,
                 filesOverwritten
@@ -156,30 +159,30 @@ class ModuleSaveService {
 
             // Generate 4 runtime files in generated/ (always overwrite)
             generateRuntimeFilesTracked(
-                flowGraph, moduleDir, basePackage, generatedPackage, processingLogicPackage,
+                enrichedFlowGraph, moduleDir, basePackage, generatedPackage, processingLogicPackage,
                 effectiveModuleName, filesCreated, filesOverwritten
             )
 
             // Generate ViewModel stub in base package (selective regeneration)
             generateViewModelStub(
-                flowGraph, moduleDir, basePackage, generatedPackage,
+                enrichedFlowGraph, moduleDir, basePackage, generatedPackage,
                 effectiveModuleName, filesCreated, filesOverwritten
             )
 
             // Generate user interface stub (write-once, preserves existing UI code)
             generateUserInterfaceStub(
-                flowGraph, moduleDir, userInterfacePackage, generatedPackage,
+                enrichedFlowGraph, moduleDir, userInterfacePackage, generatedPackage,
                 filesCreated
             )
 
             // Generate persistence layer for repository nodes
             generatePersistenceFiles(
-                flowGraph, moduleDir, basePackage, ipTypeProperties,
+                enrichedFlowGraph, moduleDir, basePackage, ipTypeProperties,
                 filesCreated, filesOverwritten
             )
 
             // Delete orphaned stubs
-            deleteOrphanedComponents(flowGraph, moduleDir, processingLogicPackage, filesDeleted)
+            deleteOrphanedComponents(enrichedFlowGraph, moduleDir, processingLogicPackage, filesDeleted)
 
             ModuleSaveResult(
                 success = true,
@@ -194,6 +197,33 @@ class ModuleSaveService {
                 errorMessage = "Failed to save module: ${e.message}"
             )
         }
+    }
+
+    /**
+     * Enriches FlowGraph nodes with _codeNodeClass metadata from the registry.
+     * Existing modules saved before this metadata existed need enrichment so that
+     * generators use the CodeNode-aware path instead of legacy CodeNodeFactory.
+     */
+    private fun enrichWithCodeNodeMetadata(
+        flowGraph: FlowGraph,
+        codeNodeClassLookup: (String) -> String?
+    ): FlowGraph {
+        val enrichedNodes = flowGraph.rootNodes.map { node ->
+            if (node is CodeNode && node.configuration["_codeNodeClass"] == null) {
+                val qualifiedName = codeNodeClassLookup(node.name)
+                if (qualifiedName != null) {
+                    node.copy(
+                        configuration = node.configuration + mapOf(
+                            "_codeNodeClass" to qualifiedName,
+                            "_codeNodeDefinition" to "true"
+                        )
+                    )
+                } else node
+            } else node
+        }
+        return if (enrichedNodes !== flowGraph.rootNodes) {
+            flowGraph.copy(rootNodes = enrichedNodes)
+        } else flowGraph
     }
 
     private val entityModuleGenerator = EntityModuleGenerator()

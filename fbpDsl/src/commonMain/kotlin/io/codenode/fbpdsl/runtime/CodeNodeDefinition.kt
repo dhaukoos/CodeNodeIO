@@ -69,6 +69,10 @@ interface CodeNodeDefinition {
     /** Output port definitions (may be empty for sinks) */
     val outputPorts: List<PortSpec>
 
+    /** When true, uses any-input runtime variants (fires on ANY input, not ALL) */
+    val anyInput: Boolean
+        get() = false
+
     /**
      * Creates a fully configured NodeRuntime instance with processing logic embedded.
      *
@@ -137,7 +141,7 @@ interface CodeNodeDefinition {
             description = nodeDescription,
             portTemplates = portTemplates,
             defaultConfiguration = mapOf(
-                "_genericType" to "in${inputPorts.size}out${outputPorts.size}",
+                "_genericType" to "in${inputPorts.size}${if (anyInput && inputPorts.size >= 2) "any" else ""}out${outputPorts.size}",
                 "_codeNodeDefinition" to "true",
                 "_codeNodeClass" to (this::class.qualifiedName ?: "")
             )

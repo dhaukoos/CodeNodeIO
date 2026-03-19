@@ -79,11 +79,6 @@ class StopWatchController(
         flow.timerEmitter.registry = registry
 
         flow.timerEmitter.executionState = ExecutionState.RUNNING
-
-        // Apply emission and value observers to all runtimes
-        applyEmissionObserver()
-        applyValueObserver()
-
         scope.launch {
             flow.start(scope)
 
@@ -187,9 +182,9 @@ class StopWatchController(
 
     private fun applyEmissionObserver() {
         val obs = emissionObserver
-        flow.timerEmitter.onEmit = obs
         flow.timeIncrementer.onEmit = obs
         flow.displayReceiver.onEmit = obs
+        flow.timerEmitter.onEmit = obs
     }
 
     override fun setValueObserver(observer: ((String, Int, Any?) -> Unit)?) {
@@ -199,9 +194,9 @@ class StopWatchController(
 
     private fun applyValueObserver() {
         val obs = valueObserver
-        flow.timerEmitter.onEmitValue = obs
         flow.timeIncrementer.onEmitValue = obs
         flow.displayReceiver.onEmitValue = obs
+        flow.timerEmitter.onEmitValue = obs
     }
 
     val currentFlowGraph: FlowGraph

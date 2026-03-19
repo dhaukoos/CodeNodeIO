@@ -1382,7 +1382,12 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                         outputDir = outputDir,
                         regenerateStubs = shouldRegenerate,
                         ipTypeProperties = ipTypePropertiesMap,
-                        ipTypeNames = ipTypeNamesMap
+                        ipTypeNames = ipTypeNamesMap,
+                        codeNodeClassLookup = { nodeName ->
+                            registry.getByName(nodeName)?.let {
+                                it::class.qualifiedName
+                            }
+                        }
                     )
                     if (result.success) {
                         saveLocationRegistry[flowGraphName] = outputDir

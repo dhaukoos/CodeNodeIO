@@ -13,18 +13,27 @@ val stopWatchFlowGraph = flowGraph("StopWatch", version = "1.0.0") {
         input("elapsedMinutes", Int::class)
         output("seconds", Int::class)
         output("minutes", Int::class)
+        config("_codeNodeClass", "io.codenode.stopwatch.nodes.TimeIncrementerCodeNode")
+        config("_codeNodeDefinition", "true")
+        config("_genericType", "in2out2")
     }
 
     val displayReceiver = codeNode("DisplayReceiver", nodeType = "GENERIC") {
         position(851.71142578125, 309.20318603515625)
         input("seconds", Int::class)
         input("minutes", Int::class)
+        config("_codeNodeClass", "io.codenode.stopwatch.nodes.DisplayReceiverCodeNode")
+        config("_codeNodeDefinition", "true")
+        config("_genericType", "in2anyout0")
     }
 
     val timerEmitter = codeNode("TimerEmitter", nodeType = "GENERIC") {
         position(142.42677307128906, 309.8232116699219)
         output("elapsedSeconds", Int::class)
         output("elapsedMinutes", Int::class)
+        config("_codeNodeClass", "io.codenode.stopwatch.nodes.TimerEmitterCodeNode")
+        config("_codeNodeDefinition", "true")
+        config("_genericType", "in0out2")
     }
 
     timerEmitter.output("elapsedSeconds") connect timeIncrementer.input("elapsedSeconds") withType "ip_int"

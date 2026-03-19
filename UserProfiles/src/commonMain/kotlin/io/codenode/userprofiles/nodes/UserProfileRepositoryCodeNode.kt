@@ -35,6 +35,7 @@ object UserProfileRepositoryCodeNode : CodeNodeDefinition {
         PortSpec("result", Any::class),
         PortSpec("error", Any::class)
     )
+    override val anyInput = true
 
     override fun createRuntime(name: String): NodeRuntime {
         // Identity tracking vars scoped to this runtime instance

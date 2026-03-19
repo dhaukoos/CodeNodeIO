@@ -27,6 +27,7 @@ object DisplayReceiverCodeNode : CodeNodeDefinition {
         PortSpec("minutes", Int::class)
     )
     override val outputPorts = emptyList<PortSpec>()
+    override val anyInput = true
 
     override fun createRuntime(name: String): NodeRuntime {
         return CodeNodeFactory.createSinkIn2Any<Int, Int>(
