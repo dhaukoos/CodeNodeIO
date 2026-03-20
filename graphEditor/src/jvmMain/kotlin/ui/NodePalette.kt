@@ -165,7 +165,7 @@ private fun CategoryHeader(
         )
 
         Text(
-            text = category.name.replace("_", " ").lowercase().replaceFirstChar { it.uppercase() },
+            text = category.typeName,
             fontSize = 14.sp,
             fontWeight = FontWeight.SemiBold,
             color = Color(0xFF424242)

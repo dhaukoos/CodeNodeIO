@@ -96,17 +96,17 @@
 
 ### Implementation for User Story 1
 
-- [ ] T036 [US1] Remove `createSampleNodeTypes()` function and `builtInNodeTypes` variable from `graphEditor/src/jvmMain/kotlin/Main.kt`. Update palette data source to use only `registry.getAllForPalette()` — no hardcoded nodes.
+- [X] T036 [US1] Remove `createSampleNodeTypes()` function and `builtInNodeTypes` variable from `graphEditor/src/jvmMain/kotlin/Main.kt`. Update palette data source to use only `registry.getAllForPalette()` — no hardcoded nodes.
 
-- [ ] T037 [US1] Update `NodePaletteViewModel` in `graphEditor/src/jvmMain/kotlin/viewmodel/NodePaletteViewModel.kt` — change `expandedCategories: Set<NodeTypeDefinition.NodeCategory>` to `Set<CodeNodeType>`, update all method signatures (`toggleCategory`, `expandCategory`, `collapseCategory`) to use `CodeNodeType`.
+- [X] T037 [US1] Update `NodePaletteViewModel` in `graphEditor/src/jvmMain/kotlin/viewmodel/NodePaletteViewModel.kt` — change `expandedCategories: Set<NodeTypeDefinition.NodeCategory>` to `Set<CodeNodeType>`, update all method signatures (`toggleCategory`, `expandCategory`, `collapseCategory`) to use `CodeNodeType`.
 
-- [ ] T038 [US1] Update `NodePalette` composable in `graphEditor/src/jvmMain/kotlin/ui/NodePalette.kt` — group nodes by `CodeNodeType` instead of `NodeTypeDefinition.NodeCategory`. Only render category headers for categories that have at least one node (filter out empty categories). Display category names using `CodeNodeType.typeName`.
+- [X] T038 [US1] Update `NodePalette` composable in `graphEditor/src/jvmMain/kotlin/ui/NodePalette.kt` — group nodes by `CodeNodeType` instead of `NodeTypeDefinition.NodeCategory`. Only render category headers for categories that have at least one node (filter out empty categories). Display category names using `CodeNodeType.typeName`.
 
-- [ ] T039 [US1] Update `DragAndDropHandler` in `graphEditor/src/jvmMain/kotlin/ui/DragAndDropHandler.kt` — remove the `when (nodeType.category)` mapping from `NodeTypeDefinition.NodeCategory` to `CodeNodeType`. Use `nodeType.category` directly since it is now `CodeNodeType`.
+- [X] T039 [US1] Update `DragAndDropHandler` in `graphEditor/src/jvmMain/kotlin/ui/DragAndDropHandler.kt` — remove the `when (nodeType.category)` mapping from `NodeTypeDefinition.NodeCategory` to `CodeNodeType`. Use `nodeType.category` directly since it is now `CodeNodeType`.
 
-- [ ] T040 [US1] Update drag-drop node creation in `graphEditor/src/jvmMain/kotlin/Main.kt` — remove the `mappedCodeNodeType` when-expression mapping `NodeTypeDefinition.NodeCategory` to `CodeNodeType`. Use `nodeType.category` directly as `codeNodeType`.
+- [X] T040 [US1] Update drag-drop node creation in `graphEditor/src/jvmMain/kotlin/Main.kt` — remove the `mappedCodeNodeType` when-expression mapping `NodeTypeDefinition.NodeCategory` to `CodeNodeType`. Use `nodeType.category` directly as `codeNodeType`.
 
-- [ ] T041 [US1] Verify palette displays correctly by running `./gradlew :graphEditor:jvmTest` and manually launching graphEditor to confirm only discovered nodes appear, grouped by CodeNodeType, with only populated category sections shown.
+- [X] T041 [US1] Verify palette displays correctly by running `./gradlew :graphEditor:jvmTest` and manually launching graphEditor to confirm only discovered nodes appear, grouped by CodeNodeType, with only populated category sections shown.
 
 **Checkpoint**: Palette shows only filesystem-discovered nodes grouped by CodeNodeType. No hardcoded samples. Empty categories hidden.
 

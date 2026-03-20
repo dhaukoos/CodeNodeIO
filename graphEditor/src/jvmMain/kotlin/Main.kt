@@ -94,7 +94,6 @@ import io.codenode.fbpdsl.model.PortTemplate
 import io.codenode.fbpdsl.model.Port
 import io.codenode.fbpdsl.model.CodeNode
 import io.codenode.fbpdsl.model.CodeNodeType
-import io.codenode.fbpdsl.factory.getCommonGenericNodeTypes
 import io.codenode.fbpdsl.model.GraphNode
 import io.codenode.fbpdsl.model.IPColor
 import io.codenode.fbpdsl.model.InformationPacketType
@@ -122,197 +121,6 @@ import kotlinx.coroutines.flow.drop
 import java.io.File
 import javax.swing.JFileChooser
 import javax.swing.filechooser.FileNameExtensionFilter
-
-/**
- * Creates sample node types for the palette
- * Includes both specialized node types and common generic node types
- */
-fun createSampleNodeTypes(): List<NodeTypeDefinition> {
-    // Add common generic node types (in0out1, in1out0, in1out1, in1out2, in2out1)
-    val genericTypes = getCommonGenericNodeTypes()
-
-    val specializedTypes = listOf(
-        NodeTypeDefinition(
-            id = "nodeType_source",
-            name = "Data Source",
-            category = CodeNodeType.SOURCE,
-            description = "Sources or loads data into the flow",
-            portTemplates = listOf(
-                PortTemplate(
-                    name = "output",
-                    direction = Port.Direction.OUTPUT,
-                    dataType = String::class,
-                    description = "Data output stream"
-                )
-            ),
-            defaultConfiguration = mapOf(
-                "intervalMs" to "1000",
-                "maxItems" to "100",
-                "autoStart" to "true"
-            ),
-            configurationSchema = """
-                {
-                    "type": "object",
-                    "properties": {
-                        "intervalMs": {"type": "integer", "minimum": 100, "maximum": 60000},
-                        "maxItems": {"type": "integer", "minimum": 1, "maximum": 10000},
-                        "autoStart": {"type": "boolean"}
-                    }
-                }
-            """.trimIndent()
-        ),
-        NodeTypeDefinition(
-            id = "nodeType_transformer",
-            name = "Transform",
-            category = CodeNodeType.TRANSFORMER,
-            description = "Transforms data from one format to another",
-            portTemplates = listOf(
-                PortTemplate(
-                    name = "input",
-                    direction = Port.Direction.INPUT,
-                    dataType = String::class,
-                    description = "Data input"
-                ),
-                PortTemplate(
-                    name = "output",
-                    direction = Port.Direction.OUTPUT,
-                    dataType = String::class,
-                    description = "Transformed data output"
-                )
-            ),
-            defaultConfiguration = mapOf(
-                "outputFormat" to "json",
-                "preserveOrder" to "true"
-            ),
-            configurationSchema = """
-                {
-                    "type": "object",
-                    "properties": {
-                        "outputFormat": {"type": "string", "enum": ["json", "xml", "csv"]},
-                        "preserveOrder": {"type": "boolean"}
-                    }
-                }
-            """.trimIndent()
-        ),
-        NodeTypeDefinition(
-            id = "nodeType_filter",
-            name = "Filter",
-            category = CodeNodeType.FILTER,
-            description = "Filters data based on conditions",
-            portTemplates = listOf(
-                PortTemplate(
-                    name = "input",
-                    direction = Port.Direction.INPUT,
-                    dataType = Any::class,
-                    description = "Input data"
-                ),
-                PortTemplate(
-                    name = "passed",
-                    direction = Port.Direction.OUTPUT,
-                    dataType = Any::class,
-                    description = "Data that passed filter"
-                ),
-                PortTemplate(
-                    name = "rejected",
-                    direction = Port.Direction.OUTPUT,
-                    dataType = Any::class,
-                    description = "Data that failed filter"
-                )
-            ),
-            defaultConfiguration = mapOf(
-                "filterField" to "status",
-                "filterValue" to "active",
-                "caseSensitive" to "false"
-            ),
-            configurationSchema = """
-                {
-                    "type": "object",
-                    "properties": {
-                        "filterField": {"type": "string"},
-                        "filterValue": {"type": "string"},
-                        "caseSensitive": {"type": "boolean"}
-                    },
-                    "required": ["filterField", "filterValue"]
-                }
-            """.trimIndent()
-        ),
-        NodeTypeDefinition(
-            id = "nodeType_api",
-            name = "API Call",
-            category = CodeNodeType.API_ENDPOINT,
-            description = "Makes HTTP API requests",
-            portTemplates = listOf(
-                PortTemplate(
-                    name = "request",
-                    direction = Port.Direction.INPUT,
-                    dataType = Any::class,
-                    description = "Request data"
-                ),
-                PortTemplate(
-                    name = "response",
-                    direction = Port.Direction.OUTPUT,
-                    dataType = Any::class,
-                    description = "Response data"
-                )
-            ),
-            defaultConfiguration = mapOf(
-                "url" to "https://api.example.com",
-                "method" to "GET",
-                "timeout" to "30"
-            ),
-            configurationSchema = """
-                {
-                    "type": "object",
-                    "properties": {
-                        "url": {"type": "string"},
-                        "method": {"type": "string", "enum": ["GET", "POST", "PUT", "DELETE"]},
-                        "timeout": {"type": "integer", "minimum": 1, "maximum": 120}
-                    },
-                    "required": ["url"]
-                }
-            """.trimIndent()
-        ),
-        NodeTypeDefinition(
-            id = "nodeType_database",
-            name = "Database Query",
-            category = CodeNodeType.DATABASE,
-            description = "Executes database queries",
-            portTemplates = listOf(
-                PortTemplate(
-                    name = "query",
-                    direction = Port.Direction.INPUT,
-                    dataType = String::class,
-                    description = "SQL query"
-                ),
-                PortTemplate(
-                    name = "results",
-                    direction = Port.Direction.OUTPUT,
-                    dataType = Any::class,
-                    description = "Query results"
-                )
-            ),
-            defaultConfiguration = mapOf(
-                "connectionString" to "jdbc:postgresql://localhost:5432/db",
-                "maxResults" to "100",
-                "timeout" to "30"
-            ),
-            configurationSchema = """
-                {
-                    "type": "object",
-                    "properties": {
-                        "connectionString": {"type": "string"},
-                        "maxResults": {"type": "integer", "minimum": 1, "maximum": 10000},
-                        "timeout": {"type": "integer", "minimum": 1, "maximum": 300}
-                    },
-                    "required": ["connectionString"]
-                }
-            """.trimIndent()
-        )
-    )
-
-    // Return specialized types first, then generic types
-    return specializedTypes + genericTypes
-}
 
 /**
  * Main composable for the GraphEditor application
@@ -414,16 +222,9 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
         registryVersion++
     }
 
-    // T016: Combine built-in node types with registry-discovered nodes
-    // Registry merges compiled CodeNodeDefinitions and templates
-    // with correct categories already applied by toNodeTypeDefinition()
-    val builtInNodeTypes = remember { createSampleNodeTypes() }
+    // Palette shows only filesystem-discovered CodeNodes (compiled + templates)
     val nodeTypes = remember(registryVersion) {
-        val registryNodes = registry.getAllForPalette()
-
-        // Built-in sample types + registry-discovered nodes (compiled + template)
-        // Self-contained CodeNodeDefinitions provide correct categories via toNodeTypeDefinition()
-        builtInNodeTypes + registryNodes
+        registry.getAllForPalette()
     }
     val ipTypeRegistry = remember { IPTypeRegistry.withDefaults() }
     val ipTypeRepository = remember { FileIPTypeRepository() }
