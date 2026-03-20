@@ -6,7 +6,7 @@
 
 package io.codenode.fbpdsl.factory
 
-import io.codenode.fbpdsl.model.NodeTypeDefinition
+import io.codenode.fbpdsl.model.CodeNodeType
 import io.codenode.fbpdsl.model.Port
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -67,7 +67,7 @@ class GenericNodeTypeFactoryTest {
     @Test
     fun `createGenericNodeType returns category GENERIC`() {
         val nodeType = createGenericNodeType(numInputs = 1, numOutputs = 1)
-        assertEquals(NodeTypeDefinition.NodeCategory.GENERIC, nodeType.category)
+        assertEquals(CodeNodeType.TRANSFORMER, nodeType.category)
     }
 
     // ========== T008: Invalid Input Tests ==========
@@ -258,7 +258,7 @@ class GenericNodeTypeFactoryTest {
     @Test
     fun `getAllGenericNodeTypes all have GENERIC category`() {
         val allTypes = getAllGenericNodeTypes()
-        assertTrue(allTypes.all { it.category == NodeTypeDefinition.NodeCategory.GENERIC })
+        assertTrue(allTypes.all { it.category == CodeNodeType.TRANSFORMER })
     }
 
     @Test
@@ -322,7 +322,7 @@ class GenericNodeTypeFactoryTest {
     @Test
     fun `getCommonGenericNodeTypes all have GENERIC category`() {
         val commonTypes = getCommonGenericNodeTypes()
-        assertTrue(commonTypes.all { it.category == NodeTypeDefinition.NodeCategory.GENERIC })
+        assertTrue(commonTypes.all { it.category == CodeNodeType.TRANSFORMER })
     }
 
     @Test

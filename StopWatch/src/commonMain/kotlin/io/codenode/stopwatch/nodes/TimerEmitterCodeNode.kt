@@ -7,7 +7,7 @@ package io.codenode.stopwatch.nodes
 
 import io.codenode.fbpdsl.model.CodeNodeFactory
 import io.codenode.fbpdsl.runtime.CodeNodeDefinition
-import io.codenode.fbpdsl.runtime.NodeCategory
+import io.codenode.fbpdsl.model.CodeNodeType
 import io.codenode.fbpdsl.runtime.NodeRuntime
 import io.codenode.fbpdsl.runtime.PortSpec
 import io.codenode.fbpdsl.runtime.ProcessResult2
@@ -29,7 +29,7 @@ import kotlinx.coroutines.flow.combine
  */
 object TimerEmitterCodeNode : CodeNodeDefinition {
     override val name = "TimerEmitter"
-    override val category = NodeCategory.SOURCE
+    override val category = CodeNodeType.SOURCE
     override val description = "Emits elapsed seconds and minutes from timer state"
     override val inputPorts = emptyList<PortSpec>()
     override val outputPorts = listOf(

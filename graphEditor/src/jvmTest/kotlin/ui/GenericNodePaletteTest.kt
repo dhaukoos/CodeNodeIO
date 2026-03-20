@@ -9,7 +9,7 @@ package io.codenode.grapheditor.ui
 import io.codenode.fbpdsl.factory.createGenericNodeType
 import io.codenode.fbpdsl.factory.getAllGenericNodeTypes
 import io.codenode.fbpdsl.factory.getCommonGenericNodeTypes
-import io.codenode.fbpdsl.model.NodeTypeDefinition
+import io.codenode.fbpdsl.model.CodeNodeType
 import io.codenode.fbpdsl.model.Port
 import io.codenode.grapheditor.createSampleNodeTypes
 import kotlin.test.*
@@ -26,9 +26,9 @@ class GenericNodePaletteTest {
     fun `createSampleNodeTypes includes common generic node types`() {
         val nodeTypes = createSampleNodeTypes()
 
-        // Should contain the 7 common generic types
+        // Should contain the 7 common generic types (identified by _genericType config)
         val genericTypes = nodeTypes.filter {
-            it.category == NodeTypeDefinition.NodeCategory.GENERIC
+            it.defaultConfiguration.containsKey("_genericType")
         }
 
         assertEquals(7, genericTypes.size, "Should include 7 common generic node types")
@@ -40,7 +40,7 @@ class GenericNodePaletteTest {
 
         val generatorType = nodeTypes.find { it.name == "in0out1" }
         assertNotNull(generatorType, "Should contain in0out1 (Generator/Source)")
-        assertEquals(NodeTypeDefinition.NodeCategory.GENERIC, generatorType.category)
+        assertEquals(CodeNodeType.TRANSFORMER, generatorType.category)
         assertEquals(0, generatorType.getInputPortTemplates().size)
         assertEquals(1, generatorType.getOutputPortTemplates().size)
     }
@@ -51,7 +51,7 @@ class GenericNodePaletteTest {
 
         val sinkType = nodeTypes.find { it.name == "in1out0" }
         assertNotNull(sinkType, "Should contain in1out0 (Sink)")
-        assertEquals(NodeTypeDefinition.NodeCategory.GENERIC, sinkType.category)
+        assertEquals(CodeNodeType.TRANSFORMER, sinkType.category)
         assertEquals(1, sinkType.getInputPortTemplates().size)
         assertEquals(0, sinkType.getOutputPortTemplates().size)
     }
@@ -62,7 +62,7 @@ class GenericNodePaletteTest {
 
         val transformerType = nodeTypes.find { it.name == "in1out1" }
         assertNotNull(transformerType, "Should contain in1out1 (Simple Transformer)")
-        assertEquals(NodeTypeDefinition.NodeCategory.GENERIC, transformerType.category)
+        assertEquals(CodeNodeType.TRANSFORMER, transformerType.category)
         assertEquals(1, transformerType.getInputPortTemplates().size)
         assertEquals(1, transformerType.getOutputPortTemplates().size)
     }
@@ -73,7 +73,7 @@ class GenericNodePaletteTest {
 
         val splitterType = nodeTypes.find { it.name == "in1out2" }
         assertNotNull(splitterType, "Should contain in1out2 (Splitter)")
-        assertEquals(NodeTypeDefinition.NodeCategory.GENERIC, splitterType.category)
+        assertEquals(CodeNodeType.TRANSFORMER, splitterType.category)
         assertEquals(1, splitterType.getInputPortTemplates().size)
         assertEquals(2, splitterType.getOutputPortTemplates().size)
     }
@@ -84,7 +84,7 @@ class GenericNodePaletteTest {
 
         val mergerType = nodeTypes.find { it.name == "in2out1" }
         assertNotNull(mergerType, "Should contain in2out1 (Merger)")
-        assertEquals(NodeTypeDefinition.NodeCategory.GENERIC, mergerType.category)
+        assertEquals(CodeNodeType.TRANSFORMER, mergerType.category)
         assertEquals(2, mergerType.getInputPortTemplates().size)
         assertEquals(1, mergerType.getOutputPortTemplates().size)
     }
@@ -95,7 +95,7 @@ class GenericNodePaletteTest {
 
         val generatorType = nodeTypes.find { it.name == "in0out2" }
         assertNotNull(generatorType, "Should contain in0out2 (Generator/Source dual output)")
-        assertEquals(NodeTypeDefinition.NodeCategory.GENERIC, generatorType.category)
+        assertEquals(CodeNodeType.TRANSFORMER, generatorType.category)
         assertEquals(0, generatorType.getInputPortTemplates().size)
         assertEquals(2, generatorType.getOutputPortTemplates().size)
     }
@@ -106,25 +106,27 @@ class GenericNodePaletteTest {
 
         val sinkType = nodeTypes.find { it.name == "in2out0" }
         assertNotNull(sinkType, "Should contain in2out0 (Sink dual input)")
-        assertEquals(NodeTypeDefinition.NodeCategory.GENERIC, sinkType.category)
+        assertEquals(CodeNodeType.TRANSFORMER, sinkType.category)
         assertEquals(2, sinkType.getInputPortTemplates().size)
         assertEquals(0, sinkType.getOutputPortTemplates().size)
     }
 
     @Test
-    fun `generic nodes can be grouped by GENERIC category`() {
+    fun `generic nodes can be grouped by TRANSFORMER category`() {
         val nodeTypes = createSampleNodeTypes()
 
-        val byCategory = nodeTypes.groupBy { it.category }
+        // Generic nodes use TRANSFORMER category; specialized "Transform" node also uses TRANSFORMER
+        val transformerNodes = nodeTypes.filter { it.category == CodeNodeType.TRANSFORMER }
 
         assertTrue(
-            byCategory.containsKey(NodeTypeDefinition.NodeCategory.GENERIC),
-            "Should have GENERIC category in palette"
+            transformerNodes.isNotEmpty(),
+            "Should have TRANSFORMER category in palette"
         )
+        // 7 generic + 1 specialized "Transform" node
         assertEquals(
-            7,
-            byCategory[NodeTypeDefinition.NodeCategory.GENERIC]?.size,
-            "GENERIC category should have 7 nodes"
+            8,
+            transformerNodes.size,
+            "TRANSFORMER category should have 8 nodes (7 generic + 1 specialized)"
         )
     }
 
@@ -132,7 +134,7 @@ class GenericNodePaletteTest {
     fun `generic nodes have correct port directions`() {
         val nodeTypes = createSampleNodeTypes()
         val genericTypes = nodeTypes.filter {
-            it.category == NodeTypeDefinition.NodeCategory.GENERIC
+            it.category == CodeNodeType.TRANSFORMER
         }
 
         for (nodeType in genericTypes) {
@@ -157,7 +159,7 @@ class GenericNodePaletteTest {
     fun `generic nodes have unique IDs`() {
         val nodeTypes = createSampleNodeTypes()
         val genericTypes = nodeTypes.filter {
-            it.category == NodeTypeDefinition.NodeCategory.GENERIC
+            it.category == CodeNodeType.TRANSFORMER
         }
 
         val ids = genericTypes.map { it.id }
@@ -168,7 +170,7 @@ class GenericNodePaletteTest {
     fun `generic nodes have descriptions`() {
         val nodeTypes = createSampleNodeTypes()
         val genericTypes = nodeTypes.filter {
-            it.category == NodeTypeDefinition.NodeCategory.GENERIC
+            it.defaultConfiguration.containsKey("_genericType")
         }
 
         for (nodeType in genericTypes) {
@@ -187,7 +189,7 @@ class GenericNodePaletteTest {
     fun `generic nodes have defaultConfiguration with _genericType`() {
         val nodeTypes = createSampleNodeTypes()
         val genericTypes = nodeTypes.filter {
-            it.category == NodeTypeDefinition.NodeCategory.GENERIC
+            it.defaultConfiguration.containsKey("_genericType")
         }
 
         for (nodeType in genericTypes) {
@@ -209,19 +211,19 @@ class GenericNodePaletteTest {
 
         // Verify specialized types are still present
         assertTrue(
-            nodeTypes.any { it.category == NodeTypeDefinition.NodeCategory.SERVICE },
+            nodeTypes.any { it.category == CodeNodeType.TRANSFORMER },
             "Should still have SERVICE category nodes"
         )
         assertTrue(
-            nodeTypes.any { it.category == NodeTypeDefinition.NodeCategory.TRANSFORMER },
+            nodeTypes.any { it.category == CodeNodeType.TRANSFORMER },
             "Should still have TRANSFORMER category nodes"
         )
         assertTrue(
-            nodeTypes.any { it.category == NodeTypeDefinition.NodeCategory.API_ENDPOINT },
+            nodeTypes.any { it.category == CodeNodeType.API_ENDPOINT },
             "Should still have API_ENDPOINT category nodes"
         )
         assertTrue(
-            nodeTypes.any { it.category == NodeTypeDefinition.NodeCategory.DATABASE },
+            nodeTypes.any { it.category == CodeNodeType.DATABASE },
             "Should still have DATABASE category nodes"
         )
     }
@@ -232,13 +234,13 @@ class GenericNodePaletteTest {
 
         // Should have specialized nodes (5 from the original list)
         val specializedCount = nodeTypes.count {
-            it.category != NodeTypeDefinition.NodeCategory.GENERIC
+            !it.defaultConfiguration.containsKey("_genericType")
         }
         assertEquals(5, specializedCount, "Should have 5 specialized node types")
 
         // Should have generic nodes (7 common types)
         val genericCount = nodeTypes.count {
-            it.category == NodeTypeDefinition.NodeCategory.GENERIC
+            it.defaultConfiguration.containsKey("_genericType")
         }
         assertEquals(7, genericCount, "Should have 7 generic node types")
 

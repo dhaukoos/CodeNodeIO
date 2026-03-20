@@ -481,7 +481,7 @@ class RuntimeViewModelGeneratorTest {
         val cudNode = CodeNode(
             id = "cud",
             name = "GeoLocationCUD",
-            codeNodeType = CodeNodeType.GENERIC,
+            codeNodeType = CodeNodeType.TRANSFORMER,
             position = Node.Position(100.0, 400.0),
             outputPorts = listOf(
                 outputPort("cud_save", "save", Any::class, "cud"),
@@ -497,7 +497,7 @@ class RuntimeViewModelGeneratorTest {
         val repoNode = CodeNode(
             id = "repo",
             name = "GeoLocationRepository",
-            codeNodeType = CodeNodeType.GENERIC,
+            codeNodeType = CodeNodeType.TRANSFORMER,
             position = Node.Position(400.0, 400.0),
             inputPorts = listOf(
                 inputPort("repo_save", "save", Any::class, "repo"),
@@ -517,7 +517,7 @@ class RuntimeViewModelGeneratorTest {
         val displayNode = CodeNode(
             id = "display",
             name = "GeoLocationsDisplay",
-            codeNodeType = CodeNodeType.GENERIC,
+            codeNodeType = CodeNodeType.TRANSFORMER,
             position = Node.Position(700.0, 400.0),
             inputPorts = listOf(
                 inputPort("disp_result", "result", Any::class, "display"),

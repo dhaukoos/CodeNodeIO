@@ -123,7 +123,7 @@ object FlowGraphSerializer {
         builder.append("${indent}val $varName = codeNode(\"${escapeString(node.name)}\"")
 
         // Add node type if specified
-        if (node.codeNodeType != CodeNodeType.CUSTOM) {
+        if (node.codeNodeType != CodeNodeType.TRANSFORMER) {
             builder.append(", nodeType = \"${node.codeNodeType.name}\"")
         }
 

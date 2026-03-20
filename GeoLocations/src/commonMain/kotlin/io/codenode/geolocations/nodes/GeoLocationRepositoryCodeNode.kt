@@ -7,7 +7,7 @@ package io.codenode.geolocations.nodes
 
 import io.codenode.fbpdsl.model.CodeNodeFactory
 import io.codenode.fbpdsl.runtime.CodeNodeDefinition
-import io.codenode.fbpdsl.runtime.NodeCategory
+import io.codenode.fbpdsl.model.CodeNodeType
 import io.codenode.fbpdsl.runtime.NodeRuntime
 import io.codenode.fbpdsl.runtime.PortSpec
 import io.codenode.fbpdsl.runtime.ProcessResult2
@@ -24,7 +24,7 @@ import io.codenode.geolocations.GeoLocationsPersistence
  */
 object GeoLocationRepositoryCodeNode : CodeNodeDefinition {
     override val name = "GeoLocationRepository"
-    override val category = NodeCategory.PROCESSOR
+    override val category = CodeNodeType.TRANSFORMER
     override val description = "Performs save, update, and remove operations on geo locations"
     override val inputPorts = listOf(
         PortSpec("save", Any::class),

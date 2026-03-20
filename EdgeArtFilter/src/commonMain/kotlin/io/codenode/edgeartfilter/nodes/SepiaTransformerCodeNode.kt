@@ -10,7 +10,7 @@ import io.codenode.edgeartfilter.createImageBitmapFromPixels
 import io.codenode.edgeartfilter.readPixelArray
 import io.codenode.fbpdsl.model.CodeNodeFactory
 import io.codenode.fbpdsl.runtime.CodeNodeDefinition
-import io.codenode.fbpdsl.runtime.NodeCategory
+import io.codenode.fbpdsl.model.CodeNodeType
 import io.codenode.fbpdsl.runtime.NodeRuntime
 import io.codenode.fbpdsl.runtime.PortSpec
 import kotlin.math.min
@@ -27,7 +27,7 @@ import kotlin.time.TimeSource
  */
 object SepiaTransformerCodeNode : CodeNodeDefinition {
     override val name = "SepiaTransformer"
-    override val category = NodeCategory.TRANSFORMER
+    override val category = CodeNodeType.TRANSFORMER
     override val description = "Applies sepia tone color matrix to image"
     override val inputPorts = listOf(PortSpec("input1", ImageData::class))
     override val outputPorts = listOf(PortSpec("output1", ImageData::class))

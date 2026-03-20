@@ -9,7 +9,7 @@ import io.codenode.edgeartfilter.EdgeArtFilterState
 import io.codenode.edgeartfilter.ImageData
 import io.codenode.fbpdsl.model.CodeNodeFactory
 import io.codenode.fbpdsl.runtime.CodeNodeDefinition
-import io.codenode.fbpdsl.runtime.NodeCategory
+import io.codenode.fbpdsl.model.CodeNodeType
 import io.codenode.fbpdsl.runtime.NodeRuntime
 import io.codenode.fbpdsl.runtime.PortSpec
 import io.codenode.fbpdsl.runtime.ProcessResult2
@@ -24,7 +24,7 @@ import kotlinx.coroutines.flow.drop
  */
 object ImagePickerCodeNode : CodeNodeDefinition {
     override val name = "ImagePicker"
-    override val category = NodeCategory.SOURCE
+    override val category = CodeNodeType.SOURCE
     override val description = "Selects an image file and emits it to two output channels"
     override val inputPorts = emptyList<PortSpec>()
     override val outputPorts = listOf(

@@ -6,9 +6,9 @@
 
 package io.codenode.grapheditor.state
 
+import io.codenode.fbpdsl.model.CodeNodeType
 import io.codenode.fbpdsl.model.NodeTypeDefinition
 import io.codenode.fbpdsl.runtime.CodeNodeDefinition
-import io.codenode.fbpdsl.runtime.NodeCategory
 import java.io.File
 import java.util.ServiceLoader
 
@@ -24,7 +24,7 @@ import java.util.ServiceLoader
  */
 data class NodeTemplateMeta(
     val name: String,
-    val category: NodeCategory,
+    val category: CodeNodeType,
     val inputCount: Int,
     val outputCount: Int,
     val filePath: String
@@ -235,15 +235,15 @@ class NodeDefinitionRegistry {
         val nameMatch = Regex("override\\s+val\\s+name\\s*=\\s*\"([^\"]+)\"").find(content)
             ?: return null
 
-        // Parse category from: override val category = NodeCategory.TRANSFORMER
-        val categoryMatch = Regex("""override\s+val\s+category\s*=\s*NodeCategory\.(\w+)""").find(content)
+        // Parse category from: override val category = CodeNodeType.TRANSFORMER
+        val categoryMatch = Regex("""override\s+val\s+category\s*=\s*CodeNodeType\.(\w+)""").find(content)
         val category = categoryMatch?.groupValues?.get(1)?.let { categoryName ->
             try {
-                NodeCategory.valueOf(categoryName)
+                CodeNodeType.valueOf(categoryName)
             } catch (e: IllegalArgumentException) {
-                NodeCategory.PROCESSOR
+                CodeNodeType.TRANSFORMER
             }
-        } ?: NodeCategory.PROCESSOR
+        } ?: CodeNodeType.TRANSFORMER
 
         // Count ports from listOf(...) patterns
         val inputPortsMatch = Regex("""override\s+val\s+inputPorts\s*=\s*listOf\(([^)]*)\)""").find(content)
@@ -273,18 +273,11 @@ class NodeDefinitionRegistry {
      * Converts a NodeTemplateMeta to a NodeTypeDefinition for palette display.
      */
     private fun templateToNodeTypeDefinition(template: NodeTemplateMeta): NodeTypeDefinition {
-        val category = when (template.category) {
-            NodeCategory.SOURCE -> NodeTypeDefinition.NodeCategory.UI_COMPONENT
-            NodeCategory.TRANSFORMER -> NodeTypeDefinition.NodeCategory.TRANSFORMER
-            NodeCategory.PROCESSOR -> NodeTypeDefinition.NodeCategory.TRANSFORMER
-            NodeCategory.SINK -> NodeTypeDefinition.NodeCategory.UI_COMPONENT
-        }
-
         return io.codenode.fbpdsl.factory.createGenericNodeType(
             numInputs = template.inputCount,
             numOutputs = template.outputCount,
             customName = template.name,
             customDescription = "${template.name} (template -- not compiled)"
-        ).copy(category = category)
+        ).copy(category = template.category)
     }
 }

@@ -7,7 +7,7 @@ package io.codenode.addresses.nodes
 
 import io.codenode.fbpdsl.model.CodeNodeFactory
 import io.codenode.fbpdsl.runtime.CodeNodeDefinition
-import io.codenode.fbpdsl.runtime.NodeCategory
+import io.codenode.fbpdsl.model.CodeNodeType
 import io.codenode.fbpdsl.runtime.NodeRuntime
 import io.codenode.fbpdsl.runtime.PortSpec
 import io.codenode.fbpdsl.runtime.ProcessResult2
@@ -24,7 +24,7 @@ import io.codenode.addresses.AddressesPersistence
  */
 object AddressRepositoryCodeNode : CodeNodeDefinition {
     override val name = "AddressRepository"
-    override val category = NodeCategory.PROCESSOR
+    override val category = CodeNodeType.TRANSFORMER
     override val description = "Performs save, update, and remove operations on addresses"
     override val inputPorts = listOf(
         PortSpec("save", Any::class),

@@ -45,7 +45,7 @@ class RequiredPropertyValidatorTest {
         return CodeNode(
             id = id,
             name = name,
-            codeNodeType = CodeNodeType.GENERIC,
+            codeNodeType = CodeNodeType.TRANSFORMER,
             position = Node.Position(100.0, 200.0),
             inputPorts = emptyList(),
             outputPorts = listOf(
@@ -236,7 +236,7 @@ class RequiredPropertyValidatorTest {
     @Test
     fun `getRequiredProperties returns empty set for GENERIC type`() {
         // After redesign, no config properties are required
-        val required = validator.getRequiredProperties(CodeNodeType.GENERIC)
+        val required = validator.getRequiredProperties(CodeNodeType.TRANSFORMER)
         assertTrue(required.isEmpty(), "No properties should be required for GENERIC nodes")
     }
 

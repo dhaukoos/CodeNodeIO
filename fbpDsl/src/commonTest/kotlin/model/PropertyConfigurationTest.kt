@@ -262,7 +262,7 @@ class PropertyConfigurationTest {
         val nodeTypeDef = NodeTypeDefinition(
             id = "nodeType_test",
             name = "Test Node",
-            category = NodeTypeDefinition.NodeCategory.TRANSFORMER,
+            category = CodeNodeType.TRANSFORMER,
             description = "Test node type",
             configurationSchema = null,
             defaultConfiguration = emptyMap()
@@ -286,7 +286,7 @@ class PropertyConfigurationTest {
         val nodeTypeDef = NodeTypeDefinition(
             id = "nodeType_http",
             name = "HTTP Client",
-            category = NodeTypeDefinition.NodeCategory.API_ENDPOINT,
+            category = CodeNodeType.API_ENDPOINT,
             description = "HTTP client node",
             defaultConfiguration = mapOf(
                 "timeout" to "30",
@@ -319,7 +319,7 @@ class PropertyConfigurationTest {
         val nodeTypeDef = NodeTypeDefinition(
             id = "nodeType_test",
             name = "Test Node",
-            category = NodeTypeDefinition.NodeCategory.TRANSFORMER,
+            category = CodeNodeType.TRANSFORMER,
             description = "Test node",
             defaultConfiguration = mapOf(
                 "timeout" to "30",
@@ -354,7 +354,7 @@ class PropertyConfigurationTest {
         val nodeTypeDef = NodeTypeDefinition(
             id = "nodeType_test",
             name = "Test Node",
-            category = NodeTypeDefinition.NodeCategory.TRANSFORMER,
+            category = CodeNodeType.TRANSFORMER,
             description = "Test node",
             defaultConfiguration = mapOf(
                 "timeout" to "30",

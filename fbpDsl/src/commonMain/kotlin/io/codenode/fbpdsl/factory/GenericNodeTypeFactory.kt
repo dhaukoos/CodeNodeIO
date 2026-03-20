@@ -6,6 +6,7 @@
 
 package io.codenode.fbpdsl.factory
 
+import io.codenode.fbpdsl.model.CodeNodeType
 import io.codenode.fbpdsl.model.NodeTypeDefinition
 import io.codenode.fbpdsl.model.Port
 import io.codenode.fbpdsl.model.PortTemplate
@@ -156,7 +157,7 @@ fun createGenericNodeType(
     return NodeTypeDefinition(
         id = id,
         name = name,
-        category = NodeTypeDefinition.NodeCategory.GENERIC,
+        category = CodeNodeType.TRANSFORMER,
         description = description,
         portTemplates = portTemplates,
         defaultConfiguration = defaultConfiguration,

@@ -6,7 +6,7 @@
 
 package io.codenode.grapheditor.viewmodel
 
-import io.codenode.fbpdsl.model.NodeTypeDefinition
+import io.codenode.fbpdsl.model.CodeNodeType
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
@@ -54,10 +54,10 @@ class NodePaletteViewModelTest {
     fun `toggleCategory adds category when not expanded`() = runTest {
         val viewModel = createViewModel()
 
-        viewModel.toggleCategory(NodeTypeDefinition.NodeCategory.SERVICE)
+        viewModel.toggleCategory(CodeNodeType.TRANSFORMER)
 
         val state = viewModel.state.first()
-        assertTrue(state.expandedCategories.contains(NodeTypeDefinition.NodeCategory.SERVICE))
+        assertTrue(state.expandedCategories.contains(CodeNodeType.TRANSFORMER))
     }
 
     @Test
@@ -65,43 +65,43 @@ class NodePaletteViewModelTest {
         val viewModel = createViewModel()
 
         // Expand
-        viewModel.toggleCategory(NodeTypeDefinition.NodeCategory.SERVICE)
-        assertTrue(viewModel.state.first().expandedCategories.contains(NodeTypeDefinition.NodeCategory.SERVICE))
+        viewModel.toggleCategory(CodeNodeType.TRANSFORMER)
+        assertTrue(viewModel.state.first().expandedCategories.contains(CodeNodeType.TRANSFORMER))
 
         // Collapse
-        viewModel.toggleCategory(NodeTypeDefinition.NodeCategory.SERVICE)
-        assertFalse(viewModel.state.first().expandedCategories.contains(NodeTypeDefinition.NodeCategory.SERVICE))
+        viewModel.toggleCategory(CodeNodeType.TRANSFORMER)
+        assertFalse(viewModel.state.first().expandedCategories.contains(CodeNodeType.TRANSFORMER))
     }
 
     @Test
     fun `expandCategory adds category without toggle`() = runTest {
         val viewModel = createViewModel()
 
-        viewModel.expandCategory(NodeTypeDefinition.NodeCategory.TRANSFORMER)
-        assertTrue(viewModel.state.first().expandedCategories.contains(NodeTypeDefinition.NodeCategory.TRANSFORMER))
+        viewModel.expandCategory(CodeNodeType.TRANSFORMER)
+        assertTrue(viewModel.state.first().expandedCategories.contains(CodeNodeType.TRANSFORMER))
 
         // Calling again should not collapse
-        viewModel.expandCategory(NodeTypeDefinition.NodeCategory.TRANSFORMER)
-        assertTrue(viewModel.state.first().expandedCategories.contains(NodeTypeDefinition.NodeCategory.TRANSFORMER))
+        viewModel.expandCategory(CodeNodeType.TRANSFORMER)
+        assertTrue(viewModel.state.first().expandedCategories.contains(CodeNodeType.TRANSFORMER))
     }
 
     @Test
     fun `collapseCategory removes category`() = runTest {
         val viewModel = createViewModel()
 
-        viewModel.expandCategory(NodeTypeDefinition.NodeCategory.SERVICE)
-        viewModel.collapseCategory(NodeTypeDefinition.NodeCategory.SERVICE)
+        viewModel.expandCategory(CodeNodeType.TRANSFORMER)
+        viewModel.collapseCategory(CodeNodeType.TRANSFORMER)
 
-        assertFalse(viewModel.state.first().expandedCategories.contains(NodeTypeDefinition.NodeCategory.SERVICE))
+        assertFalse(viewModel.state.first().expandedCategories.contains(CodeNodeType.TRANSFORMER))
     }
 
     @Test
     fun `collapseAllCategories clears all expanded categories`() = runTest {
         val viewModel = createViewModel()
 
-        viewModel.expandCategory(NodeTypeDefinition.NodeCategory.SERVICE)
-        viewModel.expandCategory(NodeTypeDefinition.NodeCategory.TRANSFORMER)
-        viewModel.expandCategory(NodeTypeDefinition.NodeCategory.GENERIC)
+        viewModel.expandCategory(CodeNodeType.SOURCE)
+        viewModel.expandCategory(CodeNodeType.TRANSFORMER)
+        viewModel.expandCategory(CodeNodeType.VALIDATOR)
 
         viewModel.collapseAllCategories()
 
@@ -112,14 +112,14 @@ class NodePaletteViewModelTest {
     fun `multiple categories can be expanded simultaneously`() = runTest {
         val viewModel = createViewModel()
 
-        viewModel.expandCategory(NodeTypeDefinition.NodeCategory.SERVICE)
-        viewModel.expandCategory(NodeTypeDefinition.NodeCategory.TRANSFORMER)
-        viewModel.expandCategory(NodeTypeDefinition.NodeCategory.VALIDATOR)
+        viewModel.expandCategory(CodeNodeType.SOURCE)
+        viewModel.expandCategory(CodeNodeType.TRANSFORMER)
+        viewModel.expandCategory(CodeNodeType.VALIDATOR)
 
         val state = viewModel.state.first()
         assertEquals(3, state.expandedCategories.size)
-        assertTrue(state.expandedCategories.contains(NodeTypeDefinition.NodeCategory.SERVICE))
-        assertTrue(state.expandedCategories.contains(NodeTypeDefinition.NodeCategory.TRANSFORMER))
-        assertTrue(state.expandedCategories.contains(NodeTypeDefinition.NodeCategory.VALIDATOR))
+        assertTrue(state.expandedCategories.contains(CodeNodeType.SOURCE))
+        assertTrue(state.expandedCategories.contains(CodeNodeType.TRANSFORMER))
+        assertTrue(state.expandedCategories.contains(CodeNodeType.VALIDATOR))
     }
 }

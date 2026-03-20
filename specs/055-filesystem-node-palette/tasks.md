@@ -17,7 +17,7 @@
 
 **Purpose**: No new project structure needed — this is a refactor of existing files.
 
-- [ ] T001 Verify all existing tests pass before refactoring by running `./gradlew :fbpDsl:jvmTest :graphEditor:jvmTest`
+- [X] T001 Verify all existing tests pass before refactoring by running `./gradlew :fbpDsl:jvmTest :graphEditor:jvmTest`
 
 ---
 
@@ -29,60 +29,60 @@
 
 ### CodeNodeType Enum Cleanup
 
-- [ ] T002 Remove CUSTOM and GENERIC values from `CodeNodeType` enum in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/CodeNode.kt`. Keep 9 values: SOURCE, SINK, TRANSFORMER, FILTER, SPLITTER, MERGER, VALIDATOR, API_ENDPOINT, DATABASE.
+- [X] T002 Remove CUSTOM and GENERIC values from `CodeNodeType` enum in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/CodeNode.kt`. Keep 9 values: SOURCE, SINK, TRANSFORMER, FILTER, SPLITTER, MERGER, VALIDATOR, API_ENDPOINT, DATABASE.
 
-- [ ] T003 Add backward-compatible deserialization for removed enum values in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/dsl/FlowGraphDsl.kt` — map "CUSTOM" and "GENERIC" strings to `CodeNodeType.TRANSFORMER` in the `valueOf` catch block.
+- [X] T003 Add backward-compatible deserialization for removed enum values in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/dsl/FlowGraphDsl.kt` — map "CUSTOM" and "GENERIC" strings to `CodeNodeType.TRANSFORMER` in the `valueOf` catch block.
 
 ### Remove NodeCategory Enum (4-value)
 
-- [ ] T004 Remove `NodeCategory` enum from `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/CodeNodeDefinition.kt`. Change the `category` property type from `NodeCategory` to `CodeNodeType` (import from `io.codenode.fbpdsl.model.CodeNodeType`). Update `toNodeTypeDefinition()` to pass `CodeNodeType` directly instead of mapping through `paletteCategory`.
+- [X] T004 Remove `NodeCategory` enum from `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/runtime/CodeNodeDefinition.kt`. Change the `category` property type from `NodeCategory` to `CodeNodeType` (import from `io.codenode.fbpdsl.model.CodeNodeType`). Update `toNodeTypeDefinition()` to pass `CodeNodeType` directly instead of mapping through `paletteCategory`.
 
 ### Remove NodeTypeDefinition.NodeCategory Enum (7-value)
 
-- [ ] T005 Remove `NodeCategory` nested enum from `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/NodeTypeDefinition.kt`. Change the `category` field type from `NodeTypeDefinition.NodeCategory` to `CodeNodeType`. Update the `validate()` method if it references NodeCategory.
+- [X] T005 Remove `NodeCategory` nested enum from `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/NodeTypeDefinition.kt`. Change the `category` field type from `NodeTypeDefinition.NodeCategory` to `CodeNodeType`. Update the `validate()` method if it references NodeCategory.
 
 ### Update CodeNodeDefinition Implementations (all parallel — different files)
 
-- [ ] T006 [P] Update `StopWatch/src/commonMain/kotlin/io/codenode/stopwatch/nodes/TimerEmitterCodeNode.kt` — replace `import NodeCategory` with `import CodeNodeType`, change `category = NodeCategory.SOURCE` to `category = CodeNodeType.SOURCE`
-- [ ] T007 [P] Update `StopWatch/src/commonMain/kotlin/io/codenode/stopwatch/nodes/TimeIncrementerCodeNode.kt` — replace NodeCategory.PROCESSOR with `CodeNodeType.TRANSFORMER` (2 in, 2 out processor)
-- [ ] T008 [P] Update `StopWatch/src/commonMain/kotlin/io/codenode/stopwatch/nodes/DisplayReceiverCodeNode.kt` — replace NodeCategory.SINK with `CodeNodeType.SINK`
-- [ ] T009 [P] Update `UserProfiles/src/commonMain/kotlin/io/codenode/userprofiles/nodes/UserProfileCUDCodeNode.kt` — replace NodeCategory with CodeNodeType, map PROCESSOR to appropriate type based on ports
-- [ ] T010 [P] Update `UserProfiles/src/commonMain/kotlin/io/codenode/userprofiles/nodes/UserProfileRepositoryCodeNode.kt` — replace NodeCategory with CodeNodeType, map SINK (2 in, 0 out)
-- [ ] T011 [P] Update `UserProfiles/src/commonMain/kotlin/io/codenode/userprofiles/nodes/UserProfilesDisplayCodeNode.kt` — replace NodeCategory with CodeNodeType
-- [ ] T012 [P] Update `GeoLocations/src/commonMain/kotlin/io/codenode/geolocations/nodes/GeoLocationCUDCodeNode.kt` — replace NodeCategory with CodeNodeType
-- [ ] T013 [P] Update `GeoLocations/src/commonMain/kotlin/io/codenode/geolocations/nodes/GeoLocationRepositoryCodeNode.kt` — replace NodeCategory with CodeNodeType
-- [ ] T014 [P] Update `GeoLocations/src/commonMain/kotlin/io/codenode/geolocations/nodes/GeoLocationsDisplayCodeNode.kt` — replace NodeCategory with CodeNodeType
-- [ ] T015 [P] Update `Addresses/src/commonMain/kotlin/io/codenode/addresses/nodes/AddressCUDCodeNode.kt` — replace NodeCategory with CodeNodeType
-- [ ] T016 [P] Update `Addresses/src/commonMain/kotlin/io/codenode/addresses/nodes/AddressRepositoryCodeNode.kt` — replace NodeCategory with CodeNodeType
-- [ ] T017 [P] Update `Addresses/src/commonMain/kotlin/io/codenode/addresses/nodes/AddressesDisplayCodeNode.kt` — replace NodeCategory with CodeNodeType
-- [ ] T018 [P] Update `EdgeArtFilter/src/commonMain/kotlin/io/codenode/edgeartfilter/nodes/ImagePickerCodeNode.kt` — replace NodeCategory with CodeNodeType
-- [ ] T019 [P] Update `EdgeArtFilter/src/commonMain/kotlin/io/codenode/edgeartfilter/nodes/EdgeDetectorCodeNode.kt` — replace NodeCategory with CodeNodeType
-- [ ] T020 [P] Update `EdgeArtFilter/src/commonMain/kotlin/io/codenode/edgeartfilter/nodes/SepiaTransformerCodeNode.kt` — replace NodeCategory with CodeNodeType
-- [ ] T021 [P] Update `EdgeArtFilter/src/commonMain/kotlin/io/codenode/edgeartfilter/nodes/GrayscaleTransformerCodeNode.kt` — replace NodeCategory with CodeNodeType
-- [ ] T022 [P] Update `EdgeArtFilter/src/commonMain/kotlin/io/codenode/edgeartfilter/nodes/ColorOverlayCodeNode.kt` — replace NodeCategory with CodeNodeType
-- [ ] T023 [P] Update `EdgeArtFilter/src/commonMain/kotlin/io/codenode/edgeartfilter/nodes/ImageViewerCodeNode.kt` — replace NodeCategory with CodeNodeType
-- [ ] T024 [P] Update `nodes/src/commonMain/kotlin/io/codenode/nodes/TestNode1CodeNode.kt` — replace NodeCategory with CodeNodeType
-- [ ] T025 [P] Update `nodes/src/commonMain/kotlin/io/codenode/nodes/Test3TransformerCodeNode.kt` — replace NodeCategory with CodeNodeType
+- [X] T006 [P] Update `StopWatch/src/commonMain/kotlin/io/codenode/stopwatch/nodes/TimerEmitterCodeNode.kt` — replace `import NodeCategory` with `import CodeNodeType`, change `category = NodeCategory.SOURCE` to `category = CodeNodeType.SOURCE`
+- [X] T007 [P] Update `StopWatch/src/commonMain/kotlin/io/codenode/stopwatch/nodes/TimeIncrementerCodeNode.kt` — replace NodeCategory.PROCESSOR with `CodeNodeType.TRANSFORMER` (2 in, 2 out processor)
+- [X] T008 [P] Update `StopWatch/src/commonMain/kotlin/io/codenode/stopwatch/nodes/DisplayReceiverCodeNode.kt` — replace NodeCategory.SINK with `CodeNodeType.SINK`
+- [X] T009 [P] Update `UserProfiles/src/commonMain/kotlin/io/codenode/userprofiles/nodes/UserProfileCUDCodeNode.kt` — replace NodeCategory with CodeNodeType, map PROCESSOR to appropriate type based on ports
+- [X] T010 [P] Update `UserProfiles/src/commonMain/kotlin/io/codenode/userprofiles/nodes/UserProfileRepositoryCodeNode.kt` — replace NodeCategory with CodeNodeType, map SINK (2 in, 0 out)
+- [X] T011 [P] Update `UserProfiles/src/commonMain/kotlin/io/codenode/userprofiles/nodes/UserProfilesDisplayCodeNode.kt` — replace NodeCategory with CodeNodeType
+- [X] T012 [P] Update `GeoLocations/src/commonMain/kotlin/io/codenode/geolocations/nodes/GeoLocationCUDCodeNode.kt` — replace NodeCategory with CodeNodeType
+- [X] T013 [P] Update `GeoLocations/src/commonMain/kotlin/io/codenode/geolocations/nodes/GeoLocationRepositoryCodeNode.kt` — replace NodeCategory with CodeNodeType
+- [X] T014 [P] Update `GeoLocations/src/commonMain/kotlin/io/codenode/geolocations/nodes/GeoLocationsDisplayCodeNode.kt` — replace NodeCategory with CodeNodeType
+- [X] T015 [P] Update `Addresses/src/commonMain/kotlin/io/codenode/addresses/nodes/AddressCUDCodeNode.kt` — replace NodeCategory with CodeNodeType
+- [X] T016 [P] Update `Addresses/src/commonMain/kotlin/io/codenode/addresses/nodes/AddressRepositoryCodeNode.kt` — replace NodeCategory with CodeNodeType
+- [X] T017 [P] Update `Addresses/src/commonMain/kotlin/io/codenode/addresses/nodes/AddressesDisplayCodeNode.kt` — replace NodeCategory with CodeNodeType
+- [X] T018 [P] Update `EdgeArtFilter/src/commonMain/kotlin/io/codenode/edgeartfilter/nodes/ImagePickerCodeNode.kt` — replace NodeCategory with CodeNodeType
+- [X] T019 [P] Update `EdgeArtFilter/src/commonMain/kotlin/io/codenode/edgeartfilter/nodes/EdgeDetectorCodeNode.kt` — replace NodeCategory with CodeNodeType
+- [X] T020 [P] Update `EdgeArtFilter/src/commonMain/kotlin/io/codenode/edgeartfilter/nodes/SepiaTransformerCodeNode.kt` — replace NodeCategory with CodeNodeType
+- [X] T021 [P] Update `EdgeArtFilter/src/commonMain/kotlin/io/codenode/edgeartfilter/nodes/GrayscaleTransformerCodeNode.kt` — replace NodeCategory with CodeNodeType
+- [X] T022 [P] Update `EdgeArtFilter/src/commonMain/kotlin/io/codenode/edgeartfilter/nodes/ColorOverlayCodeNode.kt` — replace NodeCategory with CodeNodeType
+- [X] T023 [P] Update `EdgeArtFilter/src/commonMain/kotlin/io/codenode/edgeartfilter/nodes/ImageViewerCodeNode.kt` — replace NodeCategory with CodeNodeType
+- [X] T024 [P] Update `nodes/src/commonMain/kotlin/io/codenode/nodes/TestNode1CodeNode.kt` — replace NodeCategory with CodeNodeType
+- [X] T025 [P] Update `nodes/src/commonMain/kotlin/io/codenode/nodes/Test3TransformerCodeNode.kt` — replace NodeCategory with CodeNodeType
 
 ### Update Supporting Infrastructure
 
-- [ ] T026 Update `NodeDefinitionRegistry` in `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/state/NodeDefinitionRegistry.kt` — change `NodeTemplateMeta.category` from `NodeCategory` to `CodeNodeType`, update `parseTemplateMetadata()` regex to match `CodeNodeType.XXXXX`, update `templateToNodeTypeDefinition()` to use CodeNodeType directly (remove category mapping), update all imports
+- [X] T026 Update `NodeDefinitionRegistry` in `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/state/NodeDefinitionRegistry.kt` — change `NodeTemplateMeta.category` from `NodeCategory` to `CodeNodeType`, update `parseTemplateMetadata()` regex to match `CodeNodeType.XXXXX`, update `templateToNodeTypeDefinition()` to use CodeNodeType directly (remove category mapping), update all imports
 
-- [ ] T027 Update `GenericNodeTypeFactory` in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/factory/GenericNodeTypeFactory.kt` — replace `NodeTypeDefinition.NodeCategory.GENERIC` references with appropriate `CodeNodeType` value, update function signatures
+- [X] T027 Update `GenericNodeTypeFactory` in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/factory/GenericNodeTypeFactory.kt` — replace `NodeTypeDefinition.NodeCategory.GENERIC` references with appropriate `CodeNodeType` value, update function signatures
 
 ### Update Test Files (all parallel — different files)
 
-- [ ] T028 [P] Update `fbpDsl/src/commonTest/kotlin/model/PropertyConfigurationTest.kt` — replace all `NodeTypeDefinition.NodeCategory.*` with `CodeNodeType.*`
-- [ ] T029 [P] Update `fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/factory/GenericNodeTypeFactoryTest.kt` — replace category references with CodeNodeType
-- [ ] T030 [P] Update `graphEditor/src/jvmTest/kotlin/ui/GenericNodePaletteTest.kt` — replace all `NodeTypeDefinition.NodeCategory.*` with `CodeNodeType.*`
-- [ ] T031 [P] Update `graphEditor/src/jvmTest/kotlin/ui/NodePaletteTest.kt` — replace all `NodeTypeDefinition.NodeCategory.*` with `CodeNodeType.*`
-- [ ] T032 [P] Update `graphEditor/src/jvmTest/kotlin/ui/PropertiesPanelTest.kt` — replace category references with CodeNodeType
-- [ ] T033 [P] Update `graphEditor/src/jvmTest/kotlin/viewmodel/NodePaletteViewModelTest.kt` — replace `NodeTypeDefinition.NodeCategory.*` with `CodeNodeType.*`
-- [ ] T034 [P] Update `graphEditor/src/jvmTest/kotlin/viewmodel/NodeGeneratorViewModelTest.kt` — replace `NodeCategory.*` with `CodeNodeType.*`
+- [X] T028 [P] Update `fbpDsl/src/commonTest/kotlin/model/PropertyConfigurationTest.kt` — replace all `NodeTypeDefinition.NodeCategory.*` with `CodeNodeType.*`
+- [X] T029 [P] Update `fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/factory/GenericNodeTypeFactoryTest.kt` — replace category references with CodeNodeType
+- [X] T030 [P] Update `graphEditor/src/jvmTest/kotlin/ui/GenericNodePaletteTest.kt` — replace all `NodeTypeDefinition.NodeCategory.*` with `CodeNodeType.*`
+- [X] T031 [P] Update `graphEditor/src/jvmTest/kotlin/ui/NodePaletteTest.kt` — replace all `NodeTypeDefinition.NodeCategory.*` with `CodeNodeType.*`
+- [X] T032 [P] Update `graphEditor/src/jvmTest/kotlin/ui/PropertiesPanelTest.kt` — replace category references with CodeNodeType
+- [X] T033 [P] Update `graphEditor/src/jvmTest/kotlin/viewmodel/NodePaletteViewModelTest.kt` — replace `NodeTypeDefinition.NodeCategory.*` with `CodeNodeType.*`
+- [X] T034 [P] Update `graphEditor/src/jvmTest/kotlin/viewmodel/NodeGeneratorViewModelTest.kt` — replace `NodeCategory.*` with `CodeNodeType.*`
 
 ### Foundational Verification
 
-- [ ] T035 Run `./gradlew :fbpDsl:jvmTest :graphEditor:jvmTest` and verify all tests pass with the unified enum system
+- [X] T035 Run `./gradlew :fbpDsl:jvmTest :graphEditor:jvmTest` and verify all tests pass with the unified enum system
 
 **Checkpoint**: All three enums consolidated into CodeNodeType (9 values). All tests pass. User story work can begin.
 

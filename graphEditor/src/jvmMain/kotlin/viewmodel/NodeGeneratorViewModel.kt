@@ -13,7 +13,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import io.codenode.grapheditor.state.NodeDefinitionRegistry
 import io.codenode.grapheditor.state.NodeTemplateMeta
-import io.codenode.fbpdsl.runtime.NodeCategory
+import io.codenode.fbpdsl.model.CodeNodeType
 import java.io.File
 
 /**
@@ -37,7 +37,7 @@ data class NodeGeneratorPanelState(
     val inputDropdownExpanded: Boolean = false,
     val outputDropdownExpanded: Boolean = false,
     val anyInput: Boolean = false,
-    val category: NodeCategory = NodeCategory.TRANSFORMER,
+    val category: CodeNodeType = CodeNodeType.TRANSFORMER,
     val placementLevel: PlacementLevel = PlacementLevel.PROJECT,
     val categoryDropdownExpanded: Boolean = false,
     val levelDropdownExpanded: Boolean = false,
@@ -125,7 +125,7 @@ class NodeGeneratorViewModel(
         _state.update { it.copy(anyInput = anyInput) }
     }
 
-    fun setCategory(category: NodeCategory) {
+    fun setCategory(category: CodeNodeType) {
         _state.update { it.copy(category = category) }
     }
 
@@ -257,7 +257,7 @@ class NodeGeneratorViewModel(
      */
     fun generateCodeNodeContent(
         nodeName: String,
-        category: NodeCategory,
+        category: CodeNodeType,
         inputCount: Int,
         outputCount: Int,
         packageName: String
@@ -285,7 +285,7 @@ class NodeGeneratorViewModel(
             appendLine()
             appendLine("object ${nodeName}CodeNode : CodeNodeDefinition {")
             appendLine("    override val name = \"$nodeName\"")
-            appendLine("    override val category = NodeCategory.${category.name}")
+            appendLine("    override val category = CodeNodeType.${category.name}")
             appendLine("    override val description = \"${category.name.lowercase().replaceFirstChar { it.uppercase() }} node with $inputCount input(s) and $outputCount output(s)\"")
             appendLine("    override val inputPorts = $inputPortsExpr")
             appendLine("    override val outputPorts = $outputPortsExpr")
@@ -308,7 +308,7 @@ class NodeGeneratorViewModel(
      * @return Triple of (factoryCall, blockTypeAlias, defaultBlockImpl)
      */
     private fun generateRuntimeBlock(
-        category: NodeCategory,
+        category: CodeNodeType,
         inputCount: Int,
         outputCount: Int
     ): Triple<String, String, String> {

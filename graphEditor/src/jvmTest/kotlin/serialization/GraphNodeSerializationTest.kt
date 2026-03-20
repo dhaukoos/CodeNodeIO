@@ -705,7 +705,7 @@ class GraphNodeSerializationTest {
         val innerChild1 = CodeNode(
             id = "inner_child_1",
             name = "InnerSource",
-            codeNodeType = CodeNodeType.CUSTOM,
+            codeNodeType = CodeNodeType.TRANSFORMER,
             position = Node.Position(50.0, 50.0),
             inputPorts = emptyList(),
             outputPorts = listOf(
@@ -722,7 +722,7 @@ class GraphNodeSerializationTest {
         val innerChild2 = CodeNode(
             id = "inner_child_2",
             name = "InnerSink",
-            codeNodeType = CodeNodeType.CUSTOM,
+            codeNodeType = CodeNodeType.TRANSFORMER,
             position = Node.Position(200.0, 50.0),
             inputPorts = listOf(
                 Port(
@@ -770,7 +770,7 @@ class GraphNodeSerializationTest {
         val outerSource = CodeNode(
             id = "outer_source",
             name = "OuterSource",
-            codeNodeType = CodeNodeType.CUSTOM,
+            codeNodeType = CodeNodeType.TRANSFORMER,
             position = Node.Position(50.0, 50.0),
             inputPorts = emptyList(),
             outputPorts = listOf(

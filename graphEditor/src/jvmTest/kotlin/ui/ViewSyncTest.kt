@@ -38,7 +38,7 @@ class ViewSyncTest {
         val newNode = CodeNode(
             id = "node_new_123",
             name = "NewNode",
-            codeNodeType = CodeNodeType.CUSTOM,
+            codeNodeType = CodeNodeType.TRANSFORMER,
             description = "A new node",
             position = Node.Position(400.0, 200.0),
             inputPorts = listOf(
@@ -149,7 +149,7 @@ class ViewSyncTest {
         val newNode = CodeNode(
             id = "node_multi_123",
             name = "MultiOpNode",
-            codeNodeType = CodeNodeType.CUSTOM,
+            codeNodeType = CodeNodeType.TRANSFORMER,
             position = Node.Position(500.0, 400.0),
             inputPorts = emptyList(),
             outputPorts = emptyList()
@@ -217,7 +217,7 @@ class ViewSyncTest {
         val newNode = CodeNode(
             id = "node_metadata_123",
             name = "NewNode",
-            codeNodeType = CodeNodeType.CUSTOM,
+            codeNodeType = CodeNodeType.TRANSFORMER,
             position = Node.Position(100.0, 100.0),
             inputPorts = emptyList(),
             outputPorts = emptyList()
@@ -241,7 +241,7 @@ class ViewSyncTest {
         val firstNode = CodeNode(
             id = "node_first_123",
             name = "FirstNode",
-            codeNodeType = CodeNodeType.CUSTOM,
+            codeNodeType = CodeNodeType.TRANSFORMER,
             position = Node.Position(200.0, 200.0),
             inputPorts = emptyList(),
             outputPorts = emptyList()
@@ -263,7 +263,7 @@ class ViewSyncTest {
         val newNode = CodeNode(
             id = "node_undo_123",
             name = "UndoTestNode",
-            codeNodeType = CodeNodeType.CUSTOM,
+            codeNodeType = CodeNodeType.TRANSFORMER,
             position = Node.Position(300.0, 300.0),
             inputPorts = emptyList(),
             outputPorts = emptyList()

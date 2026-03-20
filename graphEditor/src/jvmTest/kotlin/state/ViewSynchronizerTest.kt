@@ -95,7 +95,7 @@ class ViewSynchronizerTest {
         val newNode = io.codenode.fbpdsl.model.CodeNode(
             id = "node_test_123",
             name = "NewNode",
-            codeNodeType = io.codenode.fbpdsl.model.CodeNodeType.CUSTOM,
+            codeNodeType = io.codenode.fbpdsl.model.CodeNodeType.TRANSFORMER,
             position = io.codenode.fbpdsl.model.Node.Position(100.0, 100.0),
             inputPorts = emptyList(),
             outputPorts = emptyList()
@@ -120,7 +120,7 @@ class ViewSynchronizerTest {
         val newNode = io.codenode.fbpdsl.model.CodeNode(
             id = "node_test_456",
             name = "AnotherNode",
-            codeNodeType = io.codenode.fbpdsl.model.CodeNodeType.CUSTOM,
+            codeNodeType = io.codenode.fbpdsl.model.CodeNodeType.TRANSFORMER,
             position = io.codenode.fbpdsl.model.Node.Position(200.0, 200.0),
             inputPorts = emptyList(),
             outputPorts = emptyList()

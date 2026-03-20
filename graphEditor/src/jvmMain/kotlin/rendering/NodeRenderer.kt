@@ -295,8 +295,6 @@ private fun getNodeTypeColor(nodeType: CodeNodeType): Color {
         CodeNodeType.SINK -> Color(0xFFF44336)  // Red - consumes data
         CodeNodeType.API_ENDPOINT -> Color(0xFF00BCD4)  // Cyan - API integration
         CodeNodeType.DATABASE -> Color(0xFF607D8B)  // Blue Grey - database ops
-        CodeNodeType.CUSTOM -> Color(0xFF9E9E9E)  // Grey - custom/user-defined
-        CodeNodeType.GENERIC -> Color(0xFF009688)  // Teal - generic configurable node
     }
 }
 

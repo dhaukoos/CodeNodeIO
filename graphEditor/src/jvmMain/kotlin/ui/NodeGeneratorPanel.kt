@@ -20,7 +20,7 @@ import androidx.compose.ui.unit.sp
 import io.codenode.grapheditor.viewmodel.NodeGeneratorViewModel
 import io.codenode.grapheditor.viewmodel.NodeGeneratorPanelState
 import io.codenode.grapheditor.viewmodel.PlacementLevel
-import io.codenode.fbpdsl.runtime.NodeCategory
+import io.codenode.fbpdsl.model.CodeNodeType
 
 /**
  * Node Generator panel composable for creating custom node types.
@@ -76,7 +76,7 @@ private fun NodeGeneratorPanelContent(
     onInputDropdownExpandedChange: (Boolean) -> Unit,
     onOutputDropdownExpandedChange: (Boolean) -> Unit,
     onAnyInputChange: (Boolean) -> Unit,
-    onCategoryChange: (NodeCategory) -> Unit,
+    onCategoryChange: (CodeNodeType) -> Unit,
     onCategoryDropdownExpandedChange: (Boolean) -> Unit,
     onLevelChange: (PlacementLevel) -> Unit,
     onLevelDropdownExpandedChange: (Boolean) -> Unit,
@@ -154,7 +154,7 @@ private fun NodeGeneratorPanelContent(
                         expanded = state.categoryDropdownExpanded,
                         onDismissRequest = { onCategoryDropdownExpandedChange(false) }
                     ) {
-                        NodeCategory.entries.forEach { cat ->
+                        CodeNodeType.entries.forEach { cat ->
                             DropdownMenuItem(
                                 onClick = {
                                     onCategoryChange(cat)

@@ -63,7 +63,7 @@ data class PropertiesPanelState(
     val onPortTypeChanged: ((String, String) -> Unit)? = null  // (portId, typeName)
 ) {
     /** Whether this is a generic node type */
-    val isGenericNode: Boolean get() = selectedNode?.codeNodeType == CodeNodeType.GENERIC
+    val isGenericNode: Boolean get() = selectedNode?.configuration?.containsKey("_genericType") == true
     /** Whether no node is selected */
     val isEmptyState: Boolean get() = selectedNode == null
 

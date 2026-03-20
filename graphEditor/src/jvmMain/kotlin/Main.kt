@@ -135,7 +135,7 @@ fun createSampleNodeTypes(): List<NodeTypeDefinition> {
         NodeTypeDefinition(
             id = "nodeType_source",
             name = "Data Source",
-            category = NodeTypeDefinition.NodeCategory.SERVICE,
+            category = CodeNodeType.SOURCE,
             description = "Sources or loads data into the flow",
             portTemplates = listOf(
                 PortTemplate(
@@ -164,7 +164,7 @@ fun createSampleNodeTypes(): List<NodeTypeDefinition> {
         NodeTypeDefinition(
             id = "nodeType_transformer",
             name = "Transform",
-            category = NodeTypeDefinition.NodeCategory.TRANSFORMER,
+            category = CodeNodeType.TRANSFORMER,
             description = "Transforms data from one format to another",
             portTemplates = listOf(
                 PortTemplate(
@@ -197,7 +197,7 @@ fun createSampleNodeTypes(): List<NodeTypeDefinition> {
         NodeTypeDefinition(
             id = "nodeType_filter",
             name = "Filter",
-            category = NodeTypeDefinition.NodeCategory.TRANSFORMER,
+            category = CodeNodeType.FILTER,
             description = "Filters data based on conditions",
             portTemplates = listOf(
                 PortTemplate(
@@ -239,7 +239,7 @@ fun createSampleNodeTypes(): List<NodeTypeDefinition> {
         NodeTypeDefinition(
             id = "nodeType_api",
             name = "API Call",
-            category = NodeTypeDefinition.NodeCategory.API_ENDPOINT,
+            category = CodeNodeType.API_ENDPOINT,
             description = "Makes HTTP API requests",
             portTemplates = listOf(
                 PortTemplate(
@@ -275,7 +275,7 @@ fun createSampleNodeTypes(): List<NodeTypeDefinition> {
         NodeTypeDefinition(
             id = "nodeType_database",
             name = "Database Query",
-            category = NodeTypeDefinition.NodeCategory.DATABASE,
+            category = CodeNodeType.DATABASE,
             description = "Executes database queries",
             portTemplates = listOf(
                 PortTemplate(
@@ -827,20 +827,10 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                             val nodeCount = graphState.flowGraph.rootNodes.size
                             val xOffset = 300.0 + (nodeCount % 3) * 150.0  // 3 nodes per row
                             val yOffset = 200.0 + (nodeCount / 3) * 100.0  // New row every 3 nodes
-                            // Map node category to CodeNodeType
-                            val mappedCodeNodeType = when (nodeType.category) {
-                                NodeTypeDefinition.NodeCategory.UI_COMPONENT -> CodeNodeType.SOURCE
-                                NodeTypeDefinition.NodeCategory.SERVICE -> CodeNodeType.TRANSFORMER
-                                NodeTypeDefinition.NodeCategory.TRANSFORMER -> CodeNodeType.TRANSFORMER
-                                NodeTypeDefinition.NodeCategory.VALIDATOR -> CodeNodeType.VALIDATOR
-                                NodeTypeDefinition.NodeCategory.API_ENDPOINT -> CodeNodeType.API_ENDPOINT
-                                NodeTypeDefinition.NodeCategory.DATABASE -> CodeNodeType.DATABASE
-                                NodeTypeDefinition.NodeCategory.GENERIC -> CodeNodeType.GENERIC
-                            }
                             val newNode = CodeNode(
                                 id = nodeId,
                                 name = nodeType.name,
-                                codeNodeType = mappedCodeNodeType,
+                                codeNodeType = nodeType.category,
                                 description = nodeType.description,
                                 position = io.codenode.fbpdsl.model.Node.Position(xOffset, yOffset),
                                 inputPorts = nodeType.getInputPortTemplates().map { template ->

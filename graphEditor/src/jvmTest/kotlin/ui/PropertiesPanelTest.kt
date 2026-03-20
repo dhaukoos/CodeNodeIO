@@ -300,7 +300,7 @@ class PropertiesPanelTest {
         val nodeTypeDef = NodeTypeDefinition(
             id = "nodeType_http",
             name = "HTTP Request",
-            category = NodeTypeDefinition.NodeCategory.API_ENDPOINT,
+            category = CodeNodeType.API_ENDPOINT,
             description = "HTTP client node",
             defaultConfiguration = mapOf(
                 "url" to "",

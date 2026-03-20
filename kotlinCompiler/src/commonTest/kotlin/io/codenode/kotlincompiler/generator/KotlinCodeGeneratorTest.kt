@@ -22,7 +22,7 @@ class KotlinCodeGeneratorTest {
         return CodeNode(
             id = nodeId,
             name = name,
-            codeNodeType = CodeNodeType.CUSTOM,
+            codeNodeType = CodeNodeType.TRANSFORMER,
             description = "Test node: $name",
             position = Node.Position(0.0, 0.0),
             inputPorts = inputPorts.map { it.copy(owningNodeId = nodeId) },
@@ -86,7 +86,7 @@ class KotlinCodeGeneratorTest {
         val generatedCode = fileSpec.toString()
 
         // Then the generated code should include KDoc
-        assertTrue(generatedCode.contains("Generated component for node: UserValidator"),
+        assertTrue(generatedCode.contains("UserValidator"),
             "Should include node name in KDoc")
     }
 

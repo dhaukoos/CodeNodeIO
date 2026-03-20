@@ -28,7 +28,7 @@ class AndroidCompilationTest {
         return CodeNode(
             id = nodeId,
             name = name,
-            codeNodeType = CodeNodeType.CUSTOM,
+            codeNodeType = CodeNodeType.TRANSFORMER,
             description = "Test node: $name",
             position = Node.Position(0.0, 0.0),
             inputPorts = inputPorts.map { it.copy(owningNodeId = nodeId) },

@@ -7,7 +7,7 @@ package io.codenode.stopwatch.nodes
 
 import io.codenode.fbpdsl.model.CodeNodeFactory
 import io.codenode.fbpdsl.runtime.CodeNodeDefinition
-import io.codenode.fbpdsl.runtime.NodeCategory
+import io.codenode.fbpdsl.model.CodeNodeType
 import io.codenode.fbpdsl.runtime.NodeRuntime
 import io.codenode.fbpdsl.runtime.PortSpec
 import io.codenode.stopwatch.StopWatchState
@@ -20,7 +20,7 @@ import io.codenode.stopwatch.StopWatchState
  */
 object DisplayReceiverCodeNode : CodeNodeDefinition {
     override val name = "DisplayReceiver"
-    override val category = NodeCategory.SINK
+    override val category = CodeNodeType.SINK
     override val description = "Displays seconds and minutes from timer processing"
     override val inputPorts = listOf(
         PortSpec("seconds", Int::class),

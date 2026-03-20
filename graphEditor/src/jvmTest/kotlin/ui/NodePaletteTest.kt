@@ -6,6 +6,7 @@
 
 package io.codenode.grapheditor.ui
 
+import io.codenode.fbpdsl.model.CodeNodeType
 import io.codenode.fbpdsl.model.NodeTypeDefinition
 import io.codenode.fbpdsl.model.Port
 import io.codenode.fbpdsl.model.PortTemplate
@@ -18,7 +19,7 @@ class NodePaletteTest {
             NodeTypeDefinition(
                 id = "test_generator",
                 name = "Data Generator",
-                category = NodeTypeDefinition.NodeCategory.SERVICE,
+                category = CodeNodeType.SOURCE,
                 description = "Generates test data",
                 portTemplates = listOf(
                     PortTemplate(
@@ -32,7 +33,7 @@ class NodePaletteTest {
             NodeTypeDefinition(
                 id = "test_transformer",
                 name = "Data Transformer",
-                category = NodeTypeDefinition.NodeCategory.TRANSFORMER,
+                category = CodeNodeType.TRANSFORMER,
                 description = "Transforms data",
                 portTemplates = listOf(
                     PortTemplate(
@@ -52,7 +53,7 @@ class NodePaletteTest {
             NodeTypeDefinition(
                 id = "test_api",
                 name = "API Endpoint",
-                category = NodeTypeDefinition.NodeCategory.API_ENDPOINT,
+                category = CodeNodeType.API_ENDPOINT,
                 description = "Makes API calls",
                 portTemplates = listOf(
                     PortTemplate(
@@ -82,9 +83,9 @@ class NodePaletteTest {
 
         // Then should have 3 different categories
         assertEquals(3, byCategory.size, "Should have 3 different categories")
-        assertTrue(byCategory.containsKey(NodeTypeDefinition.NodeCategory.SERVICE))
-        assertTrue(byCategory.containsKey(NodeTypeDefinition.NodeCategory.TRANSFORMER))
-        assertTrue(byCategory.containsKey(NodeTypeDefinition.NodeCategory.API_ENDPOINT))
+        assertTrue(byCategory.containsKey(CodeNodeType.SOURCE))
+        assertTrue(byCategory.containsKey(CodeNodeType.TRANSFORMER))
+        assertTrue(byCategory.containsKey(CodeNodeType.API_ENDPOINT))
     }
 
     @Test
@@ -125,19 +126,19 @@ class NodePaletteTest {
         val nodeTypes = createTestNodeTypes()
 
         // When filtering by category
-        val serviceNodes = nodeTypes.filter {
-            it.category == NodeTypeDefinition.NodeCategory.SERVICE
+        val sourceNodes = nodeTypes.filter {
+            it.category == CodeNodeType.SOURCE
         }
         val transformerNodes = nodeTypes.filter {
-            it.category == NodeTypeDefinition.NodeCategory.TRANSFORMER
+            it.category == CodeNodeType.TRANSFORMER
         }
         val apiNodes = nodeTypes.filter {
-            it.category == NodeTypeDefinition.NodeCategory.API_ENDPOINT
+            it.category == CodeNodeType.API_ENDPOINT
         }
 
         // Then filtering should work correctly
-        assertEquals(1, serviceNodes.size, "Should find 1 service node")
-        assertEquals("Data Generator", serviceNodes.first().name, "Should find Data Generator")
+        assertEquals(1, sourceNodes.size, "Should find 1 source node")
+        assertEquals("Data Generator", sourceNodes.first().name, "Should find Data Generator")
 
         assertEquals(1, transformerNodes.size, "Should find 1 transformer node")
         assertEquals("Data Transformer", transformerNodes.first().name, "Should find Data Transformer")

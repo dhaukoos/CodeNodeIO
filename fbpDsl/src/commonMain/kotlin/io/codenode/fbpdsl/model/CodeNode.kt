@@ -39,13 +39,7 @@ enum class CodeNodeType {
     API_ENDPOINT,
 
     /** Database operation */
-    DATABASE,
-
-    /** Custom/user-defined node type */
-    CUSTOM,
-
-    /** Generic node with configurable inputs/outputs (0-5 each) */
-    GENERIC;
+    DATABASE;
 
     /**
      * Returns a human-readable type name

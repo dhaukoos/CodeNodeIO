@@ -293,7 +293,10 @@ class PropertiesPanelViewModelTest {
     @Test
     fun `isGenericNode is set correctly for generic nodes`() = runTest {
         val viewModel = PropertiesPanelViewModel()
-        val genericNode = createTestNode(codeNodeType = CodeNodeType.GENERIC)
+        val genericNode = createTestNode(
+            codeNodeType = CodeNodeType.TRANSFORMER,
+            configuration = mapOf("_genericType" to "in1out1")
+        )
 
         viewModel.selectNode(genericNode)
 

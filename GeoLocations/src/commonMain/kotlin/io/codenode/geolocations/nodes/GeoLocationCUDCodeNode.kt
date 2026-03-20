@@ -7,7 +7,7 @@ package io.codenode.geolocations.nodes
 
 import io.codenode.fbpdsl.model.CodeNodeFactory
 import io.codenode.fbpdsl.runtime.CodeNodeDefinition
-import io.codenode.fbpdsl.runtime.NodeCategory
+import io.codenode.fbpdsl.model.CodeNodeType
 import io.codenode.fbpdsl.runtime.NodeRuntime
 import io.codenode.fbpdsl.runtime.PortSpec
 import io.codenode.fbpdsl.runtime.ProcessResult3
@@ -25,7 +25,7 @@ import kotlinx.coroutines.launch
  */
 object GeoLocationCUDCodeNode : CodeNodeDefinition {
     override val name = "GeoLocationCUD"
-    override val category = NodeCategory.SOURCE
+    override val category = CodeNodeType.SOURCE
     override val description = "Emits save, update, and remove operations for geo locations"
     override val inputPorts = emptyList<PortSpec>()
     override val outputPorts = listOf(

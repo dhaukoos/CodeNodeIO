@@ -280,7 +280,8 @@ class NodeBuilder(
             try {
                 CodeNodeType.valueOf(it.uppercase())
             } catch (e: IllegalArgumentException) {
-                CodeNodeType.CUSTOM
+                // Backward compatibility: map removed enum values to TRANSFORMER
+                CodeNodeType.TRANSFORMER
             }
         } ?: CodeNodeType.TRANSFORMER
 

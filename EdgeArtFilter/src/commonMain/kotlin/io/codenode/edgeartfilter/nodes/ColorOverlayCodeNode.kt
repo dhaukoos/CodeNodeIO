@@ -10,7 +10,7 @@ import io.codenode.edgeartfilter.createImageBitmapFromPixels
 import io.codenode.edgeartfilter.readPixelArray
 import io.codenode.fbpdsl.model.CodeNodeFactory
 import io.codenode.fbpdsl.runtime.CodeNodeDefinition
-import io.codenode.fbpdsl.runtime.NodeCategory
+import io.codenode.fbpdsl.model.CodeNodeType
 import io.codenode.fbpdsl.runtime.NodeRuntime
 import io.codenode.fbpdsl.runtime.PortSpec
 import kotlin.time.TimeSource
@@ -25,7 +25,7 @@ import kotlin.time.TimeSource
  */
 object ColorOverlayCodeNode : CodeNodeDefinition {
     override val name = "ColorOverlay"
-    override val category = NodeCategory.PROCESSOR
+    override val category = CodeNodeType.TRANSFORMER
     override val description = "Overlays neon cyan edges onto the original image"
     override val inputPorts = listOf(
         PortSpec("input1", ImageData::class),

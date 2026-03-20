@@ -20,6 +20,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import io.codenode.fbpdsl.model.CodeNodeType
 import io.codenode.fbpdsl.model.NodeTypeDefinition
 import io.codenode.grapheditor.viewmodel.NodePaletteViewModel
 import io.codenode.grapheditor.viewmodel.NodePaletteState
@@ -65,7 +66,7 @@ private fun NodePaletteContent(
     state: NodePaletteState,
     nodeTypes: List<NodeTypeDefinition>,
     onSearchQueryChange: (String) -> Unit,
-    onCategoryToggle: (NodeTypeDefinition.NodeCategory) -> Unit,
+    onCategoryToggle: (CodeNodeType) -> Unit,
     onNodeSelected: (NodeTypeDefinition) -> Unit,
     onNodeDeleted: (String) -> Unit,
     modifier: Modifier = Modifier
@@ -146,7 +147,7 @@ private fun NodePaletteContent(
  */
 @Composable
 private fun CategoryHeader(
-    category: NodeTypeDefinition.NodeCategory,
+    category: CodeNodeType,
     isExpanded: Boolean,
     onToggle: () -> Unit
 ) {

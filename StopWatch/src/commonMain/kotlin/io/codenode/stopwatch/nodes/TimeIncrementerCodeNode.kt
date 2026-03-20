@@ -7,7 +7,7 @@ package io.codenode.stopwatch.nodes
 
 import io.codenode.fbpdsl.model.CodeNodeFactory
 import io.codenode.fbpdsl.runtime.CodeNodeDefinition
-import io.codenode.fbpdsl.runtime.NodeCategory
+import io.codenode.fbpdsl.model.CodeNodeType
 import io.codenode.fbpdsl.runtime.NodeRuntime
 import io.codenode.fbpdsl.runtime.PortSpec
 import io.codenode.fbpdsl.runtime.ProcessResult2
@@ -22,7 +22,7 @@ import io.codenode.stopwatch.StopWatchState
  */
 object TimeIncrementerCodeNode : CodeNodeDefinition {
     override val name = "TimeIncrementer"
-    override val category = NodeCategory.PROCESSOR
+    override val category = CodeNodeType.TRANSFORMER
     override val description = "Increments seconds and rolls over to minutes at 60"
     override val inputPorts = listOf(
         PortSpec("elapsedSeconds", Int::class),

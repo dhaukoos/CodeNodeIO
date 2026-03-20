@@ -112,7 +112,7 @@ class PropertiesPanelViewModel(
                 properties = node.configuration,
                 originalNodeName = node.name,
                 originalProperties = node.configuration,
-                isGenericNode = node.codeNodeType == CodeNodeType.GENERIC
+                isGenericNode = node.configuration.containsKey("_genericType")
             )
         }
     }

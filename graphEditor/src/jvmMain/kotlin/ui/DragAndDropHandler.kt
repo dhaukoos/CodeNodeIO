@@ -216,16 +216,8 @@ fun createNodeFromType(nodeType: NodeTypeDefinition, position: Offset): CodeNode
     // Generate unique ID
     val nodeId = "node_${System.currentTimeMillis()}_${(0..9999).random()}"
 
-    // Map node category to CodeNodeType
-    val codeNodeType = when (nodeType.category) {
-        NodeTypeDefinition.NodeCategory.UI_COMPONENT -> CodeNodeType.SOURCE // UI is a source of events/data
-        NodeTypeDefinition.NodeCategory.SERVICE -> CodeNodeType.TRANSFORMER // Services transform data
-        NodeTypeDefinition.NodeCategory.TRANSFORMER -> CodeNodeType.TRANSFORMER
-        NodeTypeDefinition.NodeCategory.VALIDATOR -> CodeNodeType.VALIDATOR
-        NodeTypeDefinition.NodeCategory.API_ENDPOINT -> CodeNodeType.API_ENDPOINT
-        NodeTypeDefinition.NodeCategory.DATABASE -> CodeNodeType.DATABASE
-        NodeTypeDefinition.NodeCategory.GENERIC -> CodeNodeType.GENERIC // Generic configurable nodes
-    }
+    // Category is already CodeNodeType — no mapping needed
+    val codeNodeType = nodeType.category
 
     // Create input ports from templates
     val inputPorts = nodeType.getInputPortTemplates().map { template ->

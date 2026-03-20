@@ -7,7 +7,7 @@ package io.codenode.geolocations.nodes
 
 import io.codenode.fbpdsl.model.CodeNodeFactory
 import io.codenode.fbpdsl.runtime.CodeNodeDefinition
-import io.codenode.fbpdsl.runtime.NodeCategory
+import io.codenode.fbpdsl.model.CodeNodeType
 import io.codenode.fbpdsl.runtime.NodeRuntime
 import io.codenode.fbpdsl.runtime.PortSpec
 import io.codenode.geolocations.GeoLocationsState
@@ -20,7 +20,7 @@ import io.codenode.geolocations.GeoLocationsState
  */
 object GeoLocationsDisplayCodeNode : CodeNodeDefinition {
     override val name = "GeoLocationsDisplay"
-    override val category = NodeCategory.SINK
+    override val category = CodeNodeType.SINK
     override val description = "Displays result and error messages for geo location operations"
     override val inputPorts = listOf(
         PortSpec("result", Any::class),

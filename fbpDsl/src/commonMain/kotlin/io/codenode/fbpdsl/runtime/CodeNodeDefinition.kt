@@ -6,29 +6,11 @@
 
 package io.codenode.fbpdsl.runtime
 
-import io.codenode.fbpdsl.factory.createGenericNodeType
+import io.codenode.fbpdsl.model.CodeNodeType
 import io.codenode.fbpdsl.model.NodeTypeDefinition
 import io.codenode.fbpdsl.model.Port
 import io.codenode.fbpdsl.model.PortTemplate
 import kotlin.reflect.KClass
-
-/**
- * Category for self-contained node definitions.
- * Determines palette grouping, visual color coding, and expected port patterns.
- */
-enum class NodeCategory {
-    /** 0 inputs, 1+ outputs — emits data */
-    SOURCE,
-
-    /** 1 input, 1 output — transforms data */
-    TRANSFORMER,
-
-    /** 2+ inputs and/or 2+ outputs — processes data */
-    PROCESSOR,
-
-    /** 1+ inputs, 0 outputs — consumes data */
-    SINK
-}
 
 /**
  * Describes a single port on a node definition.
@@ -57,7 +39,7 @@ interface CodeNodeDefinition {
     val name: String
 
     /** Determines palette group, color coding, and runtime type */
-    val category: NodeCategory
+    val category: CodeNodeType
 
     /** Human-readable description shown in palette tooltip */
     val description: String?
@@ -99,13 +81,6 @@ interface CodeNodeDefinition {
      * @return NodeTypeDefinition with correct name, category, port templates
      */
     fun toNodeTypeDefinition(): NodeTypeDefinition {
-        val paletteCategory = when (category) {
-            NodeCategory.SOURCE -> NodeTypeDefinition.NodeCategory.UI_COMPONENT
-            NodeCategory.TRANSFORMER -> NodeTypeDefinition.NodeCategory.TRANSFORMER
-            NodeCategory.PROCESSOR -> NodeTypeDefinition.NodeCategory.TRANSFORMER
-            NodeCategory.SINK -> NodeTypeDefinition.NodeCategory.UI_COMPONENT
-        }
-
         val portTemplates = buildList {
             inputPorts.forEach { port ->
                 add(
@@ -132,12 +107,12 @@ interface CodeNodeDefinition {
         }
 
         val nodeDescription = description
-            ?: "${category.name.lowercase().replaceFirstChar { it.uppercase() }} node with ${inputPorts.size} input(s) and ${outputPorts.size} output(s)"
+            ?: "${category.typeName} node with ${inputPorts.size} input(s) and ${outputPorts.size} output(s)"
 
         return NodeTypeDefinition(
             id = name.lowercase().replace(" ", "_"),
             name = name,
-            category = paletteCategory,
+            category = category,
             description = nodeDescription,
             portTemplates = portTemplates,
             defaultConfiguration = mapOf(

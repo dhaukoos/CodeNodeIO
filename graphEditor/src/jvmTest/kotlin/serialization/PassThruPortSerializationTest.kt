@@ -253,7 +253,7 @@ class PassThruPortSerializationTest {
         val externalSource = CodeNode(
             id = "external_source",
             name = "ExternalSource",
-            codeNodeType = CodeNodeType.CUSTOM,
+            codeNodeType = CodeNodeType.TRANSFORMER,
             position = Node.Position(50.0, 100.0),
             inputPorts = emptyList(),
             outputPorts = listOf(
@@ -387,7 +387,7 @@ class PassThruPortSerializationTest {
         val externalSink = CodeNode(
             id = "external_sink",
             name = "ExternalSink",
-            codeNodeType = CodeNodeType.CUSTOM,
+            codeNodeType = CodeNodeType.TRANSFORMER,
             position = Node.Position(300.0, 100.0),
             inputPorts = listOf(
                 Port(

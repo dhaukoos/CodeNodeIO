@@ -54,7 +54,7 @@ class ConnectionSelectionTest {
         return CodeNode(
             id = id,
             name = name,
-            codeNodeType = CodeNodeType.CUSTOM,
+            codeNodeType = CodeNodeType.TRANSFORMER,
             position = Node.Position(x, y),
             inputPorts = inputPorts,
             outputPorts = outputPorts,
@@ -300,7 +300,7 @@ class ConnectionSelectionTest {
                 CodeNode(
                     id = node.id,
                     name = node.name,
-                    codeNodeType = CodeNodeType.CUSTOM,
+                    codeNodeType = CodeNodeType.TRANSFORMER,
                     position = node.position,
                     inputPorts = emptyList(),
                     outputPorts =
@@ -317,7 +317,7 @@ class ConnectionSelectionTest {
                 CodeNode(
                     id = node.id,
                     name = node.name,
-                    codeNodeType = CodeNodeType.CUSTOM,
+                    codeNodeType = CodeNodeType.TRANSFORMER,
                     position = node.position,
                     inputPorts =
                         listOf(

@@ -9,7 +9,7 @@ import io.codenode.edgeartfilter.EdgeArtFilterState
 import io.codenode.edgeartfilter.ImageData
 import io.codenode.fbpdsl.model.CodeNodeFactory
 import io.codenode.fbpdsl.runtime.CodeNodeDefinition
-import io.codenode.fbpdsl.runtime.NodeCategory
+import io.codenode.fbpdsl.model.CodeNodeType
 import io.codenode.fbpdsl.runtime.NodeRuntime
 import io.codenode.fbpdsl.runtime.PortSpec
 
@@ -20,7 +20,7 @@ import io.codenode.fbpdsl.runtime.PortSpec
  */
 object ImageViewerCodeNode : CodeNodeDefinition {
     override val name = "ImageViewer"
-    override val category = NodeCategory.SINK
+    override val category = CodeNodeType.SINK
     override val description = "Displays the processed image in the UI"
     override val inputPorts = listOf(PortSpec("input1", ImageData::class))
     override val outputPorts = emptyList<PortSpec>()

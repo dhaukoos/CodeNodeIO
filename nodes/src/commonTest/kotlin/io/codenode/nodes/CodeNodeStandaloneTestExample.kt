@@ -13,7 +13,7 @@
 
 package io.codenode.nodes
 
-import io.codenode.fbpdsl.runtime.NodeCategory
+import io.codenode.fbpdsl.model.CodeNodeType
 import io.codenode.fbpdsl.runtime.TransformerRuntime
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
@@ -37,7 +37,7 @@ class CodeNodeStandaloneTestExample {
         val def = Test3TransformerCodeNode
 
         assertEquals("Test3Transformer", def.name)
-        assertEquals(NodeCategory.TRANSFORMER, def.category)
+        assertEquals(CodeNodeType.TRANSFORMER, def.category)
         assertEquals(1, def.inputPorts.size)
         assertEquals(1, def.outputPorts.size)
         assertEquals("input1", def.inputPorts[0].name)

@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import io.codenode.fbpdsl.model.CodeNodeType
 import io.codenode.fbpdsl.model.NodeTypeDefinition
 
 /**
@@ -22,7 +23,7 @@ import io.codenode.fbpdsl.model.NodeTypeDefinition
  */
 data class NodePaletteState(
     val searchQuery: String = "",
-    val expandedCategories: Set<NodeTypeDefinition.NodeCategory> = emptySet()
+    val expandedCategories: Set<CodeNodeType> = emptySet()
 ) : BaseState
 
 /**
@@ -53,7 +54,7 @@ class NodePaletteViewModel : ViewModel() {
      *
      * @param category The category to toggle
      */
-    fun toggleCategory(category: NodeTypeDefinition.NodeCategory) {
+    fun toggleCategory(category: CodeNodeType) {
         _state.update { currentState ->
             val newExpanded = if (category in currentState.expandedCategories) {
                 currentState.expandedCategories - category
@@ -69,7 +70,7 @@ class NodePaletteViewModel : ViewModel() {
      *
      * @param category The category to expand
      */
-    fun expandCategory(category: NodeTypeDefinition.NodeCategory) {
+    fun expandCategory(category: CodeNodeType) {
         _state.update { currentState ->
             currentState.copy(expandedCategories = currentState.expandedCategories + category)
         }
@@ -80,7 +81,7 @@ class NodePaletteViewModel : ViewModel() {
      *
      * @param category The category to collapse
      */
-    fun collapseCategory(category: NodeTypeDefinition.NodeCategory) {
+    fun collapseCategory(category: CodeNodeType) {
         _state.update { currentState ->
             currentState.copy(expandedCategories = currentState.expandedCategories - category)
         }

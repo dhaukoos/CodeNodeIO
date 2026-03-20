@@ -30,7 +30,7 @@ package io.codenode.fbpdsl.model
  * val httpGetNodeType = NodeTypeDefinition(
  *     id = "nodeType_http_get",
  *     name = "HTTP GET Request",
- *     category = NodeCategory.API_ENDPOINT,
+ *     category = CodeNodeType.API_ENDPOINT,
  *     description = "Performs an HTTP GET request to a specified URL",
  *     portTemplates = listOf(
  *         PortTemplate("url", Port.Direction.INPUT, StringData::class, true),
@@ -49,39 +49,13 @@ package io.codenode.fbpdsl.model
 data class NodeTypeDefinition(
     val id: String,
     val name: String,
-    val category: NodeCategory,
+    val category: CodeNodeType,
     val description: String,
     val portTemplates: List<PortTemplate> = emptyList(),
     val defaultConfiguration: Map<String, String> = emptyMap(),
     val configurationSchema: String? = null,
     val codeTemplates: Map<String, String> = emptyMap()
 ) {
-    /**
-     * Category for organizing node types in the palette
-     */
-    enum class NodeCategory {
-        /** UI components (buttons, forms, displays) */
-        UI_COMPONENT,
-
-        /** Backend services (authentication, data processing) */
-        SERVICE,
-
-        /** Data transformation nodes (map, filter, format) */
-        TRANSFORMER,
-
-        /** Validation nodes (schema validation, business rules) */
-        VALIDATOR,
-
-        /** API endpoint nodes (REST, GraphQL, WebSocket) */
-        API_ENDPOINT,
-
-        /** Database operation nodes (query, insert, update) */
-        DATABASE,
-
-        /** Generic nodes with configurable inputs/outputs (0-5 each) */
-        GENERIC
-    }
-
     init {
         require(id.isNotBlank()) { "NodeTypeDefinition ID cannot be blank" }
         require(name.isNotBlank()) { "NodeTypeDefinition name cannot be blank" }
