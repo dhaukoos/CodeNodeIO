@@ -76,6 +76,7 @@ Auto-generated from all feature plans. Last updated: 2026-01-13
 - Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + kotlinx-coroutines 1.8.0, Compose Multiplatform 1.7.3, Room 2.8.4 (KMP), Koin 4.0.0 (053-codenode-flow-runtime)
 - Room (KMP) with BundledSQLiteDriver for entity modules; N/A for StopWatch (053-codenode-flow-runtime)
 - N/A (removes `~/.codenode/custom-nodes.json` dependency) (054-persist-codenode-metadata)
+- N/A (filesystem-based discovery of .kt source files) (055-filesystem-node-palette)
 
 - Kotlin 1.9+, Go 1.21+ (001-ide-plugin-platform)
 
@@ -95,9 +96,9 @@ tests/
 Kotlin 1.9+, Go 1.21+: Follow standard conventions
 
 ## Recent Changes
+- 055-filesystem-node-palette: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + Compose Desktop 1.7.3 + kotlinx-coroutines 1.8.0, kotlinx-serialization 1.6.0, lifecycle-viewmodel-compose 2.8.0
 - 054-persist-codenode-metadata: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + Compose Desktop 1.7.3, kotlinx-coroutines 1.8.0, kotlinx-serialization 1.6.0
 - 053-codenode-flow-runtime: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + kotlinx-coroutines 1.8.0, Compose Multiplatform 1.7.3, Room 2.8.4 (KMP), Koin 4.0.0
-- 052-migrate-module-runtimes: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + Compose Desktop 1.7.3, kotlinx-coroutines 1.8.0 (channels, StateFlow, select), kotlinx-serialization 1.6.0, lifecycle-viewmodel-compose 2.8.0, Room 2.8.4 (KMP), KSP 2.1.21-2.0.1, SQLite Bundled 2.6.2, Koin 4.0.0
 
 
 <!-- MANUAL ADDITIONS START -->
