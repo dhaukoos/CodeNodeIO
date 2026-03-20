@@ -120,7 +120,7 @@
 
 ### Implementation for User Story 2
 
-- [ ] T042 [US2] Verify search filtering in `graphEditor/src/jvmMain/kotlin/ui/NodePalette.kt` still works correctly with CodeNodeType grouping — the existing search logic should work unchanged since it filters on `NodeTypeDefinition.name` and `description` before grouping. Confirm that empty categories after filtering are hidden (only show categories with matching nodes).
+- [X] T042 [US2] Verify search filtering in `graphEditor/src/jvmMain/kotlin/ui/NodePalette.kt` still works correctly with CodeNodeType grouping — the existing search logic should work unchanged since it filters on `NodeTypeDefinition.name` and `description` before grouping. Confirm that empty categories after filtering are hidden (only show categories with matching nodes).
 
 **Checkpoint**: Search filtering works with the new CodeNodeType-based grouping.
 
@@ -134,11 +134,11 @@
 
 ### Implementation for User Story 5
 
-- [ ] T043 [US5] Update `NodeGeneratorViewModel` in `graphEditor/src/jvmMain/kotlin/viewmodel/NodeGeneratorViewModel.kt` — change `category` state field from `NodeCategory` to `CodeNodeType`, default to `CodeNodeType.TRANSFORMER`. Update `generateCodeNodeContent()` to emit `override val category = CodeNodeType.${category.name}` instead of `NodeCategory.${category.name}`. Update `generateRuntimeBlock()` parameter from `NodeCategory` to `CodeNodeType` and update the when-expression mapping for all 9 types.
+- [X] T043 [US5] Update `NodeGeneratorViewModel` in `graphEditor/src/jvmMain/kotlin/viewmodel/NodeGeneratorViewModel.kt` — change `category` state field from `NodeCategory` to `CodeNodeType`, default to `CodeNodeType.TRANSFORMER`. Update `generateCodeNodeContent()` to emit `override val category = CodeNodeType.${category.name}` instead of `NodeCategory.${category.name}`. Update `generateRuntimeBlock()` parameter from `NodeCategory` to `CodeNodeType` and update the when-expression mapping for all 9 types.
 
-- [ ] T044 [US5] Update `NodeGeneratorPanel` composable in `graphEditor/src/jvmMain/kotlin/ui/NodeGeneratorPanel.kt` — change category dropdown to iterate `CodeNodeType.entries` (9 values, always all shown). Update display formatting to use `CodeNodeType.typeName`. Update any `NodeCategory` references in the panel.
+- [X] T044 [US5] Update `NodeGeneratorPanel` composable in `graphEditor/src/jvmMain/kotlin/ui/NodeGeneratorPanel.kt` — change category dropdown to iterate `CodeNodeType.entries` (9 values, always all shown). Update display formatting to use `CodeNodeType.typeName`. Update any `NodeCategory` references in the panel.
 
-- [ ] T045 [US5] Verify generator creates nodes with correct CodeNodeType by manually testing: create a Filter node, confirm it appears under "Filter" category in palette.
+- [X] T045 [US5] Verify generator creates nodes with correct CodeNodeType by manually testing: create a Filter node, confirm it appears under "Filter" category in palette.
 
 **Checkpoint**: Generator shows all 9 CodeNodeType options. Generated nodes carry correct type and appear in palette.
 
@@ -152,7 +152,7 @@
 
 ### Implementation for User Story 3
 
-- [ ] T046 [US3] Verify filesystem-palette sync works — the existing discovery mechanism (`registry.discoverAll()` on launch) already rescans the filesystem each time. Removing a file means it won't be discovered on next launch. Test by deleting a template file from `nodes/` directory, relaunching graphEditor, and confirming the node is absent from the palette. No code changes expected — this is a verification task.
+- [X] T046 [US3] Verify filesystem-palette sync works — the existing discovery mechanism (`registry.discoverAll()` on launch) already rescans the filesystem each time. Removing a file means it won't be discovered on next launch. Test by deleting a template file from `nodes/` directory, relaunching graphEditor, and confirming the node is absent from the palette. No code changes expected — this is a verification task.
 
 **Checkpoint**: Filesystem removal correctly reflected in palette on relaunch.
 
@@ -166,7 +166,7 @@
 
 ### Implementation for User Story 4
 
-- [ ] T047 [US4] Verify templates are excluded — this is satisfied by T036 (removing `createSampleNodeTypes()` and `builtInNodeTypes`). Confirm the palette shows only nodes backed by actual CodeNodeDefinition files on disk. No additional code changes expected.
+- [X] T047 [US4] Verify templates are excluded — this is satisfied by T036 (removing `createSampleNodeTypes()` and `builtInNodeTypes`). Confirm the palette shows only nodes backed by actual CodeNodeDefinition files on disk. No additional code changes expected.
 
 **Checkpoint**: Palette is a pure reflection of filesystem CodeNodes. No templates or samples.
 
@@ -176,12 +176,12 @@
 
 **Purpose**: Final verification and cleanup across all stories.
 
-- [ ] T048 Run full test suite: `./gradlew :fbpDsl:jvmTest :graphEditor:jvmTest` and fix any remaining failures
-- [ ] T049 Search codebase for any remaining references to `NodeCategory` (excluding test comments/documentation) and remove: `grep -r "NodeCategory" --include="*.kt" fbpDsl/src/commonMain/ graphEditor/src/jvmMain/ StopWatch/ UserProfiles/ GeoLocations/ Addresses/ EdgeArtFilter/ nodes/`
-- [ ] T050 Search codebase for any remaining references to `NodeTypeDefinition.NodeCategory` and remove: `grep -r "NodeTypeDefinition.NodeCategory" --include="*.kt"`
-- [ ] T051 Search for references to `CodeNodeType.CUSTOM` or `CodeNodeType.GENERIC` and remove/update: `grep -r "CodeNodeType\.\(CUSTOM\|GENERIC\)" --include="*.kt"`
-- [ ] T052 Run quickstart.md validation steps 1-10 to verify all acceptance criteria
-- [ ] T053 Update any existing .flow.kts files that contain `nodeType = "GENERIC"` to use appropriate CodeNodeType value (check GeoLocations, Addresses, UserProfiles modules)
+- [X] T048 Run full test suite: `./gradlew :fbpDsl:jvmTest :graphEditor:jvmTest` and fix any remaining failures
+- [X] T049 Search codebase for any remaining references to `NodeCategory` (excluding test comments/documentation) and remove: `grep -r "NodeCategory" --include="*.kt" fbpDsl/src/commonMain/ graphEditor/src/jvmMain/ StopWatch/ UserProfiles/ GeoLocations/ Addresses/ EdgeArtFilter/ nodes/`
+- [X] T050 Search codebase for any remaining references to `NodeTypeDefinition.NodeCategory` and remove: `grep -r "NodeTypeDefinition.NodeCategory" --include="*.kt"`
+- [X] T051 Search for references to `CodeNodeType.CUSTOM` or `CodeNodeType.GENERIC` and remove/update: `grep -r "CodeNodeType\.\(CUSTOM\|GENERIC\)" --include="*.kt"`
+- [X] T052 Run quickstart.md validation steps 1-10 to verify all acceptance criteria
+- [X] T053 Update any existing .flow.kts files that contain `nodeType = "GENERIC"` to use appropriate CodeNodeType value (check GeoLocations, Addresses, UserProfiles modules)
 
 ---
 

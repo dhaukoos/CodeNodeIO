@@ -34,7 +34,7 @@ class EntityFlowGraphBuilder {
             targetPlatform(FlowGraph.TargetPlatform.KMP_ANDROID)
             targetPlatform(FlowGraph.TargetPlatform.KMP_IOS)
 
-            val repository = codeNode("${entityName}Repository", nodeType = "GENERIC") {
+            val repository = codeNode("${entityName}Repository") {
                 position(445.75, 398.0)
                 input("save", Any::class)
                 input("update", Any::class)
@@ -47,7 +47,7 @@ class EntityFlowGraphBuilder {
                 config("_sourceIPTypeName", entityName)
             }
 
-            val cud = codeNode("${entityName}CUD", nodeType = "GENERIC") {
+            val cud = codeNode("${entityName}CUD", nodeType = "SOURCE") {
                 position(118.0, 394.25)
                 output("save", Any::class)
                 output("update", Any::class)
@@ -57,7 +57,7 @@ class EntityFlowGraphBuilder {
                 config("_sourceIPTypeName", entityName)
             }
 
-            val display = codeNode("${pluralName}Display", nodeType = "GENERIC") {
+            val display = codeNode("${pluralName}Display", nodeType = "SINK") {
                 position(799.5, 398.0)
                 input("result", Any::class)
                 input("error", Any::class)

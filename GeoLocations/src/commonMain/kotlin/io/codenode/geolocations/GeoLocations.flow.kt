@@ -7,7 +7,7 @@ val geoLocationsFlowGraph = flowGraph("GeoLocations", version = "1.0.0") {
     targetPlatform(FlowGraph.TargetPlatform.KMP_ANDROID)
     targetPlatform(FlowGraph.TargetPlatform.KMP_IOS)
 
-    val geoLocationRepository = codeNode("GeoLocationRepository", nodeType = "GENERIC") {
+    val geoLocationRepository = codeNode("GeoLocationRepository") {
         position(445.75, 398.0)
         input("save", Any::class)
         input("update", Any::class)
@@ -16,14 +16,14 @@ val geoLocationsFlowGraph = flowGraph("GeoLocations", version = "1.0.0") {
         output("error", Any::class)
     }
 
-    val geoLocationCUD = codeNode("GeoLocationCUD", nodeType = "GENERIC") {
+    val geoLocationCUD = codeNode("GeoLocationCUD", nodeType = "SOURCE") {
         position(118.0, 394.25)
         output("save", Any::class)
         output("update", Any::class)
         output("remove", Any::class)
     }
 
-    val geoLocationsDisplay = codeNode("GeoLocationsDisplay", nodeType = "GENERIC") {
+    val geoLocationsDisplay = codeNode("GeoLocationsDisplay", nodeType = "SINK") {
         position(799.5, 398.0)
         input("result", Any::class)
         input("error", Any::class)

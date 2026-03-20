@@ -38,7 +38,7 @@ class FlowKtParser {
     )
 
     private val codeNodePattern = Regex(
-        """val\s+(\w+)\s*=\s*codeNode\s*\(\s*"([^"]+)"\s*,\s*nodeType\s*=\s*"?(\w+)"?\s*\)"""
+        """val\s+(\w+)\s*=\s*codeNode\s*\(\s*"([^"]+)"(?:\s*,\s*nodeType\s*=\s*"?(\w+)"?)?\s*\)"""
     )
 
     private val positionPattern = Regex(
@@ -224,7 +224,7 @@ class FlowKtParser {
         for (match in nodeMatches) {
             val varName = match.groupValues[1]
             val nodeName = match.groupValues[2]
-            val nodeTypeStr = match.groupValues[3]
+            val nodeTypeStr = match.groupValues[3].ifEmpty { "TRANSFORMER" }
 
             // Find the block for this node
             val nodeBlockStart = blockContent.indexOf("{", match.range.last)
@@ -393,6 +393,7 @@ class FlowKtParser {
         // Backward compatibility: map legacy enum names to current values
         val normalized = when (nodeTypeStr) {
             "GENERATOR" -> "SOURCE"
+            "GENERIC", "CUSTOM" -> "TRANSFORMER"
             else -> nodeTypeStr
         }
         return try {

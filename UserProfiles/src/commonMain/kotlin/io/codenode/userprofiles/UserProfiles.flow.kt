@@ -7,7 +7,7 @@ val userProfilesFlowGraph = flowGraph("UserProfiles", version = "1.0.0") {
     targetPlatform(FlowGraph.TargetPlatform.KMP_ANDROID)
     targetPlatform(FlowGraph.TargetPlatform.KMP_IOS)
 
-    val userProfileRepository = codeNode("UserProfileRepository", nodeType = "GENERIC") {
+    val userProfileRepository = codeNode("UserProfileRepository") {
         position(445.75, 398.0)
         input("save", UserProfile::class)
         input("update", UserProfile::class)
@@ -16,14 +16,14 @@ val userProfilesFlowGraph = flowGraph("UserProfiles", version = "1.0.0") {
         output("error", Any::class)
     }
 
-    val userProfileCUD = codeNode("UserProfileCUD", nodeType = "GENERIC") {
+    val userProfileCUD = codeNode("UserProfileCUD", nodeType = "SOURCE") {
         position(118.0, 394.25)
         output("save", UserProfile::class)
         output("update", UserProfile::class)
         output("remove", UserProfile::class)
     }
 
-    val userProfilesDisplay = codeNode("UserProfilesDisplay", nodeType = "GENERIC") {
+    val userProfilesDisplay = codeNode("UserProfilesDisplay", nodeType = "SINK") {
         position(799.5, 398.0)
         input("result", Any::class)
         input("error", Any::class)

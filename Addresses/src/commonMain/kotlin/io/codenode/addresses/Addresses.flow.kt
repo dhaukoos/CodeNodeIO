@@ -7,7 +7,7 @@ val addressesFlowGraph = flowGraph("Addresses", version = "1.0.0") {
     targetPlatform(FlowGraph.TargetPlatform.KMP_ANDROID)
     targetPlatform(FlowGraph.TargetPlatform.KMP_IOS)
 
-    val addressRepository = codeNode("AddressRepository", nodeType = "GENERIC") {
+    val addressRepository = codeNode("AddressRepository") {
         position(445.75, 398.0)
         input("save", Any::class)
         input("update", Any::class)
@@ -16,14 +16,14 @@ val addressesFlowGraph = flowGraph("Addresses", version = "1.0.0") {
         output("error", Any::class)
     }
 
-    val addressCUD = codeNode("AddressCUD", nodeType = "GENERIC") {
+    val addressCUD = codeNode("AddressCUD", nodeType = "SOURCE") {
         position(118.0, 394.25)
         output("save", Any::class)
         output("update", Any::class)
         output("remove", Any::class)
     }
 
-    val addressesDisplay = codeNode("AddressesDisplay", nodeType = "GENERIC") {
+    val addressesDisplay = codeNode("AddressesDisplay", nodeType = "SINK") {
         position(799.5, 398.0)
         input("result", Any::class)
         input("error", Any::class)

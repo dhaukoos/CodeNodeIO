@@ -7,7 +7,7 @@ val stopWatchFlowGraph = flowGraph("StopWatch", version = "1.0.0") {
     targetPlatform(FlowGraph.TargetPlatform.KMP_ANDROID)
     targetPlatform(FlowGraph.TargetPlatform.KMP_IOS)
 
-    val timeIncrementer = codeNode("TimeIncrementer", nodeType = "GENERIC") {
+    val timeIncrementer = codeNode("TimeIncrementer") {
         position(491.8232116699219, 310.4267578125)
         input("elapsedSeconds", Int::class)
         input("elapsedMinutes", Int::class)
@@ -18,7 +18,7 @@ val stopWatchFlowGraph = flowGraph("StopWatch", version = "1.0.0") {
         config("_genericType", "in2out2")
     }
 
-    val displayReceiver = codeNode("DisplayReceiver", nodeType = "GENERIC") {
+    val displayReceiver = codeNode("DisplayReceiver", nodeType = "SINK") {
         position(851.71142578125, 309.20318603515625)
         input("seconds", Int::class)
         input("minutes", Int::class)
@@ -27,7 +27,7 @@ val stopWatchFlowGraph = flowGraph("StopWatch", version = "1.0.0") {
         config("_genericType", "in2anyout0")
     }
 
-    val timerEmitter = codeNode("TimerEmitter", nodeType = "GENERIC") {
+    val timerEmitter = codeNode("TimerEmitter", nodeType = "SOURCE") {
         position(142.42677307128906, 309.8232116699219)
         output("elapsedSeconds", Int::class)
         output("elapsedMinutes", Int::class)

@@ -727,36 +727,21 @@ private fun PropertiesContent(
             portIPTypeNames = portIPTypeNames
         )
 
-        // Required Properties section for GENERIC nodes
-        if (state.isGenericNode) {
+        // CodeNodeType display
+        state.selectedNode?.let { node ->
             Divider(modifier = Modifier.padding(vertical = 4.dp))
 
-            Text(
-                text = "Required Properties",
-                fontSize = 11.sp,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colors.primary,
-                modifier = Modifier.padding(vertical = 4.dp)
+            PropertyEditorRow(
+                definition = PropertyDefinition(
+                    name = "Type",
+                    type = PropertyType.STRING,
+                    required = false,
+                    description = "CodeNode type category"
+                ),
+                value = node.codeNodeType.typeName,
+                error = null,
+                onValueChange = { /* read-only */ }
             )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // _genericType - display as read-only info
-            val genericTypeValue = state.properties["_genericType"] ?: ""
-            if (genericTypeValue.isNotBlank()) {
-                PropertyEditorRow(
-                    definition = PropertyDefinition(
-                        name = "Generic Type",
-                        type = PropertyType.STRING,
-                        required = false,
-                        description = "Port configuration type (e.g., in0out2, in2out0)"
-                    ),
-                    value = genericTypeValue,
-                    error = null,
-                    onValueChange = { onPropertyChange("_genericType", it) }
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-            }
         }
 
         Divider(modifier = Modifier.padding(vertical = 4.dp))

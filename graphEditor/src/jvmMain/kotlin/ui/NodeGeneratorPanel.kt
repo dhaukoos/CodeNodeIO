@@ -146,7 +146,7 @@ private fun NodeGeneratorPanelContent(
                         onClick = { onCategoryDropdownExpandedChange(true) },
                         modifier = Modifier.width(120.dp)
                     ) {
-                        Text(state.category.name.lowercase().replaceFirstChar { it.uppercase() }, fontSize = 12.sp)
+                        Text(state.category.typeName, fontSize = 12.sp)
                         Spacer(Modifier.weight(1f))
                         Text("▼", fontSize = 10.sp)
                     }
@@ -161,7 +161,7 @@ private fun NodeGeneratorPanelContent(
                                     onCategoryDropdownExpandedChange(false)
                                 }
                             ) {
-                                Text(cat.name.lowercase().replaceFirstChar { it.uppercase() })
+                                Text(cat.typeName)
                             }
                         }
                     }
