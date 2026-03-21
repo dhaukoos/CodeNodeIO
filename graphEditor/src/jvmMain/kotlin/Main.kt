@@ -261,7 +261,6 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
     var selectedIPType by remember { mutableStateOf<InformationPacketType?>(null) }
     var showOpenDialog by remember { mutableStateOf(false) }
     var showModuleSaveDialog by remember { mutableStateOf(false) }
-    var regenerateStubsOnSave by remember { mutableStateOf(false) }
     var showFlowGraphPropertiesDialog by remember { mutableStateOf(false) }
     val saveLocationRegistry = remember { mutableMapOf<String, File>() }
     var statusMessage by remember { mutableStateOf("Ready - Create a new graph or open an existing one") }
@@ -492,10 +491,6 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                 },
                 onOpen = { showOpenDialog = true },
                 onSave = { showModuleSaveDialog = true },
-                onSaveWithRegen = {
-                    regenerateStubsOnSave = true
-                    showModuleSaveDialog = true
-                },
                 onUndo = {
                     if (undoRedoManager.undo(graphState)) {
                         statusMessage = "Undo: ${undoRedoManager.getRedoDescription() ?: "action"}"
@@ -1140,7 +1135,6 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                 }
 
                 if (outputDir != null) {
-                    val shouldRegenerate = regenerateStubsOnSave
                     // Build IP type properties map for repository code generation
                     val ipTypePropertiesMap = buildMap {
                         for (ipTypeId in ipTypeRepository.getEntityModuleIPTypeIds()) {
@@ -1171,7 +1165,6 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                     val result = moduleSaveService.saveModule(
                         flowGraph = graphState.flowGraph,
                         outputDir = outputDir,
-                        regenerateStubs = shouldRegenerate,
                         ipTypeProperties = ipTypePropertiesMap,
                         ipTypeNames = ipTypeNamesMap,
                         codeNodeClassLookup = { nodeName ->
@@ -1186,13 +1179,11 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                         val created = result.filesCreated.size
                         val overwritten = result.filesOverwritten.size
                         val deleted = result.filesDeleted.size
-                        val suffix = if (shouldRegenerate) " (stubs regenerated)" else ""
-                        statusMessage = "Saved to ${result.moduleDir?.name}: $created created, $overwritten overwritten, $deleted deleted$suffix"
+                        statusMessage = "Saved to ${result.moduleDir?.name}: $created created, $overwritten overwritten, $deleted deleted"
                     } else {
                         statusMessage = "Save error: ${result.errorMessage}"
                     }
                 }
-                regenerateStubsOnSave = false
                 showModuleSaveDialog = false
             }
         }
@@ -1305,7 +1296,6 @@ fun TopToolbar(
     onNew: () -> Unit,
     onOpen: () -> Unit,
     onSave: () -> Unit,
-    onSaveWithRegen: () -> Unit = {},
     onUndo: () -> Unit,
     onRedo: () -> Unit,
     onGroup: () -> Unit = {},
@@ -1394,13 +1384,6 @@ fun TopToolbar(
                 colors = ButtonDefaults.textButtonColors(contentColor = Color.White)
             ) {
                 Text("Save")
-            }
-
-            TextButton(
-                onClick = onSaveWithRegen,
-                colors = ButtonDefaults.textButtonColors(contentColor = Color(0xFFFFEB3B))
-            ) {
-                Text("Save + Regen Stubs")
             }
 
             Divider(

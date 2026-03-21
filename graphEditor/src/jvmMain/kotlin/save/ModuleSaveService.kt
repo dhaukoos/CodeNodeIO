@@ -86,14 +86,10 @@ class ModuleSaveService {
      * added nodes, orphaned stubs are deleted for removed nodes, and the ViewModel's
      * Module Properties section is selectively regenerated while preserving user code.
      *
-     * When [regenerateStubs] is true, ProcessingLogic stubs are selectively regenerated
-     * (boilerplate updated with current port names/types while preserving the lambda body).
-     *
      * @param flowGraph The flow graph to save
      * @param outputDir Parent directory where the module will be created
      * @param packageName Package name for generated code (default: io.codenode.{modulename})
      * @param moduleName Module name (default: derived from FlowGraph name)
-     * @param regenerateStubs When true, regenerate stub files with updated boilerplate
      * @return ModuleSaveResult with success status, module directory, and file tracking
      */
     fun saveModule(
@@ -101,7 +97,6 @@ class ModuleSaveService {
         outputDir: File,
         packageName: String? = null,
         moduleName: String? = null,
-        regenerateStubs: Boolean = false,
         ipTypeProperties: Map<String, List<EntityProperty>> = emptyMap(),
         ipTypeNames: Map<String, String> = emptyMap(),
         codeNodeClassLookup: (String) -> String? = { null }
