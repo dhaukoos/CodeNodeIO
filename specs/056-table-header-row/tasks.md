@@ -65,7 +65,7 @@
 
 **Independent Test**: Generate a new Repository Module from an IP Type with 3+ properties. Verify generated `{entity}s.kt` contains HeaderRow composable. Verify generated `{entity}Row.kt` has value-only display.
 
-- [ ] T009 [US2] Manually verify code generator output by reviewing `EntityUIGenerator.generateListView()` and `EntityUIGenerator.generateRowView()` output for a sample 3-property entity spec — confirm HeaderRow composable present and row values have no inline labels
+- [X] T009 [US2] Manually verify code generator output by reviewing `EntityUIGenerator.generateListView()` and `EntityUIGenerator.generateRowView()` output for a sample 3-property entity spec — confirm HeaderRow composable present and row values have no inline labels
 
 **Checkpoint**: Code generator confirmed to produce correct HeaderRow pattern for new modules.
 
@@ -73,8 +73,8 @@
 
 ## Phase 5: Polish & Cross-Cutting Concerns
 
-- [ ] T010 Build the project to verify all changes compile in `graphEditor` module via `./gradlew :graphEditor:build`
-- [ ] T011 Run runtime preview for each existing module (Addresses, GeoLocations, UserProfiles) to verify visual alignment between header and data row columns
+- [X] T010 Build the project to verify all changes compile in `graphEditor` module via `./gradlew :graphEditor:build`
+- [X] T011 Run runtime preview for each existing module (Addresses, GeoLocations, UserProfiles) to verify visual alignment between header and data row columns
 
 ---
 
