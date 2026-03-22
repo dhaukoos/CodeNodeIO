@@ -34,24 +34,24 @@ fun AddressRow(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
-            text = "Street: ${item.Street}",
+            text = "${item.Street}",
             style = MaterialTheme.typography.bodyMedium,
             modifier = Modifier.weight(1f)
         )
         Text(
-            text = "City: ${item.City}",
+            text = "${item.City}",
             style = MaterialTheme.typography.bodyMedium,
-            modifier = Modifier.padding(horizontal = 8.dp)
+            modifier = Modifier.weight(1f).padding(horizontal = 8.dp)
         )
         Text(
-            text = "State: ${item.State}",
+            text = "${item.State}",
             style = MaterialTheme.typography.bodyMedium,
-            modifier = Modifier.padding(horizontal = 8.dp)
+            modifier = Modifier.weight(1f).padding(horizontal = 8.dp)
         )
         Text(
-            text = "Zip: ${item.Zip}",
+            text = "${item.Zip}",
             style = MaterialTheme.typography.bodyMedium,
-            modifier = Modifier.padding(horizontal = 8.dp)
+            modifier = Modifier.weight(1f).padding(horizontal = 8.dp)
         )
     }
 }

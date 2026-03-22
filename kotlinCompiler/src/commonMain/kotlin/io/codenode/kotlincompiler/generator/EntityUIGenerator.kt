@@ -41,6 +41,7 @@ class EntityUIGenerator {
             appendLine("import androidx.compose.foundation.lazy.items")
             appendLine("import androidx.compose.material3.AlertDialog")
             appendLine("import androidx.compose.material3.Button")
+            appendLine("import androidx.compose.material3.Divider")
             appendLine("import androidx.compose.material3.MaterialTheme")
             appendLine("import androidx.compose.material3.Text")
             appendLine("import androidx.compose.material3.TextButton")
@@ -106,6 +107,10 @@ class EntityUIGenerator {
             appendLine("            style = MaterialTheme.typography.headlineMedium,")
             appendLine("            modifier = Modifier.padding(bottom = 16.dp)")
             appendLine("        )")
+            appendLine()
+            appendLine("        // Header row")
+            appendLine("        ${entityName}HeaderRow()")
+            appendLine("        Divider()")
             appendLine()
             appendLine("        // List or empty state")
             appendLine("        Box(modifier = Modifier.weight(1f)) {")
@@ -175,6 +180,29 @@ class EntityUIGenerator {
             appendLine("                }")
             appendLine("            )")
             appendLine("        }")
+            appendLine("    }")
+            appendLine("}")
+            appendLine()
+
+            // Generate HeaderRow composable
+            appendLine("@Composable")
+            appendLine("private fun ${entityName}HeaderRow() {")
+            appendLine("    Row(")
+            appendLine("        modifier = Modifier")
+            appendLine("            .fillMaxWidth()")
+            appendLine("            .padding(horizontal = 16.dp, vertical = 12.dp),")
+            appendLine("        horizontalArrangement = Arrangement.SpaceBetween,")
+            appendLine("        verticalAlignment = Alignment.CenterVertically")
+            appendLine("    ) {")
+
+            for ((index, prop) in spec.properties.withIndex()) {
+                val weight = if (index == 0) "\n            modifier = Modifier.weight(1f)" else "\n            modifier = Modifier.weight(1f).padding(horizontal = 8.dp)"
+                appendLine("        Text(")
+                appendLine("            text = \"${prop.name}\",")
+                appendLine("            style = MaterialTheme.typography.labelLarge,$weight")
+                appendLine("        )")
+            }
+
             appendLine("    }")
             appendLine("}")
         }
@@ -424,38 +452,25 @@ class EntityUIGenerator {
             appendLine("        verticalAlignment = Alignment.CenterVertically")
             appendLine("    ) {")
 
-            // Display each property
+            // Display each property value (no labels — HeaderRow provides column names)
             for ((index, prop) in spec.properties.withIndex()) {
-                val weight = if (index == 0) "\n            modifier = Modifier.weight(1f)" else "\n            modifier = Modifier.padding(horizontal = 8.dp)"
+                val weight = if (index == 0) "\n            modifier = Modifier.weight(1f)" else "\n            modifier = Modifier.weight(1f).padding(horizontal = 8.dp)"
                 when (prop.kotlinType) {
                     "Boolean" -> {
                         appendLine("        Text(")
-                        appendLine("            text = if (item.${prop.name}) \"${prop.name}: Yes\" else \"${prop.name}: No\",")
+                        appendLine("            text = if (item.${prop.name}) \"Yes\" else \"No\",")
                         appendLine("            style = MaterialTheme.typography.bodyMedium,$weight")
                         appendLine("        )")
-                    }
-                    "Double" -> {
-                        if (prop.isRequired) {
-                            appendLine("        Text(")
-                            appendLine("            text = \"${prop.name}: \${item.${prop.name}}\",")
-                            appendLine("            style = MaterialTheme.typography.bodyMedium,$weight")
-                            appendLine("        )")
-                        } else {
-                            appendLine("        Text(")
-                            appendLine("            text = \"${prop.name}: \${item.${prop.name} ?: \"N/A\"}\",")
-                            appendLine("            style = MaterialTheme.typography.bodyMedium,$weight")
-                            appendLine("        )")
-                        }
                     }
                     else -> {
                         if (prop.isRequired) {
                             appendLine("        Text(")
-                            appendLine("            text = \"${prop.name}: \${item.${prop.name}}\",")
+                            appendLine("            text = \"\${item.${prop.name}}\",")
                             appendLine("            style = MaterialTheme.typography.bodyMedium,$weight")
                             appendLine("        )")
                         } else {
                             appendLine("        Text(")
-                            appendLine("            text = \"${prop.name}: \${item.${prop.name} ?: \"N/A\"}\",")
+                            appendLine("            text = \"\${item.${prop.name} ?: \"\u2014\"}\",")
                             appendLine("            style = MaterialTheme.typography.bodyMedium,$weight")
                             appendLine("        )")
                         }

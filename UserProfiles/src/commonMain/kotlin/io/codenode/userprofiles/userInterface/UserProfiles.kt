@@ -13,6 +13,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.Divider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -47,17 +48,18 @@ fun UserProfileRow(
     ) {
         Text(
             text = profile.name,
-            style = MaterialTheme.typography.bodyLarge,
+            style = MaterialTheme.typography.bodyMedium,
             modifier = Modifier.weight(1f)
         )
         Text(
-            text = "Age: ${profile.age ?: "N/A"}",
+            text = "${profile.age ?: "\u2014"}",
             style = MaterialTheme.typography.bodyMedium,
-            modifier = Modifier.padding(horizontal = 8.dp)
+            modifier = Modifier.weight(1f).padding(horizontal = 8.dp)
         )
         Text(
-            text = if (profile.isActive) "Active" else "Inactive",
-            style = MaterialTheme.typography.bodyMedium
+            text = if (profile.isActive) "Yes" else "No",
+            style = MaterialTheme.typography.bodyMedium,
+            modifier = Modifier.weight(1f).padding(horizontal = 8.dp)
         )
     }
 }
@@ -117,6 +119,10 @@ fun UserProfiles(
             style = MaterialTheme.typography.headlineMedium,
             modifier = Modifier.padding(bottom = 16.dp)
         )
+
+        // Header row
+        UserProfileHeaderRow()
+        Divider()
 
         // Profile list or empty state
         Box(modifier = Modifier.weight(1f)) {
@@ -186,5 +192,32 @@ fun UserProfiles(
                 }
             )
         }
+    }
+}
+
+@Composable
+private fun UserProfileHeaderRow() {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = "Name",
+            style = MaterialTheme.typography.labelLarge,
+            modifier = Modifier.weight(1f)
+        )
+        Text(
+            text = "Age",
+            style = MaterialTheme.typography.labelLarge,
+            modifier = Modifier.weight(1f).padding(horizontal = 8.dp)
+        )
+        Text(
+            text = "Active",
+            style = MaterialTheme.typography.labelLarge,
+            modifier = Modifier.weight(1f).padding(horizontal = 8.dp)
+        )
     }
 }

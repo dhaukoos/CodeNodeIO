@@ -34,19 +34,19 @@ fun GeoLocationRow(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
-            text = "name: ${item.name}",
+            text = "${item.name}",
             style = MaterialTheme.typography.bodyMedium,
             modifier = Modifier.weight(1f)
         )
         Text(
-            text = "lat: ${item.lat}",
+            text = "${item.lat}",
             style = MaterialTheme.typography.bodyMedium,
-            modifier = Modifier.padding(horizontal = 8.dp)
+            modifier = Modifier.weight(1f).padding(horizontal = 8.dp)
         )
         Text(
-            text = "lon: ${item.lon}",
+            text = "${item.lon}",
             style = MaterialTheme.typography.bodyMedium,
-            modifier = Modifier.padding(horizontal = 8.dp)
+            modifier = Modifier.weight(1f).padding(horizontal = 8.dp)
         )
     }
 }

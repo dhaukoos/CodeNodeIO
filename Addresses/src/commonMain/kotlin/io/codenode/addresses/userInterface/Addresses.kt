@@ -11,6 +11,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.Divider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -76,6 +77,10 @@ fun Addresses(
             style = MaterialTheme.typography.headlineMedium,
             modifier = Modifier.padding(bottom = 16.dp)
         )
+
+        // Header row
+        AddressHeaderRow()
+        Divider()
 
         // List or empty state
         Box(modifier = Modifier.weight(1f)) {
@@ -145,5 +150,37 @@ fun Addresses(
                 }
             )
         }
+    }
+}
+
+@Composable
+private fun AddressHeaderRow() {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = "Street",
+            style = MaterialTheme.typography.labelLarge,
+            modifier = Modifier.weight(1f)
+        )
+        Text(
+            text = "City",
+            style = MaterialTheme.typography.labelLarge,
+            modifier = Modifier.weight(1f).padding(horizontal = 8.dp)
+        )
+        Text(
+            text = "State",
+            style = MaterialTheme.typography.labelLarge,
+            modifier = Modifier.weight(1f).padding(horizontal = 8.dp)
+        )
+        Text(
+            text = "Zip",
+            style = MaterialTheme.typography.labelLarge,
+            modifier = Modifier.weight(1f).padding(horizontal = 8.dp)
+        )
     }
 }

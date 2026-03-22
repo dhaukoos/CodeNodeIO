@@ -27,8 +27,8 @@
 
 **Purpose**: Update the code generator so it produces the HeaderRow pattern for all future modules. This must be done first so that US3 (existing module refactoring) follows the same pattern the generator will produce.
 
-- [ ] T001 Update `generateListView()` to emit a `{Entity}HeaderRow` composable definition and invoke it above the list/empty-state Box in `kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/EntityUIGenerator.kt`
-- [ ] T002 Update `generateRowView()` to remove `"${prop.name}: "` label prefixes from all Text values, display values only, use `"—"` for nullable nulls, and display `"Yes"`/`"No"` for booleans without label in `kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/EntityUIGenerator.kt`
+- [X] T001 Update `generateListView()` to emit a `{Entity}HeaderRow` composable definition and invoke it above the list/empty-state Box in `kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/EntityUIGenerator.kt`
+- [X] T002 Update `generateRowView()` to remove `"${prop.name}: "` label prefixes from all Text values, display values only, use `"—"` for nullable nulls, and display `"Yes"`/`"No"` for booleans without label in `kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/EntityUIGenerator.kt`
 
 **Checkpoint**: Code generator now produces HeaderRow + value-only rows for any new entity module.
 
@@ -42,18 +42,18 @@
 
 ### Addresses Module
 
-- [ ] T003 [P] [US1] Add `AddressHeaderRow` composable and invoke it above the list Box in `Addresses/src/commonMain/kotlin/io/codenode/addresses/userInterface/Addresses.kt`
-- [ ] T004 [P] [US1] Remove `"Street: "`, `"City: "`, `"State: "`, `"Zip: "` label prefixes from Text values in `Addresses/src/commonMain/kotlin/io/codenode/addresses/userInterface/AddressRow.kt`
+- [X] T003 [P] [US1] Add `AddressHeaderRow` composable and invoke it above the list Box in `Addresses/src/commonMain/kotlin/io/codenode/addresses/userInterface/Addresses.kt`
+- [X] T004 [P] [US1] Remove `"Street: "`, `"City: "`, `"State: "`, `"Zip: "` label prefixes from Text values in `Addresses/src/commonMain/kotlin/io/codenode/addresses/userInterface/AddressRow.kt`
 
 ### GeoLocations Module
 
-- [ ] T005 [P] [US1] Add `GeoLocationHeaderRow` composable and invoke it above the list Box in `GeoLocations/src/commonMain/kotlin/io/codenode/geolocations/userInterface/GeoLocations.kt`
-- [ ] T006 [P] [US1] Remove `"name: "`, `"lat: "`, `"lon: "` label prefixes from Text values in `GeoLocations/src/commonMain/kotlin/io/codenode/geolocations/userInterface/GeoLocationRow.kt`
+- [X] T005 [P] [US1] Add `GeoLocationHeaderRow` composable and invoke it above the list Box in `GeoLocations/src/commonMain/kotlin/io/codenode/geolocations/userInterface/GeoLocations.kt`
+- [X] T006 [P] [US1] Remove `"name: "`, `"lat: "`, `"lon: "` label prefixes from Text values in `GeoLocations/src/commonMain/kotlin/io/codenode/geolocations/userInterface/GeoLocationRow.kt`
 
 ### UserProfiles Module
 
-- [ ] T007 [P] [US1] Add `UserProfileHeaderRow` composable and invoke it above the list Box in `UserProfiles/src/commonMain/kotlin/io/codenode/userprofiles/userInterface/UserProfiles.kt`
-- [ ] T008 [P] [US1] Remove `"Age: "` label prefix from UserProfileRow, keep name as-is (already no label), change `"Active"/"Inactive"` display to `"Yes"/"No"` for consistency in `UserProfiles/src/commonMain/kotlin/io/codenode/userprofiles/userInterface/UserProfiles.kt`
+- [X] T007 [P] [US1] Add `UserProfileHeaderRow` composable and invoke it above the list Box in `UserProfiles/src/commonMain/kotlin/io/codenode/userprofiles/userInterface/UserProfiles.kt`
+- [X] T008 [P] [US1] Remove `"Age: "` label prefix from UserProfileRow, keep name as-is (already no label), change `"Active"/"Inactive"` display to `"Yes"/"No"` for consistency in `UserProfiles/src/commonMain/kotlin/io/codenode/userprofiles/userInterface/UserProfiles.kt`
 
 **Checkpoint**: All three existing modules display header row + value-only data rows in runtime preview.
 
