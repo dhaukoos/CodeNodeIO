@@ -232,6 +232,7 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
         registry.scanDirectory(projectRoot.resolve("UserProfiles/src/commonMain/kotlin/io/codenode/userprofiles/nodes"))
         registry.scanDirectory(projectRoot.resolve("GeoLocations/src/commonMain/kotlin/io/codenode/geolocations/nodes"))
         registry.scanDirectory(projectRoot.resolve("Addresses/src/commonMain/kotlin/io/codenode/addresses/nodes"))
+        registry.scanDirectory(projectRoot.resolve("WeatherForecast/src/commonMain/kotlin/io/codenode/weatherforecast/nodes"))
         // T018: Make registry available for runtime node resolution
         ModuleSessionFactory.registry = registry
         registryVersion++
@@ -265,6 +266,73 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
             )
             ipTypeRegistry.registerCustomType(imageDataType)
             ipTypeRepository.add(imageDataType)
+        }
+
+        // Register WeatherForecast custom IP types
+        if (!ipTypeRegistry.contains("ip_coordinates")) {
+            val coordinatesType = CustomIPTypeDefinition(
+                id = "ip_coordinates",
+                typeName = "Coordinates",
+                properties = listOf(
+                    IPProperty("latitude", "ip_double"),
+                    IPProperty("longitude", "ip_double")
+                ),
+                color = IPColor(0, 150, 136) // Teal
+            )
+            ipTypeRegistry.registerCustomType(coordinatesType)
+            ipTypeRepository.add(coordinatesType)
+        }
+        if (!ipTypeRegistry.contains("ip_httpresponse")) {
+            val httpResponseType = CustomIPTypeDefinition(
+                id = "ip_httpresponse",
+                typeName = "HttpResponse",
+                properties = listOf(
+                    IPProperty("statusCode", "ip_int"),
+                    IPProperty("body", "ip_string")
+                ),
+                color = IPColor(255, 152, 0) // Orange
+            )
+            ipTypeRegistry.registerCustomType(httpResponseType)
+            ipTypeRepository.add(httpResponseType)
+        }
+        if (!ipTypeRegistry.contains("ip_forecastdata")) {
+            val forecastDataType = CustomIPTypeDefinition(
+                id = "ip_forecastdata",
+                typeName = "ForecastData",
+                properties = listOf(
+                    IPProperty("dates", "ip_string"),
+                    IPProperty("maxTemps", "ip_string"),
+                    IPProperty("minTemps", "ip_string")
+                ),
+                color = IPColor(33, 150, 243) // Blue
+            )
+            ipTypeRegistry.registerCustomType(forecastDataType)
+            ipTypeRepository.add(forecastDataType)
+        }
+        if (!ipTypeRegistry.contains("ip_forecastdisplaylist")) {
+            val forecastDisplayListType = CustomIPTypeDefinition(
+                id = "ip_forecastdisplaylist",
+                typeName = "ForecastDisplayList",
+                properties = listOf(
+                    IPProperty("entries", "ip_string")
+                ),
+                color = IPColor(76, 175, 80) // Green
+            )
+            ipTypeRegistry.registerCustomType(forecastDisplayListType)
+            ipTypeRepository.add(forecastDisplayListType)
+        }
+        if (!ipTypeRegistry.contains("ip_forecastchartdata")) {
+            val forecastChartDataType = CustomIPTypeDefinition(
+                id = "ip_forecastchartdata",
+                typeName = "ForecastChartData",
+                properties = listOf(
+                    IPProperty("labels", "ip_string"),
+                    IPProperty("values", "ip_string")
+                ),
+                color = IPColor(156, 39, 176) // Purple
+            )
+            ipTypeRegistry.registerCustomType(forecastChartDataType)
+            ipTypeRepository.add(forecastChartDataType)
         }
 
         ipTypesVersion++

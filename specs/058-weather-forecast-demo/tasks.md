@@ -17,11 +17,11 @@
 
 **Purpose**: Project initialization, module structure, and Ktor Client dependencies
 
-- [ ] T001 Create WeatherForecast module directory structure and `WeatherForecast/build.gradle.kts` with KMP config, Ktor Client dependencies (ktor-client-core, ktor-client-cio, ktor-client-content-negotiation, ktor-serialization-kotlinx-json), Compose, kotlinx-serialization, and lifecycle-viewmodel-compose — following StopWatch/build.gradle.kts pattern
-- [ ] T002 Add `include(":WeatherForecast")` to `settings.gradle.kts` and add `implementation(project(":WeatherForecast"))` dependency to `graphEditor/build.gradle.kts`
-- [ ] T003 [P] Create `WeatherForecastState.kt` singleton object with MutableStateFlow properties (forecastEntries, chartData, errorMessage, isLoading, latitude, longitude) at `WeatherForecast/src/commonMain/kotlin/io/codenode/weatherforecast/WeatherForecastState.kt`
-- [ ] T004 [P] Create data model classes: `ForecastEntry.kt` and `ChartData.kt` at `WeatherForecast/src/commonMain/kotlin/io/codenode/weatherforecast/models/`
-- [ ] T005 [P] Create `OpenMeteoResponse.kt` with `@Serializable` data classes for the Open-Meteo JSON response at `WeatherForecast/src/commonMain/kotlin/io/codenode/weatherforecast/models/OpenMeteoResponse.kt`
+- [X] T001 Create WeatherForecast module directory structure and `WeatherForecast/build.gradle.kts` with KMP config, Ktor Client dependencies (ktor-client-core, ktor-client-cio, ktor-client-content-negotiation, ktor-serialization-kotlinx-json), Compose, kotlinx-serialization, and lifecycle-viewmodel-compose — following StopWatch/build.gradle.kts pattern
+- [X] T002 Add `include(":WeatherForecast")` to `settings.gradle.kts` and add `implementation(project(":WeatherForecast"))` dependency to `graphEditor/build.gradle.kts`
+- [X] T003 [P] Create `WeatherForecastState.kt` singleton object with MutableStateFlow properties (forecastEntries, chartData, errorMessage, isLoading, latitude, longitude) at `WeatherForecast/src/commonMain/kotlin/io/codenode/weatherforecast/WeatherForecastState.kt`
+- [X] T004 [P] Create data model classes: `ForecastEntry.kt` and `ChartData.kt` at `WeatherForecast/src/commonMain/kotlin/io/codenode/weatherforecast/models/`
+- [X] T005 [P] Create `OpenMeteoResponse.kt` with `@Serializable` data classes for the Open-Meteo JSON response at `WeatherForecast/src/commonMain/kotlin/io/codenode/weatherforecast/models/OpenMeteoResponse.kt`
 
 **Checkpoint**: Module compiles, state and models ready for node implementation
 
@@ -33,8 +33,8 @@
 
 **CRITICAL**: No user story work can begin until IP Types are registered
 
-- [ ] T006 Register 5 custom IP Types in `graphEditor/src/jvmMain/kotlin/Main.kt`: Coordinates (Teal), HttpResponse (Orange), ForecastData (Blue), ForecastDisplayList (Green), ForecastChartData (Purple) — each with appropriate properties per data-model.md
-- [ ] T007 Add WeatherForecast node directory scanning via `registry.scanDirectory()` call in `graphEditor/src/jvmMain/kotlin/Main.kt` for `WeatherForecast/src/commonMain/kotlin/io/codenode/weatherforecast/nodes`
+- [X] T006 Register 5 custom IP Types in `graphEditor/src/jvmMain/kotlin/Main.kt`: Coordinates (Teal), HttpResponse (Orange), ForecastData (Blue), ForecastDisplayList (Green), ForecastChartData (Purple) — each with appropriate properties per data-model.md
+- [X] T007 Add WeatherForecast node directory scanning via `registry.scanDirectory()` call in `graphEditor/src/jvmMain/kotlin/Main.kt` for `WeatherForecast/src/commonMain/kotlin/io/codenode/weatherforecast/nodes`
 
 **Checkpoint**: IP Types visible in palette, module directory scanned — node implementation can begin
 
