@@ -6,6 +6,9 @@
 
 package io.codenode.grapheditor.viewmodel
 
+import io.codenode.fbpdsl.model.CodeNode
+import io.codenode.fbpdsl.model.FlowGraph
+import io.codenode.grapheditor.state.NodeDefinitionRegistry
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -139,5 +142,51 @@ class CodeEditorViewModel {
      */
     fun clear() {
         _state.value = CodeEditorState()
+    }
+
+    companion object {
+        /**
+         * Builds the file entry list for the file selector dropdown.
+         * Includes the flowGraph file (if saved) plus all CodeNode source files
+         * that have resolvable paths in the registry.
+         *
+         * @param flowGraph The current flow graph
+         * @param registry The node definition registry for source file lookup
+         * @param flowGraphFile Optional saved flowGraph file path
+         * @return List of FileEntry objects for the dropdown
+         */
+        fun buildFileEntries(
+            flowGraph: FlowGraph,
+            registry: NodeDefinitionRegistry,
+            flowGraphFile: File? = null
+        ): List<FileEntry> {
+            val entries = mutableListOf<FileEntry>()
+
+            // Add flowGraph file entry (always first, as default)
+            entries.add(
+                FileEntry(
+                    displayName = "${flowGraph.name}.flow.kt",
+                    filePath = flowGraphFile ?: File("${flowGraph.name}.flow.kt"),
+                    isFlowGraph = true
+                )
+            )
+
+            // Add CodeNode source file entries
+            flowGraph.getAllNodes().filterIsInstance<CodeNode>().forEach { node ->
+                val sourceFilePath = registry.getSourceFilePath(node.name)
+                if (sourceFilePath != null) {
+                    entries.add(
+                        FileEntry(
+                            displayName = node.name,
+                            filePath = File(sourceFilePath),
+                            isFlowGraph = false,
+                            associatedNodeId = node.id
+                        )
+                    )
+                }
+            }
+
+            return entries
+        }
     }
 }

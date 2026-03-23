@@ -15,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import io.codenode.fbpdsl.model.FlowGraph
+import io.codenode.grapheditor.viewmodel.FileEntry
 
 /**
  * View mode enumeration
@@ -36,6 +37,9 @@ enum class ViewMode {
 fun ViewToggle(
     currentMode: ViewMode,
     onModeChanged: (ViewMode) -> Unit,
+    fileEntries: List<FileEntry> = emptyList(),
+    selectedFileEntry: FileEntry? = null,
+    onFileSelected: ((FileEntry) -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     Row(
@@ -45,6 +49,22 @@ fun ViewToggle(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
+        // File selector dropdown (left side, before view toggle)
+        if (fileEntries.isNotEmpty() && onFileSelected != null) {
+            FileSelector(
+                fileEntries = fileEntries,
+                selectedEntry = selectedFileEntry,
+                onFileSelected = onFileSelected
+            )
+
+            Divider(
+                modifier = Modifier
+                    .height(24.dp)
+                    .width(1.dp),
+                color = MaterialTheme.colors.onSurface.copy(alpha = 0.12f)
+            )
+        }
+
         Text(
             text = "View:",
             style = MaterialTheme.typography.body2,
@@ -215,7 +235,10 @@ fun GraphEditorWithToggle(
     overrideText: String? = null,
     overrideTitle: String? = null,
     codeEditorContent: (@Composable () -> Unit)? = null,
-    onViewModeChanged: ((ViewMode) -> Unit)? = null
+    onViewModeChanged: ((ViewMode) -> Unit)? = null,
+    fileEntries: List<FileEntry> = emptyList(),
+    selectedFileEntry: FileEntry? = null,
+    onFileSelected: ((FileEntry) -> Unit)? = null
 ) {
     var currentMode by remember { mutableStateOf(initialMode) }
 
@@ -225,13 +248,16 @@ fun GraphEditorWithToggle(
     }
 
     Column(modifier = modifier.fillMaxSize()) {
-        // Toggle controls at the top
+        // Toggle controls at the top (includes file selector when entries provided)
         ViewToggle(
             currentMode = currentMode,
             onModeChanged = { newMode ->
                 currentMode = newMode
                 onViewModeChanged?.invoke(newMode)
             },
+            fileEntries = fileEntries,
+            selectedFileEntry = selectedFileEntry,
+            onFileSelected = onFileSelected,
             modifier = Modifier.fillMaxWidth()
         )
 

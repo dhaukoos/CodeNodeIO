@@ -33,6 +33,7 @@ import io.codenode.grapheditor.viewmodel.IPPaletteViewModel
 import io.codenode.grapheditor.viewmodel.PropertiesPanelViewModel
 import io.codenode.grapheditor.viewmodel.CanvasInteractionViewModel
 import io.codenode.grapheditor.viewmodel.CodeEditorViewModel
+import io.codenode.grapheditor.viewmodel.FileEntry
 import io.codenode.grapheditor.viewmodel.GraphEditorViewModel
 import io.codenode.grapheditor.viewmodel.EditorDialog
 import androidx.compose.runtime.CompositionLocalProvider
@@ -185,6 +186,7 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
     var editorViewMode by remember { mutableStateOf(ViewMode.VISUAL) }
     var showUnsavedChangesDialog by remember { mutableStateOf(false) }
     var pendingEditorAction by remember { mutableStateOf<(() -> Unit)?>(null) }
+    var selectedFileEntry by remember { mutableStateOf<FileEntry?>(null) }
 
     // Initialize preview providers at startup
     remember {
@@ -755,6 +757,14 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                     // Main Canvas with View Toggle (Visual/Textual/Split)
                     val codeEditorState by codeEditorViewModel.state.collectAsState()
 
+                    // Build file entries for file selector dropdown
+                    val fileEntries = remember(graphState.flowGraph) {
+                        CodeEditorViewModel.buildFileEntries(
+                            flowGraph = graphState.flowGraph,
+                            registry = registry
+                        )
+                    }
+
                     GraphEditorWithToggle(
                         flowGraph = graphState.flowGraph,
                         initialMode = editorViewMode,
@@ -780,6 +790,24 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                                 if (newMode == ViewMode.VISUAL) {
                                     codeEditorViewModel.clear()
                                 }
+                            }
+                        },
+                        fileEntries = fileEntries,
+                        selectedFileEntry = selectedFileEntry,
+                        onFileSelected = { entry ->
+                            selectedFileEntry = entry
+                            if (entry.isFlowGraph) {
+                                // FlowGraph file: clear code editor, switch to textual (read-only DSL)
+                                codeEditorViewModel.clear()
+                                editorViewMode = ViewMode.TEXTUAL
+                            } else {
+                                // CodeNode file: select node on canvas, load file, switch to textual
+                                entry.associatedNodeId?.let { nodeId ->
+                                    graphState.clearSelection()
+                                    graphState.selectNode(nodeId)
+                                }
+                                codeEditorViewModel.loadFile(entry.filePath)
+                                editorViewMode = ViewMode.TEXTUAL
                             }
                         },
                         onVisualViewContent = {

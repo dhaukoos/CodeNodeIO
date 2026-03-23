@@ -60,10 +60,10 @@
 
 ### Implementation
 
-- [ ] T008 [US2] Create `FileSelector` dropdown composable that lists the flowGraph file (default) plus all CodeNode source files, with `onFileSelected` callback returning the selected `FileEntry` in `graphEditor/src/jvmMain/kotlin/ui/FileSelector.kt`
-- [ ] T009 [US2] Build file entry list from the current flowGraph's nodes — iterate nodes, filter for CodeNodes with resolvable source files, create `FileEntry` objects with display name, file path, and associated node ID in `graphEditor/src/jvmMain/kotlin/viewmodel/CodeEditorViewModel.kt`
-- [ ] T010 [US2] Integrate `FileSelector` into the central panel header row in `ViewToggle.kt` — place dropdown to the left of the View Toggle buttons, so the header reads: `[FileSelector dropdown] | View: [Visual] [Textual] [Split]` in `graphEditor/src/jvmMain/kotlin/ui/ViewToggle.kt`
-- [ ] T011 [US2] Wire dropdown selection in `Main.kt` to: select the corresponding node on the canvas (if CodeNode selected), load the file into the editor, and switch to Textual view if a CodeNode is selected in `graphEditor/src/jvmMain/kotlin/Main.kt`
+- [X] T008 [US2] Create `FileSelector` dropdown composable that lists the flowGraph file (default) plus all CodeNode source files, with `onFileSelected` callback returning the selected `FileEntry` in `graphEditor/src/jvmMain/kotlin/ui/FileSelector.kt`
+- [X] T009 [US2] Build file entry list from the current flowGraph's nodes — iterate nodes, filter for CodeNodes with resolvable source files, create `FileEntry` objects with display name, file path, and associated node ID in `graphEditor/src/jvmMain/kotlin/viewmodel/CodeEditorViewModel.kt`
+- [X] T010 [US2] Integrate `FileSelector` into the central panel header row in `ViewToggle.kt` — place dropdown to the left of the View Toggle buttons, so the header reads: `[FileSelector dropdown] | View: [Visual] [Textual] [Split]` in `graphEditor/src/jvmMain/kotlin/ui/ViewToggle.kt`
+- [X] T011 [US2] Wire dropdown selection in `Main.kt` to: select the corresponding node on the canvas (if CodeNode selected), load the file into the editor, and switch to Textual view if a CodeNode is selected in `graphEditor/src/jvmMain/kotlin/Main.kt`
 
 **Checkpoint**: Dropdown shows flowGraph + CodeNode files. Selecting a CodeNode entry selects it on canvas and opens its file in the editor.
 
