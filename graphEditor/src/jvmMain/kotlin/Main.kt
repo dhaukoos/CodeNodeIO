@@ -32,6 +32,7 @@ import io.codenode.grapheditor.viewmodel.NodePaletteViewModel
 import io.codenode.grapheditor.viewmodel.IPPaletteViewModel
 import io.codenode.grapheditor.viewmodel.PropertiesPanelViewModel
 import io.codenode.grapheditor.viewmodel.CanvasInteractionViewModel
+import io.codenode.grapheditor.viewmodel.CodeEditorViewModel
 import io.codenode.grapheditor.viewmodel.GraphEditorViewModel
 import io.codenode.grapheditor.viewmodel.EditorDialog
 import androidx.compose.runtime.CompositionLocalProvider
@@ -49,7 +50,9 @@ import io.codenode.grapheditor.ui.NodeGeneratorPanel
 import io.codenode.grapheditor.ui.GraphEditorWithToggle
 import io.codenode.grapheditor.ui.ViewMode
 import io.codenode.grapheditor.ui.CollapsiblePanel
+import io.codenode.grapheditor.ui.CodeEditor
 import io.codenode.grapheditor.ui.CompactPropertiesPanelWithViewModel
+import io.codenode.grapheditor.ui.UnsavedChangesDialog
 import io.codenode.grapheditor.ui.PanelSide
 import io.codenode.grapheditor.ui.ModuleSessionFactory
 import io.codenode.grapheditor.ui.RuntimePreviewPanel
@@ -176,6 +179,12 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
 
     // NodePaletteViewModel for the Node Palette
     val nodePaletteViewModel = remember { NodePaletteViewModel() }
+
+    // CodeEditorViewModel for the code editor
+    val codeEditorViewModel = remember { CodeEditorViewModel() }
+    var editorViewMode by remember { mutableStateOf(ViewMode.VISUAL) }
+    var showUnsavedChangesDialog by remember { mutableStateOf(false) }
+    var pendingEditorAction by remember { mutableStateOf<(() -> Unit)?>(null) }
 
     // Initialize preview providers at startup
     remember {
@@ -744,11 +753,35 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                     }
 
                     // Main Canvas with View Toggle (Visual/Textual/Split)
+                    val codeEditorState by codeEditorViewModel.state.collectAsState()
+
                     GraphEditorWithToggle(
                         flowGraph = graphState.flowGraph,
-                        initialMode = ViewMode.VISUAL,
+                        initialMode = editorViewMode,
                         overrideText = selectedIPType?.toCode(),
                         overrideTitle = selectedIPType?.let { "IP Type: ${it.typeName}" },
+                        codeEditorContent = if (codeEditorState.currentFile != null) {
+                            {
+                                CodeEditor(
+                                    viewModel = codeEditorViewModel,
+                                    onSaveStatusMessage = { msg -> statusMessage = msg }
+                                )
+                            }
+                        } else null,
+                        onViewModeChanged = { newMode ->
+                            if (newMode == ViewMode.VISUAL && codeEditorState.isDirty) {
+                                pendingEditorAction = {
+                                    codeEditorViewModel.clear()
+                                    editorViewMode = ViewMode.VISUAL
+                                }
+                                showUnsavedChangesDialog = true
+                            } else {
+                                editorViewMode = newMode
+                                if (newMode == ViewMode.VISUAL) {
+                                    codeEditorViewModel.clear()
+                                }
+                            }
+                        },
                         onVisualViewContent = {
                             FlowGraphCanvas(
                                 flowGraph = graphState.flowGraph,
@@ -1016,7 +1049,18 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                         } ?: false,
                         debugger = runtimeSession?.debugger,
                         isPaused = runtimeExecutionState == ExecutionState.PAUSED,
-                        isAnimateDataFlow = animateDataFlow
+                        isAnimateDataFlow = animateDataFlow,
+                        showEditButton = selectedNode != null && registry.getSourceFilePath(selectedNode.name) != null,
+                        onEditClick = selectedNode?.let { node ->
+                            registry.getSourceFilePath(node.name)?.let { filePath ->
+                                {
+                                    val file = java.io.File(filePath)
+                                    codeEditorViewModel.loadFile(file, readOnly = false)
+                                    editorViewMode = ViewMode.TEXTUAL
+                                    statusMessage = "Editing: ${file.name}"
+                                }
+                            }
+                        }
                     )
                     }
 
@@ -1274,6 +1318,29 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                     ) {
                         Text("Cancel")
                     }
+                }
+            )
+        }
+
+        // Unsaved changes dialog for code editor
+        if (showUnsavedChangesDialog) {
+            UnsavedChangesDialog(
+                fileName = codeEditorViewModel.state.value.currentFile?.name ?: "file",
+                onSave = {
+                    codeEditorViewModel.save()
+                    showUnsavedChangesDialog = false
+                    pendingEditorAction?.invoke()
+                    pendingEditorAction = null
+                },
+                onDiscard = {
+                    codeEditorViewModel.discardChanges()
+                    showUnsavedChangesDialog = false
+                    pendingEditorAction?.invoke()
+                    pendingEditorAction = null
+                },
+                onCancel = {
+                    showUnsavedChangesDialog = false
+                    pendingEditorAction = null
                 }
             )
         }

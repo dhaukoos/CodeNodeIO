@@ -16,6 +16,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -342,6 +343,8 @@ fun PropertiesPanel(
     onStateChange: (PropertiesPanelState) -> Unit,
     ipTypeRegistry: IPTypeRegistry? = null,
     portIPTypeNames: Map<String, String> = emptyMap(),
+    showEditButton: Boolean = false,
+    onEditClick: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     Surface(
@@ -359,7 +362,9 @@ fun PropertiesPanel(
                 nodeName = state.selectedNode?.name,
                 nodeType = state.selectedNode?.nodeType,
                 isDirty = state.isDirty,
-                hasErrors = state.hasValidationErrors
+                hasErrors = state.hasValidationErrors,
+                showEditButton = showEditButton,
+                onEditClick = onEditClick
             )
 
             Divider(modifier = Modifier.padding(vertical = 8.dp))
@@ -419,7 +424,9 @@ private fun PropertiesPanelHeader(
     nodeName: String?,
     nodeType: String?,
     isDirty: Boolean,
-    hasErrors: Boolean
+    hasErrors: Boolean,
+    showEditButton: Boolean = false,
+    onEditClick: (() -> Unit)? = null
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -456,6 +463,21 @@ private fun PropertiesPanelHeader(
                 tint = MaterialTheme.colors.error,
                 modifier = Modifier.size(16.dp)
             )
+        }
+
+        // Edit source file button
+        if (showEditButton && onEditClick != null) {
+            IconButton(
+                onClick = onEditClick,
+                modifier = Modifier.size(24.dp).padding(start = 4.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Edit,
+                    contentDescription = "Edit source file",
+                    tint = MaterialTheme.colors.onSurface.copy(alpha = 0.7f),
+                    modifier = Modifier.size(16.dp)
+                )
+            }
         }
     }
 }
@@ -1458,6 +1480,8 @@ fun CompactPropertiesPanelWithViewModel(
     debugger: io.codenode.circuitsimulator.DataFlowDebugger? = null,
     isPaused: Boolean = false,
     isAnimateDataFlow: Boolean = false,
+    showEditButton: Boolean = false,
+    onEditClick: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     val vmState by viewModel.state.collectAsState()
@@ -1587,6 +1611,8 @@ fun CompactPropertiesPanelWithViewModel(
             },
             ipTypeRegistry = ipTypeRegistry,
             portIPTypeNames = portIPTypeNames,
+            showEditButton = showEditButton,
+            onEditClick = onEditClick,
             modifier = modifier.width(280.dp)
         )
     }

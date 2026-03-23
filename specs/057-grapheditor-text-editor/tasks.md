@@ -27,8 +27,8 @@
 
 **Purpose**: Extend the SyntaxHighlighter and create the CodeEditorViewModel — shared infrastructure required by all user stories.
 
-- [ ] T001 Extend `SyntaxHighlightingTheme.keywords` with Kotlin language keywords (`override`, `return`, `if`, `else`, `when`, `for`, `while`, `import`, `package`, `private`, `internal`, `suspend`, `inline`, `reified`, `companion`, `data`, `sealed`, `enum`, `abstract`, `open`, `const`, `lateinit`, `by`, `lazy`, `true`, `false`, `null`, `is`, `as`, `in`, `this`, `super`, `try`, `catch`, `finally`, `throw`, `object`, `var`) in `graphEditor/src/jvmMain/kotlin/ui/SyntaxHighlighter.kt`
-- [ ] T002 Create `CodeEditorViewModel` with file load/save, dirty tracking, and editor state management (currentFile, originalContent, editedContent, isDirty, isReadOnly, cursorPosition) in `graphEditor/src/jvmMain/kotlin/viewmodel/CodeEditorViewModel.kt`
+- [X] T001 Extend `SyntaxHighlightingTheme.keywords` with Kotlin language keywords (`override`, `return`, `if`, `else`, `when`, `for`, `while`, `import`, `package`, `private`, `internal`, `suspend`, `inline`, `reified`, `companion`, `data`, `sealed`, `enum`, `abstract`, `open`, `const`, `lateinit`, `by`, `lazy`, `true`, `false`, `null`, `is`, `as`, `in`, `this`, `super`, `try`, `catch`, `finally`, `throw`, `object`, `var`) in `graphEditor/src/jvmMain/kotlin/ui/SyntaxHighlighter.kt`
+- [X] T002 Create `CodeEditorViewModel` with file load/save, dirty tracking, and editor state management (currentFile, originalContent, editedContent, isDirty, isReadOnly, cursorPosition) in `graphEditor/src/jvmMain/kotlin/viewmodel/CodeEditorViewModel.kt`
 
 **Checkpoint**: SyntaxHighlighter highlights Kotlin keywords. ViewModel can load/save files and track dirty state.
 
@@ -42,11 +42,11 @@
 
 ### Implementation
 
-- [ ] T003 [US1] Create `CodeEditor` composable with `BasicTextField`, `VisualTransformation` for syntax highlighting, line number gutter, and save button in `graphEditor/src/jvmMain/kotlin/ui/CodeEditor.kt`
-- [ ] T004 [US1] Add pencil icon (`Icons.Default.Edit`) to `PropertiesPanelHeader` right side (after status indicators), visible only when selected node has an editable source file, with `onEditClick` callback in `graphEditor/src/jvmMain/kotlin/ui/PropertiesPanel.kt`
-- [ ] T005 [US1] Update `GraphViewContainer` and `GraphEditorWithToggle` in `ViewToggle.kt` to accept an optional `codeEditorContent` composable parameter — when provided and view is TEXTUAL, render the code editor instead of the read-only `TextualView` in `graphEditor/src/jvmMain/kotlin/ui/ViewToggle.kt`
-- [ ] T006 [US1] Wire pencil icon click in `Main.kt` to: switch view mode to TEXTUAL, resolve selected CodeNode's source file path, load file into `CodeEditorViewModel`, and pass `CodeEditor` composable to `GraphEditorWithToggle` in `graphEditor/src/jvmMain/kotlin/Main.kt`
-- [ ] T007 [US1] Add unsaved-changes dialog (Save/Discard/Cancel) that triggers when navigating away from a dirty editor (switching nodes, switching to Visual view, or closing editor) in `graphEditor/src/jvmMain/kotlin/ui/CodeEditor.kt`
+- [X] T003 [US1] Create `CodeEditor` composable with `BasicTextField`, `VisualTransformation` for syntax highlighting, line number gutter, and save button in `graphEditor/src/jvmMain/kotlin/ui/CodeEditor.kt`
+- [X] T004 [US1] Add pencil icon (`Icons.Default.Edit`) to `PropertiesPanelHeader` right side (after status indicators), visible only when selected node has an editable source file, with `onEditClick` callback in `graphEditor/src/jvmMain/kotlin/ui/PropertiesPanel.kt`
+- [X] T005 [US1] Update `GraphViewContainer` and `GraphEditorWithToggle` in `ViewToggle.kt` to accept an optional `codeEditorContent` composable parameter — when provided and view is TEXTUAL, render the code editor instead of the read-only `TextualView` in `graphEditor/src/jvmMain/kotlin/ui/ViewToggle.kt`
+- [X] T006 [US1] Wire pencil icon click in `Main.kt` to: switch view mode to TEXTUAL, resolve selected CodeNode's source file path, load file into `CodeEditorViewModel`, and pass `CodeEditor` composable to `GraphEditorWithToggle` in `graphEditor/src/jvmMain/kotlin/Main.kt`
+- [X] T007 [US1] Add unsaved-changes dialog (Save/Discard/Cancel) that triggers when navigating away from a dirty editor (switching nodes, switching to Visual view, or closing editor) in `graphEditor/src/jvmMain/kotlin/ui/CodeEditor.kt`
 
 **Checkpoint**: Pencil icon appears for CodeNodes. Clicking it opens editable code editor with syntax highlighting, line numbers, save, and unsaved-changes protection.
 

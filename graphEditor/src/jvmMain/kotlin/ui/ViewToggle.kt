@@ -118,6 +118,7 @@ private fun ToggleButton(
  * @param modifier Modifier for the view container
  * @param overrideText Optional text to display in textual view instead of generated DSL
  * @param overrideTitle Optional title for textual view when showing override text
+ * @param codeEditorContent Optional composable for editable code editor (replaces TextualView when provided)
  */
 @Composable
 fun GraphViewContainer(
@@ -126,7 +127,8 @@ fun GraphViewContainer(
     onVisualViewContent: @Composable () -> Unit,
     modifier: Modifier = Modifier,
     overrideText: String? = null,
-    overrideTitle: String? = null
+    overrideTitle: String? = null,
+    codeEditorContent: (@Composable () -> Unit)? = null
 ) {
     when (viewMode) {
         ViewMode.VISUAL -> {
@@ -136,11 +138,17 @@ fun GraphViewContainer(
         }
 
         ViewMode.TEXTUAL -> {
-            TextualView(
-                flowGraph = flowGraph,
-                modifier = modifier.fillMaxSize(),
-                overrideText = overrideText
-            )
+            if (codeEditorContent != null) {
+                Box(modifier = modifier.fillMaxSize()) {
+                    codeEditorContent()
+                }
+            } else {
+                TextualView(
+                    flowGraph = flowGraph,
+                    modifier = modifier.fillMaxSize(),
+                    overrideText = overrideText
+                )
+            }
         }
 
         ViewMode.SPLIT -> {
@@ -162,15 +170,25 @@ fun GraphViewContainer(
                     color = MaterialTheme.colors.onSurface.copy(alpha = 0.12f)
                 )
 
-                // Textual view on the right
-                CompactTextualView(
-                    flowGraph = flowGraph,
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxHeight(),
-                    overrideText = overrideText,
-                    overrideTitle = overrideTitle
-                )
+                // Code editor or textual view on the right
+                if (codeEditorContent != null) {
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxHeight()
+                    ) {
+                        codeEditorContent()
+                    }
+                } else {
+                    CompactTextualView(
+                        flowGraph = flowGraph,
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxHeight(),
+                        overrideText = overrideText,
+                        overrideTitle = overrideTitle
+                    )
+                }
             }
         }
     }
@@ -185,6 +203,8 @@ fun GraphViewContainer(
  * @param modifier Modifier for the component
  * @param overrideText Optional text to display in textual view instead of generated DSL
  * @param overrideTitle Optional title for textual view when showing override text
+ * @param codeEditorContent Optional composable for editable code editor
+ * @param onViewModeChanged Optional callback when view mode changes
  */
 @Composable
 fun GraphEditorWithToggle(
@@ -193,15 +213,25 @@ fun GraphEditorWithToggle(
     onVisualViewContent: @Composable () -> Unit,
     modifier: Modifier = Modifier,
     overrideText: String? = null,
-    overrideTitle: String? = null
+    overrideTitle: String? = null,
+    codeEditorContent: (@Composable () -> Unit)? = null,
+    onViewModeChanged: ((ViewMode) -> Unit)? = null
 ) {
     var currentMode by remember { mutableStateOf(initialMode) }
+
+    // Sync with external mode changes
+    LaunchedEffect(initialMode) {
+        currentMode = initialMode
+    }
 
     Column(modifier = modifier.fillMaxSize()) {
         // Toggle controls at the top
         ViewToggle(
             currentMode = currentMode,
-            onModeChanged = { newMode -> currentMode = newMode },
+            onModeChanged = { newMode ->
+                currentMode = newMode
+                onViewModeChanged?.invoke(newMode)
+            },
             modifier = Modifier.fillMaxWidth()
         )
 
@@ -220,7 +250,8 @@ fun GraphEditorWithToggle(
                 .fillMaxWidth()
                 .weight(1f),
             overrideText = overrideText,
-            overrideTitle = overrideTitle
+            overrideTitle = overrideTitle,
+            codeEditorContent = codeEditorContent
         )
     }
 }

@@ -24,12 +24,23 @@ object SyntaxHighlightingTheme {
     val commentColor = Color(0xFF808080)      // Gray for comments
     val defaultTextColor = Color(0xFFA9B7C6)  // Light gray for default text
 
-    // DSL keywords to highlight
+    // DSL + Kotlin keywords to highlight
     val keywords = setOf(
+        // DSL keywords
         "flowGraph", "codeNode", "graphNode",
         "input", "output", "connect",
         "version", "description", "position",
-        "val", "fun", "class", "name"
+        // Kotlin keywords
+        "val", "var", "fun", "class", "object", "interface",
+        "override", "return", "if", "else", "when", "for", "while", "do",
+        "import", "package", "private", "public", "internal", "protected",
+        "suspend", "inline", "reified", "noinline", "crossinline",
+        "companion", "data", "sealed", "enum", "abstract", "open",
+        "const", "lateinit", "by", "lazy",
+        "true", "false", "null",
+        "is", "as", "in", "this", "super",
+        "try", "catch", "finally", "throw",
+        "name", "it", "typealias"
     )
 }
 

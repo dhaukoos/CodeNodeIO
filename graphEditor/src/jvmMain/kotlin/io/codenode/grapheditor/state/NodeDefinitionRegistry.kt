@@ -158,6 +158,17 @@ class NodeDefinitionRegistry {
     }
 
     /**
+     * Gets the source file path for a node by name, if available.
+     * Only template nodes (Universal/Project/Module level source files) have file paths.
+     *
+     * @param name The node name to look up
+     * @return Absolute file path, or null if not a template node
+     */
+    fun getSourceFilePath(name: String): String? {
+        return templateNodes[name]?.filePath
+    }
+
+    /**
      * Registers a template node from its metadata directly.
      * Used for immediate palette registration after generating a new CodeNode file.
      *
