@@ -81,6 +81,10 @@ Auto-generated from all feature plans. Last updated: 2026-01-13
 - Room (KMP) with BundledSQLiteDriver — all persistence in shared `persistence` module (056-table-header-row)
 - Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + Compose Desktop 1.7.3 + Compose Material3 (UI components), kotlinx-coroutines 1.8.0, lifecycle-viewmodel-compose 2.8.0 (057-grapheditor-text-editor)
 - Filesystem (read/write CodeNode `.kt` source files via `File.readText()` / `File.writeText()`) (057-grapheditor-text-editor)
+- Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + Compose Desktop 1.7.3 + kotlinx-coroutines 1.8.0, kotlinx-serialization 1.6.0, lifecycle-viewmodel-compose 2.8.0, java.net.HttpURLConnection (JVM standard library) (058-weather-forecast-demo)
+- N/A (in-memory state only via MutableStateFlow) (058-weather-forecast-demo)
+- Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + Compose Desktop 1.7.3, kotlinx-coroutines 1.8.0, kotlinx-serialization 1.6.0, lifecycle-viewmodel-compose 2.8.0, Ktor Client 3.1.1 (ktor-client-core, ktor-client-cio, ktor-client-content-negotiation, ktor-serialization-kotlinx-json) (058-weather-forecast-demo)
+- N/A (in-memory state only) (058-weather-forecast-demo)
 
 - Kotlin 1.9+, Go 1.21+ (001-ide-plugin-platform)
 
@@ -100,9 +104,9 @@ tests/
 Kotlin 1.9+, Go 1.21+: Follow standard conventions
 
 ## Recent Changes
+- 058-weather-forecast-demo: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + Compose Desktop 1.7.3, kotlinx-coroutines 1.8.0, kotlinx-serialization 1.6.0, lifecycle-viewmodel-compose 2.8.0, Ktor Client 3.1.1 (ktor-client-core, ktor-client-cio, ktor-client-content-negotiation, ktor-serialization-kotlinx-json)
+- 058-weather-forecast-demo: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + Compose Desktop 1.7.3 + kotlinx-coroutines 1.8.0, kotlinx-serialization 1.6.0, lifecycle-viewmodel-compose 2.8.0, java.net.HttpURLConnection (JVM standard library)
 - 057-grapheditor-text-editor: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + Compose Desktop 1.7.3 + Compose Material3 (UI components), kotlinx-coroutines 1.8.0, lifecycle-viewmodel-compose 2.8.0
-- 056-table-header-row: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + Compose Multiplatform 1.7.3, Room 2.8.4 (KMP), Koin 4.0.0, kotlinx-coroutines 1.8.0
-- 055-filesystem-node-palette: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + Compose Desktop 1.7.3 + kotlinx-coroutines 1.8.0, kotlinx-serialization 1.6.0, lifecycle-viewmodel-compose 2.8.0
 
 
 <!-- MANUAL ADDITIONS START -->
