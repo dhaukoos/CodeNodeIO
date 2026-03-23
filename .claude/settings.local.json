@@ -8,7 +8,8 @@
       "Bash(./gradlew:*)",
       "Bash(git -C /Users/dhaukoos/CodeNodeIO show 9dc49f1:fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/CodeNodeFactory.kt)",
       "WebFetch(domain:github.com)",
-      "WebSearch"
+      "WebSearch",
+      "Bash(find /Users/dhaukoos/CodeNodeIO/graphEditor -name \"*IPType*\" -o -name \"*CustomIPType*\" | grep -E \"\\\\.kt$\" | head -10)"
     ]
   }
 }
