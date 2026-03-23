@@ -63,7 +63,7 @@ fun CodeEditor(
             .fillMaxSize()
             .background(Color(0xFF2B2B2B))
     ) {
-        // Editor toolbar
+        // Editor toolbar (shows "Editable" indicator to distinguish from read-only TextualView)
         if (editorState.hasFile && !editorState.isReadOnly) {
             EditorToolbar(
                 isDirty = editorState.isDirty,
@@ -219,6 +219,13 @@ private fun EditorToolbar(
                         fontSize = 12.sp
                     )
                 }
+                Spacer(modifier = Modifier.width(12.dp))
+                Text(
+                    text = "Editable",
+                    color = Color(0xFF6A8759),
+                    fontFamily = FontFamily.Monospace,
+                    fontSize = 11.sp
+                )
             }
 
             if (isDirty) {

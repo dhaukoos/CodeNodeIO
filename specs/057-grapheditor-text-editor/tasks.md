@@ -77,9 +77,9 @@
 
 ### Implementation
 
-- [ ] T012 [US3] Add read-only visual indicator (e.g., "Read Only" label or distinct background shade) to `TextualView` when displaying flowGraph DSL, and ensure `BasicTextField` is disabled/not-editable for flowGraph files in `graphEditor/src/jvmMain/kotlin/ui/TextualView.kt`
-- [ ] T013 [US3] Ensure `CodeEditor` composable displays an editable indicator (e.g., no "Read Only" label, standard editor background) to visually distinguish from read-only mode in `graphEditor/src/jvmMain/kotlin/ui/CodeEditor.kt`
-- [ ] T014 [US3] Handle missing source file case — when a CodeNode's file path doesn't exist on disk, display "Source file not found: {path}" error message in the editor area instead of the code editor in `graphEditor/src/jvmMain/kotlin/ui/CodeEditor.kt`
+- [X] T012 [US3] Add read-only visual indicator (e.g., "Read Only" label or distinct background shade) to `TextualView` when displaying flowGraph DSL, and ensure `BasicTextField` is disabled/not-editable for flowGraph files in `graphEditor/src/jvmMain/kotlin/ui/TextualView.kt`
+- [X] T013 [US3] Ensure `CodeEditor` composable displays an editable indicator (e.g., no "Read Only" label, standard editor background) to visually distinguish from read-only mode in `graphEditor/src/jvmMain/kotlin/ui/CodeEditor.kt`
+- [X] T014 [US3] Handle missing source file case — when a CodeNode's file path doesn't exist on disk, display "Source file not found: {path}" error message in the editor area instead of the code editor in `graphEditor/src/jvmMain/kotlin/ui/CodeEditor.kt`
 
 **Checkpoint**: FlowGraph DSL is visually read-only. CodeNode files are visually editable. Missing files show error.
 
@@ -87,7 +87,7 @@
 
 ## Phase 6: Polish & Cross-Cutting Concerns
 
-- [ ] T015 Build the project to verify all changes compile via `./gradlew :graphEditor:build`
+- [X] T015 Build the project to verify all changes compile via `./gradlew :graphEditor:build`
 - [ ] T016 Run graphEditor and manually verify all 6 quickstart scenarios from `specs/057-grapheditor-text-editor/quickstart.md`
 
 ---

@@ -225,9 +225,13 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
         registry.register(AddressCUDCodeNode)
         registry.register(AddressRepositoryCodeNode)
         registry.register(AddressesDisplayCodeNode)
-        // Also scan project-level and module-level source directories for uncompiled nodes
+        // Scan module source directories so all CodeNodes have discoverable source file paths
         registry.scanDirectory(projectRoot.resolve("nodes/src/commonMain/kotlin/io/codenode/nodes"))
         registry.scanDirectory(projectRoot.resolve("EdgeArtFilter/src/commonMain/kotlin/io/codenode/edgeartfilter/nodes"))
+        registry.scanDirectory(projectRoot.resolve("StopWatch/src/commonMain/kotlin/io/codenode/stopwatch/nodes"))
+        registry.scanDirectory(projectRoot.resolve("UserProfiles/src/commonMain/kotlin/io/codenode/userprofiles/nodes"))
+        registry.scanDirectory(projectRoot.resolve("GeoLocations/src/commonMain/kotlin/io/codenode/geolocations/nodes"))
+        registry.scanDirectory(projectRoot.resolve("Addresses/src/commonMain/kotlin/io/codenode/addresses/nodes"))
         // T018: Make registry available for runtime node resolution
         ModuleSessionFactory.registry = registry
         registryVersion++

@@ -55,6 +55,11 @@ interface CodeNodeDefinition {
     val anyInput: Boolean
         get() = false
 
+    /** Absolute path to the source `.kt` file for this node definition, if known.
+     *  Used by the graphEditor to enable in-app editing of node source code. */
+    val sourceFilePath: String?
+        get() = null
+
     /**
      * Creates a fully configured NodeRuntime instance with processing logic embedded.
      *

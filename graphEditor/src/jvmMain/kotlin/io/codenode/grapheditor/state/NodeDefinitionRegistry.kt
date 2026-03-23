@@ -159,12 +159,16 @@ class NodeDefinitionRegistry {
 
     /**
      * Gets the source file path for a node by name, if available.
-     * Only template nodes (Universal/Project/Module level source files) have file paths.
+     * Checks compiled nodes first (via CodeNodeDefinition.sourceFilePath),
+     * then falls back to template nodes (filesystem metadata).
      *
      * @param name The node name to look up
-     * @return Absolute file path, or null if not a template node
+     * @return Absolute file path, or null if no source file is discoverable
      */
     fun getSourceFilePath(name: String): String? {
+        // Check compiled nodes (self-declared source path)
+        compiledNodes[name]?.sourceFilePath?.let { return it }
+        // Fall back to template nodes (filesystem-discovered path)
         return templateNodes[name]?.filePath
     }
 

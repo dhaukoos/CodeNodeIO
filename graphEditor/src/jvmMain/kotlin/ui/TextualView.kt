@@ -13,6 +13,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -57,25 +58,58 @@ fun TextualView(
         }
     }
 
-    // Scrollable text container
-    Box(
+    Column(
         modifier = modifier
             .fillMaxSize()
-            .background(Color(0xFF2B2B2B)) // Dark background for code editor feel
-            .padding(16.dp)
+            .background(Color(0xFF2B2B2B))
     ) {
-        SelectionContainer {
-            Text(
-                text = annotatedText,
+        // Read-only indicator bar
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            color = Color(0xFF3C3F41),
+            elevation = 2.dp
+        ) {
+            Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .verticalScroll(rememberScrollState())
-                    .horizontalScroll(rememberScrollState()),
-                fontFamily = FontFamily.Monospace,
-                fontSize = 14.sp,
-                lineHeight = 20.sp,
-                color = Color(0xFFA9B7C6) // Default text color (IntelliJ IDEA dark theme)
-            )
+                    .padding(horizontal = 8.dp, vertical = 4.dp),
+                verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
+            ) {
+                Text(
+                    text = overrideText?.let { "Preview" } ?: "${flowGraph.name}.flow.kt",
+                    color = Color(0xFFBBBBBB),
+                    fontFamily = FontFamily.Monospace,
+                    fontSize = 12.sp
+                )
+                Spacer(modifier = Modifier.weight(1f))
+                Text(
+                    text = "Read Only",
+                    color = Color(0xFF808080),
+                    fontFamily = FontFamily.Monospace,
+                    fontSize = 11.sp
+                )
+            }
+        }
+
+        // Scrollable text container
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp)
+        ) {
+            SelectionContainer {
+                Text(
+                    text = annotatedText,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .verticalScroll(rememberScrollState())
+                        .horizontalScroll(rememberScrollState()),
+                    fontFamily = FontFamily.Monospace,
+                    fontSize = 14.sp,
+                    lineHeight = 20.sp,
+                    color = Color(0xFFA9B7C6)
+                )
+            }
         }
     }
 }
