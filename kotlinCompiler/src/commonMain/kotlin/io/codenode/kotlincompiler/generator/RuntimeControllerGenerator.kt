@@ -29,10 +29,10 @@ class RuntimeControllerGenerator {
      *
      * @param flowGraph The flow graph to generate from
      * @param generatedPackage The package name for the generated file
-     * @param usecasesPackage The package name for user-written tick stubs (unused by Controller)
+     * @param viewModelPackage The base package where {ModuleName}State object lives
      * @return Generated Kotlin source code
      */
-    fun generate(flowGraph: FlowGraph, generatedPackage: String, usecasesPackage: String, viewModelPackage: String? = null): String {
+    fun generate(flowGraph: FlowGraph, generatedPackage: String, viewModelPackage: String? = null): String {
         val flowName = flowGraph.name.pascalCase()
         val codeNodes = flowGraph.getAllCodeNodes()
         val observableProps = observableStateResolver.getObservableStateProperties(flowGraph)

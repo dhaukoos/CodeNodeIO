@@ -25,6 +25,9 @@ import io.codenode.addresses.AddressesViewModel
 import io.codenode.addresses.AddressesState
 import io.codenode.addresses.generated.AddressesControllerInterface
 import io.codenode.edgeartfilter.EdgeArtFilterViewModel
+import io.codenode.weatherforecast.WeatherForecastViewModel
+import io.codenode.weatherforecast.WeatherForecastState
+import io.codenode.weatherforecast.generated.WeatherForecastControllerInterface
 import io.codenode.edgeartfilter.generated.EdgeArtFilterController
 import io.codenode.edgeartfilter.generated.EdgeArtFilterControllerAdapter
 import io.codenode.edgeartfilter.generated.EdgeArtFilterControllerInterface
@@ -104,6 +107,7 @@ object ModuleSessionFactory : KoinComponent {
             "UserProfiles" -> { { UserProfilesState.reset() } }
             "GeoLocations" -> { { GeoLocationsState.reset() } }
             "Addresses" -> { { AddressesState.reset() } }
+            "WeatherForecast" -> { { WeatherForecastState.reset() } }
             else -> null
         }
 
@@ -188,6 +192,17 @@ object ModuleSessionFactory : KoinComponent {
                     override fun resume() = controller.resume()
                 }
                 EdgeArtFilterViewModel(adapter)
+            }
+            "WeatherForecast" -> {
+                val adapter = object : WeatherForecastControllerInterface {
+                    override val executionState get() = controller.executionState
+                    override fun start(): FlowGraph { controller.start(); return flowGraphProvider() }
+                    override fun stop(): FlowGraph { controller.stop(); return flowGraphProvider() }
+                    override fun reset(): FlowGraph { controller.reset(); return flowGraphProvider() }
+                    override fun pause(): FlowGraph { controller.pause(); return flowGraphProvider() }
+                    override fun resume(): FlowGraph { controller.resume(); return flowGraphProvider() }
+                }
+                WeatherForecastViewModel(adapter)
             }
             else -> return null // Unknown module — can't create ViewModel
         }

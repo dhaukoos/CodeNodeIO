@@ -62,6 +62,7 @@ import io.codenode.grapheditor.ui.UserProfilesPreviewProvider
 import io.codenode.grapheditor.ui.GeoLocationsPreviewProvider
 import io.codenode.grapheditor.ui.AddressesPreviewProvider
 import io.codenode.grapheditor.ui.EdgeArtFilterPreviewProvider
+import io.codenode.grapheditor.ui.WeatherForecastPreviewProvider
 import io.codenode.edgeartfilter.nodes.ImagePickerCodeNode
 import io.codenode.edgeartfilter.nodes.GrayscaleTransformerCodeNode
 import io.codenode.edgeartfilter.nodes.EdgeDetectorCodeNode
@@ -80,6 +81,11 @@ import io.codenode.geolocations.nodes.GeoLocationsDisplayCodeNode
 import io.codenode.addresses.nodes.AddressCUDCodeNode
 import io.codenode.addresses.nodes.AddressRepositoryCodeNode
 import io.codenode.addresses.nodes.AddressesDisplayCodeNode
+import io.codenode.weatherforecast.nodes.TriggerSourceCodeNode
+import io.codenode.weatherforecast.nodes.HttpFetcherCodeNode
+import io.codenode.weatherforecast.nodes.JsonParserCodeNode
+import io.codenode.weatherforecast.nodes.DataMapperCodeNode
+import io.codenode.weatherforecast.nodes.ForecastDisplayCodeNode
 import io.codenode.circuitsimulator.ConnectionAnimation
 import io.codenode.circuitsimulator.RuntimeSession
 import io.codenode.grapheditor.ui.PropertiesPanelState
@@ -195,6 +201,7 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
         GeoLocationsPreviewProvider.register()
         AddressesPreviewProvider.register()
         EdgeArtFilterPreviewProvider.register()
+        WeatherForecastPreviewProvider.register()
         true // return value for remember block
     }
 
@@ -225,6 +232,12 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
         registry.register(AddressCUDCodeNode)
         registry.register(AddressRepositoryCodeNode)
         registry.register(AddressesDisplayCodeNode)
+        // Register WeatherForecast CodeNode objects directly
+        registry.register(TriggerSourceCodeNode)
+        registry.register(HttpFetcherCodeNode)
+        registry.register(JsonParserCodeNode)
+        registry.register(DataMapperCodeNode)
+        registry.register(ForecastDisplayCodeNode)
         // Scan module source directories so all CodeNodes have discoverable source file paths
         registry.scanDirectory(projectRoot.resolve("nodes/src/commonMain/kotlin/io/codenode/nodes"))
         registry.scanDirectory(projectRoot.resolve("EdgeArtFilter/src/commonMain/kotlin/io/codenode/edgeartfilter/nodes"))

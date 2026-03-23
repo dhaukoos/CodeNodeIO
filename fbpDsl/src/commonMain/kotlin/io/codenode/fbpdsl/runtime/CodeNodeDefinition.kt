@@ -32,7 +32,7 @@ data class PortSpec(
  * - Conversion: toNodeTypeDefinition() for palette display
  *
  * This replaces the fragmented pattern of separate CustomNodeDefinition +
- * ProcessingLogic + generated runtime references.
+ * generated runtime references.
  */
 interface CodeNodeDefinition {
     /** Unique node name for palette and registry lookup */

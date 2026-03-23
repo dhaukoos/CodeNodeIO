@@ -9,20 +9,6 @@ package io.codenode.kotlincompiler.generator
 import io.codenode.fbpdsl.model.*
 
 /**
- * Result of tick stub validation.
- *
- * @property isValid Whether all required tick stub files exist
- * @property missingStubs List of stub file names that are missing
- */
-data class ComponentValidationResult(
-    val isValid: Boolean,
-    val missingStubs: List<String> = emptyList()
-) {
-    // Kept as 'missingStubs' but property name preserved for backward compat
-    val missingComponents: List<String> get() = missingStubs
-}
-
-/**
  * Generator for FlowGraph factory functions.
  *
  * Generates a Kotlin source file with a factory function that:
@@ -122,13 +108,12 @@ class FlowGraphFactoryGenerator {
      *
      * @param flowGraph The flow graph to generate a factory for
      * @param packageName The package name for the generated file
-     * @param usecasesPackage Optional package for tick stubs (defaults to packageName)
      * @return Generated Kotlin source code
      */
-    fun generateFactory(flowGraph: FlowGraph, packageName: String, usecasesPackage: String? = null): String {
+    fun generateFactory(flowGraph: FlowGraph, packageName: String): String {
         val factoryFunctionName = "create${flowGraph.name.pascalCase()}FlowGraph"
         val allCodeNodes = flowGraph.getAllCodeNodes()
-        val logicMethodsBase = usecasesPackage ?: packageName
+        val logicMethodsBase = packageName
 
         return buildString {
             // Package declaration
@@ -195,38 +180,6 @@ class FlowGraphFactoryGenerator {
      */
     fun getFactoryFileName(flowGraph: FlowGraph): String {
         return "${flowGraph.name.pascalCase()}Factory.kt"
-    }
-
-    /**
-     * Gets the list of required tick stub file names.
-     *
-     * @param flowGraph The flow graph to analyze
-     * @return List of unique tick stub file names required
-     */
-    fun getRequiredComponents(flowGraph: FlowGraph): List<String> {
-        val stubGenerator = ProcessingLogicStubGenerator()
-        return flowGraph.getAllCodeNodes()
-            .filter { stubGenerator.shouldGenerateStub(it) }
-            .map { "${it.name.pascalCase()}ProcessLogic" }
-            .distinct()
-    }
-
-    /**
-     * Validates that all required tick stub files exist.
-     *
-     * @param flowGraph The flow graph to validate
-     * @param existingFiles Set of file names that exist in the source directory
-     * @return ComponentValidationResult indicating validity and any missing stubs
-     */
-    fun validateComponents(flowGraph: FlowGraph, existingFiles: Set<String>): ComponentValidationResult {
-        val required = getRequiredComponents(flowGraph)
-        val missing = required.filter { stubName ->
-            !existingFiles.contains("$stubName.kt")
-        }
-        return ComponentValidationResult(
-            isValid = missing.isEmpty(),
-            missingStubs = missing
-        )
     }
 
     /**

@@ -189,16 +189,16 @@ class FlowGraphFactoryGeneratorTest {
     }
 
     @Test
-    fun `factory uses separate usecasesPackage for tick imports of nodes with both inputs and outputs`() {
+    fun `factory does not import tick stubs for source and sink nodes`() {
         val flowGraph = createTestFlowGraph("StopWatch")
         val generator = FlowGraphFactoryGenerator()
 
-        val result = generator.generateFactory(flowGraph, "io.codenode.generated.stopwatch", "io.codenode.stopwatch")
+        val result = generator.generateFactory(flowGraph, "io.codenode.generated.stopwatch")
 
-        assertFalse(result.contains("import io.codenode.stopwatch.logicmethods.timerEmitterTick"),
-            "Source nodes should not import tick stubs from usecasesPackage")
-        assertFalse(result.contains("import io.codenode.stopwatch.logicmethods.displayReceiverTick"),
-            "Sink nodes should not import tick stubs from usecasesPackage")
+        assertFalse(result.contains("import io.codenode.generated.stopwatch.logicmethods.timerEmitterTick"),
+            "Source nodes should not import tick stubs")
+        assertFalse(result.contains("import io.codenode.generated.stopwatch.logicmethods.displayReceiverTick"),
+            "Sink nodes should not import tick stubs")
     }
 
     // ========== Factory Method Calls ==========
@@ -399,65 +399,6 @@ class FlowGraphFactoryGeneratorTest {
                 owningNodeId = "t"
             )))
         assertEquals("createTimedTransformer", generator.getFactoryMethodName(trans))
-    }
-
-    // ========== Validation ==========
-
-    @Test
-    fun `getRequiredComponents returns empty for source and sink only flow`() {
-        val flowGraph = createTestFlowGraph("StopWatch")
-        val generator = FlowGraphFactoryGenerator()
-
-        val required = generator.getRequiredComponents(flowGraph)
-
-        assertFalse(required.contains("TimerEmitterProcessLogic"),
-            "Source nodes should not require process logic stubs")
-        assertFalse(required.contains("DisplayReceiverProcessLogic"),
-            "Sink nodes should not require process logic stubs")
-        assertTrue(required.isEmpty(), "Source/sink-only flow should have no required stubs")
-    }
-
-    @Test
-    fun `validateComponents returns success for source and sink only flow`() {
-        val flowGraph = createTestFlowGraph("StopWatch")
-        val generator = FlowGraphFactoryGenerator()
-        val existingFiles = emptySet<String>()
-
-        val result = generator.validateComponents(flowGraph, existingFiles)
-
-        assertTrue(result.isValid, "Validation should pass when no stubs are required")
-        assertTrue(result.missingComponents.isEmpty(), "No missing stubs expected for source/sink-only flow")
-    }
-
-    @Test
-    fun `validateComponents returns failure with missing processor stubs`() {
-        // Create a flow with a transformer (has both inputs and outputs → needs stub)
-        val transformerNode = createTestCodeNode(
-            "proc", "DataProcessor", CodeNodeType.TRANSFORMER,
-            inputPorts = listOf(
-                Port(
-                    id = "proc_in", name = "input",
-                    direction = Port.Direction.INPUT, dataType = Int::class,
-                    owningNodeId = "proc"
-                )
-            ),
-            outputPorts = listOf(
-                Port(
-                    id = "proc_out", name = "output",
-                    direction = Port.Direction.OUTPUT, dataType = String::class,
-                    owningNodeId = "proc"
-                )
-            )
-        )
-        val flowGraph = createTestFlowGraph("TestFlow", nodes = listOf(transformerNode))
-        val generator = FlowGraphFactoryGenerator()
-        val existingFiles = emptySet<String>()
-
-        val result = generator.validateComponents(flowGraph, existingFiles)
-
-        assertFalse(result.isValid, "Validation should fail when processor stubs are missing")
-        assertTrue(result.missingComponents.contains("DataProcessorProcessLogic"),
-            "Should report DataProcessorProcessLogic as missing")
     }
 
     // ========== Additional Tests ==========

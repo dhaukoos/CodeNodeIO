@@ -72,7 +72,6 @@ class RuntimeFlowGeneratorTest {
 
     private val generator = RuntimeFlowGenerator()
     private val generatedPackage = "io.codenode.testapp.generated"
-    private val usecasesPackage = "io.codenode.testapp.usecases"
     private val viewModelPackage = "io.codenode.testapp"
 
     // ========== Test 1: StopWatch-like flow ==========
@@ -80,7 +79,7 @@ class RuntimeFlowGeneratorTest {
     @Test
     fun `StopWatch-like flow generates tick imports only for nodes with both inputs and outputs`() {
         val flowGraph = createStopWatchLikeFlow()
-        val result = generator.generate(flowGraph, generatedPackage, usecasesPackage, viewModelPackage)
+        val result = generator.generate(flowGraph, generatedPackage, viewModelPackage)
 
         assertFalse(result.contains("import io.codenode.testapp.usecases.timerEmitterTick"),
             "Source nodes should not have tick stub imports")
@@ -91,7 +90,7 @@ class RuntimeFlowGeneratorTest {
     @Test
     fun `StopWatch-like flow generates package declaration`() {
         val flowGraph = createStopWatchLikeFlow()
-        val result = generator.generate(flowGraph, generatedPackage, usecasesPackage, viewModelPackage)
+        val result = generator.generate(flowGraph, generatedPackage, viewModelPackage)
 
         assertTrue(result.contains("package io.codenode.testapp.generated"))
     }
@@ -99,7 +98,7 @@ class RuntimeFlowGeneratorTest {
     @Test
     fun `StopWatch-like flow generates class declaration`() {
         val flowGraph = createStopWatchLikeFlow()
-        val result = generator.generate(flowGraph, generatedPackage, usecasesPackage, viewModelPackage)
+        val result = generator.generate(flowGraph, generatedPackage, viewModelPackage)
 
         assertTrue(result.contains("class StopWatch2Flow"))
     }
@@ -107,7 +106,7 @@ class RuntimeFlowGeneratorTest {
     @Test
     fun `StopWatch-like flow imports State object from viewModel package`() {
         val flowGraph = createStopWatchLikeFlow()
-        val result = generator.generate(flowGraph, generatedPackage, usecasesPackage, viewModelPackage)
+        val result = generator.generate(flowGraph, generatedPackage, viewModelPackage)
 
         assertTrue(result.contains("import io.codenode.testapp.StopWatch2State"),
             "Should import StopWatch2State from viewModelPackage")
@@ -116,7 +115,7 @@ class RuntimeFlowGeneratorTest {
     @Test
     fun `StopWatch-like flow does not import MutableStateFlow or asStateFlow`() {
         val flowGraph = createStopWatchLikeFlow()
-        val result = generator.generate(flowGraph, generatedPackage, usecasesPackage, viewModelPackage)
+        val result = generator.generate(flowGraph, generatedPackage, viewModelPackage)
 
         assertFalse(result.contains("import kotlinx.coroutines.flow.MutableStateFlow"),
             "Should not import MutableStateFlow — owned by State object")
@@ -127,7 +126,7 @@ class RuntimeFlowGeneratorTest {
     @Test
     fun `StopWatch-like flow imports StateFlow for type declaration`() {
         val flowGraph = createStopWatchLikeFlow()
-        val result = generator.generate(flowGraph, generatedPackage, usecasesPackage, viewModelPackage)
+        val result = generator.generate(flowGraph, generatedPackage, viewModelPackage)
 
         assertTrue(result.contains("import kotlinx.coroutines.flow.StateFlow"))
     }
@@ -135,7 +134,7 @@ class RuntimeFlowGeneratorTest {
     @Test
     fun `StopWatch-like flow imports combine and drop for reactive source`() {
         val flowGraph = createStopWatchLikeFlow()
-        val result = generator.generate(flowGraph, generatedPackage, usecasesPackage, viewModelPackage)
+        val result = generator.generate(flowGraph, generatedPackage, viewModelPackage)
 
         assertTrue(result.contains("import kotlinx.coroutines.flow.combine"),
             "Should import combine for multi-output source observation")
@@ -148,7 +147,7 @@ class RuntimeFlowGeneratorTest {
     @Test
     fun `StopWatch-like flow delegates observable state from State object`() {
         val flowGraph = createStopWatchLikeFlow()
-        val result = generator.generate(flowGraph, generatedPackage, usecasesPackage, viewModelPackage)
+        val result = generator.generate(flowGraph, generatedPackage, viewModelPackage)
 
         assertTrue(result.contains("val secondsFlow: StateFlow<Int> = StopWatch2State.secondsFlow"),
             "Should delegate secondsFlow from StopWatch2State")
@@ -159,7 +158,7 @@ class RuntimeFlowGeneratorTest {
     @Test
     fun `StopWatch-like flow does not create local MutableStateFlow`() {
         val flowGraph = createStopWatchLikeFlow()
-        val result = generator.generate(flowGraph, generatedPackage, usecasesPackage, viewModelPackage)
+        val result = generator.generate(flowGraph, generatedPackage, viewModelPackage)
 
         assertFalse(result.contains("private val _seconds = MutableStateFlow"),
             "Should not create local MutableStateFlow")
@@ -170,7 +169,7 @@ class RuntimeFlowGeneratorTest {
     @Test
     fun `StopWatch-like flow generates source runtime instance with reactive observation`() {
         val flowGraph = createStopWatchLikeFlow()
-        val result = generator.generate(flowGraph, generatedPackage, usecasesPackage, viewModelPackage)
+        val result = generator.generate(flowGraph, generatedPackage, viewModelPackage)
 
         assertTrue(result.contains("internal val timerEmitter = CodeNodeFactory.createSourceOut2<Int, Int>("))
         assertTrue(result.contains("name = \"TimerEmitter\""))
@@ -206,7 +205,7 @@ class RuntimeFlowGeneratorTest {
             configuration = mapOf("tickIntervalMs" to "500L")
         )
         val flowGraph = createFlowGraph(name = "ConfigTest", nodes = listOf(timerEmitter))
-        val result = generator.generate(flowGraph, generatedPackage, usecasesPackage, viewModelPackage)
+        val result = generator.generate(flowGraph, generatedPackage, viewModelPackage)
 
         assertFalse(result.contains("tickIntervalMs"),
             "Source nodes should not use tickIntervalMs even if configured")
@@ -219,7 +218,7 @@ class RuntimeFlowGeneratorTest {
     @Test
     fun `StopWatch-like flow sink consume block updates State object`() {
         val flowGraph = createStopWatchLikeFlow()
-        val result = generator.generate(flowGraph, generatedPackage, usecasesPackage, viewModelPackage)
+        val result = generator.generate(flowGraph, generatedPackage, viewModelPackage)
 
         assertTrue(result.contains("internal val displayReceiver = CodeNodeFactory.createSinkIn2<Int, Int>("))
         assertTrue(result.contains("name = \"DisplayReceiver\""))
@@ -233,7 +232,7 @@ class RuntimeFlowGeneratorTest {
     @Test
     fun `StopWatch-like flow sink consume block does not call tick function`() {
         val flowGraph = createStopWatchLikeFlow()
-        val result = generator.generate(flowGraph, generatedPackage, usecasesPackage, viewModelPackage)
+        val result = generator.generate(flowGraph, generatedPackage, viewModelPackage)
 
         assertFalse(result.contains("displayReceiverTick(seconds, minutes)"),
             "Sink consume block should not call tick function — only updates observable state")
@@ -242,7 +241,7 @@ class RuntimeFlowGeneratorTest {
     @Test
     fun `StopWatch-like flow generates wireConnections with numbered channels`() {
         val flowGraph = createStopWatchLikeFlow()
-        val result = generator.generate(flowGraph, generatedPackage, usecasesPackage, viewModelPackage)
+        val result = generator.generate(flowGraph, generatedPackage, viewModelPackage)
 
         assertTrue(result.contains("private fun wireConnections()"))
         assertTrue(result.contains("displayReceiver.inputChannel1 = timerEmitter.outputChannel1"))
@@ -252,7 +251,7 @@ class RuntimeFlowGeneratorTest {
     @Test
     fun `StopWatch-like flow generates start method`() {
         val flowGraph = createStopWatchLikeFlow()
-        val result = generator.generate(flowGraph, generatedPackage, usecasesPackage, viewModelPackage)
+        val result = generator.generate(flowGraph, generatedPackage, viewModelPackage)
 
         assertTrue(result.contains("suspend fun start(scope: CoroutineScope)"))
         assertTrue(result.contains("timerEmitter.start(scope) {}"))
@@ -263,7 +262,7 @@ class RuntimeFlowGeneratorTest {
     @Test
     fun `StopWatch-like flow generates stop method`() {
         val flowGraph = createStopWatchLikeFlow()
-        val result = generator.generate(flowGraph, generatedPackage, usecasesPackage, viewModelPackage)
+        val result = generator.generate(flowGraph, generatedPackage, viewModelPackage)
 
         assertTrue(result.contains("fun stop()"))
         assertTrue(result.contains("timerEmitter.stop()"))
@@ -273,7 +272,7 @@ class RuntimeFlowGeneratorTest {
     @Test
     fun `StopWatch-like flow reset calls State object reset`() {
         val flowGraph = createStopWatchLikeFlow()
-        val result = generator.generate(flowGraph, generatedPackage, usecasesPackage, viewModelPackage)
+        val result = generator.generate(flowGraph, generatedPackage, viewModelPackage)
 
         assertTrue(result.contains("fun reset()"))
         assertTrue(result.contains("StopWatch2State.reset()"),
@@ -283,7 +282,7 @@ class RuntimeFlowGeneratorTest {
     @Test
     fun `StopWatch-like flow reset does not directly reset MutableStateFlow values`() {
         val flowGraph = createStopWatchLikeFlow()
-        val result = generator.generate(flowGraph, generatedPackage, usecasesPackage, viewModelPackage)
+        val result = generator.generate(flowGraph, generatedPackage, viewModelPackage)
 
         assertFalse(result.contains("_seconds.value = 0"),
             "Reset should not directly reset MutableStateFlow")
@@ -294,7 +293,7 @@ class RuntimeFlowGeneratorTest {
     @Test
     fun `StopWatch-like flow generates CodeNodeFactory import`() {
         val flowGraph = createStopWatchLikeFlow()
-        val result = generator.generate(flowGraph, generatedPackage, usecasesPackage, viewModelPackage)
+        val result = generator.generate(flowGraph, generatedPackage, viewModelPackage)
 
         assertTrue(result.contains("import io.codenode.fbpdsl.model.CodeNodeFactory"))
     }
@@ -302,7 +301,7 @@ class RuntimeFlowGeneratorTest {
     @Test
     fun `StopWatch-like flow generates CoroutineScope import`() {
         val flowGraph = createStopWatchLikeFlow()
-        val result = generator.generate(flowGraph, generatedPackage, usecasesPackage, viewModelPackage)
+        val result = generator.generate(flowGraph, generatedPackage, viewModelPackage)
 
         assertTrue(result.contains("import kotlinx.coroutines.CoroutineScope"))
     }
@@ -320,7 +319,7 @@ class RuntimeFlowGeneratorTest {
             inputPorts = listOf(inputPort("s_in", "value", Int::class, "sink"))
         )
         val flowGraph = createFlowGraph(nodes = listOf(gen, sink))
-        val result = generator.generate(flowGraph, generatedPackage, usecasesPackage, viewModelPackage)
+        val result = generator.generate(flowGraph, generatedPackage, viewModelPackage)
 
         assertTrue(result.contains("private fun wireConnections()"))
     }
@@ -335,7 +334,7 @@ class RuntimeFlowGeneratorTest {
             outputPorts = listOf(outputPort("t_out", "output", String::class, "trans"))
         )
         val flowGraph = createFlowGraph(nodes = listOf(transformer))
-        val result = generator.generate(flowGraph, generatedPackage, usecasesPackage, viewModelPackage)
+        val result = generator.generate(flowGraph, generatedPackage, viewModelPackage)
 
         assertFalse(result.contains("TestFlowState"),
             "Should not reference State object when no boundary nodes exist")
@@ -349,7 +348,7 @@ class RuntimeFlowGeneratorTest {
             outputPorts = listOf(outputPort("t_out", "output", String::class, "trans"))
         )
         val flowGraph = createFlowGraph(nodes = listOf(transformer))
-        val result = generator.generate(flowGraph, generatedPackage, usecasesPackage, viewModelPackage)
+        val result = generator.generate(flowGraph, generatedPackage, viewModelPackage)
 
         assertTrue(result.contains("fun reset()"))
         assertFalse(result.contains("State.reset()"))
@@ -362,7 +361,7 @@ class RuntimeFlowGeneratorTest {
             outputPorts = listOf(outputPort("g_out", "value", Int::class, "gen"))
         )
         val flowGraph = createFlowGraph(nodes = listOf(gen))
-        val result = generator.generate(flowGraph, generatedPackage, usecasesPackage, viewModelPackage)
+        val result = generator.generate(flowGraph, generatedPackage, viewModelPackage)
 
         assertTrue(result.contains("import io.codenode.testapp.TestFlowState"),
             "Should import State object when source has output ports")
@@ -373,7 +372,7 @@ class RuntimeFlowGeneratorTest {
     @Test
     fun `StopWatch-like flow delegates observable state for both source and sink ports`() {
         val flowGraph = createStopWatchLikeFlow()
-        val result = generator.generate(flowGraph, generatedPackage, usecasesPackage, viewModelPackage)
+        val result = generator.generate(flowGraph, generatedPackage, viewModelPackage)
 
         // Source output ports
         assertTrue(result.contains("val elapsedSecondsFlow: StateFlow<Int> = StopWatch2State.elapsedSecondsFlow"),
@@ -403,7 +402,7 @@ class RuntimeFlowGeneratorTest {
             Connection("c1", "gen", "g_out", "sink", "s_in")
         )
         val flowGraph = createFlowGraph(nodes = listOf(gen, sink), connections = connections)
-        val result = generator.generate(flowGraph, generatedPackage, usecasesPackage, viewModelPackage)
+        val result = generator.generate(flowGraph, generatedPackage, viewModelPackage)
 
         assertTrue(result.contains("valueSink.inputChannel = valueGenerator.outputChannel"))
     }
@@ -422,7 +421,7 @@ class RuntimeFlowGeneratorTest {
             Connection("c1", "gen", "g_out", "sink", "s_in")
         )
         val flowGraph = createFlowGraph(nodes = listOf(gen, sink), connections = connections)
-        val result = generator.generate(flowGraph, generatedPackage, usecasesPackage, viewModelPackage)
+        val result = generator.generate(flowGraph, generatedPackage, viewModelPackage)
 
         assertTrue(result.contains("valueSink.inputChannel = valueGenerator.outputChannel"))
         assertFalse(result.contains("inputChannel1"))
@@ -435,7 +434,7 @@ class RuntimeFlowGeneratorTest {
             outputPorts = listOf(outputPort("g_out", "value", Int::class, "gen"))
         )
         val flowGraph = createFlowGraph(nodes = listOf(gen))
-        val result = generator.generate(flowGraph, generatedPackage, usecasesPackage, viewModelPackage)
+        val result = generator.generate(flowGraph, generatedPackage, viewModelPackage)
 
         assertTrue(result.contains("CodeNodeFactory.createContinuousSource<Int>("))
         assertTrue(result.contains("generate = { emit ->"),
@@ -455,7 +454,7 @@ class RuntimeFlowGeneratorTest {
             inputPorts = listOf(inputPort("s_in", "message", String::class, "sink"))
         )
         val flowGraph = createFlowGraph(nodes = listOf(sink))
-        val result = generator.generate(flowGraph, generatedPackage, usecasesPackage, viewModelPackage)
+        val result = generator.generate(flowGraph, generatedPackage, viewModelPackage)
 
         assertTrue(result.contains("val messageFlow: StateFlow<String> = TestFlowState.messageFlow"),
             "Should delegate messageFlow from TestFlowState")
@@ -468,7 +467,7 @@ class RuntimeFlowGeneratorTest {
             inputPorts = listOf(inputPort("s_in", "message", String::class, "sink"))
         )
         val flowGraph = createFlowGraph(nodes = listOf(sink))
-        val result = generator.generate(flowGraph, generatedPackage, usecasesPackage, viewModelPackage)
+        val result = generator.generate(flowGraph, generatedPackage, viewModelPackage)
 
         assertTrue(result.contains("CodeNodeFactory.createContinuousSink<String>("))
         assertTrue(result.contains("consume = { message ->"))
@@ -485,7 +484,7 @@ class RuntimeFlowGeneratorTest {
             inputPorts = listOf(inputPort("s_in", "message", String::class, "sink"))
         )
         val flowGraph = createFlowGraph(nodes = listOf(sink))
-        val result = generator.generate(flowGraph, generatedPackage, usecasesPackage, viewModelPackage)
+        val result = generator.generate(flowGraph, generatedPackage, viewModelPackage)
 
         assertTrue(result.contains("TestFlowState.reset()"),
             "Reset should call TestFlowState.reset()")
@@ -501,7 +500,7 @@ class RuntimeFlowGeneratorTest {
             outputPorts = listOf(outputPort("t_out", "output", Int::class, "trans"))
         )
         val flowGraph = createFlowGraph(nodes = listOf(transformer))
-        val result = generator.generate(flowGraph, generatedPackage, usecasesPackage, viewModelPackage)
+        val result = generator.generate(flowGraph, generatedPackage, viewModelPackage)
 
         assertTrue(result.contains("CodeNodeFactory.createContinuousTransformer<String, Int>("))
         assertTrue(result.contains("transform = dataTransformerTick"))
@@ -517,7 +516,7 @@ class RuntimeFlowGeneratorTest {
             outputPorts = listOf(outputPort("f_out", "value", Int::class, "filt"))
         )
         val flowGraph = createFlowGraph(nodes = listOf(filter))
-        val result = generator.generate(flowGraph, generatedPackage, usecasesPackage, viewModelPackage)
+        val result = generator.generate(flowGraph, generatedPackage, viewModelPackage)
 
         assertTrue(result.contains("CodeNodeFactory.createContinuousFilter<Int>("))
         assertTrue(result.contains("filter = evenFilterTick"))
@@ -528,7 +527,7 @@ class RuntimeFlowGeneratorTest {
     @Test
     fun `generates KDoc with flow name and version`() {
         val flowGraph = createStopWatchLikeFlow()
-        val result = generator.generate(flowGraph, generatedPackage, usecasesPackage, viewModelPackage)
+        val result = generator.generate(flowGraph, generatedPackage, viewModelPackage)
 
         assertTrue(result.contains("Flow orchestrator for: StopWatch2"))
         assertTrue(result.contains("Version: 1.0.0"))
@@ -551,7 +550,7 @@ class RuntimeFlowGeneratorTest {
             configuration = mapOf("_genericType" to "in2anyout1")
         )
         val flowGraph = createFlowGraph(nodes = listOf(anyProcessor))
-        val result = generator.generate(flowGraph, generatedPackage, usecasesPackage, viewModelPackage)
+        val result = generator.generate(flowGraph, generatedPackage, viewModelPackage)
 
         assertTrue(result.contains("CodeNodeFactory.createIn2AnyOut1Processor<Int, Int, Int>("),
             "Should use any-input factory method")
@@ -574,7 +573,7 @@ class RuntimeFlowGeneratorTest {
             configuration = mapOf("_genericType" to "in2anyout1")
         )
         val flowGraph = createFlowGraph(nodes = listOf(anyProcessor))
-        val result = generator.generate(flowGraph, generatedPackage, usecasesPackage, viewModelPackage)
+        val result = generator.generate(flowGraph, generatedPackage, viewModelPackage)
 
         assertTrue(result.contains("initialValue1 = 0,"),
             "Should generate initialValue1 for Int type")
@@ -597,7 +596,7 @@ class RuntimeFlowGeneratorTest {
             configuration = mapOf("_genericType" to "in2anyout0")
         )
         val flowGraph = createFlowGraph(nodes = listOf(anySink))
-        val result = generator.generate(flowGraph, generatedPackage, usecasesPackage, viewModelPackage)
+        val result = generator.generate(flowGraph, generatedPackage, viewModelPackage)
 
         assertTrue(result.contains("CodeNodeFactory.createSinkIn2Any<Int, String>("),
             "Should use any-input sink factory method")
@@ -622,7 +621,7 @@ class RuntimeFlowGeneratorTest {
             configuration = mapOf("_genericType" to "in2out1")
         )
         val flowGraph = createFlowGraph(nodes = listOf(processor))
-        val result = generator.generate(flowGraph, generatedPackage, usecasesPackage, viewModelPackage)
+        val result = generator.generate(flowGraph, generatedPackage, viewModelPackage)
 
         assertTrue(result.contains("CodeNodeFactory.createIn2Out1Processor<Int, Int, Int>("),
             "Should use standard factory method for non-any node")

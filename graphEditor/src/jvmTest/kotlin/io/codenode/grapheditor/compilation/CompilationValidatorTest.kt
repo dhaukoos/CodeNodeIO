@@ -12,12 +12,8 @@ import kotlin.test.*
 
 /**
  * Tests for CompilationValidator - validates module structure before compilation.
- *
- * T043: Update compile validation to check ProcessingLogic classes exist in module
  */
 class CompilationValidatorTest {
-
-    // ========== Test Fixtures ==========
 
     private lateinit var tempDir: File
 
@@ -31,300 +27,85 @@ class CompilationValidatorTest {
         tempDir.deleteRecursively()
     }
 
-    private fun createTestCodeNode(
-        id: String,
-        name: String,
-        type: CodeNodeType = CodeNodeType.TRANSFORMER,
-        processingLogicClass: String? = null
-    ): CodeNode {
-        val config = mutableMapOf<String, String>()
-        if (processingLogicClass != null) {
-            config["_useCaseClass"] = processingLogicClass
-        }
-        return CodeNode(
-            id = id,
-            name = name,
-            codeNodeType = type,
-            position = Node.Position(100.0, 200.0),
-            inputPorts = listOf(
-                Port(
-                    id = "${id}_input",
-                    name = "input",
-                    direction = Port.Direction.INPUT,
-                    dataType = String::class,
-                    owningNodeId = id
-                )
-            ),
-            outputPorts = listOf(
-                Port(
-                    id = "${id}_output",
-                    name = "output",
-                    direction = Port.Direction.OUTPUT,
-                    dataType = String::class,
-                    owningNodeId = id
-                )
-            ),
-            configuration = config
-        )
-    }
-
-    private fun createTestFlowGraph(
-        name: String = "TestFlow",
-        nodes: List<Node> = listOf(
-            createTestCodeNode("timer", "TimerEmitter", CodeNodeType.SOURCE, "TimerEmitterComponent"),
-            createTestCodeNode("display", "DisplayReceiver", CodeNodeType.SINK, "DisplayReceiverProcessLogic")
-        )
-    ): FlowGraph {
+    private fun createTestFlowGraph(name: String = "TestFlow"): FlowGraph {
         return FlowGraph(
             id = "flow_${name.lowercase()}",
             name = name,
             version = "1.0.0",
-            rootNodes = nodes
+            rootNodes = emptyList()
         )
     }
 
     private fun setupModuleStructure(
         moduleDir: File,
-        packageName: String,
-        componentFiles: List<String> = emptyList()
+        packageName: String
     ) {
-        // Create directory structure
         val packagePath = packageName.replace(".", "/")
-        val sourceDir = File(moduleDir, "src/commonMain/kotlin/$packagePath")
-        sourceDir.mkdirs()
-
-        // Create build.gradle.kts
+        File(moduleDir, "src/commonMain/kotlin/$packagePath").mkdirs()
         File(moduleDir, "build.gradle.kts").writeText("""
             plugins {
                 kotlin("multiplatform")
             }
         """.trimIndent())
-
-        // Create component files
-        componentFiles.forEach { fileName ->
-            File(sourceDir, fileName).writeText("// Stub")
-        }
     }
 
-    // ========== T043: Validate ProcessingLogic Classes Exist ==========
-
     @Test
-    fun `T043 - validateModule returns valid when all components exist`() {
-        // Given
+    fun `validateModule returns valid when structure is correct`() {
         val flowGraph = createTestFlowGraph("StopWatch")
         val moduleDir = File(tempDir, "StopWatch")
-        val packageName = "io.codenode.stopwatch.usecases"
+        val packageName = "io.codenode.stopwatch"
 
-        setupModuleStructure(
-            moduleDir,
-            packageName,
-            componentFiles = listOf("TimerEmitterProcessLogic.kt", "DisplayReceiverProcessLogic.kt")
-        )
+        setupModuleStructure(moduleDir, packageName)
 
         val validator = CompilationValidator()
-
-        // When
         val result = validator.validateModule(flowGraph, moduleDir, packageName)
 
-        // Then
-        assertTrue(result.isValid, "Validation should pass when all components exist")
+        assertTrue(result.isValid, "Validation should pass when module structure is correct")
         assertTrue(result.errors.isEmpty(), "No errors expected")
     }
 
     @Test
-    fun `T043 - validateModule returns invalid when components missing`() {
-        // Given
-        val flowGraph = createTestFlowGraph("StopWatch")
-        val moduleDir = File(tempDir, "StopWatch")
-        val packageName = "io.codenode.stopwatch.usecases"
-
-        setupModuleStructure(
-            moduleDir,
-            packageName,
-            componentFiles = listOf("TimerEmitterProcessLogic.kt")
-            // DisplayReceiverProcessLogic.kt is missing
-        )
-
-        val validator = CompilationValidator()
-
-        // When
-        val result = validator.validateModule(flowGraph, moduleDir, packageName)
-
-        // Then
-        assertFalse(result.isValid, "Validation should fail when components are missing")
-        assertTrue(result.errors.any { it.contains("DisplayReceiverProcessLogic") },
-            "Should report DisplayReceiverProcessLogic as missing")
-    }
-
-    @Test
-    fun `T043 - validateModule returns invalid when module directory missing`() {
-        // Given
+    fun `validateModule returns invalid when module directory missing`() {
         val flowGraph = createTestFlowGraph("StopWatch")
         val moduleDir = File(tempDir, "NonExistent")
-        val packageName = "io.codenode.stopwatch.usecases"
-        // Don't create the module directory
+        val packageName = "io.codenode.stopwatch"
 
         val validator = CompilationValidator()
-
-        // When
         val result = validator.validateModule(flowGraph, moduleDir, packageName)
 
-        // Then
         assertFalse(result.isValid, "Validation should fail when module directory missing")
-        assertTrue(result.errors.any { it.contains("does not exist") },
-            "Should report module directory as missing")
+        assertTrue(result.errors.any { it.contains("does not exist") })
     }
 
     @Test
-    fun `T043 - validateModule returns invalid when build gradle missing`() {
-        // Given
+    fun `validateModule returns invalid when build gradle missing`() {
         val flowGraph = createTestFlowGraph("StopWatch")
         val moduleDir = File(tempDir, "StopWatch")
-        val packageName = "io.codenode.stopwatch.usecases"
+        val packageName = "io.codenode.stopwatch"
 
-        // Create directory without build.gradle.kts
         val packagePath = packageName.replace(".", "/")
         File(moduleDir, "src/commonMain/kotlin/$packagePath").mkdirs()
-        File(moduleDir, "src/commonMain/kotlin/$packagePath/TimerEmitterProcessLogic.kt").writeText("// Stub")
-        File(moduleDir, "src/commonMain/kotlin/$packagePath/DisplayReceiverProcessLogic.kt").writeText("// Stub")
 
         val validator = CompilationValidator()
-
-        // When
         val result = validator.validateModule(flowGraph, moduleDir, packageName)
 
-        // Then
         assertFalse(result.isValid, "Validation should fail when build.gradle.kts missing")
-        assertTrue(result.errors.any { it.contains("build.gradle.kts") },
-            "Should report build.gradle.kts as missing")
+        assertTrue(result.errors.any { it.contains("build.gradle.kts") })
     }
 
     @Test
-    fun `T043 - hasAllProcessingLogicClasses returns true when all exist`() {
-        // Given
+    fun `validateModule returns invalid when source directory missing`() {
         val flowGraph = createTestFlowGraph("StopWatch")
         val moduleDir = File(tempDir, "StopWatch")
-        val packageName = "io.codenode.stopwatch.usecases"
+        val packageName = "io.codenode.stopwatch"
 
-        setupModuleStructure(
-            moduleDir,
-            packageName,
-            componentFiles = listOf("TimerEmitterProcessLogic.kt", "DisplayReceiverProcessLogic.kt")
-        )
+        moduleDir.mkdirs()
+        File(moduleDir, "build.gradle.kts").writeText("plugins { }")
 
         val validator = CompilationValidator()
-
-        // When
-        val result = validator.hasAllProcessingLogicClasses(flowGraph, moduleDir, packageName)
-
-        // Then
-        assertTrue(result, "Should return true when all components exist")
-    }
-
-    @Test
-    fun `T043 - hasAllProcessingLogicClasses returns false when some missing`() {
-        // Given
-        val flowGraph = createTestFlowGraph("StopWatch")
-        val moduleDir = File(tempDir, "StopWatch")
-        val packageName = "io.codenode.stopwatch.usecases"
-
-        setupModuleStructure(
-            moduleDir,
-            packageName,
-            componentFiles = listOf("TimerEmitterProcessLogic.kt")
-        )
-
-        val validator = CompilationValidator()
-
-        // When
-        val result = validator.hasAllProcessingLogicClasses(flowGraph, moduleDir, packageName)
-
-        // Then
-        assertFalse(result, "Should return false when components are missing")
-    }
-
-    // ========== Orphaned Component Detection ==========
-
-    @Test
-    fun `findOrphanedComponents returns empty when all components used`() {
-        // Given
-        val flowGraph = createTestFlowGraph("StopWatch")
-        val moduleDir = File(tempDir, "StopWatch")
-        val packageName = "io.codenode.stopwatch.usecases"
-
-        setupModuleStructure(
-            moduleDir,
-            packageName,
-            componentFiles = listOf("TimerEmitterProcessLogic.kt", "DisplayReceiverProcessLogic.kt")
-        )
-
-        val validator = CompilationValidator()
-        val packagePath = packageName.replace(".", "/")
-        val sourceDir = File(moduleDir, "src/commonMain/kotlin/$packagePath")
-
-        // When
-        val orphaned = validator.findOrphanedComponents(flowGraph, sourceDir)
-
-        // Then
-        assertTrue(orphaned.isEmpty(), "No orphaned files expected")
-    }
-
-    @Test
-    fun `findOrphanedComponents detects removed node components`() {
-        // Given
-        val flowGraph = createTestFlowGraph(
-            "StopWatch",
-            nodes = listOf(createTestCodeNode("timer", "TimerEmitter", processingLogicClass = "TimerEmitterComponent"))
-        )
-        val moduleDir = File(tempDir, "StopWatch")
-        val packageName = "io.codenode.stopwatch.usecases"
-
-        // Include an extra component file that's no longer needed
-        setupModuleStructure(
-            moduleDir,
-            packageName,
-            componentFiles = listOf(
-                "TimerEmitterProcessLogic.kt",
-                "OldRemovedProcessLogic.kt" // This node was removed
-            )
-        )
-
-        val validator = CompilationValidator()
-        val packagePath = packageName.replace(".", "/")
-        val sourceDir = File(moduleDir, "src/commonMain/kotlin/$packagePath")
-
-        // When
-        val orphaned = validator.findOrphanedComponents(flowGraph, sourceDir)
-
-        // Then
-        assertTrue(orphaned.contains("OldRemovedProcessLogic.kt"),
-            "Should detect orphaned component file")
-    }
-
-    @Test
-    fun `validateModule includes warnings for orphaned components`() {
-        // Given
-        val flowGraph = createTestFlowGraph(
-            "StopWatch",
-            nodes = listOf(createTestCodeNode("timer", "TimerEmitter", processingLogicClass = "TimerEmitterComponent"))
-        )
-        val moduleDir = File(tempDir, "StopWatch")
-        val packageName = "io.codenode.stopwatch.usecases"
-
-        setupModuleStructure(
-            moduleDir,
-            packageName,
-            componentFiles = listOf("TimerEmitterProcessLogic.kt", "OldProcessLogic.kt")
-        )
-
-        val validator = CompilationValidator()
-
-        // When
         val result = validator.validateModule(flowGraph, moduleDir, packageName)
 
-        // Then
-        assertTrue(result.isValid, "Should be valid (orphaned files are warnings, not errors)")
-        assertTrue(result.warnings.any { it.contains("OldProcessLogic") },
-            "Should warn about orphaned component")
+        assertFalse(result.isValid, "Validation should fail when source directory missing")
+        assertTrue(result.errors.any { it.contains("Source directory not found") })
     }
 }

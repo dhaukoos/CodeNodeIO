@@ -536,7 +536,6 @@ class ModuleGenerator {
             appendLine()
 
             // Generate stub component classes for nodes that don't have a _useCaseClass configured
-            // (nodes with _useCaseClass use external ProcessingLogic implementations)
             val nodesNeedingStubs = allCodeNodes.filter { node ->
                 !node.configuration.containsKey("_useCaseClass")
             }
@@ -566,8 +565,7 @@ class ModuleGenerator {
     /**
      * T044: Generates {GraphName}Factory.kt with createXXXFlowGraph() function.
      *
-     * The factory function instantiates all ProcessingLogic components
-     * and creates a fully configured FlowGraph ready for execution.
+     * The factory function creates a fully configured FlowGraph ready for execution.
      *
      * @param flowGraph The flow graph to generate a factory for
      * @param packageName The package name for the generated class
@@ -585,27 +583,6 @@ class ModuleGenerator {
      */
     fun getFactoryFileName(flowGraph: FlowGraph): String {
         return factoryGenerator.getFactoryFileName(flowGraph)
-    }
-
-    /**
-     * Gets the list of required ProcessingLogic components for a FlowGraph.
-     *
-     * @param flowGraph The flow graph to analyze
-     * @return List of component class names that must be implemented
-     */
-    fun getRequiredComponents(flowGraph: FlowGraph): List<String> {
-        return factoryGenerator.getRequiredComponents(flowGraph)
-    }
-
-    /**
-     * Validates that all required ProcessingLogic components exist.
-     *
-     * @param flowGraph The flow graph to validate
-     * @param existingFiles Set of file names that exist in the source directory
-     * @return ComponentValidationResult indicating validity and missing components
-     */
-    fun validateComponents(flowGraph: FlowGraph, existingFiles: Set<String>): ComponentValidationResult {
-        return factoryGenerator.validateComponents(flowGraph, existingFiles)
     }
 
     /**

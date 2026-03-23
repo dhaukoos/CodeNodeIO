@@ -30,13 +30,13 @@ class FlowKtGenerator {
      *
      * @param flowGraph The flow graph to serialize
      * @param packageName The package name for the generated file
-     * @param usecasesPackage Optional package name for usecases (for separate package structure)
+     * @param unused Unused parameter, retained for API compatibility
      * @return Generated Kotlin source code
      */
     fun generateFlowKt(
         flowGraph: FlowGraph,
         packageName: String,
-        usecasesPackage: String? = null,
+        unused: String? = null,
         ipTypeNames: Map<String, String> = emptyMap()
     ): String {
         // Build portId → typeName map from connections with IP type assignments
@@ -59,10 +59,6 @@ class FlowKtGenerator {
         // Generate imports
         builder.appendLine("import io.codenode.fbpdsl.dsl.*")
         builder.appendLine("import io.codenode.fbpdsl.model.*")
-        // Import usecases package if separate from generated package
-        if (usecasesPackage != null && usecasesPackage != packageName) {
-            builder.appendLine("import $usecasesPackage.*")
-        }
         builder.appendLine()
 
         // T019: Generate flowGraph DSL block

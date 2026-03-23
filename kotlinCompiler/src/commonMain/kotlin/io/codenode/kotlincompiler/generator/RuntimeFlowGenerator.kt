@@ -16,7 +16,7 @@ import io.codenode.fbpdsl.model.FlowGraph
  *
  * The generated Flow class:
  * - For nodes with _codeNodeClass: imports the CodeNodeDefinition and uses createRuntime()
- * - For legacy nodes: imports tick vals from the processingLogic package and uses CodeNodeFactory
+ * - For legacy nodes: imports tick vals from the legacy package and uses CodeNodeFactory
  * - Imports {ModuleName}State from the viewModel package
  * - Provides start(scope)/stop()/reset()/wireConnections() methods
  */
@@ -31,14 +31,12 @@ class RuntimeFlowGenerator {
      *
      * @param flowGraph The flow graph to generate from
      * @param generatedPackage The package name for the generated file
-     * @param usecasesPackage The package name for user-written tick stubs
      * @param viewModelPackage The base package where {ModuleName}State object lives
      * @return Generated Kotlin source code
      */
     fun generate(
         flowGraph: FlowGraph,
         generatedPackage: String,
-        usecasesPackage: String,
         viewModelPackage: String
     ): String {
         val flowName = flowGraph.name.pascalCase()
@@ -49,7 +47,7 @@ class RuntimeFlowGenerator {
         return buildString {
             generateHeader(flowGraph, flowName)
             generatePackage(generatedPackage)
-            generateImports(codeNodes, usecasesPackage, observableProps.isNotEmpty(), viewModelPackage, flowName)
+            generateImports(codeNodes, viewModelPackage, observableProps.isNotEmpty(), viewModelPackage, flowName)
             appendLine()
             generateKDoc(flowGraph, flowName)
             appendLine("class ${flowName}Flow {")
@@ -86,7 +84,7 @@ class RuntimeFlowGenerator {
 
     private fun StringBuilder.generateImports(
         codeNodes: List<CodeNode>,
-        usecasesPackage: String,
+        basePackage: String,
         hasObservableState: Boolean,
         viewModelPackage: String,
         flowName: String
@@ -101,7 +99,7 @@ class RuntimeFlowGenerator {
 
         // Tick function imports from user stubs (legacy processor nodes only)
         legacyNodes.filter { it.inputPorts.isNotEmpty() && it.outputPorts.isNotEmpty() }.forEach { node ->
-            appendLine("import $usecasesPackage.${node.name.camelCase()}Tick")
+            appendLine("import $basePackage.${node.name.camelCase()}Tick")
         }
         appendLine()
 

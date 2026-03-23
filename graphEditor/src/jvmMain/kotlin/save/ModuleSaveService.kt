@@ -49,8 +49,7 @@ data class ModuleSaveResult(
  *
  * The unified [saveModule] creates the full module in a single call:
  * module directory, gradle files, .flow.kt in the base package source set,
- * 4 runtime files under generated/, a ViewModel stub in the base package,
- * and ProcessingLogic stubs under processingLogic/. Orphaned stubs are deleted.
+ * 4 runtime files under generated/, and a ViewModel stub in the base package.
  *
  * The ViewModel stub contains a marker-delineated Module Properties section
  * that is selectively regenerated on re-save while preserving user code
@@ -61,7 +60,6 @@ class ModuleSaveService {
     companion object {
         const val DEFAULT_PACKAGE_PREFIX = "io.codenode"
         const val GENERATED_SUBPACKAGE = "generated"
-        const val PROCESSING_LOGIC_SUBPACKAGE = "processingLogic"
         const val PERSISTENCE_SUBPACKAGE = "persistence"
         const val USER_INTERFACE_SUBPACKAGE = "userInterface"
     }
@@ -80,11 +78,10 @@ class ModuleSaveService {
      * Saves a FlowGraph as a complete KMP module.
      *
      * Creates the full module in a single call: module directory, gradle files,
-     * .flow.kt in the base package source set, 4 runtime files, ProcessingLogic stubs,
-     * and a ViewModel stub in the base package. On re-save, .flow.kt and runtime files
-     * are always overwritten, existing stubs are preserved, new stubs are created for
-     * added nodes, orphaned stubs are deleted for removed nodes, and the ViewModel's
-     * Module Properties section is selectively regenerated while preserving user code.
+     * .flow.kt in the base package source set, 4 runtime files, and a ViewModel stub
+     * in the base package. On re-save, .flow.kt and runtime files are always overwritten,
+     * and the ViewModel's Module Properties section is selectively regenerated while
+     * preserving user code.
      *
      * @param flowGraph The flow graph to save
      * @param outputDir Parent directory where the module will be created
@@ -107,7 +104,6 @@ class ModuleSaveService {
 
             val basePackage = packageName ?: "$DEFAULT_PACKAGE_PREFIX.${effectiveModuleName.lowercase()}"
             val generatedPackage = "$basePackage.$GENERATED_SUBPACKAGE"
-            val processingLogicPackage = "$basePackage.$PROCESSING_LOGIC_SUBPACKAGE"
             val userInterfacePackage = "$basePackage.$USER_INTERFACE_SUBPACKAGE"
 
             // Create module directory
@@ -123,7 +119,6 @@ class ModuleSaveService {
             // Create source directory structure
             createDirectoryStructure(moduleDir, basePackage, enrichedFlowGraph)
             createDirectoryStructure(moduleDir, generatedPackage, enrichedFlowGraph)
-            createDirectoryStructure(moduleDir, processingLogicPackage, enrichedFlowGraph)
             createDirectoryStructure(moduleDir, userInterfacePackage, enrichedFlowGraph)
 
             // Write gradle files (only if they don't exist)
@@ -154,7 +149,7 @@ class ModuleSaveService {
 
             // Generate 4 runtime files in generated/ (always overwrite)
             generateRuntimeFilesTracked(
-                enrichedFlowGraph, moduleDir, basePackage, generatedPackage, processingLogicPackage,
+                enrichedFlowGraph, moduleDir, basePackage, generatedPackage,
                 effectiveModuleName, filesCreated, filesOverwritten
             )
 
@@ -175,9 +170,6 @@ class ModuleSaveService {
                 enrichedFlowGraph, moduleDir, basePackage, ipTypeProperties,
                 filesCreated, filesOverwritten
             )
-
-            // Delete orphaned stubs
-            deleteOrphanedComponents(enrichedFlowGraph, moduleDir, processingLogicPackage, filesDeleted)
 
             ModuleSaveResult(
                 success = true,
@@ -251,7 +243,6 @@ class ModuleSaveService {
             // Create module directory structure
             createDirectoryStructure(moduleDir, spec.basePackage, output.flowGraph)
             createDirectoryStructure(moduleDir, "${spec.basePackage}.$GENERATED_SUBPACKAGE", output.flowGraph)
-            createDirectoryStructure(moduleDir, "${spec.basePackage}.$PROCESSING_LOGIC_SUBPACKAGE", output.flowGraph)
             createDirectoryStructure(moduleDir, "${spec.basePackage}.$USER_INTERFACE_SUBPACKAGE", output.flowGraph)
 
             // Write build.gradle.kts (only if new)
@@ -1028,7 +1019,6 @@ class ModuleSaveService {
         moduleDir: File,
         basePackage: String,
         generatedPackage: String,
-        processingLogicPackage: String,
         effectiveModuleName: String,
         filesCreated: MutableList<String>,
         filesOverwritten: MutableList<String>
@@ -1037,8 +1027,8 @@ class ModuleSaveService {
         val generatedDir = File(moduleDir, "src/commonMain/kotlin/$generatedPath")
 
         val runtimeFiles = listOf(
-            "${effectiveModuleName}Flow.kt" to runtimeFlowGenerator.generate(flowGraph, generatedPackage, processingLogicPackage, basePackage),
-            "${effectiveModuleName}Controller.kt" to runtimeControllerGenerator.generate(flowGraph, generatedPackage, processingLogicPackage, basePackage),
+            "${effectiveModuleName}Flow.kt" to runtimeFlowGenerator.generate(flowGraph, generatedPackage, basePackage),
+            "${effectiveModuleName}Controller.kt" to runtimeControllerGenerator.generate(flowGraph, generatedPackage, basePackage),
             "${effectiveModuleName}ControllerInterface.kt" to runtimeControllerInterfaceGenerator.generate(flowGraph, generatedPackage),
             "${effectiveModuleName}ControllerAdapter.kt" to runtimeControllerAdapterGenerator.generate(flowGraph, generatedPackage)
         )
@@ -1177,33 +1167,6 @@ class ModuleSaveService {
                 "src/iosMain/kotlin/$persistencePath/DatabaseBuilder.ios.kt",
                 filesCreated, filesOverwritten
             )
-        }
-    }
-
-    /**
-     * Deletes orphaned ProcessingLogic files (stubs for nodes that no longer exist).
-     * Tracks deleted files in [filesDeleted].
-     */
-    private fun deleteOrphanedComponents(
-        flowGraph: FlowGraph,
-        moduleDir: File,
-        packageName: String,
-        filesDeleted: MutableList<String>
-    ) {
-        val packagePath = packageName.replace(".", "/")
-        val sourceDir = File(moduleDir, "src/commonMain/kotlin/$packagePath")
-
-        if (!sourceDir.exists()) return
-
-        // All ProcessLogic stubs are orphaned — CodeNodeDefinitions handle their own logic
-        val existingComponentFiles = sourceDir.listFiles()
-            ?.filter { it.isFile && it.name.endsWith("ProcessLogic.kt") }
-            ?: emptyList()
-
-        for (file in existingComponentFiles) {
-            val relativePath = "src/commonMain/kotlin/$packagePath/${file.name}"
-            file.delete()
-            filesDeleted.add(relativePath)
         }
     }
 
