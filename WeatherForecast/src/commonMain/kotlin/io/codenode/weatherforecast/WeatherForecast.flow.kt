@@ -2,6 +2,11 @@ package io.codenode.weatherforecast
 
 import io.codenode.fbpdsl.dsl.*
 import io.codenode.fbpdsl.model.*
+import io.codenode.weatherforecast.models.ChartData
+import io.codenode.weatherforecast.models.Coordinates
+import io.codenode.weatherforecast.models.ForecastData
+import io.codenode.weatherforecast.models.ForecastDisplayList
+import io.codenode.weatherforecast.models.HttpResponse
 
 val weatherForecastFlowGraph = flowGraph("WeatherForecast", version = "1.0.0") {
     targetPlatform(FlowGraph.TargetPlatform.KMP_ANDROID)
@@ -9,7 +14,7 @@ val weatherForecastFlowGraph = flowGraph("WeatherForecast", version = "1.0.0") {
 
     val triggerSource = codeNode("TriggerSource", nodeType = "SOURCE") {
         position(100.0, 300.0)
-        output("coordinates", Any::class)
+        output("coordinates", Coordinates::class)
         config("_codeNodeClass", "io.codenode.weatherforecast.nodes.TriggerSourceCodeNode")
         config("_codeNodeDefinition", "true")
         config("_genericType", "in0out1")
@@ -17,8 +22,8 @@ val weatherForecastFlowGraph = flowGraph("WeatherForecast", version = "1.0.0") {
 
     val httpFetcher = codeNode("HttpFetcher") {
         position(350.0, 300.0)
-        input("coordinates", Any::class)
-        output("response", Any::class)
+        input("coordinates", Coordinates::class)
+        output("response", HttpResponse::class)
         config("_codeNodeClass", "io.codenode.weatherforecast.nodes.HttpFetcherCodeNode")
         config("_codeNodeDefinition", "true")
         config("_genericType", "in1out1")
@@ -26,8 +31,8 @@ val weatherForecastFlowGraph = flowGraph("WeatherForecast", version = "1.0.0") {
 
     val jsonParser = codeNode("JsonParser") {
         position(600.0, 300.0)
-        input("response", Any::class)
-        output("forecastData", Any::class)
+        input("response", HttpResponse::class)
+        output("forecastData", ForecastData::class)
         config("_codeNodeClass", "io.codenode.weatherforecast.nodes.JsonParserCodeNode")
         config("_codeNodeDefinition", "true")
         config("_genericType", "in1out1")
@@ -35,9 +40,9 @@ val weatherForecastFlowGraph = flowGraph("WeatherForecast", version = "1.0.0") {
 
     val dataMapper = codeNode("DataMapper") {
         position(850.0, 300.0)
-        input("forecastData", Any::class)
-        output("displayList", Any::class)
-        output("chartData", Any::class)
+        input("forecastData", ForecastData::class)
+        output("displayList", ForecastDisplayList::class)
+        output("chartData", ChartData::class)
         config("_codeNodeClass", "io.codenode.weatherforecast.nodes.DataMapperCodeNode")
         config("_codeNodeDefinition", "true")
         config("_genericType", "in1out2")
@@ -45,8 +50,8 @@ val weatherForecastFlowGraph = flowGraph("WeatherForecast", version = "1.0.0") {
 
     val forecastDisplay = codeNode("ForecastDisplay", nodeType = "SINK") {
         position(1100.0, 300.0)
-        input("displayList", Any::class)
-        input("chartData", Any::class)
+        input("displayList", ForecastDisplayList::class)
+        input("chartData", ChartData::class)
         config("_codeNodeClass", "io.codenode.weatherforecast.nodes.ForecastDisplayCodeNode")
         config("_codeNodeDefinition", "true")
         config("_genericType", "in2anyout0")

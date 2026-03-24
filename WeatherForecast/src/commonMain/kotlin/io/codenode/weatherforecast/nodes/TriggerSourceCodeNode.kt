@@ -14,11 +14,12 @@ import io.codenode.fbpdsl.runtime.CodeNodeDefinition
 import io.codenode.fbpdsl.runtime.NodeRuntime
 import io.codenode.fbpdsl.runtime.PortSpec
 import io.codenode.weatherforecast.WeatherForecastState
+import io.codenode.weatherforecast.models.Coordinates
 import kotlinx.coroutines.flow.drop
 
 /**
  * Source node that reads latitude/longitude from WeatherForecastState and
- * emits a Coordinates map on each trigger (manual refresh).
+ * emits a Coordinates object on each trigger (manual refresh).
  *
  * The UI triggers a refresh by updating WeatherForecastState._isLoading to true,
  * which this node observes to emit the current coordinates.
@@ -32,7 +33,7 @@ object TriggerSourceCodeNode : CodeNodeDefinition {
     override val description = "Emits latitude/longitude coordinates on manual trigger"
     override val inputPorts = emptyList<PortSpec>()
     override val outputPorts = listOf(
-        PortSpec("coordinates", Any::class)
+        PortSpec("coordinates", Coordinates::class)
     )
 
     override fun toNodeTypeDefinition(): NodeTypeDefinition {
@@ -73,26 +74,24 @@ object TriggerSourceCodeNode : CodeNodeDefinition {
     }
 
     override fun createRuntime(name: String): NodeRuntime {
-        return CodeNodeFactory.createContinuousSource<Any>(
+        return CodeNodeFactory.createContinuousSource<Coordinates>(
             name = name,
             generate = { emit ->
                 // Emit once on start with current coordinates
-                val initialCoords = mapOf(
-                    "latitude" to WeatherForecastState._latitude.value,
-                    "longitude" to WeatherForecastState._longitude.value
-                )
-                emit(initialCoords)
+                emit(Coordinates(
+                    latitude = WeatherForecastState._latitude.value,
+                    longitude = WeatherForecastState._longitude.value
+                ))
 
                 // Then emit on each loading trigger (skip initial false)
                 WeatherForecastState._isLoading
                     .drop(1)
                     .collect { isLoading ->
                         if (isLoading) {
-                            val coords = mapOf(
-                                "latitude" to WeatherForecastState._latitude.value,
-                                "longitude" to WeatherForecastState._longitude.value
-                            )
-                            emit(coords)
+                            emit(Coordinates(
+                                latitude = WeatherForecastState._latitude.value,
+                                longitude = WeatherForecastState._longitude.value
+                            ))
                         }
                     }
             }

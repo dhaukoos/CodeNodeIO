@@ -11,31 +11,29 @@ import io.codenode.fbpdsl.model.CodeNodeType
 import io.codenode.fbpdsl.runtime.NodeRuntime
 import io.codenode.fbpdsl.runtime.PortSpec
 import io.codenode.weatherforecast.WeatherForecastState
+import io.codenode.weatherforecast.models.Coordinates
+import io.codenode.weatherforecast.models.HttpResponse
 import io.ktor.client.HttpClient
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
 
 /**
  * Transformer node that receives Coordinates, constructs an Open-Meteo API URL,
- * performs an HTTPS GET request using Ktor Client, and outputs an HttpResponse map.
+ * performs an HTTPS GET request using Ktor Client, and outputs an HttpResponse.
  */
 object HttpFetcherCodeNode : CodeNodeDefinition {
     override val name = "HttpFetcher"
     override val category = CodeNodeType.TRANSFORMER
     override val description = "Fetches weather forecast data from Open-Meteo via HTTPS GET"
-    override val inputPorts = listOf(PortSpec("coordinates", Any::class))
-    override val outputPorts = listOf(PortSpec("response", Any::class))
+    override val inputPorts = listOf(PortSpec("coordinates", Coordinates::class))
+    override val outputPorts = listOf(PortSpec("response", HttpResponse::class))
 
     override fun createRuntime(name: String): NodeRuntime {
-        return CodeNodeFactory.createContinuousTransformer<Any, Any>(
+        return CodeNodeFactory.createContinuousTransformer<Coordinates, HttpResponse>(
             name = name,
             transform = { input ->
-                val coords = input as Map<*, *>
-                val lat = coords["latitude"] as? Double ?: 40.16
-                val lon = coords["longitude"] as? Double ?: -105.10
-
                 val url = "https://api.open-meteo.com/v1/forecast" +
-                    "?latitude=$lat&longitude=$lon" +
+                    "?latitude=${input.latitude}&longitude=${input.longitude}" +
                     "&daily=temperature_2m_max,temperature_2m_min" +
                     "&timezone=auto"
 
@@ -54,10 +52,7 @@ object HttpFetcherCodeNode : CodeNodeDefinition {
                         WeatherForecastState._errorMessage.value = null
                     }
 
-                    mapOf(
-                        "statusCode" to statusCode,
-                        "body" to body
-                    )
+                    HttpResponse(statusCode = statusCode, body = body)
                 } catch (e: Exception) {
                     val message = when {
                         e.message?.contains("UnknownHost", ignoreCase = true) == true ->
@@ -70,10 +65,7 @@ object HttpFetcherCodeNode : CodeNodeDefinition {
                     }
                     WeatherForecastState._errorMessage.value = message
                     WeatherForecastState._isLoading.value = false
-                    mapOf(
-                        "statusCode" to 0,
-                        "body" to ""
-                    )
+                    HttpResponse(statusCode = 0, body = "")
                 }
             }
         )

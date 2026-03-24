@@ -12,12 +12,12 @@ import io.codenode.fbpdsl.runtime.NodeRuntime
 import io.codenode.fbpdsl.runtime.PortSpec
 import io.codenode.weatherforecast.WeatherForecastState
 import io.codenode.weatherforecast.models.ChartData
-import io.codenode.weatherforecast.models.ForecastEntry
+import io.codenode.weatherforecast.models.ForecastDisplayList
 
 /**
  * Sink node with 2 inputs (anyInput mode) that receives:
  *   - input1: ForecastDisplayList (formatted entries for list view)
- *   - input2: ForecastChartData (arrays for chart rendering)
+ *   - input2: ChartData (data for chart rendering)
  *
  * Updates WeatherForecastState with the received data for UI display.
  */
@@ -26,39 +26,24 @@ object ForecastDisplayCodeNode : CodeNodeDefinition {
     override val category = CodeNodeType.SINK
     override val description = "Updates UI state with forecast display list and chart data"
     override val inputPorts = listOf(
-        PortSpec("displayList", Any::class),
-        PortSpec("chartData", Any::class)
+        PortSpec("displayList", ForecastDisplayList::class),
+        PortSpec("chartData", ChartData::class)
     )
     override val outputPorts = emptyList<PortSpec>()
     override val anyInput = true
 
-    @Suppress("UNCHECKED_CAST")
     override fun createRuntime(name: String): NodeRuntime {
-        return CodeNodeFactory.createSinkIn2Any<Any, Any>(
+        return CodeNodeFactory.createSinkIn2Any<ForecastDisplayList, ChartData>(
             name = name,
-            initialValue1 = emptyMap<String, Any>(),
-            initialValue2 = emptyMap<String, Any>(),
-            consume = { displayListData, chartDataData ->
-                // Process display list
-                val displayMap = displayListData as? Map<*, *>
-                val entries = displayMap?.get("entries") as? List<ForecastEntry>
-                if (entries != null && entries.isNotEmpty()) {
-                    WeatherForecastState._forecastEntries.value = entries
+            initialValue1 = ForecastDisplayList(entries = emptyList()),
+            initialValue2 = ChartData(labels = emptyList(), values = emptyList(), unit = "°C", minValue = 0.0, maxValue = 0.0),
+            consume = { displayList, chartData ->
+                if (displayList.entries.isNotEmpty()) {
+                    WeatherForecastState._forecastEntries.value = displayList.entries
                 }
 
-                // Process chart data
-                val chartMap = chartDataData as? Map<*, *>
-                val labels = chartMap?.get("labels") as? List<String>
-                val values = chartMap?.get("values") as? List<Double>
-                val unit = chartMap?.get("unit") as? String ?: "°C"
-                if (labels != null && values != null && values.isNotEmpty()) {
-                    WeatherForecastState._chartData.value = ChartData(
-                        labels = labels,
-                        values = values,
-                        unit = unit,
-                        minValue = values.minOrNull() ?: 0.0,
-                        maxValue = values.maxOrNull() ?: 0.0
-                    )
+                if (chartData.values.isNotEmpty()) {
+                    WeatherForecastState._chartData.value = chartData
                 }
 
                 // Clear loading state

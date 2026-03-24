@@ -11,55 +11,51 @@ import io.codenode.fbpdsl.model.CodeNodeType
 import io.codenode.fbpdsl.runtime.NodeRuntime
 import io.codenode.fbpdsl.runtime.PortSpec
 import io.codenode.fbpdsl.runtime.ProcessResult2
+import io.codenode.weatherforecast.models.ChartData
+import io.codenode.weatherforecast.models.ForecastData
+import io.codenode.weatherforecast.models.ForecastDisplayList
 import io.codenode.weatherforecast.models.ForecastEntry
 
 /**
  * Transformer node with 1 input and 2 outputs (fan-out).
- * Receives ForecastData map, formats it into:
+ * Receives ForecastData, formats it into:
  *   - output1: ForecastDisplayList (list of formatted entries for list view)
- *   - output2: ForecastChartData (arrays for chart rendering)
+ *   - output2: ChartData (arrays for chart rendering)
  */
 object DataMapperCodeNode : CodeNodeDefinition {
     override val name = "DataMapper"
     override val category = CodeNodeType.TRANSFORMER
     override val description = "Maps forecast data to display list and chart data formats"
-    override val inputPorts = listOf(PortSpec("forecastData", Any::class))
+    override val inputPorts = listOf(PortSpec("forecastData", ForecastData::class))
     override val outputPorts = listOf(
-        PortSpec("displayList", Any::class),
-        PortSpec("chartData", Any::class)
+        PortSpec("displayList", ForecastDisplayList::class),
+        PortSpec("chartData", ChartData::class)
     )
 
-    @Suppress("UNCHECKED_CAST")
     override fun createRuntime(name: String): NodeRuntime {
-        return CodeNodeFactory.createIn1Out2Processor<Any, Any, Any>(
+        return CodeNodeFactory.createIn1Out2Processor<ForecastData, ForecastDisplayList, ChartData>(
             name = name,
             process = { input ->
-                val data = input as Map<*, *>
-                val dates = data["dates"] as? List<String> ?: emptyList()
-                val maxTemps = data["maxTemperatures"] as? List<Double> ?: emptyList()
-                val minTemps = data["minTemperatures"] as? List<Double> ?: emptyList()
-                val unit = data["temperatureUnit"] as? String ?: "°C"
-
                 // Build display entries
-                val entries = dates.indices.map { i ->
+                val entries = input.dates.indices.map { i ->
                     ForecastEntry(
-                        date = formatDate(dates.getOrElse(i) { "" }),
-                        high = maxTemps.getOrElse(i) { 0.0 },
-                        low = minTemps.getOrElse(i) { 0.0 },
-                        unit = unit
+                        date = formatDate(input.dates.getOrElse(i) { "" }),
+                        high = input.maxTemperatures.getOrElse(i) { 0.0 },
+                        low = input.minTemperatures.getOrElse(i) { 0.0 },
+                        unit = input.temperatureUnit
                     )
                 }
 
                 // Build chart labels (short day names)
-                val chartLabels = dates.map { dateStr ->
-                    formatShortDate(dateStr)
-                }
+                val chartLabels = input.dates.map { formatShortDate(it) }
 
-                val displayList = mapOf("entries" to entries)
-                val chartData = mapOf(
-                    "labels" to chartLabels,
-                    "values" to maxTemps,
-                    "unit" to unit
+                val displayList = ForecastDisplayList(entries = entries)
+                val chartData = ChartData(
+                    labels = chartLabels,
+                    values = input.maxTemperatures,
+                    unit = input.temperatureUnit,
+                    minValue = input.maxTemperatures.minOrNull() ?: 0.0,
+                    maxValue = input.maxTemperatures.maxOrNull() ?: 0.0
                 )
 
                 ProcessResult2.both(displayList, chartData)
@@ -67,7 +63,7 @@ object DataMapperCodeNode : CodeNodeDefinition {
         )
     }
 
-    /** Formats "2026-03-23" to "Mon 03/23" */
+    /** Formats "2026-03-23" to "03/23" */
     private fun formatDate(dateStr: String): String {
         if (dateStr.length < 10) return dateStr
         val month = dateStr.substring(5, 7)
