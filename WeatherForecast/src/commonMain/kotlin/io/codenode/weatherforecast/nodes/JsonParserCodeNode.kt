@@ -12,6 +12,7 @@ import io.codenode.fbpdsl.runtime.NodeRuntime
 import io.codenode.fbpdsl.runtime.PortSpec
 import io.codenode.weatherforecast.WeatherForecastState
 import io.codenode.weatherforecast.models.OpenMeteoResponse
+import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 
 /**
@@ -54,9 +55,19 @@ object JsonParserCodeNode : CodeNodeDefinition {
                             "minTemperatures" to parsed.daily.temperatureMin,
                             "temperatureUnit" to parsed.dailyUnits.temperatureMax
                         )
+                    } catch (e: SerializationException) {
+                        WeatherForecastState._errorMessage.value =
+                            "Invalid JSON format: ${e.message?.take(100)}"
+                        WeatherForecastState._isLoading.value = false
+                        mapOf(
+                            "dates" to emptyList<String>(),
+                            "maxTemperatures" to emptyList<Double>(),
+                            "minTemperatures" to emptyList<Double>(),
+                            "temperatureUnit" to "°C"
+                        )
                     } catch (e: Exception) {
                         WeatherForecastState._errorMessage.value =
-                            "Parse error: ${e.message}"
+                            "Parse error: ${e.message?.take(100)}"
                         WeatherForecastState._isLoading.value = false
                         mapOf(
                             "dates" to emptyList<String>(),

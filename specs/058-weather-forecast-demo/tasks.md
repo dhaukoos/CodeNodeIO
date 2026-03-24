@@ -71,8 +71,8 @@
 
 ### Implementation for User Story 2
 
-- [ ] T018 [US2] Create `ForecastChart.kt` Compose Canvas line chart at `WeatherForecast/src/commonMain/kotlin/io/codenode/weatherforecast/userInterface/` — draws line chart using Canvas composable (drawLine, drawCircle, drawText) with X-axis date labels, Y-axis temperature values, and unit label. Receives ChartData from ViewModel
-- [ ] T019 [US2] Integrate chart into `WeatherForecastUI.kt` — add ForecastChart composable below or alongside the list view, fed by chartData StateFlow from ViewModel
+- [X] T018 [US2] Create `ForecastChart.kt` Compose Canvas line chart at `WeatherForecast/src/commonMain/kotlin/io/codenode/weatherforecast/userInterface/` — draws line chart using Canvas composable (drawLine, drawCircle, drawText) with X-axis date labels, Y-axis temperature values, and unit label. Receives ChartData from ViewModel
+- [X] T019 [US2] Integrate chart into `WeatherForecastUI.kt` — add ForecastChart composable below or alongside the list view, fed by chartData StateFlow from ViewModel
 
 **Checkpoint**: Both list and chart display consistent data from the same fetch
 
@@ -86,8 +86,8 @@
 
 ### Implementation for User Story 3
 
-- [ ] T020 [US3] Update `TriggerSourceCodeNode.kt` to expose latitude and longitude as configurable node properties (using the properties panel pattern from existing nodes) at `WeatherForecast/src/commonMain/kotlin/io/codenode/weatherforecast/nodes/TriggerSourceCodeNode.kt`
-- [ ] T021 [US3] Add latitude/longitude input fields to `WeatherForecastUI.kt` preview — allow manual entry of coordinates with "Apply" action that updates WeatherForecastState latitude/longitude before next refresh
+- [X] T020 [US3] Update `TriggerSourceCodeNode.kt` to expose latitude and longitude as configurable node properties (using the properties panel pattern from existing nodes) at `WeatherForecast/src/commonMain/kotlin/io/codenode/weatherforecast/nodes/TriggerSourceCodeNode.kt`
+- [X] T021 [US3] Add latitude/longitude input fields to `WeatherForecastUI.kt` preview — allow manual entry of coordinates with "Apply" action that updates WeatherForecastState latitude/longitude before next refresh
 
 **Checkpoint**: Users can change location and see forecast for different cities
 
@@ -97,9 +97,9 @@
 
 **Purpose**: Error handling, build verification, and quickstart validation
 
-- [ ] T022 [P] Add network error handling to `HttpFetcherCodeNode.kt` — catch Ktor exceptions, set errorMessage in WeatherForecastState, handle non-200 status codes gracefully
-- [ ] T023 [P] Add JSON parsing error handling to `JsonParserCodeNode.kt` — catch SerializationException, set errorMessage in WeatherForecastState
-- [ ] T024 Verify build compiles with `./gradlew :WeatherForecast:build :graphEditor:build`
+- [X] T022 [P] Add network error handling to `HttpFetcherCodeNode.kt` — catch Ktor exceptions, set errorMessage in WeatherForecastState, handle non-200 status codes gracefully
+- [X] T023 [P] Add JSON parsing error handling to `JsonParserCodeNode.kt` — catch SerializationException, set errorMessage in WeatherForecastState
+- [X] T024 Verify build compiles with `./gradlew :WeatherForecast:build :graphEditor:build`
 - [ ] T025 Run quickstart.md scenarios 1-6 manually in graphEditor to validate end-to-end functionality
 
 ---

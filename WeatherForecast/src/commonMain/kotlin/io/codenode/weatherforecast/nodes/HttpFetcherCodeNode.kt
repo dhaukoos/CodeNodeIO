@@ -46,13 +46,29 @@ object HttpFetcherCodeNode : CodeNodeDefinition {
                     val statusCode = httpResponse.status.value
                     client.close()
 
-                    WeatherForecastState._errorMessage.value = null
+                    if (statusCode != 200) {
+                        WeatherForecastState._errorMessage.value =
+                            "HTTP $statusCode: ${httpResponse.status.description}"
+                        WeatherForecastState._isLoading.value = false
+                    } else {
+                        WeatherForecastState._errorMessage.value = null
+                    }
+
                     mapOf(
                         "statusCode" to statusCode,
                         "body" to body
                     )
                 } catch (e: Exception) {
-                    WeatherForecastState._errorMessage.value = "Network error: ${e.message}"
+                    val message = when {
+                        e.message?.contains("UnknownHost", ignoreCase = true) == true ->
+                            "No internet connection or invalid hostname"
+                        e.message?.contains("timeout", ignoreCase = true) == true ->
+                            "Request timed out — try again"
+                        e.message?.contains("Connection refused", ignoreCase = true) == true ->
+                            "Connection refused by server"
+                        else -> "Network error: ${e.message}"
+                    }
+                    WeatherForecastState._errorMessage.value = message
                     WeatherForecastState._isLoading.value = false
                     mapOf(
                         "statusCode" to 0,
