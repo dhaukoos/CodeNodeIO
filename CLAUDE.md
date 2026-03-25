@@ -85,6 +85,7 @@ Auto-generated from all feature plans. Last updated: 2026-01-13
 - N/A (in-memory state only via MutableStateFlow) (058-weather-forecast-demo)
 - Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + Compose Desktop 1.7.3, kotlinx-coroutines 1.8.0, kotlinx-serialization 1.6.0, lifecycle-viewmodel-compose 2.8.0, Ktor Client 3.1.1 (ktor-client-core, ktor-client-cio, ktor-client-content-negotiation, ktor-serialization-kotlinx-json) (058-weather-forecast-demo)
 - N/A (in-memory state only) (058-weather-forecast-demo)
+- Filesystem (`.kt` files at three tiers) — replaces `~/.codenode/custom-ip-types.json` (059-filesystem-ip-types)
 
 - Kotlin 1.9+, Go 1.21+ (001-ide-plugin-platform)
 
@@ -104,9 +105,9 @@ tests/
 Kotlin 1.9+, Go 1.21+: Follow standard conventions
 
 ## Recent Changes
+- 059-filesystem-ip-types: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + Compose Desktop 1.7.3 + kotlinx-coroutines 1.8.0, kotlinx-serialization 1.6.0, lifecycle-viewmodel-compose 2.8.0
 - 058-weather-forecast-demo: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + Compose Desktop 1.7.3, kotlinx-coroutines 1.8.0, kotlinx-serialization 1.6.0, lifecycle-viewmodel-compose 2.8.0, Ktor Client 3.1.1 (ktor-client-core, ktor-client-cio, ktor-client-content-negotiation, ktor-serialization-kotlinx-json)
 - 058-weather-forecast-demo: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + Compose Desktop 1.7.3 + kotlinx-coroutines 1.8.0, kotlinx-serialization 1.6.0, lifecycle-viewmodel-compose 2.8.0, java.net.HttpURLConnection (JVM standard library)
-- 057-grapheditor-text-editor: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + Compose Desktop 1.7.3 + Compose Material3 (UI components), kotlinx-coroutines 1.8.0, lifecycle-viewmodel-compose 2.8.0
 
 
 <!-- MANUAL ADDITIONS START -->
