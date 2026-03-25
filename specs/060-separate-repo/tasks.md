@@ -48,14 +48,14 @@
 
 ### Implementation for User Story 1
 
-- [ ] T010 [US1] Create `settings.gradle.kts` in CodeNodeIO-DemoProject root — include all project modules: Addresses, EdgeArtFilter, GeoLocations, StopWatch, UserProfiles, WeatherForecast, KMPMobileApp, persistence, nodes. Add `includeBuild("../CodeNodeIO")` for fbpDsl composite build dependency.
-- [ ] T011 [US1] Create root `build.gradle.kts` in CodeNodeIO-DemoProject — configure shared Kotlin version (2.1.21), Compose Multiplatform (1.7.3), KSP, Room, and other shared plugin/dependency versions matching the current monorepo configuration.
-- [ ] T012 [US1] Create `gradle.properties` in CodeNodeIO-DemoProject — copy relevant properties from the monorepo's `gradle.properties` (Kotlin/Compose versions, Android SDK versions, org.gradle settings).
-- [ ] T013 [US1] Copy `gradle/` wrapper directory from monorepo to CodeNodeIO-DemoProject (gradlew, gradlew.bat, gradle-wrapper.jar, gradle-wrapper.properties).
-- [ ] T014 [US1] Update each module's `build.gradle.kts` in CodeNodeIO-DemoProject to ensure `project(":fbpDsl")` references resolve via the composite build. Verify no references to tool-only modules (graphEditor, kotlinCompiler, circuitSimulator) exist.
-- [ ] T015 [US1] Build CodeNodeIO-DemoProject with `./gradlew build` — fix any compilation errors from missing dependencies or incorrect module references.
-- [ ] T016 [US1] Create `README.md` in CodeNodeIO-DemoProject root — document setup instructions: clone, configure composite build path to CodeNodeIO, build, run KMPMobileApp.
-- [ ] T017 [US1] Create `.gitignore` in CodeNodeIO-DemoProject root — include standard Kotlin/KMP patterns (build/, .gradle/, .idea/, *.class, *.jar, .DS_Store).
+- [X] T010 [US1] Create `settings.gradle.kts` in CodeNodeIO-DemoProject root — includes all project modules with composite build for fbpDsl via `includeBuild("../CodeNodeIO")` and `dependencySubstitution`.
+- [X] T011 [US1] Create root `build.gradle.kts` in CodeNodeIO-DemoProject — configured with version catalog plugin aliases matching monorepo.
+- [X] T012 [US1] Create `gradle.properties` in CodeNodeIO-DemoProject — copied relevant properties from monorepo.
+- [X] T013 [US1] Copy `gradle/` wrapper directory from monorepo to CodeNodeIO-DemoProject (gradlew, gradlew.bat, gradle-wrapper.properties, libs.versions.toml).
+- [X] T014 [US1] Updated all module `build.gradle.kts` files — replaced `project(":fbpDsl")` with `"io.codenode:fbpDsl"` Maven coordinate (resolved by composite build substitution). No tool-only module references found.
+- [X] T015 [US1] Build verified: all 8 modules compile successfully via composite build. Committed generated runtime files (Controller, ControllerInterface, ControllerAdapter) that were gitignored in monorepo.
+- [X] T016 [US1] Create `README.md` in CodeNodeIO-DemoProject root — documents setup, sibling directory structure, build instructions, and fbpDsl switchover.
+- [X] T017 [US1] Create `.gitignore` in CodeNodeIO-DemoProject root — standard Kotlin/KMP patterns.
 
 **Checkpoint**: CodeNodeIO-DemoProject builds independently from a fresh clone
 
