@@ -9,7 +9,12 @@
       "Bash(git -C /Users/dhaukoos/CodeNodeIO show 9dc49f1:fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/CodeNodeFactory.kt)",
       "WebFetch(domain:github.com)",
       "WebSearch",
-      "Bash(find /Users/dhaukoos/CodeNodeIO/graphEditor -name \"*IPType*\" -o -name \"*CustomIPType*\" | grep -E \"\\\\.kt$\" | head -10)"
+      "Bash(find /Users/dhaukoos/CodeNodeIO/graphEditor -name \"*IPType*\" -o -name \"*CustomIPType*\" | grep -E \"\\\\.kt$\" | head -10)",
+      "Bash(for f:*)",
+      "Bash(do sed:*)",
+      "Bash(done)",
+      "Bash(do rm:*)",
+      "Bash(find WeatherForecast/src -name \"*.kt\" -exec grep -l \"io.codenode.weatherforecast.models\" {})"
     ]
   }
 }
