@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.codenode.fbpdsl.model.InformationPacketType
 import io.codenode.grapheditor.model.CustomIPTypeDefinition
+import io.codenode.grapheditor.model.PlacementLevel
 import io.codenode.grapheditor.viewmodel.IPGeneratorViewModel
 import io.codenode.grapheditor.viewmodel.IPGeneratorPanelState
 import io.codenode.grapheditor.viewmodel.IPPropertyState
@@ -57,6 +58,8 @@ fun IPGeneratorPanel(
         onPropertyNameChange = { id, name -> viewModel.updatePropertyName(id, name) },
         onPropertyTypeChange = { id, typeId -> viewModel.updatePropertyType(id, typeId) },
         onPropertyRequiredChange = { id, required -> viewModel.updatePropertyRequired(id, required) },
+        onLevelChange = { viewModel.setSelectedLevel(it) },
+        onLevelDropdownExpandedChange = { viewModel.setLevelDropdownExpanded(it) },
         onCancel = { viewModel.reset() },
         onCreate = {
             viewModel.createType()?.let { definition ->
@@ -82,6 +85,8 @@ private fun IPGeneratorPanelContent(
     onPropertyNameChange: (String, String) -> Unit,
     onPropertyTypeChange: (String, String) -> Unit,
     onPropertyRequiredChange: (String, Boolean) -> Unit,
+    onLevelChange: (PlacementLevel) -> Unit,
+    onLevelDropdownExpandedChange: (Boolean) -> Unit,
     onCancel: () -> Unit,
     onCreate: () -> Unit,
     modifier: Modifier = Modifier
@@ -137,6 +142,44 @@ private fun IPGeneratorPanelContent(
                     color = Color(0xFFD32F2F),
                     fontSize = 11.sp
                 )
+            }
+
+            // Level dropdown (matching Node Generator design)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = "Level",
+                    fontSize = 12.sp,
+                    color = Color(0xFF757575)
+                )
+                Box {
+                    OutlinedButton(
+                        onClick = { onLevelDropdownExpandedChange(true) },
+                        modifier = Modifier.width(120.dp)
+                    ) {
+                        Text(state.selectedLevel.displayName, fontSize = 12.sp)
+                        Spacer(Modifier.weight(1f))
+                        Text("▼", fontSize = 10.sp)
+                    }
+                    DropdownMenu(
+                        expanded = state.levelDropdownExpanded,
+                        onDismissRequest = { onLevelDropdownExpandedChange(false) }
+                    ) {
+                        state.availableLevels.forEach { level ->
+                            DropdownMenuItem(
+                                onClick = {
+                                    onLevelChange(level)
+                                    onLevelDropdownExpandedChange(false)
+                                }
+                            ) {
+                                Text(level.displayName)
+                            }
+                        }
+                    }
+                }
             }
 
             // Properties section header with add button

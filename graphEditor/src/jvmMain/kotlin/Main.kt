@@ -105,6 +105,7 @@ import io.codenode.fbpdsl.model.CodeNodeType
 import io.codenode.fbpdsl.model.GraphNode
 import io.codenode.fbpdsl.model.InformationPacketType
 import io.codenode.grapheditor.state.IPTypeDiscovery
+import io.codenode.grapheditor.state.IPTypeFileGenerator
 import io.codenode.grapheditor.state.IPTypeRegistry
 import io.codenode.grapheditor.ui.IPPalette
 import io.codenode.grapheditor.ui.ConnectionContextMenu
@@ -255,17 +256,15 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
     }
     val ipTypeRegistry = remember { IPTypeRegistry.withDefaults() }
     val ipTypeRepository = remember { FileIPTypeRepository() }
+    val modulePaths = remember {
+        listOf("WeatherForecast", "EdgeArtFilter", "StopWatch", "UserProfiles", "GeoLocations", "Addresses")
+            .map { java.io.File(projectRoot, it) }.filter { it.isDirectory }
+    }
+    val discovery = remember { IPTypeDiscovery(projectRoot, modulePaths) }
+    val ipTypeFileGenerator = remember { IPTypeFileGenerator(projectRoot) }
     // Discover IP types from filesystem on startup
     var ipTypesVersion by remember { mutableStateOf(0) }
     LaunchedEffect(Unit) {
-        // Filesystem-based IP type discovery (replaces hardcoded registrations)
-        val projectRoot = java.io.File(System.getProperty("user.dir"))
-        val modulePaths = listOf(
-            "WeatherForecast", "EdgeArtFilter", "StopWatch",
-            "UserProfiles", "GeoLocations", "Addresses"
-        ).map { java.io.File(projectRoot, it) }.filter { it.isDirectory }
-
-        val discovery = IPTypeDiscovery(projectRoot, modulePaths)
         val discovered = discovery.discoverAll()
         ipTypeRegistry.registerFromFilesystem(discovered) { meta ->
             discovery.resolveKClass(meta)
@@ -283,7 +282,7 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
     }
     val ipTypes = remember(ipTypesVersion) { ipTypeRegistry.getAllTypes() }
     val ipGeneratorViewModel = remember(ipTypeRegistry, ipTypeRepository) {
-        IPGeneratorViewModel(ipTypeRegistry, ipTypeRepository)
+        IPGeneratorViewModel(ipTypeRegistry, ipTypeRepository, ipTypeFileGenerator, discovery)
     }
     var selectedIPType by remember { mutableStateOf<InformationPacketType?>(null) }
     var showOpenDialog by remember { mutableStateOf(false) }

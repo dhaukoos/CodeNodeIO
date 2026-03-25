@@ -9,7 +9,10 @@ package io.codenode.grapheditor.viewmodel
 import androidx.lifecycle.ViewModel
 import io.codenode.grapheditor.model.CustomIPTypeDefinition
 import io.codenode.grapheditor.model.IPProperty
+import io.codenode.grapheditor.model.PlacementLevel
 import io.codenode.grapheditor.repository.FileIPTypeRepository
+import io.codenode.grapheditor.state.IPTypeDiscovery
+import io.codenode.grapheditor.state.IPTypeFileGenerator
 import io.codenode.grapheditor.state.IPTypeRegistry
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -45,8 +48,14 @@ data class IPGeneratorPanelState(
     val typeName: String = "",
     val properties: List<IPPropertyState> = emptyList(),
     val isExpanded: Boolean = false,
-    val existingTypeNames: Set<String> = emptySet()
+    val existingTypeNames: Set<String> = emptySet(),
+    val selectedLevel: PlacementLevel = PlacementLevel.PROJECT,
+    val levelDropdownExpanded: Boolean = false,
+    val moduleLoaded: Boolean = false
 ) : BaseState {
+    val availableLevels: List<PlacementLevel>
+        get() = PlacementLevel.availableLevels(moduleLoaded)
+
     val hasNameConflict: Boolean
         get() = typeName.isNotBlank() && existingTypeNames.any {
             it.equals(typeName.trim(), ignoreCase = true)
@@ -87,7 +96,9 @@ data class IPGeneratorPanelState(
  */
 class IPGeneratorViewModel(
     private val ipTypeRegistry: IPTypeRegistry,
-    private val repository: FileIPTypeRepository
+    private val repository: FileIPTypeRepository,
+    private val fileGenerator: IPTypeFileGenerator? = null,
+    private val discovery: IPTypeDiscovery? = null
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(IPGeneratorPanelState(
@@ -196,11 +207,37 @@ class IPGeneratorViewModel(
             color = CustomIPTypeDefinition.nextColor(ipTypeRegistry.customTypeCount())
         )
 
-        ipTypeRegistry.registerCustomType(definition)
-        repository.add(definition)
+        // Generate .kt file and register via filesystem discovery
+        val currentLevel = _state.value.selectedLevel
+        if (fileGenerator != null && discovery != null) {
+            val activeModulePath = if (currentLevel == PlacementLevel.MODULE) {
+                // TODO: resolve active module path from session context
+                null
+            } else null
+            try {
+                val filePath = fileGenerator.generateIPTypeFile(definition, currentLevel, activeModulePath)
+                // Parse and register immediately for palette update
+                val meta = discovery.parseIPTypeFile(filePath)
+                if (meta != null) {
+                    val typed = meta.copy(tier = currentLevel)
+                    ipTypeRegistry.registerFromFilesystem(listOf(typed)) { discovery.resolveKClass(it) }
+                }
+            } catch (_: Exception) {
+                // Fallback to legacy registration if file generation fails
+                ipTypeRegistry.registerCustomType(definition)
+                repository.add(definition)
+            }
+        } else {
+            // Fallback when file generator not available
+            ipTypeRegistry.registerCustomType(definition)
+            repository.add(definition)
+        }
+
         _state.update {
             IPGeneratorPanelState(
                 isExpanded = it.isExpanded,
+                selectedLevel = it.selectedLevel,
+                moduleLoaded = it.moduleLoaded,
                 existingTypeNames = ipTypeRegistry.getAllTypes().map { t -> t.typeName }.toSet()
             )
         }
@@ -218,6 +255,18 @@ class IPGeneratorViewModel(
                 existingTypeNames = it.existingTypeNames
             )
         }
+    }
+
+    fun setSelectedLevel(level: PlacementLevel) {
+        _state.update { it.copy(selectedLevel = level) }
+    }
+
+    fun setLevelDropdownExpanded(expanded: Boolean) {
+        _state.update { it.copy(levelDropdownExpanded = expanded) }
+    }
+
+    fun setModuleLoaded(loaded: Boolean) {
+        _state.update { it.copy(moduleLoaded = loaded) }
     }
 
     fun refreshExistingTypeNames() {
