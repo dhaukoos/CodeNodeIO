@@ -51,7 +51,8 @@ data class IPGeneratorPanelState(
     val existingTypeNames: Set<String> = emptySet(),
     val selectedLevel: PlacementLevel = PlacementLevel.PROJECT,
     val levelDropdownExpanded: Boolean = false,
-    val moduleLoaded: Boolean = false
+    val moduleLoaded: Boolean = false,
+    val activeModulePath: String? = null
 ) : BaseState {
     val availableLevels: List<PlacementLevel>
         get() = PlacementLevel.availableLevels(moduleLoaded)
@@ -209,11 +210,8 @@ class IPGeneratorViewModel(
 
         // Generate .kt file and register via filesystem discovery
         val currentLevel = _state.value.selectedLevel
+        val activeModulePath = _state.value.activeModulePath
         if (fileGenerator != null && discovery != null) {
-            val activeModulePath = if (currentLevel == PlacementLevel.MODULE) {
-                // TODO: resolve active module path from session context
-                null
-            } else null
             try {
                 val filePath = fileGenerator.generateIPTypeFile(definition, currentLevel, activeModulePath)
                 // Parse and register immediately for palette update
@@ -265,8 +263,8 @@ class IPGeneratorViewModel(
         _state.update { it.copy(levelDropdownExpanded = expanded) }
     }
 
-    fun setModuleLoaded(loaded: Boolean) {
-        _state.update { it.copy(moduleLoaded = loaded) }
+    fun setModuleLoaded(loaded: Boolean, modulePath: String? = null) {
+        _state.update { it.copy(moduleLoaded = loaded, activeModulePath = modulePath) }
     }
 
     fun refreshExistingTypeNames() {

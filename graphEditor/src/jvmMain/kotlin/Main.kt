@@ -266,8 +266,8 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
     // Discover IP types from filesystem on startup
     var ipTypesVersion by remember { mutableStateOf(0) }
     LaunchedEffect(Unit) {
-        // One-time migration from legacy JSON to filesystem
-        val migration = IPTypeMigration(ipTypeFileGenerator)
+        // One-time migration from legacy JSON to filesystem (skips Module-level types)
+        val migration = IPTypeMigration(ipTypeFileGenerator, discovery)
         migration.migrateIfNeeded()
 
         val discovered = discovery.discoverAll()
@@ -288,6 +288,10 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
     val ipTypes = remember(ipTypesVersion) { ipTypeRegistry.getAllTypes() }
     val ipGeneratorViewModel = remember(ipTypeRegistry, ipTypeRepository) {
         IPGeneratorViewModel(ipTypeRegistry, ipTypeRepository, ipTypeFileGenerator, discovery)
+    }
+    // Keep IP Generator's moduleLoaded state in sync with moduleRootDir
+    LaunchedEffect(moduleRootDir) {
+        ipGeneratorViewModel.setModuleLoaded(moduleRootDir != null, moduleRootDir?.absolutePath)
     }
     var selectedIPType by remember { mutableStateOf<InformationPacketType?>(null) }
     var showOpenDialog by remember { mutableStateOf(false) }
