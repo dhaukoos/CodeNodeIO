@@ -285,7 +285,9 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
 
         ipTypesVersion++
     }
-    val ipTypes = remember(ipTypesVersion) { ipTypeRegistry.getAllTypes() }
+    val ipTypes = remember(ipTypesVersion, moduleRootDir) {
+        ipTypeRegistry.getVisibleTypes(activeModuleName = moduleRootDir?.name)
+    }
     val ipGeneratorViewModel = remember(ipTypeRegistry, ipTypeRepository) {
         IPGeneratorViewModel(ipTypeRegistry, ipTypeRepository, ipTypeFileGenerator, discovery)
     }

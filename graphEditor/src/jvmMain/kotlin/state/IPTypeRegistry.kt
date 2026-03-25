@@ -11,6 +11,7 @@ import io.codenode.fbpdsl.model.InformationPacketType
 import io.codenode.grapheditor.model.CustomIPTypeDefinition
 import io.codenode.grapheditor.model.IPProperty
 import io.codenode.grapheditor.model.IPTypeFileMeta
+import io.codenode.grapheditor.model.PlacementLevel
 import kotlin.reflect.KClass
 
 /**
@@ -40,6 +41,8 @@ import kotlin.reflect.KClass
 class IPTypeRegistry {
     private val types = mutableMapOf<String, InformationPacketType>()
     private val customTypeProperties = mutableMapOf<String, List<IPProperty>>()
+    private val moduleTypeIds = mutableSetOf<String>()
+    private val typeIdsByModulePath = mutableMapOf<String, MutableSet<String>>()
 
     /**
      * Registers an InformationPacket type in the registry.
@@ -86,6 +89,25 @@ class IPTypeRegistry {
      * @return List of all registered types
      */
     fun getAllTypes(): List<InformationPacketType> = types.values.toList()
+
+    /**
+     * Gets registered types filtered by the currently loaded module.
+     * When no module is loaded, all Module-level types are excluded.
+     * When a module is loaded, only that module's types are included (plus base + Project + Universal).
+     *
+     * @param activeModuleName The name of the currently loaded module directory (e.g., "WeatherForecast"), or null if none
+     * @return Filtered list of visible types
+     */
+    fun getVisibleTypes(activeModuleName: String? = null): List<InformationPacketType> {
+        if (activeModuleName == null) {
+            // No module loaded: exclude all module-level types
+            return types.values.filter { it.id !in moduleTypeIds }
+        }
+        // Module loaded: include that module's types, exclude other modules' types
+        val activeModuleTypeIds = typeIdsByModulePath[activeModuleName] ?: emptySet()
+        val otherModuleTypeIds = moduleTypeIds - activeModuleTypeIds
+        return types.values.filter { it.id !in otherModuleTypeIds }
+    }
 
     /**
      * Searches for InformationPacket types matching the query.
@@ -198,6 +220,14 @@ class IPTypeRegistry {
                 description = "Custom type: ${meta.typeName}"
             )
             register(ipType)
+            if (meta.tier == PlacementLevel.MODULE) {
+                moduleTypeIds.add(meta.typeId)
+                // Track which module each type belongs to (extract module dir from file path)
+                val moduleName = extractModuleName(meta.filePath)
+                if (moduleName != null) {
+                    typeIdsByModulePath.getOrPut(moduleName) { mutableSetOf() }.add(meta.typeId)
+                }
+            }
 
             // Store property metadata for the IP Generator panel
             val properties = meta.properties.map { prop ->
@@ -209,6 +239,17 @@ class IPTypeRegistry {
             }
             customTypeProperties[meta.typeId] = properties
         }
+    }
+
+    /**
+     * Extracts the module directory name from an IP type file path.
+     * E.g., ".../WeatherForecast/src/commonMain/.../iptypes/Coordinates.kt" → "WeatherForecast"
+     */
+    private fun extractModuleName(filePath: String): String? {
+        val srcIndex = filePath.indexOf("/src/commonMain/")
+        if (srcIndex <= 0) return null
+        val prefix = filePath.substring(0, srcIndex)
+        return prefix.substringAfterLast('/')
     }
 
     companion object {
