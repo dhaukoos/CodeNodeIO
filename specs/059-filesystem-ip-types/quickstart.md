@@ -81,11 +81,11 @@
 ## Scenario 6: KClass Resolution for Compiled Types
 
 **Steps**:
-1. Ensure WeatherForecast module is compiled (types are on classpath)
+1. Ensure WeatherForecast module is compiled (`./gradlew :WeatherForecast:compileKotlinJvm`)
 2. Launch graphEditor
-3. Inspect IPTypeRegistry for `Coordinates` type
+3. Load the WeatherForecast module and switch to the Textual view
 
-**Expected**: The registered `Coordinates` type has `payloadType = Coordinates::class` (not `Any::class`). Port connections using Coordinates enforce type matching.
+**Expected**: Port declarations in the textual view display concrete type names (e.g., `Coordinates::class`, `HttpResponse::class`) instead of `Any::class`. This confirms that the FlowKtParser resolves custom types via import statements and reflection, and that the IPTypeRegistry stores the real KClass for compiled types.
 
 ---
 
