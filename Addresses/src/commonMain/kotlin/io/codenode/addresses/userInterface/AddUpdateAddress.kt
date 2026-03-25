@@ -12,19 +12,19 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import io.codenode.persistence.AddressEntity
+import io.codenode.addresses.iptypes.Address
 
 @Composable
 fun AddUpdateAddress(
-    existingItem: AddressEntity? = null,
-    onSave: (AddressEntity) -> Unit,
+    existingItem: Address? = null,
+    onSave: (Address) -> Unit,
     onCancel: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    var StreetText by remember { mutableStateOf(existingItem?.Street?.toString() ?: "") }
-    var CityText by remember { mutableStateOf(existingItem?.City?.toString() ?: "") }
-    var StateText by remember { mutableStateOf(existingItem?.State?.toString() ?: "") }
-    var ZipText by remember { mutableStateOf(existingItem?.Zip?.toString() ?: "") }
+    var StreetText by remember { mutableStateOf(existingItem?.street?.toString() ?: "") }
+    var CityText by remember { mutableStateOf(existingItem?.city?.toString() ?: "") }
+    var StateText by remember { mutableStateOf(existingItem?.state?.toString() ?: "") }
+    var ZipText by remember { mutableStateOf(existingItem?.zip?.toString() ?: "") }
 
     val isUpdate = existingItem != null
 
@@ -83,12 +83,12 @@ fun AddUpdateAddress(
             }
             Button(
                 onClick = {
-                    val item = AddressEntity(
+                    val item = Address(
                         id = existingItem?.id ?: 0,
-                        Street = StreetText.trim(),
-                        City = CityText.trim(),
-                        State = StateText.trim(),
-                        Zip = ZipText.toIntOrNull() ?: 0
+                        street = StreetText.trim(),
+                        city = CityText.trim(),
+                        state = StateText.trim(),
+                        zip = ZipText.toIntOrNull() ?: 0
                     )
                     onSave(item)
                 }

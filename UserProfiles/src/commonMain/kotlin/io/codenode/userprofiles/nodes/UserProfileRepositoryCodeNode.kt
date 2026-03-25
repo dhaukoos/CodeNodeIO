@@ -11,9 +11,10 @@ import io.codenode.fbpdsl.model.CodeNodeType
 import io.codenode.fbpdsl.runtime.NodeRuntime
 import io.codenode.fbpdsl.runtime.PortSpec
 import io.codenode.fbpdsl.runtime.ProcessResult2
-import io.codenode.persistence.UserProfileEntity
 import io.codenode.persistence.UserProfileRepository
 import io.codenode.userprofiles.UserProfilesPersistence
+import io.codenode.userprofiles.iptypes.UserProfile
+import io.codenode.userprofiles.iptypes.toEntity
 
 /**
  * Processor node that performs CRUD operations on user profiles.
@@ -27,48 +28,47 @@ object UserProfileRepositoryCodeNode : CodeNodeDefinition {
     override val category = CodeNodeType.TRANSFORMER
     override val description = "Performs save, update, and remove operations on user profiles"
     override val inputPorts = listOf(
-        PortSpec("save", Any::class),
-        PortSpec("update", Any::class),
-        PortSpec("remove", Any::class)
+        PortSpec("save", UserProfile::class),
+        PortSpec("update", UserProfile::class),
+        PortSpec("remove", UserProfile::class)
     )
     override val outputPorts = listOf(
-        PortSpec("result", Any::class),
-        PortSpec("error", Any::class)
+        PortSpec("result", String::class),
+        PortSpec("error", String::class)
     )
     override val anyInput = true
 
     override fun createRuntime(name: String): NodeRuntime {
-        // Identity tracking vars scoped to this runtime instance
-        var lastSaveRef: Any? = null
-        var lastUpdateRef: Any? = null
-        var lastRemoveRef: Any? = null
+        var lastSaveRef: UserProfile? = null
+        var lastUpdateRef: UserProfile? = null
+        var lastRemoveRef: UserProfile? = null
 
-        return CodeNodeFactory.createIn3AnyOut2Processor<Any, Any, Any, Any, Any>(
+        return CodeNodeFactory.createIn3AnyOut2Processor<UserProfile, UserProfile, UserProfile, String, String>(
             name = name,
-            initialValue1 = Unit,
-            initialValue2 = Unit,
-            initialValue3 = Unit,
+            initialValue1 = UserProfile(name = "", isActive = false),
+            initialValue2 = UserProfile(name = "", isActive = false),
+            initialValue3 = UserProfile(name = "", isActive = false),
             process = { save, update, remove ->
                 try {
                     val repo = UserProfileRepository(UserProfilesPersistence.dao)
-                    val isFreshSave = save is UserProfileEntity && save !== lastSaveRef
-                    val isFreshUpdate = update is UserProfileEntity && update !== lastUpdateRef
-                    val isFreshRemove = remove is UserProfileEntity && remove !== lastRemoveRef
+                    val isFreshSave = save !== lastSaveRef && save.name.isNotEmpty()
+                    val isFreshUpdate = update !== lastUpdateRef && update.name.isNotEmpty()
+                    val isFreshRemove = remove !== lastRemoveRef && remove.name.isNotEmpty()
 
                     when {
                         isFreshSave -> {
                             lastSaveRef = save
-                            repo.save(save)
+                            repo.save(save.toEntity())
                             ProcessResult2.first("Saved: ${save.name}")
                         }
                         isFreshUpdate -> {
                             lastUpdateRef = update
-                            repo.update(update)
+                            repo.update(update.toEntity())
                             ProcessResult2.first("Updated: ${update.name}")
                         }
                         isFreshRemove -> {
                             lastRemoveRef = remove
-                            repo.remove(remove)
+                            repo.remove(remove.toEntity())
                             ProcessResult2.first("Removed: ${remove.name}")
                         }
                         else -> ProcessResult2(null, null)

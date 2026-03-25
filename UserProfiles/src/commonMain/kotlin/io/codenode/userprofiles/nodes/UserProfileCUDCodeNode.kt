@@ -12,6 +12,7 @@ import io.codenode.fbpdsl.runtime.NodeRuntime
 import io.codenode.fbpdsl.runtime.PortSpec
 import io.codenode.fbpdsl.runtime.ProcessResult3
 import io.codenode.userprofiles.UserProfilesState
+import io.codenode.userprofiles.iptypes.UserProfile
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.launch
@@ -29,13 +30,13 @@ object UserProfileCUDCodeNode : CodeNodeDefinition {
     override val description = "Emits save, update, and remove operations for user profiles"
     override val inputPorts = emptyList<PortSpec>()
     override val outputPorts = listOf(
-        PortSpec("save", Any::class),
-        PortSpec("update", Any::class),
-        PortSpec("remove", Any::class)
+        PortSpec("save", UserProfile::class),
+        PortSpec("update", UserProfile::class),
+        PortSpec("remove", UserProfile::class)
     )
 
     override fun createRuntime(name: String): NodeRuntime {
-        return CodeNodeFactory.createSourceOut3<Any, Any, Any>(
+        return CodeNodeFactory.createSourceOut3<UserProfile, UserProfile, UserProfile>(
             name = name,
             generate = { emit ->
                 coroutineScope {

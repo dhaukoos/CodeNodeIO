@@ -12,12 +12,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import io.codenode.persistence.UserProfileEntity
+import io.codenode.userprofiles.iptypes.UserProfile
 
 @Composable
 fun AddUpdateUserProfile(
-    existingProfile: UserProfileEntity? = null,
-    onSave: (UserProfileEntity) -> Unit,
+    existingProfile: UserProfile? = null,
+    onSave: (UserProfile) -> Unit,
     onCancel: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -77,7 +77,7 @@ fun AddUpdateUserProfile(
             Button(
                 onClick = {
                     val age = ageText.toIntOrNull()
-                    val profile = UserProfileEntity(
+                    val profile = UserProfile(
                         id = existingProfile?.id ?: 0,
                         name = name.trim(),
                         age = age,

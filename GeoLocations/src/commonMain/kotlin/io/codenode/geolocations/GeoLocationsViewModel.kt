@@ -15,8 +15,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import io.codenode.geolocations.generated.GeoLocationsControllerInterface
+import io.codenode.geolocations.iptypes.GeoLocation
+import io.codenode.geolocations.iptypes.toGeoLocation
 import io.codenode.persistence.GeoLocationDao
-import io.codenode.persistence.GeoLocationEntity
 import io.codenode.persistence.GeoLocationRepository
 
 // ===== MODULE PROPERTIES START =====
@@ -25,22 +26,22 @@ import io.codenode.persistence.GeoLocationRepository
 
 object GeoLocationsState {
 
-    internal val _save = MutableStateFlow<Any?>(null)
-    val saveFlow: StateFlow<Any?> = _save.asStateFlow()
+    internal val _save = MutableStateFlow<GeoLocation?>(null)
+    val saveFlow: StateFlow<GeoLocation?> = _save.asStateFlow()
 
-    internal val _update = MutableStateFlow<Any?>(null)
-    val updateFlow: StateFlow<Any?> = _update.asStateFlow()
+    internal val _update = MutableStateFlow<GeoLocation?>(null)
+    val updateFlow: StateFlow<GeoLocation?> = _update.asStateFlow()
 
-    internal val _remove = MutableStateFlow<Any?>(null)
-    val removeFlow: StateFlow<Any?> = _remove.asStateFlow()
+    internal val _remove = MutableStateFlow<GeoLocation?>(null)
+    val removeFlow: StateFlow<GeoLocation?> = _remove.asStateFlow()
 
-    internal val _result = MutableStateFlow<Any?>(null)
-    val resultFlow: StateFlow<Any?> = _result.asStateFlow()
+    internal val _result = MutableStateFlow<String?>(null)
+    val resultFlow: StateFlow<String?> = _result.asStateFlow()
 
-    internal val _error = MutableStateFlow<Any?>(null)
-    val errorFlow: StateFlow<Any?> = _error.asStateFlow()
+    internal val _error = MutableStateFlow<String?>(null)
+    val errorFlow: StateFlow<String?> = _error.asStateFlow()
 
-    internal val _geoLocations = MutableStateFlow<List<GeoLocationEntity>>(emptyList())
+    internal val _geoLocations = MutableStateFlow<List<GeoLocation>>(emptyList())
 
     fun reset() {
         _save.value = null
@@ -73,14 +74,14 @@ class GeoLocationsViewModel(
 ) : ViewModel() {
 
     // Observable state from module properties
-    val save: StateFlow<Any?> = GeoLocationsState.saveFlow
-    val update: StateFlow<Any?> = GeoLocationsState.updateFlow
-    val remove: StateFlow<Any?> = GeoLocationsState.removeFlow
-    val result: StateFlow<Any?> = GeoLocationsState.resultFlow
-    val error: StateFlow<Any?> = GeoLocationsState.errorFlow
+    val save: StateFlow<GeoLocation?> = GeoLocationsState.saveFlow
+    val update: StateFlow<GeoLocation?> = GeoLocationsState.updateFlow
+    val remove: StateFlow<GeoLocation?> = GeoLocationsState.removeFlow
+    val result: StateFlow<String?> = GeoLocationsState.resultFlow
+    val error: StateFlow<String?> = GeoLocationsState.errorFlow
 
     // Reactive entity list from repository
-    val geoLocations: StateFlow<List<GeoLocationEntity>> = GeoLocationsState._geoLocations
+    val geoLocations: StateFlow<List<GeoLocation>> = GeoLocationsState._geoLocations
 
     // Execution state from controller
     val executionState: StateFlow<ExecutionState> = controller.executionState
@@ -90,21 +91,21 @@ class GeoLocationsViewModel(
         viewModelScope.launch {
             val repo = GeoLocationRepository(geoLocationDao)
             repo.observeAll().collect { list ->
-                GeoLocationsState._geoLocations.value = list
+                GeoLocationsState._geoLocations.value = list.map { it.toGeoLocation() }
             }
         }
     }
 
     // CRUD methods — trigger operations via the FlowGraph reactive source
-    fun addEntity(geoLocation: GeoLocationEntity) {
+    fun addEntity(geoLocation: GeoLocation) {
         GeoLocationsState._save.value = geoLocation
     }
 
-    fun updateEntity(geoLocation: GeoLocationEntity) {
+    fun updateEntity(geoLocation: GeoLocation) {
         GeoLocationsState._update.value = geoLocation
     }
 
-    fun removeEntity(geoLocation: GeoLocationEntity) {
+    fun removeEntity(geoLocation: GeoLocation) {
         GeoLocationsState._remove.value = geoLocation
     }
 

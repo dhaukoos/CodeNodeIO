@@ -9,11 +9,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import io.codenode.persistence.GeoLocationEntity
+import io.codenode.geolocations.iptypes.GeoLocation
 
 @Composable
 fun GeoLocationRow(
-    item: GeoLocationEntity,
+    item: GeoLocation,
     isSelected: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier

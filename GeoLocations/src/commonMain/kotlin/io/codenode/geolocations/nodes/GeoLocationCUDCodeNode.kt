@@ -12,6 +12,7 @@ import io.codenode.fbpdsl.runtime.NodeRuntime
 import io.codenode.fbpdsl.runtime.PortSpec
 import io.codenode.fbpdsl.runtime.ProcessResult3
 import io.codenode.geolocations.GeoLocationsState
+import io.codenode.geolocations.iptypes.GeoLocation
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.launch
@@ -29,13 +30,13 @@ object GeoLocationCUDCodeNode : CodeNodeDefinition {
     override val description = "Emits save, update, and remove operations for geo locations"
     override val inputPorts = emptyList<PortSpec>()
     override val outputPorts = listOf(
-        PortSpec("save", Any::class),
-        PortSpec("update", Any::class),
-        PortSpec("remove", Any::class)
+        PortSpec("save", GeoLocation::class),
+        PortSpec("update", GeoLocation::class),
+        PortSpec("remove", GeoLocation::class)
     )
 
     override fun createRuntime(name: String): NodeRuntime {
-        return CodeNodeFactory.createSourceOut3<Any, Any, Any>(
+        return CodeNodeFactory.createSourceOut3<GeoLocation, GeoLocation, GeoLocation>(
             name = name,
             generate = { emit ->
                 coroutineScope {

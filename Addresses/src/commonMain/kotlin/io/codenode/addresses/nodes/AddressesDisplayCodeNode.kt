@@ -23,13 +23,13 @@ object AddressesDisplayCodeNode : CodeNodeDefinition {
     override val category = CodeNodeType.SINK
     override val description = "Displays result and error messages for address operations"
     override val inputPorts = listOf(
-        PortSpec("result", Any::class),
-        PortSpec("error", Any::class)
+        PortSpec("result", String::class),
+        PortSpec("error", String::class)
     )
     override val outputPorts = emptyList<PortSpec>()
 
     override fun createRuntime(name: String): NodeRuntime {
-        return CodeNodeFactory.createSinkIn2<Any, Any>(
+        return CodeNodeFactory.createSinkIn2<String, String>(
             name = name,
             consume = { result, error ->
                 AddressesState._result.value = result

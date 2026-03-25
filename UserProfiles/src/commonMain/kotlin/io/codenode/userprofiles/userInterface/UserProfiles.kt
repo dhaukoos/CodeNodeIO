@@ -22,11 +22,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import io.codenode.userprofiles.UserProfilesViewModel
-import io.codenode.persistence.UserProfileEntity
+import io.codenode.userprofiles.iptypes.UserProfile
 
 @Composable
 fun UserProfileRow(
-    profile: UserProfileEntity,
+    profile: UserProfile,
     isSelected: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier

@@ -11,7 +11,8 @@ import io.codenode.fbpdsl.model.CodeNodeType
 import io.codenode.fbpdsl.runtime.NodeRuntime
 import io.codenode.fbpdsl.runtime.PortSpec
 import io.codenode.fbpdsl.runtime.ProcessResult2
-import io.codenode.persistence.GeoLocationEntity
+import io.codenode.geolocations.iptypes.GeoLocation
+import io.codenode.geolocations.iptypes.toEntity
 import io.codenode.persistence.GeoLocationRepository
 import io.codenode.geolocations.GeoLocationsPersistence
 
@@ -27,47 +28,47 @@ object GeoLocationRepositoryCodeNode : CodeNodeDefinition {
     override val category = CodeNodeType.TRANSFORMER
     override val description = "Performs save, update, and remove operations on geo locations"
     override val inputPorts = listOf(
-        PortSpec("save", Any::class),
-        PortSpec("update", Any::class),
-        PortSpec("remove", Any::class)
+        PortSpec("save", GeoLocation::class),
+        PortSpec("update", GeoLocation::class),
+        PortSpec("remove", GeoLocation::class)
     )
     override val outputPorts = listOf(
-        PortSpec("result", Any::class),
-        PortSpec("error", Any::class)
+        PortSpec("result", String::class),
+        PortSpec("error", String::class)
     )
     override val anyInput = true
 
     override fun createRuntime(name: String): NodeRuntime {
-        var lastSaveRef: Any? = null
-        var lastUpdateRef: Any? = null
-        var lastRemoveRef: Any? = null
+        var lastSaveRef: GeoLocation? = null
+        var lastUpdateRef: GeoLocation? = null
+        var lastRemoveRef: GeoLocation? = null
 
-        return CodeNodeFactory.createIn3AnyOut2Processor<Any, Any, Any, Any, Any>(
+        return CodeNodeFactory.createIn3AnyOut2Processor<GeoLocation, GeoLocation, GeoLocation, String, String>(
             name = name,
-            initialValue1 = Unit,
-            initialValue2 = Unit,
-            initialValue3 = Unit,
+            initialValue1 = GeoLocation(name = "", lat = 0.0, lon = 0.0),
+            initialValue2 = GeoLocation(name = "", lat = 0.0, lon = 0.0),
+            initialValue3 = GeoLocation(name = "", lat = 0.0, lon = 0.0),
             process = { save, update, remove ->
                 try {
                     val repo = GeoLocationRepository(GeoLocationsPersistence.dao)
-                    val isFreshSave = save is GeoLocationEntity && save !== lastSaveRef
-                    val isFreshUpdate = update is GeoLocationEntity && update !== lastUpdateRef
-                    val isFreshRemove = remove is GeoLocationEntity && remove !== lastRemoveRef
+                    val isFreshSave = save !== lastSaveRef && save.name.isNotEmpty()
+                    val isFreshUpdate = update !== lastUpdateRef && update.name.isNotEmpty()
+                    val isFreshRemove = remove !== lastRemoveRef && remove.name.isNotEmpty()
 
                     when {
                         isFreshSave -> {
                             lastSaveRef = save
-                            repo.save(save)
+                            repo.save(save.toEntity())
                             ProcessResult2.first("Saved: ${save.name}")
                         }
                         isFreshUpdate -> {
                             lastUpdateRef = update
-                            repo.update(update)
+                            repo.update(update.toEntity())
                             ProcessResult2.first("Updated: ${update.name}")
                         }
                         isFreshRemove -> {
                             lastRemoveRef = remove
-                            repo.remove(remove)
+                            repo.remove(remove.toEntity())
                             ProcessResult2.first("Removed: ${remove.name}")
                         }
                         else -> ProcessResult2(null, null)

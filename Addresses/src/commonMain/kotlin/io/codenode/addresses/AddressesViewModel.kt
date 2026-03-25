@@ -15,8 +15,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import io.codenode.addresses.generated.AddressesControllerInterface
+import io.codenode.addresses.iptypes.Address
+import io.codenode.addresses.iptypes.toAddress
 import io.codenode.persistence.AddressDao
-import io.codenode.persistence.AddressEntity
 import io.codenode.persistence.AddressRepository
 
 // ===== MODULE PROPERTIES START =====
@@ -25,22 +26,22 @@ import io.codenode.persistence.AddressRepository
 
 object AddressesState {
 
-    internal val _save = MutableStateFlow<Any?>(null)
-    val saveFlow: StateFlow<Any?> = _save.asStateFlow()
+    internal val _save = MutableStateFlow<Address?>(null)
+    val saveFlow: StateFlow<Address?> = _save.asStateFlow()
 
-    internal val _update = MutableStateFlow<Any?>(null)
-    val updateFlow: StateFlow<Any?> = _update.asStateFlow()
+    internal val _update = MutableStateFlow<Address?>(null)
+    val updateFlow: StateFlow<Address?> = _update.asStateFlow()
 
-    internal val _remove = MutableStateFlow<Any?>(null)
-    val removeFlow: StateFlow<Any?> = _remove.asStateFlow()
+    internal val _remove = MutableStateFlow<Address?>(null)
+    val removeFlow: StateFlow<Address?> = _remove.asStateFlow()
 
-    internal val _result = MutableStateFlow<Any?>(null)
-    val resultFlow: StateFlow<Any?> = _result.asStateFlow()
+    internal val _result = MutableStateFlow<String?>(null)
+    val resultFlow: StateFlow<String?> = _result.asStateFlow()
 
-    internal val _error = MutableStateFlow<Any?>(null)
-    val errorFlow: StateFlow<Any?> = _error.asStateFlow()
+    internal val _error = MutableStateFlow<String?>(null)
+    val errorFlow: StateFlow<String?> = _error.asStateFlow()
 
-    internal val _addresses = MutableStateFlow<List<AddressEntity>>(emptyList())
+    internal val _addresses = MutableStateFlow<List<Address>>(emptyList())
 
     fun reset() {
         _save.value = null
@@ -73,14 +74,14 @@ class AddressesViewModel(
 ) : ViewModel() {
 
     // Observable state from module properties
-    val save: StateFlow<Any?> = AddressesState.saveFlow
-    val update: StateFlow<Any?> = AddressesState.updateFlow
-    val remove: StateFlow<Any?> = AddressesState.removeFlow
-    val result: StateFlow<Any?> = AddressesState.resultFlow
-    val error: StateFlow<Any?> = AddressesState.errorFlow
+    val save: StateFlow<Address?> = AddressesState.saveFlow
+    val update: StateFlow<Address?> = AddressesState.updateFlow
+    val remove: StateFlow<Address?> = AddressesState.removeFlow
+    val result: StateFlow<String?> = AddressesState.resultFlow
+    val error: StateFlow<String?> = AddressesState.errorFlow
 
     // Reactive entity list from repository
-    val addresses: StateFlow<List<AddressEntity>> = AddressesState._addresses
+    val addresses: StateFlow<List<Address>> = AddressesState._addresses
 
     // Execution state from controller
     val executionState: StateFlow<ExecutionState> = controller.executionState
@@ -90,21 +91,21 @@ class AddressesViewModel(
         viewModelScope.launch {
             val repo = AddressRepository(addressDao)
             repo.observeAll().collect { list ->
-                AddressesState._addresses.value = list
+                AddressesState._addresses.value = list.map { it.toAddress() }
             }
         }
     }
 
     // CRUD methods — trigger operations via the FlowGraph reactive source
-    fun addEntity(address: AddressEntity) {
+    fun addEntity(address: Address) {
         AddressesState._save.value = address
     }
 
-    fun updateEntity(address: AddressEntity) {
+    fun updateEntity(address: Address) {
         AddressesState._update.value = address
     }
 
-    fun removeEntity(address: AddressEntity) {
+    fun removeEntity(address: Address) {
         AddressesState._remove.value = address
     }
 

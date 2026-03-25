@@ -11,7 +11,8 @@ import io.codenode.fbpdsl.model.CodeNodeType
 import io.codenode.fbpdsl.runtime.NodeRuntime
 import io.codenode.fbpdsl.runtime.PortSpec
 import io.codenode.fbpdsl.runtime.ProcessResult2
-import io.codenode.persistence.AddressEntity
+import io.codenode.addresses.iptypes.Address
+import io.codenode.addresses.iptypes.toEntity
 import io.codenode.persistence.AddressRepository
 import io.codenode.addresses.AddressesPersistence
 
@@ -27,48 +28,48 @@ object AddressRepositoryCodeNode : CodeNodeDefinition {
     override val category = CodeNodeType.TRANSFORMER
     override val description = "Performs save, update, and remove operations on addresses"
     override val inputPorts = listOf(
-        PortSpec("save", Any::class),
-        PortSpec("update", Any::class),
-        PortSpec("remove", Any::class)
+        PortSpec("save", Address::class),
+        PortSpec("update", Address::class),
+        PortSpec("remove", Address::class)
     )
     override val outputPorts = listOf(
-        PortSpec("result", Any::class),
-        PortSpec("error", Any::class)
+        PortSpec("result", String::class),
+        PortSpec("error", String::class)
     )
     override val anyInput = true
 
     override fun createRuntime(name: String): NodeRuntime {
-        var lastSaveRef: Any? = null
-        var lastUpdateRef: Any? = null
-        var lastRemoveRef: Any? = null
+        var lastSaveRef: Address? = null
+        var lastUpdateRef: Address? = null
+        var lastRemoveRef: Address? = null
 
-        return CodeNodeFactory.createIn3AnyOut2Processor<Any, Any, Any, Any, Any>(
+        return CodeNodeFactory.createIn3AnyOut2Processor<Address, Address, Address, String, String>(
             name = name,
-            initialValue1 = Unit,
-            initialValue2 = Unit,
-            initialValue3 = Unit,
+            initialValue1 = Address(street = "", city = "", state = "", zip = 0),
+            initialValue2 = Address(street = "", city = "", state = "", zip = 0),
+            initialValue3 = Address(street = "", city = "", state = "", zip = 0),
             process = { save, update, remove ->
                 try {
                     val repo = AddressRepository(AddressesPersistence.dao)
-                    val isFreshSave = save is AddressEntity && save !== lastSaveRef
-                    val isFreshUpdate = update is AddressEntity && update !== lastUpdateRef
-                    val isFreshRemove = remove is AddressEntity && remove !== lastRemoveRef
+                    val isFreshSave = save !== lastSaveRef && save.street.isNotEmpty()
+                    val isFreshUpdate = update !== lastUpdateRef && update.street.isNotEmpty()
+                    val isFreshRemove = remove !== lastRemoveRef && remove.street.isNotEmpty()
 
                     when {
                         isFreshSave -> {
                             lastSaveRef = save
-                            repo.save(save)
-                            ProcessResult2.first("Saved: ${save.id}")
+                            repo.save(save.toEntity())
+                            ProcessResult2.first("Saved: ${save.street}")
                         }
                         isFreshUpdate -> {
                             lastUpdateRef = update
-                            repo.update(update)
-                            ProcessResult2.first("Updated: ${update.id}")
+                            repo.update(update.toEntity())
+                            ProcessResult2.first("Updated: ${update.street}")
                         }
                         isFreshRemove -> {
                             lastRemoveRef = remove
-                            repo.remove(remove)
-                            ProcessResult2.first("Removed: ${remove.id}")
+                            repo.remove(remove.toEntity())
+                            ProcessResult2.first("Removed: ${remove.street}")
                         }
                         else -> ProcessResult2(null, null)
                     }

@@ -20,7 +20,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import io.codenode.geolocations.GeoLocationsViewModel
-import io.codenode.persistence.GeoLocationEntity
+import io.codenode.geolocations.iptypes.GeoLocation
 
 @Composable
 fun GeoLocations(

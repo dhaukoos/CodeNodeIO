@@ -9,11 +9,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import io.codenode.persistence.AddressEntity
+import io.codenode.addresses.iptypes.Address
 
 @Composable
 fun AddressRow(
-    item: AddressEntity,
+    item: Address,
     isSelected: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
@@ -34,22 +34,22 @@ fun AddressRow(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
-            text = "${item.Street}",
+            text = "${item.street}",
             style = MaterialTheme.typography.bodyMedium,
             modifier = Modifier.weight(1f)
         )
         Text(
-            text = "${item.City}",
+            text = "${item.city}",
             style = MaterialTheme.typography.bodyMedium,
             modifier = Modifier.weight(1f).padding(horizontal = 8.dp)
         )
         Text(
-            text = "${item.State}",
+            text = "${item.state}",
             style = MaterialTheme.typography.bodyMedium,
             modifier = Modifier.weight(1f).padding(horizontal = 8.dp)
         )
         Text(
-            text = "${item.Zip}",
+            text = "${item.zip}",
             style = MaterialTheme.typography.bodyMedium,
             modifier = Modifier.weight(1f).padding(horizontal = 8.dp)
         )

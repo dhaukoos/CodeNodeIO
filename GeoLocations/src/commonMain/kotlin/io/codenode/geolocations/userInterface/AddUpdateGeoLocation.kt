@@ -12,12 +12,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import io.codenode.persistence.GeoLocationEntity
+import io.codenode.geolocations.iptypes.GeoLocation
 
 @Composable
 fun AddUpdateGeoLocation(
-    existingItem: GeoLocationEntity? = null,
-    onSave: (GeoLocationEntity) -> Unit,
+    existingItem: GeoLocation? = null,
+    onSave: (GeoLocation) -> Unit,
     onCancel: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -79,7 +79,7 @@ fun AddUpdateGeoLocation(
             }
             Button(
                 onClick = {
-                    val item = GeoLocationEntity(
+                    val item = GeoLocation(
                         id = existingItem?.id ?: 0,
                         name = nameText.trim(),
                         lat = latText.toDoubleOrNull() ?: 0.0,

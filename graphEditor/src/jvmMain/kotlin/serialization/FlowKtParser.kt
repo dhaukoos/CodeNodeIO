@@ -7,6 +7,7 @@
 package io.codenode.grapheditor.serialization
 
 import io.codenode.fbpdsl.model.*
+import kotlin.reflect.KClass
 
 /**
  * Result of parsing a .flow.kt file.
@@ -61,9 +62,16 @@ class FlowKtParser {
         """config\s*\(\s*"([^"]+)"\s*,\s*"([^"]+)"\s*\)"""
     )
 
+    private val importPattern = Regex(
+        """import\s+([\w.]+)"""
+    )
+
     private val targetPlatformPattern = Regex(
         """targetPlatform\s*\(\s*FlowGraph\.TargetPlatform\.(\w+)\s*\)"""
     )
+
+    /** Map of simple class name → fully qualified class name, built from import statements */
+    private var importMap: Map<String, String> = emptyMap()
 
     /**
      * Parses .flow.kt content into a FlowGraph.
@@ -80,6 +88,9 @@ class FlowKtParser {
                     errorMessage = "Invalid Kotlin syntax"
                 )
             }
+
+            // Build import map (simple name → FQCN) for resolving custom types
+            importMap = buildImportMap(content)
 
             // Parse flowGraph header
             val flowGraphMatch = flowGraphPattern.find(content)
@@ -404,9 +415,26 @@ class FlowKtParser {
     }
 
     /**
-     * Resolves a type name to a KClass.
+     * Builds a map of simple class name → fully qualified class name from import statements.
      */
-    private fun resolveType(typeName: String): kotlin.reflect.KClass<*> {
+    private fun buildImportMap(content: String): Map<String, String> {
+        val map = mutableMapOf<String, String>()
+        importPattern.findAll(content).forEach { match ->
+            val fqcn = match.groupValues[1]
+            val simpleName = fqcn.substringAfterLast('.')
+            // Skip wildcard imports and framework imports
+            if (simpleName != "*" && !fqcn.startsWith("io.codenode.fbpdsl.")) {
+                map[simpleName] = fqcn
+            }
+        }
+        return map
+    }
+
+    /**
+     * Resolves a type name to a KClass.
+     * First checks built-in types, then attempts reflection via import map.
+     */
+    private fun resolveType(typeName: String): KClass<*> {
         return when (typeName) {
             "String" -> String::class
             "Int" -> Int::class
@@ -419,7 +447,20 @@ class FlowKtParser {
             "Char" -> Char::class
             "Unit" -> Unit::class
             "Any" -> Any::class
-            else -> Any::class
+            else -> resolveCustomType(typeName)
+        }
+    }
+
+    /**
+     * Attempts to resolve a custom type name via the import map and reflection.
+     * Falls back to Any::class if the class is not on the classpath.
+     */
+    private fun resolveCustomType(typeName: String): KClass<*> {
+        val fqcn = importMap[typeName] ?: return Any::class
+        return try {
+            Class.forName(fqcn).kotlin
+        } catch (_: ClassNotFoundException) {
+            Any::class
         }
     }
 }

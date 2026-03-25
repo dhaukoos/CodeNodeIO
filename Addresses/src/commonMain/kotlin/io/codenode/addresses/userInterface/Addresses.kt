@@ -20,7 +20,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import io.codenode.addresses.AddressesViewModel
-import io.codenode.persistence.AddressEntity
 
 @Composable
 fun Addresses(
