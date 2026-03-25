@@ -19,7 +19,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.codenode.grapheditor.viewmodel.NodeGeneratorViewModel
 import io.codenode.grapheditor.viewmodel.NodeGeneratorPanelState
-import io.codenode.grapheditor.viewmodel.PlacementLevel
+import io.codenode.grapheditor.model.PlacementLevel
 import io.codenode.fbpdsl.model.CodeNodeType
 
 /**

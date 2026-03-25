@@ -11,8 +11,8 @@ import io.codenode.fbpdsl.model.CodeNodeType
 import io.codenode.fbpdsl.runtime.NodeRuntime
 import io.codenode.fbpdsl.runtime.PortSpec
 import io.codenode.weatherforecast.WeatherForecastState
-import io.codenode.weatherforecast.models.ForecastData
-import io.codenode.weatherforecast.models.HttpResponse
+import io.codenode.weatherforecast.iptypes.ForecastData
+import io.codenode.weatherforecast.iptypes.HttpResponse
 import io.codenode.weatherforecast.models.OpenMeteoResponse
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json

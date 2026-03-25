@@ -6,8 +6,8 @@
 
 package io.codenode.weatherforecast
 
-import io.codenode.weatherforecast.models.ChartData
-import io.codenode.weatherforecast.models.ForecastEntry
+import io.codenode.weatherforecast.iptypes.ChartData
+import io.codenode.weatherforecast.iptypes.ForecastEntry
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow

@@ -21,7 +21,7 @@ import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import io.codenode.weatherforecast.models.ChartData
+import io.codenode.weatherforecast.iptypes.ChartData
 import kotlin.math.roundToInt
 
 /**

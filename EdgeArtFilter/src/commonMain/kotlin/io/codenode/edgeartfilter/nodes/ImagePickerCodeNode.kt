@@ -6,7 +6,7 @@
 package io.codenode.edgeartfilter.nodes
 
 import io.codenode.edgeartfilter.EdgeArtFilterState
-import io.codenode.edgeartfilter.ImageData
+import io.codenode.edgeartfilter.iptypes.ImageData
 import io.codenode.fbpdsl.model.CodeNodeFactory
 import io.codenode.fbpdsl.runtime.CodeNodeDefinition
 import io.codenode.fbpdsl.model.CodeNodeType

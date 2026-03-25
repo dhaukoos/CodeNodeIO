@@ -17,12 +17,12 @@
 
 **Purpose**: Extract shared enum and create data model classes needed across all user stories
 
-- [ ] T001 Extract `PlacementLevel` enum from `NodeGeneratorViewModel.kt` into shared file at `graphEditor/src/jvmMain/kotlin/model/PlacementLevel.kt` with values MODULE, PROJECT, UNIVERSAL (each with `displayName: String`). Include `availableLevels(moduleLoaded: Boolean)` helper.
-- [ ] T002 Update `NodeGeneratorViewModel.kt` at `graphEditor/src/jvmMain/kotlin/viewmodel/NodeGeneratorViewModel.kt` to import `PlacementLevel` from the new shared location and remove the inline enum definition.
-- [ ] T003 Create `IPTypeFileMeta` data class at `graphEditor/src/jvmMain/kotlin/model/IPTypeFileMeta.kt` with fields: typeName, typeId, color (IPColor), properties (List<IPPropertyMeta>), filePath, tier (PlacementLevel), packageName, className.
-- [ ] T004 Create `IPPropertyMeta` data class at `graphEditor/src/jvmMain/kotlin/model/IPPropertyMeta.kt` with fields: name, kotlinType (String), typeId (String), isRequired (Boolean).
-- [ ] T005 Add `filePath: String?` and `tier: PlacementLevel?` fields to `CustomIPTypeDefinition` at `graphEditor/src/jvmMain/kotlin/model/IPProperty.kt` (where CustomIPTypeDefinition is defined).
-- [ ] T006 Verify build compiles with `./gradlew :graphEditor:build`
+- [X] T001 Extract `PlacementLevel` enum from `NodeGeneratorViewModel.kt` into shared file at `graphEditor/src/jvmMain/kotlin/model/PlacementLevel.kt` with values MODULE, PROJECT, UNIVERSAL (each with `displayName: String`). Include `availableLevels(moduleLoaded: Boolean)` helper.
+- [X] T002 Update `NodeGeneratorViewModel.kt` at `graphEditor/src/jvmMain/kotlin/viewmodel/NodeGeneratorViewModel.kt` to import `PlacementLevel` from the new shared location and remove the inline enum definition.
+- [X] T003 Create `IPTypeFileMeta` data class at `graphEditor/src/jvmMain/kotlin/model/IPTypeFileMeta.kt` with fields: typeName, typeId, color (IPColor), properties (List<IPPropertyMeta>), filePath, tier (PlacementLevel), packageName, className.
+- [X] T004 Create `IPPropertyMeta` data class at `graphEditor/src/jvmMain/kotlin/model/IPPropertyMeta.kt` with fields: name, kotlinType (String), typeId (String), isRequired (Boolean).
+- [X] T005 Add `filePath: String?` and `tier: PlacementLevel?` fields to `CustomIPTypeDefinition` at `graphEditor/src/jvmMain/kotlin/model/IPProperty.kt` (where CustomIPTypeDefinition is defined).
+- [X] T006 Verify build compiles with `./gradlew :graphEditor:build`
 
 **Checkpoint**: Shared data models ready — all user stories can reference PlacementLevel and IPTypeFileMeta
 
@@ -32,12 +32,12 @@
 
 **Purpose**: Move existing IP type data classes from `models/` to `iptypes/` directories and update all references. This MUST complete before filesystem discovery can work.
 
-- [ ] T007 Create `iptypes/` directory in WeatherForecast module at `WeatherForecast/src/commonMain/kotlin/io/codenode/weatherforecast/iptypes/`
-- [ ] T008 Move IP type data classes from `WeatherForecast/.../models/` to `WeatherForecast/.../iptypes/`: `Coordinates.kt`, `HttpResponse.kt`, `ForecastData.kt`, `ForecastDisplayList.kt`, `ChartData.kt`, `ForecastEntry.kt`. Update package declarations from `io.codenode.weatherforecast.models` to `io.codenode.weatherforecast.iptypes`.
-- [ ] T009 Update all import references in WeatherForecast module — every file that imports from `io.codenode.weatherforecast.models` must be updated to `io.codenode.weatherforecast.iptypes`. Affected files include: all 5 node files in `nodes/`, `WeatherForecastState.kt`, `WeatherForecastViewModel.kt`, `WeatherForecast.flow.kt`, `WeatherForecast.kt` (UI), `ForecastChart.kt`. Non-IP-type files like `OpenMeteoResponse.kt` stay in `models/`.
-- [ ] T010 Check if EdgeArtFilter has IP types in `models/` that need migration — move `ImageData.kt` from `EdgeArtFilter/.../models/` (if it exists there) to `EdgeArtFilter/.../iptypes/` and update imports in all EdgeArtFilter node files.
-- [ ] T011 Add `@IPType` metadata comment headers to all migrated IP type files. Each file gets a comment block with `@IPType`, `@TypeName`, `@TypeId` (e.g., `ip_coordinates`), and `@Color` (use the colors currently defined in Main.kt registration or default palette colors).
-- [ ] T012 Verify build compiles with `./gradlew :WeatherForecast:build :EdgeArtFilter:build :graphEditor:build`
+- [X] T007 Create `iptypes/` directory in WeatherForecast module at `WeatherForecast/src/commonMain/kotlin/io/codenode/weatherforecast/iptypes/`
+- [X] T008 Move IP type data classes from `WeatherForecast/.../models/` to `WeatherForecast/.../iptypes/`: `Coordinates.kt`, `HttpResponse.kt`, `ForecastData.kt`, `ForecastDisplayList.kt`, `ChartData.kt`, `ForecastEntry.kt`. Update package declarations from `io.codenode.weatherforecast.models` to `io.codenode.weatherforecast.iptypes`.
+- [X] T009 Update all import references in WeatherForecast module — every file that imports from `io.codenode.weatherforecast.models` must be updated to `io.codenode.weatherforecast.iptypes`. Affected files include: all 5 node files in `nodes/`, `WeatherForecastState.kt`, `WeatherForecastViewModel.kt`, `WeatherForecast.flow.kt`, `WeatherForecast.kt` (UI), `ForecastChart.kt`. Non-IP-type files like `OpenMeteoResponse.kt` stay in `models/`.
+- [X] T010 Check if EdgeArtFilter has IP types in `models/` that need migration — move `ImageData.kt` from `EdgeArtFilter/.../models/` (if it exists there) to `EdgeArtFilter/.../iptypes/` and update imports in all EdgeArtFilter node files.
+- [X] T011 Add `@IPType` metadata comment headers to all migrated IP type files. Each file gets a comment block with `@IPType`, `@TypeName`, `@TypeId` (e.g., `ip_coordinates`), and `@Color` (use the colors currently defined in Main.kt registration or default palette colors).
+- [X] T012 Verify build compiles with `./gradlew :WeatherForecast:build :EdgeArtFilter:build :graphEditor:build`
 
 **Checkpoint**: All modules use `iptypes/` convention, IP type files have discovery metadata headers
 

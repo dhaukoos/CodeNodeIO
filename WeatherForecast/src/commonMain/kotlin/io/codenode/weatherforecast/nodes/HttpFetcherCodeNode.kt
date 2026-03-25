@@ -11,8 +11,8 @@ import io.codenode.fbpdsl.model.CodeNodeType
 import io.codenode.fbpdsl.runtime.NodeRuntime
 import io.codenode.fbpdsl.runtime.PortSpec
 import io.codenode.weatherforecast.WeatherForecastState
-import io.codenode.weatherforecast.models.Coordinates
-import io.codenode.weatherforecast.models.HttpResponse
+import io.codenode.weatherforecast.iptypes.Coordinates
+import io.codenode.weatherforecast.iptypes.HttpResponse
 import io.ktor.client.HttpClient
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText

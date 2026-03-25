@@ -1,4 +1,12 @@
-package io.codenode.edgeartfilter
+/*
+ * ImageData - Custom IP Type
+ * @IPType
+ * @TypeName ImageData
+ * @TypeId ip_imagedata
+ * @Color rgb(233, 30, 99)
+ */
+
+package io.codenode.edgeartfilter.iptypes
 
 import androidx.compose.ui.graphics.ImageBitmap
 

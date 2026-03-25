@@ -8,6 +8,7 @@ package io.codenode.edgeartfilter
 
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.lifecycle.ViewModel
+import io.codenode.edgeartfilter.iptypes.ImageData
 import io.codenode.fbpdsl.model.ExecutionState
 import io.codenode.fbpdsl.model.FlowGraph
 import kotlinx.coroutines.flow.StateFlow

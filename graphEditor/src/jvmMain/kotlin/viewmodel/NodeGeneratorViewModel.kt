@@ -11,19 +11,11 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import io.codenode.grapheditor.model.PlacementLevel
 import io.codenode.grapheditor.state.NodeDefinitionRegistry
 import io.codenode.grapheditor.state.NodeTemplateMeta
 import io.codenode.fbpdsl.model.CodeNodeType
 import java.io.File
-
-/**
- * Placement level for generated node files.
- */
-enum class PlacementLevel(val displayName: String) {
-    MODULE("Module"),
-    PROJECT("Project"),
-    UNIVERSAL("Universal")
-}
 
 /**
  * State data class for the Node Generator Panel.
@@ -49,8 +41,7 @@ data class NodeGeneratorPanelState(
      * Computed property: available placement levels based on whether a module is loaded.
      */
     val availableLevels: List<PlacementLevel>
-        get() = if (moduleLoaded) PlacementLevel.entries.toList()
-                else PlacementLevel.entries.filter { it != PlacementLevel.MODULE }
+        get() = PlacementLevel.availableLevels(moduleLoaded)
     /**
      * Computed property: form is valid when name is non-blank AND
      * at least one port exists (not both 0/0).

@@ -1,6 +1,7 @@
 package io.codenode.edgeartfilter
 
 import androidx.compose.ui.graphics.ImageBitmap
+import io.codenode.edgeartfilter.iptypes.ImageData
 
 /**
  * Creates an ImageBitmap from an ARGB pixel array.

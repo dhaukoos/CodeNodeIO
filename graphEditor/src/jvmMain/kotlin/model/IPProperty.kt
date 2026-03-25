@@ -34,7 +34,9 @@ data class CustomIPTypeDefinition(
     val id: String,
     val typeName: String,
     val properties: List<IPProperty> = emptyList(),
-    val color: IPColor = IPColor.BLACK
+    val color: IPColor = IPColor.BLACK,
+    val filePath: String? = null,
+    val tier: PlacementLevel? = null
 ) {
     companion object {
         /**

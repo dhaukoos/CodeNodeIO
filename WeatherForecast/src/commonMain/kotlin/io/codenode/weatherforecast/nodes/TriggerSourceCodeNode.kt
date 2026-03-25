@@ -14,7 +14,7 @@ import io.codenode.fbpdsl.runtime.CodeNodeDefinition
 import io.codenode.fbpdsl.runtime.NodeRuntime
 import io.codenode.fbpdsl.runtime.PortSpec
 import io.codenode.weatherforecast.WeatherForecastState
-import io.codenode.weatherforecast.models.Coordinates
+import io.codenode.weatherforecast.iptypes.Coordinates
 import kotlinx.coroutines.flow.drop
 
 /**

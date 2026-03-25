@@ -5,7 +5,7 @@
 
 package io.codenode.edgeartfilter.nodes
 
-import io.codenode.edgeartfilter.ImageData
+import io.codenode.edgeartfilter.iptypes.ImageData
 import io.codenode.edgeartfilter.createImageBitmapFromPixels
 import io.codenode.edgeartfilter.readPixelArray
 import io.codenode.fbpdsl.model.CodeNodeFactory

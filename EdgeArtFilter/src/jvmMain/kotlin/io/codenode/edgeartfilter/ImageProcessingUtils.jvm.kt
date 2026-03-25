@@ -2,6 +2,7 @@ package io.codenode.edgeartfilter
 
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.toComposeImageBitmap
+import io.codenode.edgeartfilter.iptypes.ImageData
 import java.awt.image.BufferedImage
 import javax.imageio.ImageIO
 import javax.swing.JFileChooser

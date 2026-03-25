@@ -10,8 +10,8 @@ import androidx.lifecycle.ViewModel
 import io.codenode.fbpdsl.model.ExecutionState
 import io.codenode.fbpdsl.model.FlowGraph
 import io.codenode.weatherforecast.generated.WeatherForecastControllerInterface
-import io.codenode.weatherforecast.models.ChartData
-import io.codenode.weatherforecast.models.ForecastEntry
+import io.codenode.weatherforecast.iptypes.ChartData
+import io.codenode.weatherforecast.iptypes.ForecastEntry
 import kotlinx.coroutines.flow.StateFlow
 
 /**

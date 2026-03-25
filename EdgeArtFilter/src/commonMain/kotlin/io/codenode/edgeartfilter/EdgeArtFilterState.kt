@@ -1,5 +1,6 @@
 package io.codenode.edgeartfilter
 
+import io.codenode.edgeartfilter.iptypes.ImageData
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow

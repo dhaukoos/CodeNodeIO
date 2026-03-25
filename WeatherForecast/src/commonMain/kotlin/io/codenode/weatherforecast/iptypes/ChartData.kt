@@ -1,9 +1,13 @@
 /*
- * ChartData - Chart-ready data structure for temperature line chart
+ * ChartData - Custom IP Type
+ * @IPType
+ * @TypeName ChartData
+ * @TypeId ip_forecastchartdata
+ * @Color rgb(156, 39, 176)
  * License: Apache 2.0
  */
 
-package io.codenode.weatherforecast.models
+package io.codenode.weatherforecast.iptypes
 
 data class ChartData(
     val labels: List<String>,

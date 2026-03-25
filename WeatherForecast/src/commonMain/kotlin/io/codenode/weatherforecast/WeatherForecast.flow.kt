@@ -2,11 +2,11 @@ package io.codenode.weatherforecast
 
 import io.codenode.fbpdsl.dsl.*
 import io.codenode.fbpdsl.model.*
-import io.codenode.weatherforecast.models.ChartData
-import io.codenode.weatherforecast.models.Coordinates
-import io.codenode.weatherforecast.models.ForecastData
-import io.codenode.weatherforecast.models.ForecastDisplayList
-import io.codenode.weatherforecast.models.HttpResponse
+import io.codenode.weatherforecast.iptypes.ChartData
+import io.codenode.weatherforecast.iptypes.Coordinates
+import io.codenode.weatherforecast.iptypes.ForecastData
+import io.codenode.weatherforecast.iptypes.ForecastDisplayList
+import io.codenode.weatherforecast.iptypes.HttpResponse
 
 val weatherForecastFlowGraph = flowGraph("WeatherForecast", version = "1.0.0") {
     targetPlatform(FlowGraph.TargetPlatform.KMP_ANDROID)

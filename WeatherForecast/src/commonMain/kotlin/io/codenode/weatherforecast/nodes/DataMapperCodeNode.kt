@@ -11,10 +11,10 @@ import io.codenode.fbpdsl.model.CodeNodeType
 import io.codenode.fbpdsl.runtime.NodeRuntime
 import io.codenode.fbpdsl.runtime.PortSpec
 import io.codenode.fbpdsl.runtime.ProcessResult2
-import io.codenode.weatherforecast.models.ChartData
-import io.codenode.weatherforecast.models.ForecastData
-import io.codenode.weatherforecast.models.ForecastDisplayList
-import io.codenode.weatherforecast.models.ForecastEntry
+import io.codenode.weatherforecast.iptypes.ChartData
+import io.codenode.weatherforecast.iptypes.ForecastData
+import io.codenode.weatherforecast.iptypes.ForecastDisplayList
+import io.codenode.weatherforecast.iptypes.ForecastEntry
 
 /**
  * Transformer node with 1 input and 2 outputs (fan-out).
