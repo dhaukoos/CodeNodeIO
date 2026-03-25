@@ -17,10 +17,10 @@
 
 **Purpose**: Ensure the monorepo is in a clean state before splitting
 
-- [ ] T001 Merge or close all open feature branches that span both tool and project code — verify with `git branch -a | grep -v main`. NOTE: branches 058-weather-forecast-demo and 059-filesystem-ip-types have unmerged work.
+- [X] T001 Merge or close all open feature branches that span both tool and project code — verify with `git branch -a | grep -v main`. All feature branches (004–060) are merged to main.
 - [X] T002 Ensure working tree is clean: `git status` shows no uncommitted changes
-- [ ] T003 Install `git filter-repo` if not already available: `brew install git-filter-repo`
-- [ ] T004 Create the `CodeNodeIO-DemoProject` repository on GitHub (empty, no README/license/gitignore initialization)
+- [X] T003 Install `git filter-repo` if not already available: `brew install git-filter-repo`
+- [X] T004 Create the `CodeNodeIO-DemoProject` repository on GitHub (empty, no README/license/gitignore initialization)
 
 **Checkpoint**: Clean monorepo state and empty target repository ready
 
@@ -30,11 +30,11 @@
 
 **Purpose**: Create the new repository with all project modules and preserved git history. This MUST complete before tool repository cleanup.
 
-- [ ] T005 Clone a fresh copy of CodeNodeIO to a temporary working directory for extraction: `git clone CodeNodeIO CodeNodeIO-DemoProject-extract`
-- [ ] T006 Run `git filter-repo` on the extract clone to keep only project module directories: `git filter-repo --path Addresses/ --path EdgeArtFilter/ --path GeoLocations/ --path StopWatch/ --path UserProfiles/ --path WeatherForecast/ --path KMPMobileApp/ --path persistence/ --path nodes/ --path iptypes/`
-- [ ] T007 Verify git history is preserved in the extracted repo: `git log --oneline -- WeatherForecast/` should show the full commit history for that module
-- [ ] T008 Add the `CodeNodeIO-DemoProject` GitHub repository as remote: `git remote add origin <github-url>` and push: `git push -u origin main`
-- [ ] T009 Verify the push by cloning `CodeNodeIO-DemoProject` fresh from GitHub and confirming all 10 directories (Addresses, EdgeArtFilter, GeoLocations, StopWatch, UserProfiles, WeatherForecast, KMPMobileApp, persistence, nodes, iptypes) are present with history
+- [X] T005 Clone a fresh copy of CodeNodeIO to a temporary working directory for extraction: `git clone CodeNodeIO CodeNodeIO-DemoProject-extract`
+- [X] T006 Run `git filter-repo` on the extract clone to keep only project module directories: `git filter-repo --path Addresses/ --path EdgeArtFilter/ --path GeoLocations/ --path StopWatch/ --path UserProfiles/ --path WeatherForecast/ --path KMPMobileApp/ --path persistence/ --path nodes/ --path iptypes/`
+- [X] T007 Verify git history is preserved in the extracted repo: `git log --oneline -- WeatherForecast/` shows full commit history (104 commits total across all modules)
+- [X] T008 Add the `CodeNodeIO-DemoProject` GitHub repository as remote and push: pushed to git@github.com:dhaukoos/CodeNodeIO-DemoProject.git
+- [X] T009 Verify the push by cloning `CodeNodeIO-DemoProject` fresh from GitHub — all 9 directories present (iptypes/ was empty so not extracted, will be created when needed), 104 commits with full history
 
 **Checkpoint**: New repository exists on GitHub with all project modules and preserved git history
 
