@@ -39,7 +39,7 @@ class EntityDisplayGenerator {
             appendLine(" * This sink node receives result and error values from the ${entityName}Repository")
             appendLine(" * processor and updates the corresponding StateFlows in ${pluralName}State.")
             appendLine(" */")
-            appendLine("internal fun create${pluralName}Display() = CodeNodeFactory.createSinkIn2<Any, Any>(")
+            appendLine("internal fun create${pluralName}Display() = CodeNodeFactory.createSinkIn2<String, String>(")
             appendLine("    name = \"${pluralName}Display\",")
             appendLine("    consume = { result, error ->")
             appendLine("        ${pluralName}State._result.value = result")

@@ -401,7 +401,7 @@ class RuntimeViewModelGeneratorTest {
         val flowGraph = createEntityModuleFlow()
         val result = generator.generate(flowGraph, basePackage, generatedPackage)
 
-        assertTrue(result.contains("fun addEntity(geoLocation: GeoLocationEntity)"))
+        assertTrue(result.contains("fun addEntity(geoLocation: GeoLocation)"))
     }
 
     @Test
@@ -409,7 +409,7 @@ class RuntimeViewModelGeneratorTest {
         val flowGraph = createEntityModuleFlow()
         val result = generator.generate(flowGraph, basePackage, generatedPackage)
 
-        assertTrue(result.contains("fun updateEntity(geoLocation: GeoLocationEntity)"))
+        assertTrue(result.contains("fun updateEntity(geoLocation: GeoLocation)"))
     }
 
     @Test
@@ -417,7 +417,7 @@ class RuntimeViewModelGeneratorTest {
         val flowGraph = createEntityModuleFlow()
         val result = generator.generate(flowGraph, basePackage, generatedPackage)
 
-        assertTrue(result.contains("fun removeEntity(geoLocation: GeoLocationEntity)"))
+        assertTrue(result.contains("fun removeEntity(geoLocation: GeoLocation)"))
     }
 
     @Test
@@ -454,7 +454,7 @@ class RuntimeViewModelGeneratorTest {
         val flowGraph = createEntityModuleFlow()
         val result = generator.generate(flowGraph, basePackage, generatedPackage)
 
-        assertTrue(result.contains("internal val _geoLocations = MutableStateFlow<List<GeoLocationEntity>>(emptyList())"))
+        assertTrue(result.contains("internal val _geoLocations = MutableStateFlow<List<GeoLocation>>(emptyList())"))
     }
 
     @Test
@@ -462,7 +462,7 @@ class RuntimeViewModelGeneratorTest {
         val flowGraph = createEntityModuleFlow()
         val result = generator.generate(flowGraph, basePackage, generatedPackage)
 
-        assertTrue(result.contains("val geoLocations: StateFlow<List<GeoLocationEntity>>"))
+        assertTrue(result.contains("val geoLocations: StateFlow<List<GeoLocation>>"))
     }
 
     @Test

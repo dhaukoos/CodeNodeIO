@@ -78,7 +78,7 @@ class EntityUIGeneratorTest {
     @Test
     fun `generateListView contains entity import`() {
         val result = generator.generateListView(spec)
-        assertTrue(result.contains("import io.codenode.persistence.GeoLocationEntity"))
+        assertTrue(result.contains("import io.codenode.geolocations.iptypes.GeoLocation"))
     }
 
     @Test
@@ -137,19 +137,19 @@ class EntityUIGeneratorTest {
     @Test
     fun `generateFormView contains entity entity parameter`() {
         val result = generator.generateFormView(spec)
-        assertTrue(result.contains("existingItem: GeoLocationEntity?"))
+        assertTrue(result.contains("existingItem: GeoLocation?"))
     }
 
     @Test
     fun `generateFormView contains onSave callback`() {
         val result = generator.generateFormView(spec)
-        assertTrue(result.contains("onSave: (GeoLocationEntity) -> Unit"))
+        assertTrue(result.contains("onSave: (GeoLocation) -> Unit"))
     }
 
     @Test
     fun `generateFormView constructs entity with all properties`() {
         val result = generator.generateFormView(spec)
-        assertTrue(result.contains("GeoLocationEntity("))
+        assertTrue(result.contains("GeoLocation("))
         assertTrue(result.contains("latitude ="))
         assertTrue(result.contains("longitude ="))
         assertTrue(result.contains("label ="))
@@ -169,7 +169,7 @@ class EntityUIGeneratorTest {
     @Test
     fun `generateRowView contains entity parameter`() {
         val result = generator.generateRowView(spec)
-        assertTrue(result.contains("item: GeoLocationEntity"))
+        assertTrue(result.contains("item: GeoLocation"))
     }
 
     @Test

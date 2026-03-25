@@ -6,6 +6,7 @@
 package io.codenode.kotlincompiler.generator
 
 import io.codenode.fbpdsl.dsl.flowGraph
+import io.codenode.fbpdsl.dsl.withType
 import io.codenode.fbpdsl.model.FlowGraph
 
 /**
@@ -66,9 +67,10 @@ class EntityFlowGraphBuilder {
                 config("_sourceIPTypeName", entityName)
             }
 
-            cud.output("save") connect repository.input("save")
-            cud.output("update") connect repository.input("update")
-            cud.output("remove") connect repository.input("remove")
+            val ipTypeId = "ip_${entityName.lowercase()}"
+            cud.output("save") connect repository.input("save") withType ipTypeId
+            cud.output("update") connect repository.input("update") withType ipTypeId
+            cud.output("remove") connect repository.input("remove") withType ipTypeId
             repository.output("result") connect display.input("result")
             repository.output("error") connect display.input("error")
         }

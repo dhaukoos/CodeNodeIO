@@ -86,18 +86,24 @@ class RuntimeViewModelGenerator {
             if (observableProps.isNotEmpty()) {
                 observableProps.forEach { prop ->
                     appendLine()
+                    // For entity modules, use concrete types instead of Any
+                    val resolvedType = if (entityInfo != null) {
+                        resolveEntityPropertyType(prop.name, prop.typeName, entityInfo)
+                    } else {
+                        prop.typeName
+                    }
                     if (prop.defaultValue == "null") {
-                        appendLine("    internal val _${prop.name} = MutableStateFlow<${prop.typeName}?>(null)")
-                        appendLine("    val ${prop.name}Flow: StateFlow<${prop.typeName}?> = _${prop.name}.asStateFlow()")
+                        appendLine("    internal val _${prop.name} = MutableStateFlow<${resolvedType}?>(null)")
+                        appendLine("    val ${prop.name}Flow: StateFlow<${resolvedType}?> = _${prop.name}.asStateFlow()")
                     } else {
                         appendLine("    internal val _${prop.name} = MutableStateFlow(${prop.defaultValue})")
-                        appendLine("    val ${prop.name}Flow: StateFlow<${prop.typeName}> = _${prop.name}.asStateFlow()")
+                        appendLine("    val ${prop.name}Flow: StateFlow<${resolvedType}> = _${prop.name}.asStateFlow()")
                     }
                 }
 
                 if (entityInfo != null) {
                     appendLine()
-                    appendLine("    internal val _${entityInfo.pluralNameLower} = MutableStateFlow<List<${entityInfo.entityName}Entity>>(emptyList())")
+                    appendLine("    internal val _${entityInfo.pluralNameLower} = MutableStateFlow<List<${entityInfo.entityName}>>(emptyList())")
                 }
 
                 appendLine()
@@ -159,6 +165,8 @@ class RuntimeViewModelGenerator {
             appendLine("import io.codenode.persistence.${entityInfo.entityName}Dao")
             appendLine("import io.codenode.persistence.${entityInfo.entityName}Entity")
             appendLine("import io.codenode.persistence.${entityInfo.entityName}Repository")
+            appendLine("import ${entityInfo.basePackage}.iptypes.${entityInfo.entityName}")
+            appendLine("import ${entityInfo.basePackage}.iptypes.to${entityInfo.entityName}")
         }
     }
 
@@ -193,7 +201,12 @@ class RuntimeViewModelGenerator {
         if (observableProps.isNotEmpty()) {
             appendLine("    // Observable state from module properties")
             observableProps.forEach { prop ->
-                val typeStr = if (prop.defaultValue == "null") "${prop.typeName}?" else prop.typeName
+                val resolvedType = if (entityInfo != null) {
+                    resolveEntityPropertyType(prop.name, prop.typeName, entityInfo)
+                } else {
+                    prop.typeName
+                }
+                val typeStr = if (prop.defaultValue == "null") "${resolvedType}?" else resolvedType
                 appendLine("    val ${prop.name}: StateFlow<$typeStr> = ${flowName}State.${prop.name}Flow")
             }
             appendLine()
@@ -201,7 +214,7 @@ class RuntimeViewModelGenerator {
 
         if (entityInfo != null) {
             appendLine("    // Reactive entity list from repository")
-            appendLine("    val ${entityInfo.pluralNameLower}: StateFlow<List<${entityInfo.entityName}Entity>> = ${flowName}State._${entityInfo.pluralNameLower}")
+            appendLine("    val ${entityInfo.pluralNameLower}: StateFlow<List<${entityInfo.entityName}>> = ${flowName}State._${entityInfo.pluralNameLower}")
             appendLine()
         }
 
@@ -215,21 +228,21 @@ class RuntimeViewModelGenerator {
             appendLine("        viewModelScope.launch {")
             appendLine("            val repo = ${entityInfo.entityName}Repository(${entityInfo.entityNameLower}Dao)")
             appendLine("            repo.observeAll().collect { list ->")
-            appendLine("                ${flowName}State._${entityInfo.pluralNameLower}.value = list")
+            appendLine("                ${flowName}State._${entityInfo.pluralNameLower}.value = list.map { it.to${entityInfo.entityName}() }")
             appendLine("            }")
             appendLine("        }")
             appendLine("    }")
             appendLine()
             appendLine("    // CRUD methods — trigger operations via the FlowGraph reactive source")
-            appendLine("    fun addEntity(${entityInfo.entityNameLower}: ${entityInfo.entityName}Entity) {")
+            appendLine("    fun addEntity(${entityInfo.entityNameLower}: ${entityInfo.entityName}) {")
             appendLine("        ${flowName}State._save.value = ${entityInfo.entityNameLower}")
             appendLine("    }")
             appendLine()
-            appendLine("    fun updateEntity(${entityInfo.entityNameLower}: ${entityInfo.entityName}Entity) {")
+            appendLine("    fun updateEntity(${entityInfo.entityNameLower}: ${entityInfo.entityName}) {")
             appendLine("        ${flowName}State._update.value = ${entityInfo.entityNameLower}")
             appendLine("    }")
             appendLine()
-            appendLine("    fun removeEntity(${entityInfo.entityNameLower}: ${entityInfo.entityName}Entity) {")
+            appendLine("    fun removeEntity(${entityInfo.entityNameLower}: ${entityInfo.entityName}) {")
             appendLine("        ${flowName}State._remove.value = ${entityInfo.entityNameLower}")
             appendLine("    }")
             appendLine()
@@ -269,11 +282,28 @@ class RuntimeViewModelGenerator {
         val entityNameLower = entityName.replaceFirstChar { it.lowercase() }
         val pluralNameLower = pluralize(entityNameLower)
 
+        val pluralName = pluralize(entityName)
+        val basePackage = "io.codenode.${pluralName.lowercase()}"
+
         return EntityModuleInfo(
             entityName = entityName,
             entityNameLower = entityNameLower,
-            pluralNameLower = pluralNameLower
+            pluralNameLower = pluralNameLower,
+            basePackage = basePackage
         )
+    }
+
+    /**
+     * Resolves the concrete type for an entity module state property.
+     * CUD ports (save, update, remove) use the IP type. Display ports (result, error) use String.
+     * Other ports keep their original type.
+     */
+    private fun resolveEntityPropertyType(propName: String, originalType: String, entityInfo: EntityModuleInfo): String {
+        return when (propName) {
+            "save", "update", "remove" -> entityInfo.entityName
+            "result", "error" -> "String"
+            else -> originalType
+        }
     }
 
     /**
@@ -282,6 +312,7 @@ class RuntimeViewModelGenerator {
     data class EntityModuleInfo(
         val entityName: String,
         val entityNameLower: String,
-        val pluralNameLower: String
+        val pluralNameLower: String,
+        val basePackage: String
     )
 }

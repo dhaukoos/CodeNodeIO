@@ -37,7 +37,8 @@ class FlowKtGenerator {
         flowGraph: FlowGraph,
         packageName: String,
         unused: String? = null,
-        ipTypeNames: Map<String, String> = emptyMap()
+        ipTypeNames: Map<String, String> = emptyMap(),
+        ipTypeImports: List<String> = emptyList()
     ): String {
         // Build portId → typeName map from connections with IP type assignments
         val portTypeOverrides = buildMap<String, String> {
@@ -59,6 +60,9 @@ class FlowKtGenerator {
         // Generate imports
         builder.appendLine("import io.codenode.fbpdsl.dsl.*")
         builder.appendLine("import io.codenode.fbpdsl.model.*")
+        for (importLine in ipTypeImports) {
+            builder.appendLine("import $importLine")
+        }
         builder.appendLine()
 
         // T019: Generate flowGraph DSL block
