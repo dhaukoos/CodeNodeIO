@@ -17,9 +17,9 @@
 
 **Purpose**: Ensure the monorepo is in a clean state before splitting
 
-- [ ] T001 Merge or close all open feature branches that span both tool and project code — verify with `git branch -a | grep -v main`
-- [ ] T002 Ensure working tree is clean: `git status` shows no uncommitted changes
-- [ ] T003 Install `git filter-repo` if not already available: `pip install git-filter-repo` or `brew install git-filter-repo`
+- [ ] T001 Merge or close all open feature branches that span both tool and project code — verify with `git branch -a | grep -v main`. NOTE: branches 058-weather-forecast-demo and 059-filesystem-ip-types have unmerged work.
+- [X] T002 Ensure working tree is clean: `git status` shows no uncommitted changes
+- [ ] T003 Install `git filter-repo` if not already available: `brew install git-filter-repo`
 - [ ] T004 Create the `CodeNodeIO-DemoProject` repository on GitHub (empty, no README/license/gitignore initialization)
 
 **Checkpoint**: Clean monorepo state and empty target repository ready
