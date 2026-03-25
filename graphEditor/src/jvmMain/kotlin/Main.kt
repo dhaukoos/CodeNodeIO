@@ -89,8 +89,6 @@ import io.codenode.weatherforecast.nodes.ForecastDisplayCodeNode
 import io.codenode.circuitsimulator.ConnectionAnimation
 import io.codenode.circuitsimulator.RuntimeSession
 import io.codenode.grapheditor.ui.PropertiesPanelState
-import io.codenode.grapheditor.model.CustomIPTypeDefinition
-import io.codenode.grapheditor.model.IPProperty
 import io.codenode.grapheditor.repository.FileIPTypeRepository
 import io.codenode.grapheditor.viewmodel.IPGeneratorViewModel
 import io.codenode.grapheditor.ui.IPGeneratorPanel
@@ -105,8 +103,8 @@ import io.codenode.fbpdsl.model.Port
 import io.codenode.fbpdsl.model.CodeNode
 import io.codenode.fbpdsl.model.CodeNodeType
 import io.codenode.fbpdsl.model.GraphNode
-import io.codenode.fbpdsl.model.IPColor
 import io.codenode.fbpdsl.model.InformationPacketType
+import io.codenode.grapheditor.state.IPTypeDiscovery
 import io.codenode.grapheditor.state.IPTypeRegistry
 import io.codenode.grapheditor.ui.IPPalette
 import io.codenode.grapheditor.ui.ConnectionContextMenu
@@ -257,95 +255,28 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
     }
     val ipTypeRegistry = remember { IPTypeRegistry.withDefaults() }
     val ipTypeRepository = remember { FileIPTypeRepository() }
-    // Load persisted custom IP types on startup
+    // Discover IP types from filesystem on startup
     var ipTypesVersion by remember { mutableStateOf(0) }
     LaunchedEffect(Unit) {
+        // Filesystem-based IP type discovery (replaces hardcoded registrations)
+        val projectRoot = java.io.File(System.getProperty("user.dir"))
+        val modulePaths = listOf(
+            "WeatherForecast", "EdgeArtFilter", "StopWatch",
+            "UserProfiles", "GeoLocations", "Addresses"
+        ).map { java.io.File(projectRoot, it) }.filter { it.isDirectory }
+
+        val discovery = IPTypeDiscovery(projectRoot, modulePaths)
+        val discovered = discovery.discoverAll()
+        ipTypeRegistry.registerFromFilesystem(discovered) { meta ->
+            discovery.resolveKClass(meta)
+        }
+
+        // Also load any legacy custom types from JSON repository (for migration period)
         ipTypeRepository.load()
         ipTypeRepository.getAllDefinitions().forEach { definition ->
-            ipTypeRegistry.registerCustomType(definition)
-        }
-
-        // Register EdgeArtFilter ImageData IP type if not already present
-        if (!ipTypeRegistry.contains("ip_imagedata")) {
-            val imageDataType = CustomIPTypeDefinition(
-                id = "ip_imagedata",
-                typeName = "ImageData",
-                properties = listOf(
-                    IPProperty("width", "ip_int"),
-                    IPProperty("height", "ip_int"),
-                    IPProperty("metadata", "ip_string", isRequired = false)
-                ),
-                color = IPColor(0, 188, 212) // Cyan
-            )
-            ipTypeRegistry.registerCustomType(imageDataType)
-            ipTypeRepository.add(imageDataType)
-        }
-
-        // Register WeatherForecast custom IP types
-        if (!ipTypeRegistry.contains("ip_coordinates")) {
-            val coordinatesType = CustomIPTypeDefinition(
-                id = "ip_coordinates",
-                typeName = "Coordinates",
-                properties = listOf(
-                    IPProperty("latitude", "ip_double"),
-                    IPProperty("longitude", "ip_double")
-                ),
-                color = IPColor(0, 150, 136) // Teal
-            )
-            ipTypeRegistry.registerCustomType(coordinatesType)
-            ipTypeRepository.add(coordinatesType)
-        }
-        if (!ipTypeRegistry.contains("ip_httpresponse")) {
-            val httpResponseType = CustomIPTypeDefinition(
-                id = "ip_httpresponse",
-                typeName = "HttpResponse",
-                properties = listOf(
-                    IPProperty("statusCode", "ip_int"),
-                    IPProperty("body", "ip_string")
-                ),
-                color = IPColor(255, 152, 0) // Orange
-            )
-            ipTypeRegistry.registerCustomType(httpResponseType)
-            ipTypeRepository.add(httpResponseType)
-        }
-        if (!ipTypeRegistry.contains("ip_forecastdata")) {
-            val forecastDataType = CustomIPTypeDefinition(
-                id = "ip_forecastdata",
-                typeName = "ForecastData",
-                properties = listOf(
-                    IPProperty("dates", "ip_string"),
-                    IPProperty("maxTemps", "ip_string"),
-                    IPProperty("minTemps", "ip_string")
-                ),
-                color = IPColor(33, 150, 243) // Blue
-            )
-            ipTypeRegistry.registerCustomType(forecastDataType)
-            ipTypeRepository.add(forecastDataType)
-        }
-        if (!ipTypeRegistry.contains("ip_forecastdisplaylist")) {
-            val forecastDisplayListType = CustomIPTypeDefinition(
-                id = "ip_forecastdisplaylist",
-                typeName = "ForecastDisplayList",
-                properties = listOf(
-                    IPProperty("entries", "ip_string")
-                ),
-                color = IPColor(76, 175, 80) // Green
-            )
-            ipTypeRegistry.registerCustomType(forecastDisplayListType)
-            ipTypeRepository.add(forecastDisplayListType)
-        }
-        if (!ipTypeRegistry.contains("ip_forecastchartdata")) {
-            val forecastChartDataType = CustomIPTypeDefinition(
-                id = "ip_forecastchartdata",
-                typeName = "ForecastChartData",
-                properties = listOf(
-                    IPProperty("labels", "ip_string"),
-                    IPProperty("values", "ip_string")
-                ),
-                color = IPColor(156, 39, 176) // Purple
-            )
-            ipTypeRegistry.registerCustomType(forecastChartDataType)
-            ipTypeRepository.add(forecastChartDataType)
+            if (!ipTypeRegistry.contains(definition.id)) {
+                ipTypeRegistry.registerCustomType(definition)
+            }
         }
 
         ipTypesVersion++

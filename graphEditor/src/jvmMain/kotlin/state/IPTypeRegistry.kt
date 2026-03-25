@@ -10,6 +10,8 @@ import io.codenode.fbpdsl.model.IPColor
 import io.codenode.fbpdsl.model.InformationPacketType
 import io.codenode.grapheditor.model.CustomIPTypeDefinition
 import io.codenode.grapheditor.model.IPProperty
+import io.codenode.grapheditor.model.IPTypeFileMeta
+import kotlin.reflect.KClass
 
 /**
  * Runtime registry of available InformationPacket types for the graphEditor.
@@ -173,6 +175,41 @@ class IPTypeRegistry {
      * @return Set of custom type IDs
      */
     fun getCustomTypeIds(): Set<String> = customTypeProperties.keys.toSet()
+
+    /**
+     * Registers IP types discovered from the filesystem.
+     * Converts each IPTypeFileMeta to an InformationPacketType and CustomIPTypeDefinition,
+     * resolving the real KClass for compiled types via the provided resolver.
+     *
+     * @param discovered List of discovered IP type metadata
+     * @param kClassResolver Function to resolve KClass from metadata (defaults to Any::class)
+     */
+    fun registerFromFilesystem(
+        discovered: List<IPTypeFileMeta>,
+        kClassResolver: (IPTypeFileMeta) -> KClass<*> = { Any::class }
+    ) {
+        for (meta in discovered) {
+            val payloadType = kClassResolver(meta)
+            val ipType = InformationPacketType(
+                id = meta.typeId,
+                typeName = meta.typeName,
+                payloadType = payloadType,
+                color = meta.color,
+                description = "Custom type: ${meta.typeName}"
+            )
+            register(ipType)
+
+            // Store property metadata for the IP Generator panel
+            val properties = meta.properties.map { prop ->
+                IPProperty(
+                    name = prop.name,
+                    typeId = prop.typeId,
+                    isRequired = prop.isRequired
+                )
+            }
+            customTypeProperties[meta.typeId] = properties
+        }
+    }
 
     companion object {
         /**
