@@ -90,6 +90,7 @@ import io.codenode.circuitsimulator.ConnectionAnimation
 import io.codenode.circuitsimulator.RuntimeSession
 import io.codenode.grapheditor.ui.PropertiesPanelState
 import io.codenode.grapheditor.repository.FileIPTypeRepository
+import io.codenode.grapheditor.repository.IPTypeMigration
 import io.codenode.grapheditor.viewmodel.IPGeneratorViewModel
 import io.codenode.grapheditor.ui.IPGeneratorPanel
 import io.codenode.grapheditor.state.rememberPropertyChangeTracker
@@ -265,6 +266,10 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
     // Discover IP types from filesystem on startup
     var ipTypesVersion by remember { mutableStateOf(0) }
     LaunchedEffect(Unit) {
+        // One-time migration from legacy JSON to filesystem
+        val migration = IPTypeMigration(ipTypeFileGenerator)
+        migration.migrateIfNeeded()
+
         val discovered = discovery.discoverAll()
         ipTypeRegistry.registerFromFilesystem(discovered) { meta ->
             discovery.resolveKClass(meta)

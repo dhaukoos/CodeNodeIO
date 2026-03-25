@@ -14,11 +14,14 @@ import java.io.File
 /**
  * File-based repository for persisting custom IP types to JSON.
  *
- * Custom IP types are
- * serialized as [SerializableIPType] DTOs and stored at ~/.codenode/custom-ip-types.json.
+ * @deprecated IP type creation and discovery is now filesystem-based via IPTypeDiscovery
+ * and IPTypeFileGenerator. This repository is retained only for entity module tracking
+ * (hasEntityModule/setEntityModule) and legacy migration. New IP types should be created
+ * via IPTypeFileGenerator which writes .kt files to the iptypes/ directory.
  *
  * @param filePath Path to the JSON storage file (defaults to ~/.codenode/custom-ip-types.json)
  */
+@Deprecated("Use IPTypeDiscovery + IPTypeFileGenerator for IP type management. Retained for entity module tracking.")
 class FileIPTypeRepository(
     private val filePath: String = "${System.getProperty("user.home")}/.codenode/custom-ip-types.json"
 ) {

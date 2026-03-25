@@ -102,11 +102,11 @@
 
 **Purpose**: Legacy migration, cleanup, and end-to-end validation
 
-- [ ] T029 Create `IPTypeMigration` class at `graphEditor/src/jvmMain/kotlin/repository/IPTypeMigration.kt` — implements `migrateIfNeeded()` per contracts/ip-type-discovery.md: checks for `~/.codenode/custom-ip-types.json`, if it exists and `~/.codenode/iptypes/` is empty, reads JSON entries via `FileIPTypeRepository.load()`, generates `.kt` files in Universal via `IPTypeFileGenerator`, renames JSON to `.bak`.
-- [ ] T030 Call `IPTypeMigration.migrateIfNeeded()` in `Main.kt` before the filesystem discovery call, so migrated types are picked up by the first scan.
-- [ ] T031 [P] Remove or deprecate `FileIPTypeRepository` at `graphEditor/src/jvmMain/kotlin/repository/FileIPTypeRepository.kt` — mark as `@Deprecated` with message pointing to filesystem discovery. Remove direct usage from `IPGeneratorViewModel` (replaced by file generation in T023).
-- [ ] T032 [P] Remove hardcoded IP type registrations from `Main.kt` — delete the entire block that manually registers WeatherForecast IP types (ip_coordinates, ip_httpresponse, ip_forecastdata, ip_forecastdisplaylist, ip_forecastchartdata). These are now discovered from filesystem.
-- [ ] T033 Verify full build with `./gradlew :WeatherForecast:build :EdgeArtFilter:build :graphEditor:build`
+- [X] T029 Create `IPTypeMigration` class at `graphEditor/src/jvmMain/kotlin/repository/IPTypeMigration.kt` — implements `migrateIfNeeded()` per contracts/ip-type-discovery.md: checks for `~/.codenode/custom-ip-types.json`, if it exists and `~/.codenode/iptypes/` is empty, reads JSON entries via `FileIPTypeRepository.load()`, generates `.kt` files in Universal via `IPTypeFileGenerator`, renames JSON to `.bak`.
+- [X] T030 Call `IPTypeMigration.migrateIfNeeded()` in `Main.kt` before the filesystem discovery call, so migrated types are picked up by the first scan.
+- [X] T031 [P] Remove or deprecate `FileIPTypeRepository` at `graphEditor/src/jvmMain/kotlin/repository/FileIPTypeRepository.kt` — mark as `@Deprecated` with message pointing to filesystem discovery. Remove direct usage from `IPGeneratorViewModel` (replaced by file generation in T023).
+- [X] T032 [P] Remove hardcoded IP type registrations from `Main.kt` — delete the entire block that manually registers WeatherForecast IP types (ip_coordinates, ip_httpresponse, ip_forecastdata, ip_forecastdisplaylist, ip_forecastchartdata). These are now discovered from filesystem.
+- [X] T033 Verify full build with `./gradlew :WeatherForecast:build :EdgeArtFilter:build :graphEditor:build`
 - [ ] T034 Run quickstart.md scenarios 1-8 manually in graphEditor to validate end-to-end functionality
 
 ---
