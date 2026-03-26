@@ -184,7 +184,8 @@ class NodeDefinitionRegistry {
 
     /**
      * Scans an additional directory for .kt template files and adds them to templateNodes.
-     * Used to discover Project-level and Module-level source files that aren't compiled yet.
+     * Also attempts to load compiled CodeNodeDefinition objects via reflection if the
+     * classes are on the classpath (e.g., when running from a project's runGraphEditor task).
      *
      * @param directory The directory to scan for .kt files containing CodeNodeDefinition objects
      */
@@ -194,7 +195,48 @@ class NodeDefinitionRegistry {
             val meta = parseTemplateMetadata(file)
             if (meta != null) {
                 templateNodes[meta.name] = meta
+
+                // Attempt to load the compiled CodeNodeDefinition via reflection
+                if (!compiledNodes.containsKey(meta.name)) {
+                    tryLoadCompiledNode(file)
+                }
             }
+        }
+    }
+
+    /**
+     * Attempts to load a compiled CodeNodeDefinition from a source .kt file via reflection.
+     * Extracts the package declaration and object name, then uses Class.forName() to load
+     * the Kotlin object singleton. Only works if the class is on the classpath.
+     */
+    private fun tryLoadCompiledNode(file: File) {
+        try {
+            val content = file.readText()
+
+            // Extract package declaration
+            val packageMatch = Regex("^package\\s+([\\w.]+)", RegexOption.MULTILINE).find(content)
+                ?: return
+            val packageName = packageMatch.groupValues[1]
+
+            // Extract object name (e.g., "object TimerEmitterCodeNode : CodeNodeDefinition")
+            val objectMatch = Regex("object\\s+(\\w+)\\s*:\\s*CodeNodeDefinition").find(content)
+                ?: return
+            val objectName = objectMatch.groupValues[1]
+
+            val fqcn = "$packageName.$objectName"
+            val clazz = Class.forName(fqcn)
+
+            // Kotlin objects have an INSTANCE field
+            val instance = clazz.getField("INSTANCE").get(null)
+            if (instance is CodeNodeDefinition) {
+                compiledNodes[instance.name] = instance
+            }
+        } catch (_: ClassNotFoundException) {
+            // Class not on classpath — expected for uncompiled templates
+        } catch (_: NoSuchFieldException) {
+            // Not a Kotlin object — skip
+        } catch (_: Exception) {
+            // Other reflection errors — skip silently
         }
     }
 

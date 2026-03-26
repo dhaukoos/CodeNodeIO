@@ -55,6 +55,7 @@ import io.codenode.grapheditor.ui.CodeEditor
 import io.codenode.grapheditor.ui.CompactPropertiesPanelWithViewModel
 import io.codenode.grapheditor.ui.UnsavedChangesDialog
 import io.codenode.grapheditor.ui.PanelSide
+import io.codenode.grapheditor.ui.DynamicPreviewDiscovery
 import io.codenode.grapheditor.ui.ModuleSessionFactory
 import io.codenode.grapheditor.ui.RuntimePreviewPanel
 import io.codenode.circuitsimulator.ConnectionAnimation
@@ -165,13 +166,19 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
     LaunchedEffect(Unit) {
         // Discover compiled and template nodes from all sources
         registry.discoverAll()
-        // Dynamically scan all module node directories in the project
+        // Dynamically scan all module node and userInterface directories in the project
         projectRoot.listFiles { file -> file.isDirectory }?.forEach { moduleDir ->
-            val nodesDir = moduleDir.resolve("src/commonMain/kotlin")
-            if (nodesDir.isDirectory) {
-                nodesDir.walkTopDown()
+            val srcDir = moduleDir.resolve("src/commonMain/kotlin")
+            if (srcDir.isDirectory) {
+                srcDir.walkTopDown()
                     .filter { it.isDirectory && it.name == "nodes" }
                     .forEach { registry.scanDirectory(it) }
+                // Discover and invoke PreviewProvider objects via reflection
+                srcDir.walkTopDown()
+                    .filter { it.isDirectory && it.name == "userInterface" }
+                    .forEach { uiDir ->
+                        DynamicPreviewDiscovery.discoverAndRegister(uiDir)
+                    }
             }
         }
         // Make registry available for runtime node resolution
@@ -1639,10 +1646,26 @@ private fun findModuleRoot(startDir: File?): File? {
     return null
 }
 
+
 /**
  * Main entry point for the standalone Graph Editor application
  */
-fun main() {
+fun main(args: Array<String> = emptyArray()) {
+    // Resolve project directory from (in priority order):
+    // 1. --project <path> command-line argument
+    // 2. CODENODE_PROJECT_DIR environment variable
+    // 3. Current working directory (legacy behavior)
+    val projectDirArg = args.indexOf("--project").let { idx ->
+        if (idx >= 0 && idx + 1 < args.size) args[idx + 1] else null
+    }
+    val projectDirEnv = System.getenv("CODENODE_PROJECT_DIR")
+    val resolvedProjectDir = (projectDirArg ?: projectDirEnv)?.let { File(it) }
+
+    if (resolvedProjectDir != null) {
+        // Set user.dir so projectRoot resolves correctly downstream
+        System.setProperty("user.dir", resolvedProjectDir.absolutePath)
+    }
+
     // Koin DI is initialized with an empty module set.
     // Project modules register their Koin modules at runtime when loaded.
     startKoin {
