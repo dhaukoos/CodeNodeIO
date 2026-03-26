@@ -57,35 +57,6 @@ import io.codenode.grapheditor.ui.UnsavedChangesDialog
 import io.codenode.grapheditor.ui.PanelSide
 import io.codenode.grapheditor.ui.ModuleSessionFactory
 import io.codenode.grapheditor.ui.RuntimePreviewPanel
-import io.codenode.grapheditor.ui.StopWatchPreviewProvider
-import io.codenode.grapheditor.ui.UserProfilesPreviewProvider
-import io.codenode.grapheditor.ui.GeoLocationsPreviewProvider
-import io.codenode.grapheditor.ui.AddressesPreviewProvider
-import io.codenode.grapheditor.ui.EdgeArtFilterPreviewProvider
-import io.codenode.grapheditor.ui.WeatherForecastPreviewProvider
-import io.codenode.edgeartfilter.nodes.ImagePickerCodeNode
-import io.codenode.edgeartfilter.nodes.GrayscaleTransformerCodeNode
-import io.codenode.edgeartfilter.nodes.EdgeDetectorCodeNode
-import io.codenode.edgeartfilter.nodes.ColorOverlayCodeNode
-import io.codenode.edgeartfilter.nodes.SepiaTransformerCodeNode
-import io.codenode.edgeartfilter.nodes.ImageViewerCodeNode
-import io.codenode.stopwatch.nodes.TimerEmitterCodeNode
-import io.codenode.stopwatch.nodes.TimeIncrementerCodeNode
-import io.codenode.stopwatch.nodes.DisplayReceiverCodeNode
-import io.codenode.userprofiles.nodes.UserProfileCUDCodeNode
-import io.codenode.userprofiles.nodes.UserProfileRepositoryCodeNode
-import io.codenode.userprofiles.nodes.UserProfilesDisplayCodeNode
-import io.codenode.geolocations.nodes.GeoLocationCUDCodeNode
-import io.codenode.geolocations.nodes.GeoLocationRepositoryCodeNode
-import io.codenode.geolocations.nodes.GeoLocationsDisplayCodeNode
-import io.codenode.addresses.nodes.AddressCUDCodeNode
-import io.codenode.addresses.nodes.AddressRepositoryCodeNode
-import io.codenode.addresses.nodes.AddressesDisplayCodeNode
-import io.codenode.weatherforecast.nodes.TriggerSourceCodeNode
-import io.codenode.weatherforecast.nodes.HttpFetcherCodeNode
-import io.codenode.weatherforecast.nodes.JsonParserCodeNode
-import io.codenode.weatherforecast.nodes.DataMapperCodeNode
-import io.codenode.weatherforecast.nodes.ForecastDisplayCodeNode
 import io.codenode.circuitsimulator.ConnectionAnimation
 import io.codenode.circuitsimulator.RuntimeSession
 import io.codenode.grapheditor.ui.PropertiesPanelState
@@ -112,10 +83,6 @@ import io.codenode.grapheditor.ui.IPPalette
 import io.codenode.grapheditor.ui.ConnectionContextMenu
 import io.codenode.grapheditor.ui.NavigationBreadcrumbBar
 import io.codenode.grapheditor.ui.NavigationZoomOutButton
-import io.codenode.persistence.DatabaseModule
-import io.codenode.userprofiles.userProfilesModule
-import io.codenode.geolocations.geoLocationsModule
-import io.codenode.addresses.addressesModule
 import org.koin.core.context.startKoin
 import org.koin.dsl.module
 import io.codenode.grapheditor.ui.FlowGraphPropertiesDialog
@@ -181,7 +148,7 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
 
     // Keep Node Generator's moduleLoaded state in sync with moduleRootDir
     LaunchedEffect(moduleRootDir) {
-        nodeGeneratorViewModel.setModuleLoaded(moduleRootDir != null)
+        nodeGeneratorViewModel.setModuleLoaded(moduleRootDir != null, moduleRootDir?.absolutePath)
     }
 
     // NodePaletteViewModel for the Node Palette
@@ -194,59 +161,20 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
     var pendingEditorAction by remember { mutableStateOf<(() -> Unit)?>(null) }
     var selectedFileEntry by remember { mutableStateOf<FileEntry?>(null) }
 
-    // Initialize preview providers at startup
-    remember {
-        StopWatchPreviewProvider.register()
-        UserProfilesPreviewProvider.register()
-        GeoLocationsPreviewProvider.register()
-        AddressesPreviewProvider.register()
-        EdgeArtFilterPreviewProvider.register()
-        WeatherForecastPreviewProvider.register()
-        true // return value for remember block
-    }
-
-    // Discover all node definitions on startup
+    // Discover all node definitions on startup (runtime discovery, no compile-time module dependencies)
     LaunchedEffect(Unit) {
         // Discover compiled and template nodes from all sources
         registry.discoverAll()
-        // Register EdgeArtFilter CodeNode objects directly (Kotlin objects don't work with ServiceLoader)
-        registry.register(ImagePickerCodeNode)
-        registry.register(GrayscaleTransformerCodeNode)
-        registry.register(EdgeDetectorCodeNode)
-        registry.register(ColorOverlayCodeNode)
-        registry.register(SepiaTransformerCodeNode)
-        registry.register(ImageViewerCodeNode)
-        // Register StopWatch CodeNode objects directly
-        registry.register(TimerEmitterCodeNode)
-        registry.register(TimeIncrementerCodeNode)
-        registry.register(DisplayReceiverCodeNode)
-        // Register UserProfiles CodeNode objects directly
-        registry.register(UserProfileCUDCodeNode)
-        registry.register(UserProfileRepositoryCodeNode)
-        registry.register(UserProfilesDisplayCodeNode)
-        // Register GeoLocations CodeNode objects directly
-        registry.register(GeoLocationCUDCodeNode)
-        registry.register(GeoLocationRepositoryCodeNode)
-        registry.register(GeoLocationsDisplayCodeNode)
-        // Register Addresses CodeNode objects directly
-        registry.register(AddressCUDCodeNode)
-        registry.register(AddressRepositoryCodeNode)
-        registry.register(AddressesDisplayCodeNode)
-        // Register WeatherForecast CodeNode objects directly
-        registry.register(TriggerSourceCodeNode)
-        registry.register(HttpFetcherCodeNode)
-        registry.register(JsonParserCodeNode)
-        registry.register(DataMapperCodeNode)
-        registry.register(ForecastDisplayCodeNode)
-        // Scan module source directories so all CodeNodes have discoverable source file paths
-        registry.scanDirectory(projectRoot.resolve("nodes/src/commonMain/kotlin/io/codenode/nodes"))
-        registry.scanDirectory(projectRoot.resolve("EdgeArtFilter/src/commonMain/kotlin/io/codenode/edgeartfilter/nodes"))
-        registry.scanDirectory(projectRoot.resolve("StopWatch/src/commonMain/kotlin/io/codenode/stopwatch/nodes"))
-        registry.scanDirectory(projectRoot.resolve("UserProfiles/src/commonMain/kotlin/io/codenode/userprofiles/nodes"))
-        registry.scanDirectory(projectRoot.resolve("GeoLocations/src/commonMain/kotlin/io/codenode/geolocations/nodes"))
-        registry.scanDirectory(projectRoot.resolve("Addresses/src/commonMain/kotlin/io/codenode/addresses/nodes"))
-        registry.scanDirectory(projectRoot.resolve("WeatherForecast/src/commonMain/kotlin/io/codenode/weatherforecast/nodes"))
-        // T018: Make registry available for runtime node resolution
+        // Dynamically scan all module node directories in the project
+        projectRoot.listFiles { file -> file.isDirectory }?.forEach { moduleDir ->
+            val nodesDir = moduleDir.resolve("src/commonMain/kotlin")
+            if (nodesDir.isDirectory) {
+                nodesDir.walkTopDown()
+                    .filter { it.isDirectory && it.name == "nodes" }
+                    .forEach { registry.scanDirectory(it) }
+            }
+        }
+        // Make registry available for runtime node resolution
         ModuleSessionFactory.registry = registry
         registryVersion++
     }
@@ -258,8 +186,10 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
     val ipTypeRegistry = remember { IPTypeRegistry.withDefaults() }
     val ipTypeRepository = remember { FileIPTypeRepository() }
     val modulePaths = remember {
-        listOf("WeatherForecast", "EdgeArtFilter", "StopWatch", "UserProfiles", "GeoLocations", "Addresses")
-            .map { java.io.File(projectRoot, it) }.filter { it.isDirectory }
+        // Dynamically discover module directories (any subdirectory with src/commonMain/kotlin)
+        projectRoot.listFiles { file ->
+            file.isDirectory && java.io.File(file, "src/commonMain/kotlin").isDirectory
+        }?.toList() ?: emptyList()
     }
     val discovery = remember { IPTypeDiscovery(projectRoot, modulePaths) }
     val ipTypeFileGenerator = remember { IPTypeFileGenerator(projectRoot) }
@@ -1713,16 +1643,10 @@ private fun findModuleRoot(startDir: File?): File? {
  * Main entry point for the standalone Graph Editor application
  */
 fun main() {
+    // Koin DI is initialized with an empty module set.
+    // Project modules register their Koin modules at runtime when loaded.
     startKoin {
-        modules(
-            module {
-                single { DatabaseModule.getDatabase().userProfileDao() }
-                single { DatabaseModule.getDatabase().geoLocationDao() }
-                single { DatabaseModule.getDatabase().addressDao() }
-            },
-            userProfilesModule,
-            geoLocationsModule
-        )
+        modules(module { })
     }
 
     application {

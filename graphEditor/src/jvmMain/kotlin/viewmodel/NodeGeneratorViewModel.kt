@@ -35,7 +35,8 @@ data class NodeGeneratorPanelState(
     val levelDropdownExpanded: Boolean = false,
     val generationError: String? = null,
     val generationSuccess: String? = null,
-    val moduleLoaded: Boolean = false
+    val moduleLoaded: Boolean = false,
+    val activeModulePath: String? = null
 ) : BaseState {
     /**
      * Computed property: available placement levels based on whether a module is loaded.
@@ -132,12 +133,12 @@ class NodeGeneratorViewModel(
         _state.update { it.copy(levelDropdownExpanded = expanded) }
     }
 
-    fun setModuleLoaded(loaded: Boolean) {
+    fun setModuleLoaded(loaded: Boolean, modulePath: String? = null) {
         _state.update {
             // If module becomes unloaded and MODULE was selected, fall back to PROJECT
             val newLevel = if (!loaded && it.placementLevel == PlacementLevel.MODULE)
                 PlacementLevel.PROJECT else it.placementLevel
-            it.copy(moduleLoaded = loaded, placementLevel = newLevel)
+            it.copy(moduleLoaded = loaded, placementLevel = newLevel, activeModulePath = modulePath)
         }
     }
 
@@ -216,10 +217,10 @@ class NodeGeneratorViewModel(
         val fileName = "${nodeName}CodeNode.kt"
         return when (level) {
             PlacementLevel.MODULE -> {
-                // Module level: place in the currently-loaded module's nodes directory
-                // For now, defaults to EdgeArtFilter; future: driven by active module context
-                val root = projectRoot ?: return null
-                root.resolve("EdgeArtFilter/src/commonMain/kotlin/io/codenode/edgeartfilter/nodes/$fileName")
+                val modulePath = _state.value.activeModulePath ?: return null
+                val moduleDir = File(modulePath)
+                val moduleName = moduleDir.name.lowercase()
+                moduleDir.resolve("src/commonMain/kotlin/io/codenode/$moduleName/nodes/$fileName")
             }
             PlacementLevel.PROJECT -> {
                 val root = projectRoot ?: return null
@@ -237,7 +238,11 @@ class NodeGeneratorViewModel(
      */
     private fun resolvePackageName(level: PlacementLevel): String {
         return when (level) {
-            PlacementLevel.MODULE -> "io.codenode.edgeartfilter.nodes"
+            PlacementLevel.MODULE -> {
+                val modulePath = _state.value.activeModulePath
+                val moduleName = if (modulePath != null) File(modulePath).name.lowercase() else "module"
+                "io.codenode.$moduleName.nodes"
+            }
             PlacementLevel.PROJECT -> "io.codenode.nodes"
             PlacementLevel.UNIVERSAL -> "io.codenode.nodes"
         }

@@ -48,18 +48,3 @@ include(":circuitSimulator")
 include(":kotlinCompiler")
 include(":goCompiler")
 include(":idePlugin")
-
-// Shared modules
-include(":persistence")
-include(":nodes")
-
-// Mobile app module
-include(":KMPMobileApp")
-
-// Generated modules (from FlowGraph compilation)
-include(":StopWatch")
-include(":UserProfiles")
-include(":GeoLocations")
-include(":Addresses")
-include(":EdgeArtFilter")
-include(":WeatherForecast")
