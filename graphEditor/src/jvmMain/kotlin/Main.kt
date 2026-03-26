@@ -183,6 +183,8 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
         }
         // Make registry available for runtime node resolution
         ModuleSessionFactory.registry = registry
+        // Initialize persistence layer early so DAOs are available for pipeline execution
+        ModuleSessionFactory.initializePersistence()
         registryVersion++
     }
 
@@ -1563,7 +1565,10 @@ data class FileOpenResult(val file: File? = null, val error: String? = null)
  *   {moduleDir}/src/commonMain/kotlin/io/codenode/{modulename}/{ModuleName}.flow.kt
  */
 fun showFileOpenDialog(): FileOpenResult {
-    val fileChooser = JFileChooser().apply {
+    // Start the file chooser at the project directory (from CODENODE_PROJECT_DIR or user.dir)
+    val startDir = System.getenv("CODENODE_PROJECT_DIR")?.let { File(it) }
+        ?: File(System.getProperty("user.dir"))
+    val fileChooser = JFileChooser(startDir).apply {
         dialogTitle = "Open Flow Graph or Module Folder"
         fileSelectionMode = JFileChooser.FILES_AND_DIRECTORIES
         fileFilter = FileNameExtensionFilter("Flow Graph Files (*.flow.kt)", "kt")
