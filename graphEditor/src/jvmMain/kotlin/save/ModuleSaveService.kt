@@ -404,7 +404,7 @@ class ModuleSaveService {
                 appendLine("package io.codenode.$packageLower.userInterface")
                 appendLine()
                 appendLine("import io.codenode.$packageLower.${pluralName}ViewModel")
-                appendLine("import io.codenode.grapheditor.ui.PreviewRegistry")
+                appendLine("import io.codenode.previewapi.PreviewRegistry")
                 appendLine()
                 appendLine("/**")
                 appendLine(" * Provides preview composables that render $pluralName components,")

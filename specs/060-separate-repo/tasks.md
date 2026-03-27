@@ -95,11 +95,11 @@
 
 ### Implementation for User Story 3
 
-- [ ] T031 [US3] Add a `libs.versions.toml` version catalog to CodeNodeIO-DemoProject at `gradle/libs.versions.toml` — centralize dependency versions (Kotlin, Compose, Room, KSP, coroutines, serialization, Koin, Ktor) for easy management.
-- [ ] T032 [US3] Configure the fbpDsl composite build with a conditional fallback in `settings.gradle.kts` — if a published Maven artifact is available, use it; otherwise fall back to `includeBuild("../CodeNodeIO")`. Document the switchover pattern in a comment.
-- [ ] T033 [US3] Verify the composite build works: build CodeNodeIO-DemoProject with `./gradlew build` using the local CodeNodeIO fbpDsl.
-- [ ] T034 [US3] Add CI configuration (GitHub Actions workflow) to CodeNodeIO-DemoProject at `.github/workflows/build.yml` — build all modules on push/PR. Include the composite build configuration for fbpDsl.
-- [ ] T035 [US3] Update `README.md` in CodeNodeIO-DemoProject — document the fbpDsl dependency strategy, how to switch from composite build to published artifact, and the project structure.
+- [X] T031 [US3] Updated `libs.versions.toml` with project-specific entries (Room 2.8.4, KSP, Koin 4.0.0, Ktor 3.1.1, lifecycle 2.8.0, material3, sqlite). Removed tool-only entries.
+- [X] T032 [US3] Configured composite build with conditional fallback (checks for ../CodeNodeIO directory, warns if absent). Documented switchover pattern for published artifacts.
+- [X] T033 [US3] Verified build: fixed Compose plugin from 1.11.1 (unreleased) to 1.10.0. `./gradlew jvmJar` succeeds.
+- [X] T034 [US3] Added GitHub Actions CI workflow at `.github/workflows/build.yml` — checks out both repos, builds JVM targets, runs tests.
+- [X] T035 [US3] Updated `README.md` with setup, graphEditor launch instructions, dependency strategy (composite → Maven), and version catalog reference.
 
 **Checkpoint**: CodeNodeIO-DemoProject has professional build configuration and documentation
 
@@ -111,12 +111,12 @@
 
 ### Create preview-api in CodeNodeIO
 
-- [ ] T036 Create `preview-api/` module directory with `build.gradle.kts` at `preview-api/build.gradle.kts` — KMP module with JVM target, depends only on Compose runtime (`compose.runtime`, `compose.ui`) for `@Composable` and `Modifier` types.
-- [ ] T037 Move `PreviewRegistry.kt` and `PreviewComposable` typealias from `graphEditor/src/jvmMain/kotlin/ui/PreviewRegistry.kt` to `preview-api/src/commonMain/kotlin/io/codenode/previewapi/PreviewRegistry.kt` — update package from `io.codenode.grapheditor.ui` to `io.codenode.previewapi`.
-- [ ] T038 Add `preview-api` to `settings.gradle.kts` in CodeNodeIO: `include(":preview-api")`
-- [ ] T039 Update `graphEditor/build.gradle.kts` — add `implementation(project(":preview-api"))` to commonMain dependencies.
-- [ ] T040 Update all graphEditor imports from `io.codenode.grapheditor.ui.PreviewRegistry` to `io.codenode.previewapi.PreviewRegistry` — affects `RuntimePreviewPanel.kt`, `DynamicPreviewDiscovery.kt`, and any other files referencing `PreviewRegistry`.
-- [ ] T041 Verify CodeNodeIO tool repo builds: `./gradlew :graphEditor:compileKotlinJvm :preview-api:jvmJar`
+- [X] T036 Created `preview-api/` module with `build.gradle.kts` — KMP module with JVM target, depends on `compose.runtime` and `compose.ui`.
+- [X] T037 Moved `PreviewRegistry.kt` and `PreviewComposable` typealias to `preview-api/src/commonMain/kotlin/io/codenode/previewapi/PreviewRegistry.kt`. Deleted old file from graphEditor.
+- [X] T038 Added `include(":preview-api")` to `settings.gradle.kts`.
+- [X] T039 Added `implementation(project(":preview-api"))` to graphEditor commonMain dependencies.
+- [X] T040 Updated imports: `RuntimePreviewPanel.kt` (added explicit import), `ModuleSaveService.kt` (updated generated code import). `DynamicPreviewDiscovery.kt` only had comment reference.
+- [X] T041 Verified build: `./gradlew :preview-api:compileKotlinJvm :graphEditor:compileKotlinJvm` — BUILD SUCCESSFUL.
 
 **Checkpoint**: preview-api module exists, graphEditor compiles using it instead of its inline copy
 

@@ -43,6 +43,7 @@ rootProject.name = "codenode-io"
 
 // Core platform modules
 include(":fbpDsl")
+include(":preview-api")
 include(":graphEditor")
 include(":circuitSimulator")
 include(":kotlinCompiler")

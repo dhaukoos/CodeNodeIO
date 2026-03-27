@@ -3,7 +3,7 @@
  * License: Apache 2.0
  */
 
-package io.codenode.grapheditor.ui
+package io.codenode.previewapi
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -13,8 +13,12 @@ typealias PreviewComposable = @Composable (viewModel: Any, modifier: Modifier) -
 /**
  * Registry that maps composable names to preview rendering functions.
  *
- * Preview providers register their composables at startup, and RuntimePreviewPanel
- * looks up the appropriate renderer by name at display time.
+ * Preview providers in project modules register their composables at startup,
+ * and the graphEditor's RuntimePreviewPanel looks up the appropriate renderer
+ * by name at display time.
+ *
+ * This lives in preview-api (not graphEditor) so project modules can import
+ * it without depending on the entire graphEditor.
  */
 object PreviewRegistry {
     private val registry = mutableMapOf<String, PreviewComposable>()
