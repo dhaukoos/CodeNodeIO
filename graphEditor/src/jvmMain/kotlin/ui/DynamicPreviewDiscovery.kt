@@ -39,10 +39,14 @@ object DynamicPreviewDiscovery {
                 val instance = clazz.getField("INSTANCE").get(null)
                 val registerMethod = clazz.getMethod("register")
                 registerMethod.invoke(instance)
-            } catch (_: ClassNotFoundException) {
-                // Module not compiled / not on classpath — expected
+                println("Registered PreviewProvider: $fqcn")
+            } catch (e: ClassNotFoundException) {
+                println("PreviewProvider not on classpath: ${file.name} (${e.message})")
+            } catch (e: java.lang.reflect.InvocationTargetException) {
+                println("PreviewProvider register() failed for ${file.name}: ${e.targetException?.message ?: e.message}")
+                e.targetException?.printStackTrace()
             } catch (e: Exception) {
-                println("Warning: Failed to load PreviewProvider from ${file.name}: ${e.message}")
+                println("Failed to load PreviewProvider from ${file.name}: ${e.javaClass.simpleName}: ${e.message}")
             }
         }
     }

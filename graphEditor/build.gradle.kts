@@ -64,6 +64,26 @@ tasks.withType<Test> {
     useJUnitPlatform()
 }
 
+// When CODENODE_PROJECT_DIR is set, include project module JARs + transitive dependencies
+// on the runtime classpath. This allows `:graphEditor:run` to discover and execute project modules.
+//
+// Setup (one-time after building the project):
+//   cd $CODENODE_PROJECT_DIR && ./gradlew jvmJar writeRuntimeClasspath
+val projectDir = System.getenv("CODENODE_PROJECT_DIR")
+if (projectDir != null) {
+    val classpathFile = file("$projectDir/build/grapheditor-runtime-classpath.txt")
+    if (classpathFile.exists()) {
+        val classpathEntries = classpathFile.readLines().filter { it.isNotBlank() }.map { file(it) }
+        kotlin.sourceSets.getByName("jvmMain") {
+            dependencies {
+                classpathEntries.forEach { jar ->
+                    runtimeOnly(files(jar))
+                }
+            }
+        }
+    }
+}
+
 compose.desktop {
     application {
         mainClass = "io.codenode.grapheditor.MainKt"

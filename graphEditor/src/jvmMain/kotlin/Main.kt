@@ -125,13 +125,18 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
     var isRuntimePanelExpanded by remember { mutableStateOf(false) }
     var moduleRootDir by remember { mutableStateOf<File?>(null) }
 
-    // Find the multi-module project root by walking up to settings.gradle.kts
+    // Resolve project root: explicit property from --project/CODENODE_PROJECT_DIR, or walk up to settings.gradle.kts
     val projectRoot = remember {
-        var dir = File(System.getProperty("user.dir"))
-        while (dir.parentFile != null && !File(dir, "settings.gradle.kts").exists()) {
-            dir = dir.parentFile
+        val explicit = System.getProperty("codenode.project.dir")
+        if (explicit != null) {
+            File(explicit)
+        } else {
+            var dir = File(System.getProperty("user.dir"))
+            while (dir.parentFile != null && !File(dir, "settings.gradle.kts").exists()) {
+                dir = dir.parentFile
+            }
+            dir
         }
-        dir
     }
 
     // T015: Central registry for discovering self-contained node definitions
@@ -167,18 +172,22 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
         // Discover compiled and template nodes from all sources
         registry.discoverAll()
         // Dynamically scan all module node and userInterface directories in the project
+        // Scan both commonMain and jvmMain source sets
+        val sourceSetDirs = listOf("src/commonMain/kotlin", "src/jvmMain/kotlin")
         projectRoot.listFiles { file -> file.isDirectory }?.forEach { moduleDir ->
-            val srcDir = moduleDir.resolve("src/commonMain/kotlin")
-            if (srcDir.isDirectory) {
-                srcDir.walkTopDown()
-                    .filter { it.isDirectory && it.name == "nodes" }
-                    .forEach { registry.scanDirectory(it) }
-                // Discover and invoke PreviewProvider objects via reflection
-                srcDir.walkTopDown()
-                    .filter { it.isDirectory && it.name == "userInterface" }
-                    .forEach { uiDir ->
-                        DynamicPreviewDiscovery.discoverAndRegister(uiDir)
-                    }
+            for (sourceSet in sourceSetDirs) {
+                val srcDir = moduleDir.resolve(sourceSet)
+                if (srcDir.isDirectory) {
+                    srcDir.walkTopDown()
+                        .filter { it.isDirectory && it.name == "nodes" }
+                        .forEach { registry.scanDirectory(it) }
+                    // Discover and invoke PreviewProvider objects via reflection
+                    srcDir.walkTopDown()
+                        .filter { it.isDirectory && it.name == "userInterface" }
+                        .forEach { uiDir ->
+                            DynamicPreviewDiscovery.discoverAndRegister(uiDir)
+                        }
+                }
             }
         }
         // Make registry available for runtime node resolution
@@ -1565,8 +1574,8 @@ data class FileOpenResult(val file: File? = null, val error: String? = null)
  *   {moduleDir}/src/commonMain/kotlin/io/codenode/{modulename}/{ModuleName}.flow.kt
  */
 fun showFileOpenDialog(): FileOpenResult {
-    // Start the file chooser at the project directory (from CODENODE_PROJECT_DIR or user.dir)
-    val startDir = System.getenv("CODENODE_PROJECT_DIR")?.let { File(it) }
+    // Start the file chooser at the project directory
+    val startDir = System.getProperty("codenode.project.dir")?.let { File(it) }
         ?: File(System.getProperty("user.dir"))
     val fileChooser = JFileChooser(startDir).apply {
         dialogTitle = "Open Flow Graph or Module Folder"
@@ -1664,11 +1673,12 @@ fun main(args: Array<String> = emptyArray()) {
         if (idx >= 0 && idx + 1 < args.size) args[idx + 1] else null
     }
     val projectDirEnv = System.getenv("CODENODE_PROJECT_DIR")
-    val resolvedProjectDir = (projectDirArg ?: projectDirEnv)?.let { File(it) }
+    val resolvedProjectDir = (projectDirArg ?: projectDirEnv)?.let { File(it).absoluteFile }
 
+    // Store the resolved project directory for downstream use.
+    // Do NOT set user.dir — it breaks JFileChooser directory navigation.
     if (resolvedProjectDir != null) {
-        // Set user.dir so projectRoot resolves correctly downstream
-        System.setProperty("user.dir", resolvedProjectDir.absolutePath)
+        System.setProperty("codenode.project.dir", resolvedProjectDir.absolutePath)
     }
 
     // Koin DI is initialized with an empty module set.
