@@ -17,7 +17,9 @@ import java.io.File
  * - Be in the module's userInterface package
  * - Have a source file name ending in "PreviewProvider.kt"
  *
- * This works when module classes are on the classpath (e.g., via runGraphEditor).
+ * PreviewProviders depend on preview-api (not graphEditor) for the PreviewRegistry
+ * import, which avoids circular dependencies. The graphEditor discovers and invokes
+ * them at runtime when module classes are on the classpath.
  */
 object DynamicPreviewDiscovery {
 
@@ -39,14 +41,14 @@ object DynamicPreviewDiscovery {
                 val instance = clazz.getField("INSTANCE").get(null)
                 val registerMethod = clazz.getMethod("register")
                 registerMethod.invoke(instance)
-                println("Registered PreviewProvider: $fqcn")
-            } catch (e: ClassNotFoundException) {
-                println("PreviewProvider not on classpath: ${file.name} (${e.message})")
+            } catch (_: ClassNotFoundException) {
+                // Module not compiled or not on classpath — skip silently
+            } catch (_: NoSuchFieldException) {
+                // Not a Kotlin object — skip
             } catch (e: java.lang.reflect.InvocationTargetException) {
-                println("PreviewProvider register() failed for ${file.name}: ${e.targetException?.message ?: e.message}")
-                e.targetException?.printStackTrace()
+                println("Warning: PreviewProvider register() failed for ${file.name}: ${e.targetException?.message}")
             } catch (e: Exception) {
-                println("Failed to load PreviewProvider from ${file.name}: ${e.javaClass.simpleName}: ${e.message}")
+                println("Warning: Failed to load PreviewProvider from ${file.name}: ${e.message}")
             }
         }
     }

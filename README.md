@@ -95,37 +95,54 @@ This opens a sandbox IntelliJ instance with the CodeNodeIO plugin installed for 
 
 ---
 
-## Project Structure
+## Repository Structure
 
-CodeNodeIO is organized as a multi-module Kotlin Multiplatform project:
+CodeNodeIO is split into two repositories:
+
+### Tool Repository (this repo)
+
+Contains the visual editor, DSL library, and code generation engine:
 
 ```
 CodeNodeIO/
 ├── fbpDsl/              # Core FBP domain model and DSL
+├── preview-api/         # PreviewRegistry for composable preview dispatch
 ├── graphEditor/         # Visual editor (Compose Desktop)
-├── circuitSimulator/    # Debugging/simulation tool
+├── circuitSimulator/    # Runtime animation engine
 ├── kotlinCompiler/      # KMP code generator (uses KotlinPoet 2.2.0)
 ├── goCompiler/          # Go code generator
 ├── idePlugin/           # IntelliJ Platform plugin integration
-└── specs/               # Architecture & specifications
-    └── 001-ide-plugin-platform/
-        ├── spec.md           # Feature specification
-        ├── plan.md           # Implementation plan
-        ├── research.md       # Technical decisions
-        ├── data-model.md     # Core entities
-        ├── quickstart.md     # Developer setup guide
-        └── tasks.md          # Implementation tasks
+└── specs/               # Feature specifications
+```
+
+### Demo Project Repository ([CodeNodeIO-DemoProject](https://github.com/dhaukoos/CodeNodeIO-DemoProject))
+
+Contains sample modules created with CodeNodeIO:
+
+```
+CodeNodeIO-DemoProject/
+├── StopWatch/           # Timer demo module
+├── UserProfiles/        # CRUD with Room persistence
+├── GeoLocations/        # CRUD with Room persistence
+├── Addresses/           # CRUD with Room persistence
+├── EdgeArtFilter/       # Image processing pipeline
+├── WeatherForecast/     # Weather API demo
+├── KMPMobileApp/        # Kotlin Multiplatform mobile app
+├── persistence/         # Shared Room database module
+└── nodes/               # Project-level shared nodes
 ```
 
 ### Module Dependencies
 
 ```
-fbpDsl (core domain)
-  ├── graphEditor (Compose UI) → fbpDsl
-  ├── circuitSimulator → fbpDsl, graphEditor
-  ├── kotlinCompiler (KMP gen) → fbpDsl
-  ├── goCompiler (Go gen) → fbpDsl
-  └── idePlugin (IDE plugin) → all modules
+Tool Repository:
+  graphEditor → fbpDsl, preview-api, circuitSimulator, kotlinCompiler
+  kotlinCompiler → fbpDsl
+  circuitSimulator → fbpDsl
+
+Project Repository:
+  All modules → fbpDsl (via composite build)
+  PreviewProviders → preview-api (via composite build)
 ```
 
 ---
