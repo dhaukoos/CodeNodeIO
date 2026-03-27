@@ -122,10 +122,10 @@
 
 ### Update DemoProject
 
-- [ ] T042 Add `preview-api` to composite build substitution in DemoProject `settings.gradle.kts`: `substitute(module("io.codenode:preview-api")).using(project(":preview-api"))`
-- [ ] T043 Replace `compileOnly("io.codenode:graphEditor")` with `implementation("io.codenode:preview-api")` in all 6 module `build.gradle.kts` files (jvmMain source set). This eliminates the circular dependency.
-- [ ] T044 Update PreviewProvider imports in all 6 modules from `io.codenode.grapheditor.ui.PreviewRegistry` to `io.codenode.previewapi.PreviewRegistry`
-- [ ] T045 Verify DemoProject builds: `./gradlew clean jvmJar writeRuntimeClasspath --rerun-tasks`
+- [X] T042 Added `preview-api` to composite build substitution in DemoProject `settings.gradle.kts`.
+- [X] T043 Replaced `compileOnly("io.codenode:graphEditor")` with `implementation("io.codenode:preview-api")` in all 6 module jvmMain source sets.
+- [X] T044 Updated PreviewProvider imports in all 6 modules to `io.codenode.previewapi.PreviewRegistry`.
+- [X] T045 Verified: `./gradlew clean jvmJar --rerun-tasks` — BUILD SUCCESSFUL. All 6 JARs contain PreviewProvider classes.
 
 **Checkpoint**: DemoProject modules compile PreviewProviders via preview-api (no graphEditor dependency)
 
