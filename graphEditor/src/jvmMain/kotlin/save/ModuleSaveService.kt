@@ -371,8 +371,11 @@ class ModuleSaveService {
     }
 
     /**
-     * Wires a new entity module into graphEditor: creates PreviewProvider,
-     * adds ModuleSessionFactory case, and adds Main.kt registrations.
+     * Wires a new entity module into the project: creates PreviewProvider in the
+     * module's jvmMain source set and updates PersistenceBootstrap with the new DAO.
+     *
+     * The graphEditor discovers PreviewProviders and CodeNodeDefinitions at runtime
+     * via reflection — no modifications to Main.kt or ModuleSessionFactory needed.
      */
     private fun wireGraphEditorIntegration(
         projectDir: File,
@@ -383,10 +386,14 @@ class ModuleSaveService {
         val entityName = spec.entityName
         val pluralName = spec.pluralName
         val packageLower = pluralName.lowercase()
-        val graphEditorUiDir = File(projectDir, "graphEditor/src/jvmMain/kotlin/ui")
 
-        // 1. Generate PreviewProvider file
-        val providerFile = File(graphEditorUiDir, "${pluralName}PreviewProvider.kt")
+        // 1. Generate PreviewProvider in the module's jvmMain source set.
+        // NOTE: This file requires compileOnly("io.codenode:graphEditor") in the module's
+        // jvmMain dependencies to compile. It is discovered and invoked via reflection by
+        // the graphEditor's DynamicPreviewDiscovery at runtime.
+        val moduleUiDir = File(projectDir, "$pluralName/src/jvmMain/kotlin/io/codenode/$packageLower/userInterface")
+        moduleUiDir.mkdirs()
+        val providerFile = File(moduleUiDir, "${pluralName}PreviewProvider.kt")
         if (!providerFile.exists()) {
             providerFile.writeText(buildString {
                 appendLine("/*")
@@ -394,20 +401,21 @@ class ModuleSaveService {
                 appendLine(" * License: Apache 2.0")
                 appendLine(" */")
                 appendLine()
-                appendLine("package io.codenode.grapheditor.ui")
+                appendLine("package io.codenode.$packageLower.userInterface")
                 appendLine()
                 appendLine("import io.codenode.$packageLower.${pluralName}ViewModel")
-                appendLine("import io.codenode.$packageLower.userInterface.$pluralName")
+                appendLine("import io.codenode.grapheditor.ui.PreviewRegistry")
                 appendLine()
                 appendLine("/**")
                 appendLine(" * Provides preview composables that render $pluralName components,")
                 appendLine(" * driven by the RuntimeSession's ViewModel state.")
+                appendLine(" * Discovered and invoked by the graphEditor at runtime via reflection.")
+                appendLine(" *")
+                appendLine(" * To compile this file, add to the module's build.gradle.kts:")
+                appendLine(" *   val jvmMain by getting { dependencies { compileOnly(\"io.codenode:graphEditor\") } }")
                 appendLine(" */")
                 appendLine("object ${pluralName}PreviewProvider {")
                 appendLine()
-                appendLine("    /**")
-                appendLine("     * Registers $pluralName preview composables with the PreviewRegistry.")
-                appendLine("     */")
                 appendLine("    fun register() {")
                 appendLine("        PreviewRegistry.register(\"$pluralName\") { viewModel, modifier ->")
                 appendLine("            val vm = viewModel as ${pluralName}ViewModel")
@@ -416,142 +424,25 @@ class ModuleSaveService {
                 appendLine("    }")
                 appendLine("}")
             })
-            filesCreated.add("graphEditor/ui/${pluralName}PreviewProvider.kt")
+            filesCreated.add("$pluralName/src/jvmMain/kotlin/.../userInterface/${pluralName}PreviewProvider.kt")
         }
 
-        // 2. Add case to ModuleSessionFactory
-        val factoryFile = File(graphEditorUiDir, "ModuleSessionFactory.kt")
-        if (factoryFile.exists()) {
-            var content = factoryFile.readText()
-
-            // Add imports if not present
-            val importBlock = buildString {
-                appendLine("import io.codenode.$packageLower.${pluralName}ViewModel")
-                appendLine("import io.codenode.$packageLower.generated.${pluralName}Controller")
-                appendLine("import io.codenode.$packageLower.generated.${pluralName}ControllerAdapter")
-                appendLine("import io.codenode.persistence.${entityName}Dao")
-                append("import io.codenode.$packageLower.${pluralName.replaceFirstChar { it.lowercase() }}FlowGraph")
-            }
-            val flowGraphImport = "import io.codenode.$packageLower.${pluralName.replaceFirstChar { it.lowercase() }}FlowGraph"
-            if (!content.contains(flowGraphImport)) {
-                // Insert imports after the last existing import line
-                val lastImportIndex = content.lastIndexOf("\nimport ")
-                val endOfLastImport = content.indexOf('\n', lastImportIndex + 1)
-                content = content.substring(0, endOfLastImport + 1) +
-                    importBlock + "\n" +
-                    content.substring(endOfLastImport + 1)
-            }
-
-            // Add DAO injection if not present
-            val daoInjection = "private val ${entityName.replaceFirstChar { it.lowercase() }}Dao: ${entityName}Dao by inject()"
-            if (!content.contains(daoInjection)) {
-                val insertAfter = content.lastIndexOf("by inject()")
-                val endOfLine = content.indexOf('\n', insertAfter)
-                content = content.substring(0, endOfLine + 1) +
-                    "    $daoInjection\n" +
-                    content.substring(endOfLine + 1)
-            }
-
-            // Add when branch if not present
-            val flowGraphVarName = pluralName.replaceFirstChar { it.lowercase() } + "FlowGraph"
-            val sessionMethodName = "create${pluralName}Session"
-            if (!content.contains("\"$pluralName\"")) {
-                val elseNull = "else -> null"
-                content = content.replace(
-                    elseNull,
-                    "\"$pluralName\" -> $sessionMethodName(editorFlowGraph)\n            $elseNull"
-                )
-
-                // Add factory method before the closing brace
-                val factoryMethod = buildString {
-                    appendLine()
-                    appendLine("    private fun $sessionMethodName(editorFlowGraph: FlowGraph?): RuntimeSession {")
-                    appendLine("        val controller = ${pluralName}Controller($flowGraphVarName)")
-                    appendLine("        controller.start()")
-                    appendLine("        val adapter = ${pluralName}ControllerAdapter(controller)")
-                    appendLine("        val viewModel = ${pluralName}ViewModel(adapter, ${entityName.replaceFirstChar { it.lowercase() }}Dao)")
-                    appendLine("        return RuntimeSession(controller, viewModel, editorFlowGraph ?: $flowGraphVarName)")
-                    appendLine("    }")
-                }
-                val lastBrace = content.lastIndexOf('}')
-                content = content.substring(0, lastBrace) + factoryMethod + content.substring(lastBrace)
-            }
-
-            factoryFile.writeText(content)
-            filesOverwritten.add("graphEditor/ui/ModuleSessionFactory.kt")
-        }
-
-        // 3. Add PreviewProvider registration in Main.kt
-        val mainFile = File(projectDir, "graphEditor/src/jvmMain/kotlin/Main.kt")
-        if (mainFile.exists()) {
-            var content = mainFile.readText()
-
-            // Add provider import if not present
-            val providerImport = "import io.codenode.grapheditor.ui.${pluralName}PreviewProvider"
-            if (!content.contains(providerImport)) {
-                // Find the last PreviewProvider import line
-                val lines = content.lines()
-                val lastProviderIdx = lines.indexOfLast { it.contains("PreviewProvider") && it.trimStart().startsWith("import") }
-                if (lastProviderIdx >= 0) {
-                    val mutableLines = lines.toMutableList()
-                    mutableLines.add(lastProviderIdx + 1, providerImport)
-                    content = mutableLines.joinToString("\n")
+        // 2. Update PersistenceBootstrap to register the new DAO
+        val bootstrapFile = File(projectDir, "persistence/src/commonMain/kotlin/io/codenode/persistence/PersistenceBootstrap.kt")
+        if (bootstrapFile.exists()) {
+            var content = bootstrapFile.readText()
+            val daoRegistration = "single<${entityName}Dao> { db.${entityName.replaceFirstChar { it.lowercase() }}Dao() }"
+            if (!content.contains(daoRegistration)) {
+                // Insert before the closing }) of the koin.loadModules block
+                val insertPoint = content.lastIndexOf("})")
+                if (insertPoint >= 0) {
+                    content = content.substring(0, insertPoint) +
+                        "    $daoRegistration\n            " +
+                        content.substring(insertPoint)
+                    bootstrapFile.writeText(content)
+                    filesOverwritten.add("persistence/PersistenceBootstrap.kt")
                 }
             }
-
-            // Add provider registration if not present
-            val registerCall = "${pluralName}PreviewProvider.register()"
-            if (!content.contains(registerCall)) {
-                val lastRegister = content.lastIndexOf("PreviewProvider.register()")
-                val endOfLine = content.indexOf('\n', lastRegister)
-                content = content.substring(0, endOfLine + 1) +
-                    "        $registerCall\n" +
-                    content.substring(endOfLine + 1)
-            }
-
-            // Add Koin module import if not present
-            val koinModuleImport = "import io.codenode.$packageLower.${pluralName.replaceFirstChar { it.lowercase() }}Module"
-            if (!content.contains(koinModuleImport)) {
-                val geoImport = "import io.codenode.geolocations.geoLocationsModule"
-                val geoImportEnd = content.indexOf(geoImport)
-                if (geoImportEnd >= 0) {
-                    val endOfGeoImport = content.indexOf('\n', geoImportEnd)
-                    content = content.substring(0, endOfGeoImport + 1) +
-                        "$koinModuleImport\n" +
-                        content.substring(endOfGeoImport + 1)
-                }
-            }
-
-            // Add DAO single in Koin startKoin block if not present
-            val daoSingle = "single { DatabaseModule.getDatabase().${entityName.replaceFirstChar { it.lowercase() }}Dao() }"
-            if (!content.contains(daoSingle)) {
-                val lastDaoSingle = content.lastIndexOf("single { DatabaseModule.getDatabase().")
-                val endOfLine = content.indexOf('\n', lastDaoSingle)
-                content = content.substring(0, endOfLine + 1) +
-                    "                $daoSingle\n" +
-                    content.substring(endOfLine + 1)
-            }
-
-            // Add Koin module reference if not present
-            val koinModuleRef = "${pluralName.replaceFirstChar { it.lowercase() }}Module"
-            val koinModulesSection = content.indexOf("geoLocationsModule")
-            if (koinModulesSection >= 0 && !content.contains("$koinModuleRef\n") && !content.contains("$koinModuleRef,")) {
-                val endOfGeoModule = content.indexOf('\n', koinModulesSection)
-                // Check if geoLocationsModule line ends with comma or not
-                val geoLine = content.substring(koinModulesSection, endOfGeoModule).trim()
-                if (!geoLine.endsWith(",")) {
-                    // Add comma to geoLocationsModule line
-                    content = content.substring(0, endOfGeoModule) + "," +
-                        content.substring(endOfGeoModule)
-                }
-                val updatedEndOfGeoModule = content.indexOf('\n', koinModulesSection)
-                content = content.substring(0, updatedEndOfGeoModule + 1) +
-                    "            $koinModuleRef\n" +
-                    content.substring(updatedEndOfGeoModule + 1)
-            }
-
-            mainFile.writeText(content)
-            filesOverwritten.add("graphEditor/Main.kt")
         }
     }
 
@@ -699,8 +590,12 @@ class ModuleSaveService {
     }
 
     /**
-     * Removes graphEditor integration artifacts for a module:
-     * PreviewProvider file, ModuleSessionFactory entries, and Main.kt registrations.
+     * Removes project-side integration artifacts for a module:
+     * PreviewProvider file from the module's jvmMain source set, and
+     * DAO registration from PersistenceBootstrap.
+     *
+     * No graphEditor files (Main.kt, ModuleSessionFactory) need modification
+     * since discovery is now runtime-based.
      */
     private fun unwireGraphEditorIntegration(
         projectDir: File,
@@ -709,107 +604,37 @@ class ModuleSaveService {
         results: MutableList<String>
     ) {
         val packageLower = moduleName.lowercase()
-        val graphEditorUiDir = File(projectDir, "graphEditor/src/jvmMain/kotlin/ui")
         var unwired = 0
 
-        // 1. Delete PreviewProvider file
-        val providerFile = File(graphEditorUiDir, "${moduleName}PreviewProvider.kt")
+        // 1. Delete PreviewProvider file from module's jvmMain
+        val providerFile = File(projectDir, "$moduleName/src/jvmMain/kotlin/io/codenode/$packageLower/userInterface/${moduleName}PreviewProvider.kt")
         if (providerFile.exists() && providerFile.delete()) {
             unwired++
         }
-
-        // 2. Remove entries from ModuleSessionFactory
-        val factoryFile = File(graphEditorUiDir, "ModuleSessionFactory.kt")
-        if (factoryFile.exists()) {
-            var content = factoryFile.readText()
-            val originalLength = content.length
-
-            // Remove imports for this module
-            val importPatterns = listOf(
-                "import io.codenode.$packageLower.",
-                "import io.codenode.persistence.${entityName}Dao"
-            )
-            val lines = content.lines().toMutableList()
-            lines.removeAll { line -> importPatterns.any { pattern -> line.trimStart().startsWith(pattern) } }
-
-            // Remove DAO injection line
-            lines.removeAll { it.contains("${entityName}Dao by inject()") }
-
-            // Remove when branch
-            lines.removeAll { it.contains("\"$moduleName\" ->") }
-
-            // Remove factory method (find and remove the entire method)
-            content = lines.joinToString("\n")
-            val methodStart = content.indexOf("    private fun create${moduleName}Session(")
-            if (methodStart >= 0) {
-                // Find the closing brace of the method (count braces)
-                var braceCount = 0
-                var methodEnd = methodStart
-                var foundFirstBrace = false
-                for (i in methodStart until content.length) {
-                    if (content[i] == '{') {
-                        braceCount++
-                        foundFirstBrace = true
-                    } else if (content[i] == '}') {
-                        braceCount--
-                        if (foundFirstBrace && braceCount == 0) {
-                            methodEnd = i + 1
-                            break
-                        }
-                    }
-                }
-                // Include any leading blank line
-                var start = methodStart
-                while (start > 0 && content[start - 1] == '\n') start--
-                if (start > 0) start++ // keep one newline
-                content = content.substring(0, start) + content.substring(methodEnd)
-            }
-
-            if (content.length != originalLength) {
-                factoryFile.writeText(content)
-                unwired++
-            }
+        // Also check legacy location (graphEditor/ui/) for backwards compatibility
+        val legacyProviderFile = File(projectDir, "graphEditor/src/jvmMain/kotlin/ui/${moduleName}PreviewProvider.kt")
+        if (legacyProviderFile.exists() && legacyProviderFile.delete()) {
+            unwired++
         }
 
-        // 3. Remove entries from Main.kt
-        val mainFile = File(projectDir, "graphEditor/src/jvmMain/kotlin/Main.kt")
-        if (mainFile.exists()) {
-            val content = mainFile.readText()
+        // 2. Remove DAO registration from PersistenceBootstrap
+        val bootstrapFile = File(projectDir, "persistence/src/commonMain/kotlin/io/codenode/persistence/PersistenceBootstrap.kt")
+        if (bootstrapFile.exists()) {
+            var content = bootstrapFile.readText()
+            val daoLine = "single<${entityName}Dao>"
             val lines = content.lines().toMutableList()
             val originalSize = lines.size
-
-            // Remove PreviewProvider import
-            lines.removeAll { it.contains("import io.codenode.grapheditor.ui.${moduleName}PreviewProvider") }
-
-            // Remove PreviewProvider registration
-            lines.removeAll { it.contains("${moduleName}PreviewProvider.register()") }
-
-            // Remove Koin module import
-            lines.removeAll { it.contains("import io.codenode.$packageLower.${moduleName.replaceFirstChar { it.lowercase() }}Module") }
-
-            // Remove DAO single
-            lines.removeAll { it.contains("${entityName.replaceFirstChar { it.lowercase() }}Dao()") && it.contains("DatabaseModule.getDatabase()") }
-
-            // Remove Koin module reference
-            val koinModuleRef = "${moduleName.replaceFirstChar { it.lowercase() }}Module"
-            lines.removeAll { it.trim() == koinModuleRef || it.trim() == "$koinModuleRef," }
-
-            // Fix trailing comma on previous Koin module line if needed
-            val koinModulesIdx = lines.indexOfLast { it.contains("Module") && it.trim().endsWith(",") && lines.indexOf(it) > lines.size - 20 }
-            if (koinModulesIdx >= 0) {
-                val nextNonBlank = lines.drop(koinModulesIdx + 1).firstOrNull { it.isNotBlank() }
-                if (nextNonBlank?.trim()?.startsWith(")") == true) {
-                    lines[koinModulesIdx] = lines[koinModulesIdx].trimEnd().removeSuffix(",")
-                }
-            }
-
+            lines.removeAll { it.contains(daoLine) }
             if (lines.size != originalSize) {
-                mainFile.writeText(lines.joinToString("\n"))
+                bootstrapFile.writeText(lines.joinToString("\n"))
                 unwired++
             }
         }
 
-        if (unwired > 0) results.add("graphEditor integration ($unwired file${if (unwired != 1) "s" else ""})")
+        if (unwired > 0) {
+            results.add("Removed $unwired integration artifacts")
+        }
+
     }
 
     /**

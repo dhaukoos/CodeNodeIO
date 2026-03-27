@@ -105,14 +105,54 @@
 
 ---
 
-## Phase 6: Polish & Cross-Cutting Concerns
+## Phase 6: Extract preview-api Module (FR-011)
+
+**Goal**: Create a shared `preview-api` module containing PreviewRegistry so project module PreviewProviders compile without depending on graphEditor. Eliminates circular dependency and StackOverflowError.
+
+### Create preview-api in CodeNodeIO
+
+- [ ] T036 Create `preview-api/` module directory with `build.gradle.kts` at `preview-api/build.gradle.kts` — KMP module with JVM target, depends only on Compose runtime (`compose.runtime`, `compose.ui`) for `@Composable` and `Modifier` types.
+- [ ] T037 Move `PreviewRegistry.kt` and `PreviewComposable` typealias from `graphEditor/src/jvmMain/kotlin/ui/PreviewRegistry.kt` to `preview-api/src/commonMain/kotlin/io/codenode/previewapi/PreviewRegistry.kt` — update package from `io.codenode.grapheditor.ui` to `io.codenode.previewapi`.
+- [ ] T038 Add `preview-api` to `settings.gradle.kts` in CodeNodeIO: `include(":preview-api")`
+- [ ] T039 Update `graphEditor/build.gradle.kts` — add `implementation(project(":preview-api"))` to commonMain dependencies.
+- [ ] T040 Update all graphEditor imports from `io.codenode.grapheditor.ui.PreviewRegistry` to `io.codenode.previewapi.PreviewRegistry` — affects `RuntimePreviewPanel.kt`, `DynamicPreviewDiscovery.kt`, and any other files referencing `PreviewRegistry`.
+- [ ] T041 Verify CodeNodeIO tool repo builds: `./gradlew :graphEditor:compileKotlinJvm :preview-api:jvmJar`
+
+**Checkpoint**: preview-api module exists, graphEditor compiles using it instead of its inline copy
+
+### Update DemoProject
+
+- [ ] T042 Add `preview-api` to composite build substitution in DemoProject `settings.gradle.kts`: `substitute(module("io.codenode:preview-api")).using(project(":preview-api"))`
+- [ ] T043 Replace `compileOnly("io.codenode:graphEditor")` with `implementation("io.codenode:preview-api")` in all 6 module `build.gradle.kts` files (jvmMain source set). This eliminates the circular dependency.
+- [ ] T044 Update PreviewProvider imports in all 6 modules from `io.codenode.grapheditor.ui.PreviewRegistry` to `io.codenode.previewapi.PreviewRegistry`
+- [ ] T045 Verify DemoProject builds: `./gradlew clean jvmJar writeRuntimeClasspath --rerun-tasks`
+
+**Checkpoint**: DemoProject modules compile PreviewProviders via preview-api (no graphEditor dependency)
+
+### Update code generator
+
+- [ ] T046 Update `wireGraphEditorIntegration` in `ModuleSaveService.kt` — generated PreviewProvider imports from `io.codenode.previewapi.PreviewRegistry` instead of `io.codenode.grapheditor.ui.PreviewRegistry`
+- [ ] T047 Update `unwireGraphEditorIntegration` accordingly
+- [ ] T048 Verify generator: create and remove a test repository module, confirm correct imports and no StackOverflowError
+
+**Checkpoint**: Code generator produces modules with correct preview-api imports
+
+### End-to-end validation
+
+- [ ] T049 Run graphEditor via `:graphEditor:run` from Android Studio — verify all module previews work (StopWatch, UserProfiles, EdgeArtFilter, etc.)
+- [ ] T050 Run graphEditor via `./gradlew runGraphEditor` from DemoProject — verify all module previews work
+- [ ] T051 Clean up: remove `DynamicPreviewDiscovery` reflection-based class loading (providers now compile normally; keep source file scanning for discovery invocation)
+
+---
+
+## Phase 7: Polish & Cross-Cutting Concerns
 
 **Purpose**: Final validation, CI updates, and documentation
 
-- [ ] T036 [P] Add CI configuration to CodeNodeIO tool repository at `.github/workflows/build.yml` — update or create workflow to build only tool modules (exclude project modules).
-- [ ] T037 [P] Update CodeNodeIO `README.md` — document the repository separation, link to CodeNodeIO-DemoProject, explain that project modules now live in a separate repository.
-- [ ] T038 Run quickstart.md scenarios 1-5 to validate end-to-end functionality across both repositories
-- [ ] T039 Clean up the temporary extraction clone created in T005
+- [ ] T052 [P] Add CI configuration to CodeNodeIO tool repository at `.github/workflows/build.yml` — update or create workflow to build only tool modules (exclude project modules).
+- [ ] T053 [P] Update CodeNodeIO `README.md` — document the repository separation, link to CodeNodeIO-DemoProject, explain that project modules now live in a separate repository.
+- [ ] T054 Run quickstart.md scenarios 1-5 to validate end-to-end functionality across both repositories
+- [ ] T055 Clean up the temporary extraction clone created in T005
 
 ---
 
@@ -125,7 +165,8 @@
 - **US1 (Phase 3)**: Depends on Phase 2 (needs extracted repo on GitHub)
 - **US2 (Phase 4)**: Can start after Phase 2, but ideally after US1 so the project repo is buildable for testing
 - **US3 (Phase 5)**: Depends on US1 (polishes the project repo build)
-- **Polish (Phase 6)**: Depends on US1 + US2
+- **preview-api (Phase 6)**: Depends on US2 (needs graphEditor decoupled from project modules)
+- **Polish (Phase 7)**: Depends on all previous phases
 
 ### User Story Dependencies
 
@@ -169,3 +210,4 @@
 - The composite build `includeBuild("../CodeNodeIO")` assumes the two repos are sibling directories — document this convention
 - PreviewProvider migration (T023) requires coordination between both repos — the graphEditor removes the files while the project repo adds them
 - Koin module discovery (T024) is the most complex refactoring — the current approach has each module's Koin factory as a top-level val that Main.kt references by name
+- preview-api module (Phase 6) resolves the circular dependency between graphEditor and project module PreviewProviders — project modules depend on the tiny preview-api instead of the entire graphEditor

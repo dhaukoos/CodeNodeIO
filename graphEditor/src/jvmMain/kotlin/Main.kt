@@ -1618,7 +1618,9 @@ private fun resolveFlowKtFromModule(moduleDir: File): File? {
  * @param title Dialog title (default: "Select Output Directory for KMP Module")
  */
 fun showDirectoryChooser(title: String = "Select Output Directory for KMP Module"): File? {
-    val fileChooser = JFileChooser().apply {
+    val startDir = System.getProperty("codenode.project.dir")?.let { File(it) }
+        ?: File(System.getProperty("user.dir"))
+    val fileChooser = JFileChooser(startDir).apply {
         dialogTitle = title
         fileSelectionMode = JFileChooser.DIRECTORIES_ONLY
         isAcceptAllFileFilterUsed = false

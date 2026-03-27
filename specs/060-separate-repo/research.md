@@ -98,3 +98,22 @@ WeatherForecast → fbpDsl
 persistence → (Room, SQLite - no fbpDsl dependency)
 nodes → fbpDsl
 ```
+
+## Decision 7: PreviewProvider Architecture — preview-api Module
+
+**Decision**: Create a separate `preview-api` module in the CodeNodeIO tool repository containing `PreviewRegistry` and the `PreviewComposable` typealias. Both the graphEditor and project modules depend on `preview-api`, avoiding circular dependencies.
+
+**Rationale**: After repository separation, project module PreviewProviders need to import `PreviewRegistry` to register composable previews. Putting `PreviewRegistry` in the graphEditor creates a circular dependency (project → graphEditor → project). A shared `preview-api` module breaks this cycle cleanly. It depends only on Compose runtime types (`@Composable`, `Modifier`) — no graphEditor, no fbpDsl.
+
+**Alternatives considered**:
+- `compileOnly("io.codenode:graphEditor")` in project modules — causes StackOverflowError during Gradle sync due to composite build resolution cycles.
+- Convention-based discovery (no PreviewRegistry) — less flexible, assumes naming conventions, can't register multiple previews per module.
+- Merge PreviewRegistry into fbpDsl — pollutes the pure Kotlin DSL library with Compose dependencies.
+- Reflection-based providers (no compile-time imports) — providers can't compile standalone, fragile.
+- Project-level bootstrap file — single file to maintain but still requires graphEditor on classpath.
+
+**Module contents** (~30 lines):
+- `PreviewComposable` typealias: `@Composable (viewModel: Any, modifier: Modifier) -> Unit`
+- `PreviewRegistry` object: `register()`, `get()`, `hasPreview()`, `registeredNames()`
+
+**Release strategy**: Published as a standalone library alongside fbpDsl (e.g., `io.codenode:preview-api:1.0.0`).

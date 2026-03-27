@@ -54,6 +54,7 @@ specs/060-separate-repo/
 ```text
 CodeNodeIO/
 ├── fbpDsl/                    # Core DSL library
+├── preview-api/               # PreviewRegistry + PreviewComposable typealias (Compose runtime only)
 ├── graphEditor/               # Visual editor (JVM Desktop)
 │   └── src/jvmMain/kotlin/
 │       ├── Main.kt            # Refactored: runtime discovery, no project module imports

@@ -73,7 +73,24 @@
 
 ---
 
-## Scenario 6: Switch fbpDsl from Composite Build to Published Artifact
+## Scenario 6: PreviewProvider Compilation via preview-api
+
+**Steps**:
+1. In CodeNodeIO-DemoProject, verify each module's PreviewProvider imports from `io.codenode.previewapi.PreviewRegistry`
+2. Verify each module's `build.gradle.kts` jvmMain depends on `implementation("io.codenode:preview-api")` (NOT `compileOnly("io.codenode:graphEditor")`)
+3. Run `./gradlew clean jvmJar --rerun-tasks`
+4. Create a new repository module via the graphEditor
+5. Verify the generated PreviewProvider imports from `io.codenode.previewapi.PreviewRegistry`
+
+**Expected**:
+- All modules compile without depending on graphEditor
+- No StackOverflowError during Gradle sync
+- Generated modules have correct preview-api import
+- All module previews render in the graphEditor
+
+---
+
+## Scenario 7: Switch fbpDsl from Composite Build to Published Artifact
 
 **Steps** (for future validation after fbpDsl is published):
 1. In `CodeNodeIO-DemoProject`, replace the composite build `includeBuild("../CodeNodeIO")` with a Maven dependency `implementation("io.codenode:fbpdsl:1.0.0")`

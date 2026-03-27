@@ -12,7 +12,8 @@ Post-separation contents:
 | Module | Purpose | Dependencies |
 |--------|---------|-------------|
 | fbpDsl | Flow-based programming DSL library | kotlinx-coroutines, kotlinx-serialization |
-| graphEditor | Visual flow graph editor (JVM Desktop) | fbpDsl, circuitSimulator, kotlinCompiler |
+| preview-api | PreviewRegistry for composable preview dispatch | Compose runtime, Compose UI |
+| graphEditor | Visual flow graph editor (JVM Desktop) | fbpDsl, preview-api, circuitSimulator, kotlinCompiler |
 | kotlinCompiler | Kotlin code generation engine | fbpDsl, KotlinPoet |
 | circuitSimulator | Runtime animation engine | fbpDsl, Compose |
 | goCompiler | Go code generation (if used) | fbpDsl |
@@ -25,12 +26,12 @@ Post-separation contents:
 | Module | Purpose | Dependencies |
 |--------|---------|-------------|
 | KMPMobileApp | Kotlin Multiplatform mobile app | fbpDsl, StopWatch, UserProfiles, persistence |
-| StopWatch | Timer demo module | fbpDsl |
-| UserProfiles | CRUD user profiles module | fbpDsl, persistence |
-| GeoLocations | CRUD geo locations module | fbpDsl, persistence |
-| Addresses | CRUD addresses module | fbpDsl, persistence |
-| EdgeArtFilter | Image processing pipeline module | fbpDsl |
-| WeatherForecast | Weather API demo module | fbpDsl |
+| StopWatch | Timer demo module | fbpDsl, preview-api |
+| UserProfiles | CRUD user profiles module | fbpDsl, preview-api, persistence |
+| GeoLocations | CRUD geo locations module | fbpDsl, preview-api, persistence |
+| Addresses | CRUD addresses module | fbpDsl, preview-api, persistence |
+| EdgeArtFilter | Image processing pipeline module | fbpDsl, preview-api |
+| WeatherForecast | Weather API demo module | fbpDsl, preview-api |
 | persistence | Shared Room database module | Room, SQLite |
 | nodes/ | Project-level shared node files | fbpDsl |
 | iptypes/ | Project-level shared IP type files | (no compile dependency) |
@@ -41,12 +42,12 @@ Post-separation contents:
 Tool Repository                    Project Repository
 ===============                    ==================
 graphEditor ──depends──> fbpDsl    KMPMobileApp ──depends──> fbpDsl (composite build)
-kotlinCompiler ──depends──> fbpDsl StopWatch ──depends──> fbpDsl
-circuitSimulator ──> fbpDsl        UserProfiles ──depends──> fbpDsl, persistence
-                                   GeoLocations ──depends──> fbpDsl, persistence
-                                   Addresses ──depends──> fbpDsl, persistence
-                                   EdgeArtFilter ──depends──> fbpDsl
-                                   WeatherForecast ──depends──> fbpDsl
+graphEditor ──depends──> preview-api StopWatch ──depends──> fbpDsl, preview-api
+kotlinCompiler ──depends──> fbpDsl UserProfiles ──depends──> fbpDsl, preview-api, persistence
+circuitSimulator ──> fbpDsl        GeoLocations ──depends──> fbpDsl, preview-api, persistence
+                                   Addresses ──depends──> fbpDsl, preview-api, persistence
+                                   EdgeArtFilter ──depends──> fbpDsl, preview-api
+                                   WeatherForecast ──depends──> fbpDsl, preview-api
                                    persistence ──depends──> Room, SQLite
 
 graphEditor ──discovers-at-runtime──> Project modules (via classpath scanning)

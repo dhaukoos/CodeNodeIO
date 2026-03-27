@@ -79,12 +79,14 @@ The new project repository has a properly configured build system, dependency de
 - **FR-008**: The new project repository MUST declare its dependency on fbpDsl, with a mechanism to use a local copy until the library is published.
 - **FR-009**: Hardcoded module names, paths, or imports referencing project modules in the tool repository MUST be removed or replaced with configurable alternatives.
 - **FR-010**: Both repositories MUST have complete, independent build configurations (no shared build files across repositories).
+- **FR-011**: Project module PreviewProviders MUST be able to compile without depending on the graphEditor module. A shared `preview-api` module MUST provide the PreviewRegistry interface that both the graphEditor and project modules depend on.
 
 ### Key Entities
 
-- **Tool Repository (CodeNodeIO)**: Contains the graphEditor, fbpDsl library, kotlinCompiler, and tooling infrastructure. Does not contain any user project modules after separation.
-- **Project Repository**: Contains all tool-generated modules (Addresses, EdgeArtFilter, GeoLocations, StopWatch, UserProfiles, WeatherForecast), KMPMobileApp, and the persistence module. Depends on fbpDsl as a library.
+- **Tool Repository (CodeNodeIO)**: Contains the graphEditor, fbpDsl library, preview-api library, kotlinCompiler, and tooling infrastructure. Does not contain any user project modules after separation.
+- **Project Repository**: Contains all tool-generated modules (Addresses, EdgeArtFilter, GeoLocations, StopWatch, UserProfiles, WeatherForecast), KMPMobileApp, and the persistence module. Depends on fbpDsl and preview-api as libraries.
 - **fbpDsl Library**: The flow-based programming DSL that both repositories depend on. Currently lives in the tool repository; will be published as a standalone library in a subsequent feature.
+- **preview-api Library**: Lightweight module containing PreviewRegistry and PreviewComposable typealias. Depends only on Compose runtime. Both graphEditor and project modules depend on it, avoiding circular dependencies. Will be published as a standalone library alongside fbpDsl.
 
 ## Success Criteria *(mandatory)*
 
