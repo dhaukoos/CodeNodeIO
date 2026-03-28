@@ -231,6 +231,16 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
             }
         }
 
+        // Auto-detect which IP types have existing entity modules in the project
+        // by checking for module directories matching pluralized type names
+        ipTypeRegistry.getAllTypes().forEach { ipType ->
+            val pluralName = io.codenode.kotlincompiler.generator.pluralize(ipType.typeName)
+            val moduleDir = java.io.File(projectRoot, pluralName)
+            if (moduleDir.isDirectory && java.io.File(moduleDir, "build.gradle.kts").exists()) {
+                ipTypeRegistry.setEntityModule(ipType.id, true)
+            }
+        }
+
         ipTypesVersion++
     }
     val ipTypes = remember(ipTypesVersion, moduleRootDir) {
@@ -1015,27 +1025,25 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                                         properties = entityProps
                                     )
 
-                                    // Prompt user for output directory and save
-                                    val outputDir = showDirectoryChooser("Save Entity Module To")
-                                    if (outputDir != null) {
-                                        val persistenceDir = java.io.File(
-                                            outputDir,
-                                            "persistence/src/commonMain/kotlin/io/codenode/persistence"
-                                        )
-                                        val result = moduleSaveService.saveEntityModule(
-                                            spec = spec,
-                                            moduleOutputDir = outputDir,
-                                            persistenceDir = persistenceDir
-                                        )
-                                        if (result.success) {
-                                            ipTypeRepository.setEntityModule(ipType.id, true)
-                                            ipTypesVersion++
-                                            val created = result.filesCreated.size
-                                            val overwritten = result.filesOverwritten.size
-                                            statusMessage = "Created ${spec.pluralName} module: $created created, $overwritten overwritten"
-                                        } else {
-                                            statusMessage = "Module creation error: ${result.errorMessage}"
-                                        }
+                                    // Save to project root directory
+                                    val outputDir = projectRoot
+                                    val persistenceDir = java.io.File(
+                                        outputDir,
+                                        "persistence/src/commonMain/kotlin/io/codenode/persistence"
+                                    )
+                                    val result = moduleSaveService.saveEntityModule(
+                                        spec = spec,
+                                        moduleOutputDir = outputDir,
+                                        persistenceDir = persistenceDir
+                                    )
+                                    if (result.success) {
+                                        ipTypeRegistry.setEntityModule(ipType.id, true)
+                                        ipTypesVersion++
+                                        val created = result.filesCreated.size
+                                        val overwritten = result.filesOverwritten.size
+                                        statusMessage = "Created ${spec.pluralName} module: $created created, $overwritten overwritten"
+                                    } else {
+                                        statusMessage = "Module creation error: ${result.errorMessage}"
                                     }
                                 }
                             } else null
@@ -1047,7 +1055,7 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                             }
                         },
                         moduleExists = selectedIPType?.let { ipType ->
-                            ipTypeRepository.hasEntityModule(ipType.id)
+                            ipTypeRegistry.hasEntityModule(ipType.id)
                         } ?: false,
                         debugger = runtimeSession?.debugger,
                         isPaused = runtimeExecutionState == ExecutionState.PAUSED,
@@ -1183,7 +1191,7 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                 if (outputDir != null) {
                     // Build IP type properties map for repository code generation
                     val ipTypePropertiesMap = buildMap {
-                        for (ipTypeId in ipTypeRepository.getEntityModuleIPTypeIds()) {
+                        for (ipTypeId in ipTypeRegistry.getEntityModuleIPTypeIds()) {
                             val props = ipTypeRegistry.getCustomTypeProperties(ipTypeId)
                             if (props != null) {
                                 put(ipTypeId, props.map { prop ->
@@ -1279,11 +1287,8 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                             showRemoveConfirmDialog = false
                             removeTargetIPType = null
 
-                            // user.dir may be graphEditor/ when launched via Gradle — walk up to find settings.gradle.kts
-                            var projectDir = File(System.getProperty("user.dir"))
-                            while (!File(projectDir, "settings.gradle.kts").exists() && projectDir.parentFile != null) {
-                                projectDir = projectDir.parentFile
-                            }
+                            // Use the configured project directory
+                            val projectDir = projectRoot
                             val entityName = ipType.typeName
                             val moduleDir = File(projectDir, moduleName)
                             val persistenceDir = File(
@@ -1300,7 +1305,7 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                                 sourceIPTypeId = ipType.id
                             )
 
-                            ipTypeRepository.setEntityModule(ipType.id, false)
+                            ipTypeRegistry.setEntityModule(ipType.id, false)
                             ipTypesVersion++
                             statusMessage = result
                         },

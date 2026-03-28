@@ -43,6 +43,7 @@ class IPTypeRegistry {
     private val customTypeProperties = mutableMapOf<String, List<IPProperty>>()
     private val moduleTypeIds = mutableSetOf<String>()
     private val typeIdsByModulePath = mutableMapOf<String, MutableSet<String>>()
+    private val entityModuleIds = mutableSetOf<String>()
 
     /**
      * Registers an InformationPacket type in the registry.
@@ -174,6 +175,23 @@ class IPTypeRegistry {
         register(ipType)
         customTypeProperties[definition.id] = definition.properties
     }
+
+    /**
+     * Marks an IP type as having (or not having) a generated entity module.
+     */
+    fun setEntityModule(id: String, hasModule: Boolean) {
+        if (hasModule) entityModuleIds.add(id) else entityModuleIds.remove(id)
+    }
+
+    /**
+     * Returns whether an IP type has a generated entity module.
+     */
+    fun hasEntityModule(id: String): Boolean = id in entityModuleIds
+
+    /**
+     * Returns all IP type IDs that have entity modules.
+     */
+    fun getEntityModuleIPTypeIds(): Set<String> = entityModuleIds.toSet()
 
     /**
      * Gets the property definitions for a custom IP type.

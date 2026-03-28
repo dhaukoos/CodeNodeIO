@@ -139,8 +139,8 @@
 
 ### End-to-end validation
 
-- [ ] T049 Run graphEditor via `:graphEditor:run` from Android Studio — verify all module previews work (StopWatch, UserProfiles, EdgeArtFilter, etc.) [MANUAL TEST]
-- [ ] T050 Run graphEditor via `./gradlew runGraphEditor` from DemoProject — verify all module previews work [MANUAL TEST]
+- [X] T049 Run graphEditor via `:graphEditor:run` from Android Studio — all module previews verified.
+- [X] T050 Run graphEditor via `./gradlew runGraphEditor` from DemoProject — all module previews verified.
 - [X] T051 Cleaned up DynamicPreviewDiscovery: removed diagnostic logging, updated docs to reference preview-api architecture. Kept reflection-based scanning (still needed for runtime discovery).
 
 ---
@@ -151,7 +151,7 @@
 
 - [X] T052 [P] Added CI configuration at `.github/workflows/build.yml` — builds fbpDsl, preview-api, graphEditor, kotlinCompiler, circuitSimulator; runs tests.
 - [X] T053 [P] Updated CodeNodeIO `README.md` — documented repository separation, linked to CodeNodeIO-DemoProject, updated project structure and module dependencies.
-- [ ] T054 Run quickstart.md scenarios 1-5 to validate end-to-end functionality across both repositories [MANUAL TEST]
+- [X] T054 Run quickstart.md scenarios 1-5 to validate end-to-end functionality across both repositories.
 - [X] T055 Cleaned up temporary extraction clones (/tmp/CodeNodeIO-DemoProject-extract, /tmp/CodeNodeIO-DemoProject-verify, /tmp/CodeNodeIO symlink).
 
 ---
