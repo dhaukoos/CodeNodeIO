@@ -320,8 +320,15 @@ class ModuleSaveService {
         }
 
         if (entityInfos.isNotEmpty()) {
-            val appDatabaseContent = repositoryCodeGenerator.generateDatabase(entityInfos, persistencePackage)
+            // Read current database version and increment
             val appDatabaseFile = File(persistenceDir, "AppDatabase.kt")
+            val currentVersion = if (appDatabaseFile.exists()) {
+                val versionMatch = Regex("""version\s*=\s*(\d+)""").find(appDatabaseFile.readText())
+                versionMatch?.groupValues?.get(1)?.toIntOrNull() ?: 0
+            } else 0
+            val newVersion = currentVersion + 1
+
+            val appDatabaseContent = repositoryCodeGenerator.generateDatabase(entityInfos, persistencePackage, newVersion)
             appDatabaseFile.writeText(appDatabaseContent)
             filesOverwritten.add("persistence/AppDatabase.kt")
         }
@@ -510,7 +517,7 @@ class ModuleSaveService {
             // Schema cleanup is best-effort
         }
 
-        // 4. Regenerate AppDatabase.kt from remaining entities
+        // 4. Regenerate AppDatabase.kt from remaining entities (with incremented version)
         try {
             val entityFiles = persistenceDir.listFiles()
                 ?.filter { it.isFile && it.name.endsWith("Entity.kt") && it.name != "BaseEntity.kt" }
@@ -526,9 +533,17 @@ class ModuleSaveService {
                 )
             }
 
+            // Read current database version and increment
+            val appDatabaseFile = File(persistenceDir, "AppDatabase.kt")
+            val currentVersion = if (appDatabaseFile.exists()) {
+                val versionMatch = Regex("""version\s*=\s*(\d+)""").find(appDatabaseFile.readText())
+                versionMatch?.groupValues?.get(1)?.toIntOrNull() ?: 1
+            } else 1
+            val newVersion = currentVersion + 1
+
             val persistencePackage = "io.codenode.persistence"
             if (entityInfos.isNotEmpty()) {
-                val appDatabaseContent = repositoryCodeGenerator.generateDatabase(entityInfos, persistencePackage)
+                val appDatabaseContent = repositoryCodeGenerator.generateDatabase(entityInfos, persistencePackage, newVersion)
                 File(persistenceDir, "AppDatabase.kt").writeText(appDatabaseContent)
                 results.add("AppDatabase updated")
             } else {
@@ -542,7 +557,7 @@ class ModuleSaveService {
                     appendLine("import androidx.room.RoomDatabaseConstructor")
                     appendLine("import androidx.room.ConstructedBy")
                     appendLine()
-                    appendLine("@Database(entities = [], version = 1)")
+                    appendLine("@Database(entities = [], version = $newVersion)")
                     appendLine("@ConstructedBy(AppDatabaseConstructor::class)")
                     appendLine("abstract class AppDatabase : RoomDatabase()")
                     appendLine()

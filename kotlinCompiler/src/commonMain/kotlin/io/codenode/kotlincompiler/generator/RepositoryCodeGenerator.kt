@@ -166,7 +166,8 @@ class RepositoryCodeGenerator {
      */
     fun generateDatabase(
         entities: List<EntityInfo>,
-        packageName: String
+        packageName: String,
+        version: Int = 1
     ): String {
         val entityList = entities.joinToString(", ") { "${it.entityName}Entity::class" }
         return buildString {
@@ -177,7 +178,7 @@ class RepositoryCodeGenerator {
             appendLine("import androidx.room.RoomDatabaseConstructor")
             appendLine("import androidx.room.ConstructedBy")
             appendLine()
-            appendLine("@Database(entities = [$entityList], version = 1)")
+            appendLine("@Database(entities = [$entityList], version = $version)")
             appendLine("@ConstructedBy(AppDatabaseConstructor::class)")
             appendLine("abstract class AppDatabase : RoomDatabase() {")
             entities.forEach { entity ->
