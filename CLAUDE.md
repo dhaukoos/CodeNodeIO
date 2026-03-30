@@ -88,6 +88,8 @@ Auto-generated from all feature plans. Last updated: 2026-01-13
 - Filesystem (`.kt` files at three tiers) — replaces `~/.codenode/custom-ip-types.json` (059-filesystem-ip-types)
 - Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + Compose Desktop 1.7.3 + Gradle 8.13 (build system), git filter-repo (history extraction), Koin 4.0.0 (DI) (060-separate-repo)
 - Git repositories (GitHub), Gradle composite builds (060-separate-repo)
+- Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + kotlinCompiler module (code generation), fbpDsl (runtime types) (061-codenode-definition-codegen)
+- N/A (generates source code files) (061-codenode-definition-codegen)
 
 - Kotlin 1.9+, Go 1.21+ (001-ide-plugin-platform)
 
@@ -107,9 +109,9 @@ tests/
 Kotlin 1.9+, Go 1.21+: Follow standard conventions
 
 ## Recent Changes
+- 061-codenode-definition-codegen: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + kotlinCompiler module (code generation), fbpDsl (runtime types)
 - 060-separate-repo: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + Compose Desktop 1.7.3 + Gradle 8.13 (build system), git filter-repo (history extraction), Koin 4.0.0 (DI)
 - 059-filesystem-ip-types: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + Compose Desktop 1.7.3 + kotlinx-coroutines 1.8.0, kotlinx-serialization 1.6.0, lifecycle-viewmodel-compose 2.8.0
-- 058-weather-forecast-demo: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + Compose Desktop 1.7.3, kotlinx-coroutines 1.8.0, kotlinx-serialization 1.6.0, lifecycle-viewmodel-compose 2.8.0, Ktor Client 3.1.1 (ktor-client-core, ktor-client-cio, ktor-client-content-negotiation, ktor-serialization-kotlinx-json)
 
 
 <!-- MANUAL ADDITIONS START -->
