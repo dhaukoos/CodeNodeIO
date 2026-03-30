@@ -30,8 +30,9 @@ class EntityModuleGenerator {
 
     private val flowGraphBuilder = EntityFlowGraphBuilder()
     private val flowKtGenerator = FlowKtGenerator()
-    private val cudGenerator = EntityCUDGenerator()
-    private val displayGenerator = EntityDisplayGenerator()
+    private val cudCodeNodeGenerator = EntityCUDCodeNodeGenerator()
+    private val repositoryCodeNodeGenerator = EntityRepositoryCodeNodeGenerator()
+    private val displayCodeNodeGenerator = EntityDisplayCodeNodeGenerator()
     private val persistenceGenerator = EntityPersistenceGenerator()
     private val uiGenerator = EntityUIGenerator()
     private val viewModelGenerator = RuntimeViewModelGenerator()
@@ -73,13 +74,16 @@ class EntityModuleGenerator {
         moduleFiles["src/commonMain/kotlin/$basePackagePath/${pluralName}.flow.kt"] =
             flowKtGenerator.generateFlowKt(flowGraph, basePackage, null, ipTypeNames, ipTypeImports)
 
-        // 2. CUD source node stub
-        moduleFiles["src/commonMain/kotlin/$basePackagePath/${spec.entityName}CUD.kt"] =
-            cudGenerator.generate(spec)
+        // 2. Node definition files (in nodes/ subdirectory)
+        val nodesPath = "$basePackagePath/nodes"
+        moduleFiles["src/commonMain/kotlin/$nodesPath/${spec.entityName}CUDCodeNode.kt"] =
+            cudCodeNodeGenerator.generate(spec)
 
-        // 3. Display sink node stub
-        moduleFiles["src/commonMain/kotlin/$basePackagePath/${pluralName}Display.kt"] =
-            displayGenerator.generate(spec)
+        moduleFiles["src/commonMain/kotlin/$nodesPath/${spec.entityName}RepositoryCodeNode.kt"] =
+            repositoryCodeNodeGenerator.generate(spec)
+
+        moduleFiles["src/commonMain/kotlin/$nodesPath/${pluralName}DisplayCodeNode.kt"] =
+            displayCodeNodeGenerator.generate(spec)
 
         // 4. Koin persistence module
         moduleFiles["src/commonMain/kotlin/$basePackagePath/${pluralName}Persistence.kt"] =

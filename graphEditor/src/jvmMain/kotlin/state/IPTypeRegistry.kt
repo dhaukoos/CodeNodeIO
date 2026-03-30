@@ -44,6 +44,7 @@ class IPTypeRegistry {
     private val moduleTypeIds = mutableSetOf<String>()
     private val typeIdsByModulePath = mutableMapOf<String, MutableSet<String>>()
     private val entityModuleIds = mutableSetOf<String>()
+    private val typeFilePaths = mutableMapOf<String, String>()
 
     /**
      * Registers an InformationPacket type in the registry.
@@ -194,6 +195,18 @@ class IPTypeRegistry {
     fun getEntityModuleIPTypeIds(): Set<String> = entityModuleIds.toSet()
 
     /**
+     * Gets the filesystem path for an IP type, if it was discovered from a file.
+     */
+    fun getFilePath(id: String): String? = typeFilePaths[id]
+
+    /**
+     * Sets the filesystem path for an IP type.
+     */
+    fun setFilePath(id: String, path: String) {
+        typeFilePaths[id] = path
+    }
+
+    /**
      * Gets the property definitions for a custom IP type.
      *
      * @param id The type ID
@@ -238,6 +251,7 @@ class IPTypeRegistry {
                 description = "Custom type: ${meta.typeName}"
             )
             register(ipType)
+            typeFilePaths[meta.typeId] = meta.filePath
             if (meta.tier == PlacementLevel.MODULE) {
                 moduleTypeIds.add(meta.typeId)
                 // Track which module each type belongs to (extract module dir from file path)

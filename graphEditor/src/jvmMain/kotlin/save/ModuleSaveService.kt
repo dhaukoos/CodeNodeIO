@@ -500,6 +500,16 @@ class ModuleSaveService {
             results.add("persistence removal failed: ${e.message}")
         }
 
+        // 3b. Clean up Room schema JSON files (build artifacts)
+        try {
+            val schemasDir = File(persistenceDir, "../../../../schemas")
+            if (schemasDir.isDirectory) {
+                schemasDir.deleteRecursively()
+            }
+        } catch (_: Exception) {
+            // Schema cleanup is best-effort
+        }
+
         // 4. Regenerate AppDatabase.kt from remaining entities
         try {
             val entityFiles = persistenceDir.listFiles()

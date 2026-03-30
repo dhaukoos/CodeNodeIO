@@ -132,6 +132,19 @@ class IPPaletteViewModel(
         val registry = ipTypeRegistry ?: return false
         val repository = ipTypeRepository ?: return false
 
+        // Delete the filesystem file if it exists
+        val filePath = registry.getFilePath(id)
+        if (filePath != null) {
+            try {
+                val file = java.io.File(filePath)
+                if (file.exists()) {
+                    file.delete()
+                }
+            } catch (_: Exception) {
+                // File deletion failed — continue with registry/repo cleanup
+            }
+        }
+
         val removed = registry.unregister(id)
         return if (removed != null) {
             repository.remove(id)

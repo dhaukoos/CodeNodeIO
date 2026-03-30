@@ -30,6 +30,7 @@ class EntityFlowGraphBuilder {
     fun buildFlowGraph(spec: EntityModuleSpec): FlowGraph {
         val entityName = spec.entityName
         val pluralName = spec.pluralName
+        val packageLower = pluralName.lowercase()
 
         return flowGraph(pluralName, version = "1.0.0") {
             targetPlatform(FlowGraph.TargetPlatform.KMP_ANDROID)
@@ -42,8 +43,9 @@ class EntityFlowGraphBuilder {
                 input("remove", Any::class)
                 output("result", Any::class)
                 output("error", Any::class)
+                config("_codeNodeClass", "io.codenode.$packageLower.nodes.${entityName}RepositoryCodeNode")
+                config("_genericType", "in3anyout2")
                 config("_repository", "true")
-                config("_genericType", "any")
                 config("_sourceIPTypeId", spec.sourceIPTypeId)
                 config("_sourceIPTypeName", entityName)
             }
@@ -53,6 +55,8 @@ class EntityFlowGraphBuilder {
                 output("save", Any::class)
                 output("update", Any::class)
                 output("remove", Any::class)
+                config("_codeNodeClass", "io.codenode.$packageLower.nodes.${entityName}CUDCodeNode")
+                config("_genericType", "in0out3")
                 config("_cudSource", "true")
                 config("_sourceIPTypeId", spec.sourceIPTypeId)
                 config("_sourceIPTypeName", entityName)
@@ -62,6 +66,8 @@ class EntityFlowGraphBuilder {
                 position(799.5, 398.0)
                 input("result", Any::class)
                 input("error", Any::class)
+                config("_codeNodeClass", "io.codenode.$packageLower.nodes.${pluralName}DisplayCodeNode")
+                config("_genericType", "in2out0")
                 config("_display", "true")
                 config("_sourceIPTypeId", spec.sourceIPTypeId)
                 config("_sourceIPTypeName", entityName)

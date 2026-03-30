@@ -54,7 +54,9 @@ class RuntimeFlowGenerator {
             appendLine()
 
             if (observableProps.isNotEmpty()) {
-                generateObservableState(observableProps, flowName)
+                // Detect entity IP type name for concrete observable state types
+                val ipTypeName = codeNodes.firstNotNullOfOrNull { it.configuration["_sourceIPTypeName"] }
+                generateObservableState(observableProps, flowName, ipTypeName)
             }
 
             generateRuntimeInstances(codeNodes, observableProps, flowGraph, flowName)
@@ -89,76 +91,51 @@ class RuntimeFlowGenerator {
         viewModelPackage: String,
         flowName: String
     ) {
-        val codeNodeClassNodes = codeNodes.filter { it.configuration["_codeNodeClass"] != null }
-        val legacyNodes = codeNodes.filter { it.configuration["_codeNodeClass"] == null }
-
-        // CodeNode imports (for nodes with _codeNodeClass)
-        codeNodeClassNodes.forEach { node ->
-            appendLine("import ${node.configuration["_codeNodeClass"]}")
+        // CodeNodeDefinition imports — all nodes must have _codeNodeClass
+        codeNodes.forEach { node ->
+            val codeNodeClass = node.configuration["_codeNodeClass"]
+            if (codeNodeClass != null) {
+                appendLine("import $codeNodeClass")
+            }
         }
 
-        // Tick function imports from user stubs (legacy processor nodes only)
-        legacyNodes.filter { it.inputPorts.isNotEmpty() && it.outputPorts.isNotEmpty() }.forEach { node ->
-            appendLine("import $basePackage.${node.name.camelCase()}Tick")
+        // IP type imports for entity modules (needed for typed runtime casts)
+        val ipTypeImports = mutableSetOf<String>()
+        codeNodes.forEach { node ->
+            val ipTypeName = node.configuration["_sourceIPTypeName"]
+            val codeNodeClass = node.configuration["_codeNodeClass"]
+            if (ipTypeName != null && codeNodeClass != null) {
+                // Derive iptypes package from codeNodeClass: io.codenode.{module}.nodes.XxxCodeNode → io.codenode.{module}.iptypes.{IpType}
+                val modulePackage = codeNodeClass.substringBeforeLast(".nodes.")
+                ipTypeImports.add("import $modulePackage.iptypes.$ipTypeName")
+            }
         }
+        ipTypeImports.forEach { appendLine(it) }
         appendLine()
 
         // Import {ModuleName}State from viewModel package
         if (hasObservableState) {
             appendLine("import $viewModelPackage.${flowName}State")
-        }
-
-        // Import entity stub functions (legacy CUD source, Display sink only)
-        val cudNode = legacyNodes.find { it.configuration["_cudSource"] == "true" }
-        val displayNode = legacyNodes.find { it.configuration["_display"] == "true" }
-        if (cudNode != null) {
-            appendLine("import $viewModelPackage.create${cudNode.name.pascalCase()}")
-        }
-        if (displayNode != null) {
-            appendLine("import $viewModelPackage.create${displayNode.name.pascalCase()}")
-        }
-        if (hasObservableState || cudNode != null || displayNode != null) {
             appendLine()
         }
 
-        // Framework imports — only import CodeNodeFactory if legacy nodes exist
-        if (legacyNodes.isNotEmpty()) {
-            appendLine("import io.codenode.fbpdsl.model.CodeNodeFactory")
-        }
+        // Framework imports
         appendLine("import kotlinx.coroutines.CoroutineScope")
         if (hasObservableState) {
             appendLine("import kotlinx.coroutines.flow.StateFlow")
         }
 
-        // Runtime type imports for CodeNode casts
+        // Runtime type imports for CodeNodeDefinition casts
         val runtimeTypeImports = mutableSetOf<String>()
-        codeNodeClassNodes.forEach { node ->
-            val anyInput = node.configuration["_genericType"]?.contains("any") == true
-            val runtimeTypeName = runtimeTypeResolver.getRuntimeTypeName(node, anyInput)
-            // Extract just the class name (before the type params)
-            val className = runtimeTypeName.substringBefore("<")
-            runtimeTypeImports.add("import io.codenode.fbpdsl.runtime.$className")
+        codeNodes.forEach { node ->
+            if (node.configuration["_codeNodeClass"] != null) {
+                val anyInput = node.configuration["_genericType"]?.contains("any") == true
+                val runtimeTypeName = runtimeTypeResolver.getRuntimeTypeName(node, anyInput)
+                val className = runtimeTypeName.substringBefore("<")
+                runtimeTypeImports.add("import io.codenode.fbpdsl.runtime.$className")
+            }
         }
         runtimeTypeImports.sorted().forEach { appendLine(it) }
-
-        // Reactive source imports (only for non-entity legacy source nodes)
-        val sourceNodes = legacyNodes.filter {
-            it.inputPorts.isEmpty() && it.outputPorts.isNotEmpty() &&
-            it.configuration["_cudSource"] != "true"
-        }
-        if (sourceNodes.isNotEmpty() && hasObservableState) {
-            val maxOutputs = sourceNodes.maxOf { it.outputPorts.size }
-            if (maxOutputs >= 2) {
-                appendLine("import kotlinx.coroutines.flow.combine")
-            }
-            appendLine("import kotlinx.coroutines.flow.drop")
-            if (maxOutputs == 2) {
-                appendLine("import io.codenode.fbpdsl.runtime.ProcessResult2")
-            } else if (maxOutputs >= 3) {
-                appendLine("import io.codenode.fbpdsl.runtime.ProcessResult2")
-                appendLine("import io.codenode.fbpdsl.runtime.ProcessResult3")
-            }
-        }
     }
 
     private fun StringBuilder.generateKDoc(flowGraph: FlowGraph, flowName: String) {
@@ -180,11 +157,22 @@ class RuntimeFlowGenerator {
 
     private fun StringBuilder.generateObservableState(
         observableProps: List<ObservableProperty>,
-        flowName: String
+        flowName: String,
+        ipTypeName: String? = null
     ) {
         appendLine("    // Observable state delegated from module state")
         observableProps.forEach { prop ->
-            val typeStr = if (prop.defaultValue == "null") "${prop.typeName}?" else prop.typeName
+            // For entity modules, resolve concrete types instead of Any
+            val resolvedType = if (ipTypeName != null) {
+                when (prop.name) {
+                    "save", "update", "remove" -> ipTypeName
+                    "result", "error" -> "String"
+                    else -> prop.typeName
+                }
+            } else {
+                prop.typeName
+            }
+            val typeStr = if (prop.defaultValue == "null") "${resolvedType}?" else resolvedType
             appendLine("    val ${prop.name}Flow: StateFlow<$typeStr> = ${flowName}State.${prop.name}Flow")
         }
         appendLine()
@@ -201,60 +189,39 @@ class RuntimeFlowGenerator {
             val varName = node.name.camelCase()
             val codeNodeClass = node.configuration["_codeNodeClass"]
 
-            // CodeNode-aware path: use CodeNodeDefinition.createRuntime()
             if (codeNodeClass != null) {
+                // CodeNodeDefinition path: import and instantiate via createRuntime()
                 val className = codeNodeClass.substringAfterLast(".")
                 val anyInput = node.configuration["_genericType"]?.contains("any") == true
-                val runtimeTypeName = runtimeTypeResolver.getRuntimeTypeName(node, anyInput)
+                val runtimeTypeName = resolveRuntimeTypeName(node, anyInput)
                 appendLine("    internal val $varName = $className.createRuntime(\"${node.name}\") as $runtimeTypeName")
-                appendLine()
-                return@forEach
-            }
-
-            // Legacy path: use CodeNodeFactory
-            val isCudSource = node.configuration["_cudSource"] == "true"
-            val isDisplaySink = node.configuration["_display"] == "true"
-
-            // Entity CUD source and Display sink nodes use stub functions
-            if (isCudSource) {
-                appendLine("    internal val $varName = create${node.name.pascalCase()}()")
-                appendLine()
-                return@forEach
-            }
-            if (isDisplaySink) {
-                appendLine("    internal val $varName = create${node.name.pascalCase()}()")
-                appendLine()
-                return@forEach
-            }
-
-            val anyInput = node.configuration["_genericType"]?.contains("any") == true
-            val factoryMethod = runtimeTypeResolver.getFactoryMethodName(node, anyInput)
-            val typeParams = getFactoryTypeParams(node)
-            val tickParamName = runtimeTypeResolver.getTickParamName(node, anyInput)
-            val isSink = node.inputPorts.isNotEmpty() && node.outputPorts.isEmpty()
-            val isSource = node.inputPorts.isEmpty() && node.outputPorts.isNotEmpty()
-
-            appendLine("    internal val $varName = CodeNodeFactory.$factoryMethod<$typeParams>(")
-            appendLine("        name = \"${node.name}\",")
-
-            if (isSource) {
-                generateReactiveSourceBlock(node, observableProps, flowName)
-            } else if (anyInput && node.inputPorts.size >= 2) {
-                generateInitialValues(node)
-                if (isSink) {
-                    generateSinkConsumeBlock(node, varName, tickParamName, observableProps, flowName)
-                } else {
-                    appendLine("        $tickParamName = ${varName}Tick")
-                }
-            } else if (isSink) {
-                generateSinkConsumeBlock(node, varName, tickParamName, observableProps, flowName)
             } else {
-                appendLine("        $tickParamName = ${varName}Tick")
+                // Node missing _codeNodeClass — generate a comment placeholder
+                appendLine("    // WARNING: ${node.name} has no _codeNodeClass configuration — cannot generate runtime")
             }
-
-            appendLine("    )")
             appendLine()
         }
+    }
+
+    /**
+     * Resolves the runtime type name for a CodeNodeDefinition node.
+     * Uses _sourceIPTypeName config to produce concrete type parameters instead of Any
+     * when the node is part of an entity module (has _sourceIPTypeName config).
+     */
+    private fun resolveRuntimeTypeName(node: CodeNode, anyInput: Boolean): String {
+        val ipTypeName = node.configuration["_sourceIPTypeName"]
+        if (ipTypeName != null) {
+            // Entity module node — derive typed runtime from _genericType + _sourceIPTypeName
+            val genericType = node.configuration["_genericType"] ?: ""
+            return when (genericType) {
+                "in0out3" -> "SourceOut3Runtime<$ipTypeName, $ipTypeName, $ipTypeName>"
+                "in3anyout2" -> "In3AnyOut2Runtime<$ipTypeName, $ipTypeName, $ipTypeName, String, String>"
+                "in2out0" -> "SinkIn2Runtime<String, String>"
+                else -> runtimeTypeResolver.getRuntimeTypeName(node, anyInput)
+            }
+        }
+        // Non-entity nodes — use standard resolver (reads port types)
+        return runtimeTypeResolver.getRuntimeTypeName(node, anyInput)
     }
 
     private fun StringBuilder.generateInitialValues(node: CodeNode) {

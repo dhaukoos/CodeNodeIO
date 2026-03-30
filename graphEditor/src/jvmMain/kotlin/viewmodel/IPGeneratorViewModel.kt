@@ -219,9 +219,15 @@ class IPGeneratorViewModel(
                 if (meta != null) {
                     val typed = meta.copy(tier = currentLevel)
                     ipTypeRegistry.registerFromFilesystem(listOf(typed)) { discovery.resolveKClass(it) }
+                } else {
+                    // Parse failed — register without file path, but store it manually
+                    ipTypeRegistry.registerCustomType(definition)
+                    ipTypeRegistry.setFilePath(definition.id, filePath)
+                    repository.add(definition)
                 }
-            } catch (_: Exception) {
+            } catch (e: Exception) {
                 // Fallback to legacy registration if file generation fails
+                println("Warning: IP type file generation failed: ${e.message}")
                 ipTypeRegistry.registerCustomType(definition)
                 repository.add(definition)
             }
