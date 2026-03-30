@@ -303,7 +303,7 @@ class ModuleGenerator {
             appendLine("    sourceSets {")
             appendLine("        val commonMain by getting {")
             appendLine("            dependencies {")
-            appendLine("                implementation(project(\":fbpDsl\"))")
+            appendLine("                implementation(\"io.codenode:fbpDsl\")")
             if (isEntityModule) {
                 appendLine("                implementation(project(\":persistence\"))")
                 appendLine("                // Koin DI")
@@ -322,6 +322,12 @@ class ModuleGenerator {
                 appendLine("                // JetBrains Multiplatform ViewModel")
                 appendLine("                implementation(\"org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose:$LIFECYCLE_VERSION\")")
             }
+            appendLine("            }")
+            appendLine("        }")
+            appendLine()
+            appendLine("        val jvmMain by getting {")
+            appendLine("            dependencies {")
+            appendLine("                implementation(\"io.codenode:preview-api\")")
             appendLine("            }")
             appendLine("        }")
             appendLine()
