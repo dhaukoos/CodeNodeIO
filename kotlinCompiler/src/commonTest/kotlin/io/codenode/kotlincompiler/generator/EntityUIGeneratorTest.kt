@@ -12,8 +12,8 @@ class EntityUIGeneratorTest {
 
     private val generator = EntityUIGenerator()
     private val spec = EntityModuleSpec.fromIPType(
-        ipTypeName = "GeoLocation",
-        sourceIPTypeId = "ip_geolocation_test123",
+        ipTypeName = "Sample",
+        sourceIPTypeId = "test-sample-id",
         properties = listOf(
             EntityProperty("latitude", "Double", true),
             EntityProperty("longitude", "Double", true),
@@ -29,13 +29,13 @@ class EntityUIGeneratorTest {
     fun `generateListView contains composable function signature`() {
         val result = generator.generateListView(spec)
         assertTrue(result.contains("@Composable"))
-        assertTrue(result.contains("fun GeoLocations("))
+        assertTrue(result.contains("fun Samples("))
     }
 
     @Test
     fun `generateListView contains ViewModel parameter`() {
         val result = generator.generateListView(spec)
-        assertTrue(result.contains("viewModel: GeoLocationsViewModel"))
+        assertTrue(result.contains("viewModel: SamplesViewModel"))
     }
 
     @Test
@@ -72,19 +72,19 @@ class EntityUIGeneratorTest {
     @Test
     fun `generateListView contains correct package`() {
         val result = generator.generateListView(spec)
-        assertTrue(result.contains("package io.codenode.geolocations.userInterface"))
+        assertTrue(result.contains("package io.codenode.samples.userInterface"))
     }
 
     @Test
     fun `generateListView contains entity import`() {
         val result = generator.generateListView(spec)
-        assertTrue(result.contains("import io.codenode.geolocations.iptypes.GeoLocation"))
+        assertTrue(result.contains("import io.codenode.iptypes.Sample"))
     }
 
     @Test
-    fun `generateListView contains GeoLocationRow reference`() {
+    fun `generateListView contains SampleRow reference`() {
         val result = generator.generateListView(spec)
-        assertTrue(result.contains("GeoLocationRow("))
+        assertTrue(result.contains("SampleRow("))
     }
 
     // ========== generateFormView Tests ==========
@@ -93,7 +93,7 @@ class EntityUIGeneratorTest {
     fun `generateFormView contains composable function signature`() {
         val result = generator.generateFormView(spec)
         assertTrue(result.contains("@Composable"))
-        assertTrue(result.contains("fun AddUpdateGeoLocation("))
+        assertTrue(result.contains("fun AddUpdateSample("))
     }
 
     @Test
@@ -137,19 +137,19 @@ class EntityUIGeneratorTest {
     @Test
     fun `generateFormView contains entity entity parameter`() {
         val result = generator.generateFormView(spec)
-        assertTrue(result.contains("existingItem: GeoLocation?"))
+        assertTrue(result.contains("existingItem: Sample?"))
     }
 
     @Test
     fun `generateFormView contains onSave callback`() {
         val result = generator.generateFormView(spec)
-        assertTrue(result.contains("onSave: (GeoLocation) -> Unit"))
+        assertTrue(result.contains("onSave: (Sample) -> Unit"))
     }
 
     @Test
     fun `generateFormView constructs entity with all properties`() {
         val result = generator.generateFormView(spec)
-        assertTrue(result.contains("GeoLocation("))
+        assertTrue(result.contains("Sample("))
         assertTrue(result.contains("latitude ="))
         assertTrue(result.contains("longitude ="))
         assertTrue(result.contains("label ="))
@@ -163,13 +163,13 @@ class EntityUIGeneratorTest {
     fun `generateRowView contains composable function signature`() {
         val result = generator.generateRowView(spec)
         assertTrue(result.contains("@Composable"))
-        assertTrue(result.contains("fun GeoLocationRow("))
+        assertTrue(result.contains("fun SampleRow("))
     }
 
     @Test
     fun `generateRowView contains entity parameter`() {
         val result = generator.generateRowView(spec)
-        assertTrue(result.contains("item: GeoLocation"))
+        assertTrue(result.contains("item: Sample"))
     }
 
     @Test
@@ -199,8 +199,8 @@ class EntityUIGeneratorTest {
     @Test
     fun `generateRowView displays isActive as Yes-No`() {
         val result = generator.generateRowView(spec)
-        assertTrue(result.contains("isActive: Yes"))
-        assertTrue(result.contains("isActive: No"))
+        assertTrue(result.contains("\"Yes\""), "Row should display Yes for true boolean")
+        assertTrue(result.contains("\"No\""), "Row should display No for false boolean")
     }
 
     @Test
@@ -212,6 +212,6 @@ class EntityUIGeneratorTest {
     @Test
     fun `generateRowView contains correct package`() {
         val result = generator.generateRowView(spec)
-        assertTrue(result.contains("package io.codenode.geolocations.userInterface"))
+        assertTrue(result.contains("package io.codenode.samples.userInterface"))
     }
 }

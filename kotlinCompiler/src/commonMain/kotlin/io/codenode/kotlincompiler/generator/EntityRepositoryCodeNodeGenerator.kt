@@ -52,7 +52,7 @@ class EntityRepositoryCodeNodeGenerator {
             appendLine("import io.codenode.fbpdsl.runtime.NodeRuntime")
             appendLine("import io.codenode.fbpdsl.runtime.PortSpec")
             appendLine("import io.codenode.fbpdsl.runtime.ProcessResult2")
-            appendLine("import ${spec.persistencePackage}.${entityName}Repository")
+            appendLine("import ${spec.persistencePackage}.${entityName.lowercase()}.${entityName}Repository")
             appendLine("import ${spec.basePackage}.${pluralName}Persistence")
             appendLine("import $ipTypesPackage.$entityName")
             appendLine("import ${spec.basePackage}.toEntity")

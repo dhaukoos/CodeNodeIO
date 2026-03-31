@@ -28,7 +28,8 @@ data class EntityProperty(
 data class EntityInfo(
     val entityName: String,
     val tableName: String,
-    val daoName: String
+    val daoName: String,
+    val subPackage: String? = null
 )
 
 /**
@@ -110,7 +111,8 @@ class RepositoryCodeGenerator {
     fun generateDao(
         entityName: String,
         tableName: String,
-        packageName: String
+        packageName: String,
+        baseDaoPackage: String? = null
     ): String {
         return buildString {
             appendLine("package $packageName")
@@ -118,6 +120,9 @@ class RepositoryCodeGenerator {
             appendLine("import androidx.room.Dao")
             appendLine("import androidx.room.Query")
             appendLine("import kotlinx.coroutines.flow.Flow")
+            if (baseDaoPackage != null) {
+                appendLine("import $baseDaoPackage.BaseDao")
+            }
             appendLine()
             appendLine("@Dao")
             appendLine("interface ${entityName}Dao : BaseDao<${entityName}Entity> {")
@@ -177,6 +182,11 @@ class RepositoryCodeGenerator {
             appendLine("import androidx.room.RoomDatabase")
             appendLine("import androidx.room.RoomDatabaseConstructor")
             appendLine("import androidx.room.ConstructedBy")
+            // Import entity and DAO classes from sub-packages
+            entities.filter { it.subPackage != null }.forEach { entity ->
+                appendLine("import ${entity.subPackage}.${entity.entityName}Entity")
+                appendLine("import ${entity.subPackage}.${entity.daoName}")
+            }
             appendLine()
             appendLine("@Database(entities = [$entityList], version = $version)")
             appendLine("@ConstructedBy(AppDatabaseConstructor::class)")

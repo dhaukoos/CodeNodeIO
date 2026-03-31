@@ -27,8 +27,8 @@ class EntityPersistenceGenerator {
         return buildString {
             appendLine("package ${spec.basePackage}")
             appendLine()
-            appendLine("import ${spec.persistencePackage}.${entityName}Dao")
-            appendLine("import ${spec.persistencePackage}.${entityName}Repository")
+            appendLine("import ${spec.persistencePackage}.${entityName.lowercase()}.${entityName}Dao")
+            appendLine("import ${spec.persistencePackage}.${entityName.lowercase()}.${entityName}Repository")
             appendLine("import org.koin.core.component.KoinComponent")
             appendLine("import org.koin.core.component.inject")
             appendLine("import org.koin.dsl.module")

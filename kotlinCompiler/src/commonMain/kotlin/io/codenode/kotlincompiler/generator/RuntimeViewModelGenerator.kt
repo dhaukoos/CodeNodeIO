@@ -162,9 +162,9 @@ class RuntimeViewModelGenerator {
         }
         appendLine("import $generatedPackage.${flowName}ControllerInterface")
         if (entityInfo != null) {
-            appendLine("import io.codenode.persistence.${entityInfo.entityName}Dao")
-            appendLine("import io.codenode.persistence.${entityInfo.entityName}Entity")
-            appendLine("import io.codenode.persistence.${entityInfo.entityName}Repository")
+            appendLine("import io.codenode.persistence.${entityInfo.entityName.lowercase()}.${entityInfo.entityName}Dao")
+            appendLine("import io.codenode.persistence.${entityInfo.entityName.lowercase()}.${entityInfo.entityName}Entity")
+            appendLine("import io.codenode.persistence.${entityInfo.entityName.lowercase()}.${entityInfo.entityName}Repository")
             appendLine("import ${entityInfo.ipTypesPackage}.${entityInfo.entityName}")
             appendLine("import ${entityInfo.basePackage}.to${entityInfo.entityName}")
         }

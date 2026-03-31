@@ -266,13 +266,15 @@ class ModuleSaveService {
                 writeFileAlways(file, content, relativePath, filesCreated, filesOverwritten)
             }
 
-            // Write persistence files to the shared persistence module
+            // Write persistence files to the shared persistence module (in entity subdirectory)
+            val entitySubDir = File(persistenceDir, spec.entityName)
+            entitySubDir.mkdirs()
             for ((relativePath, content) in output.persistenceFiles) {
-                val file = File(persistenceDir, relativePath.removePrefix("src/commonMain/kotlin/${spec.persistencePackage.replace(".", "/")}/"))
-                    .let { File(persistenceDir, it.name) }
+                val fileName = File(relativePath).name
+                val file = File(entitySubDir, fileName)
                 if (!file.exists()) {
                     file.writeText(content)
-                    filesCreated.add("persistence/${file.name}")
+                    filesCreated.add("persistence/${spec.entityName}/$fileName")
                 }
             }
 
@@ -310,18 +312,22 @@ class ModuleSaveService {
     ) {
         val persistencePackage = spec.persistencePackage
 
-        // Scan for all Entity files in the persistence directory
-        val entityFiles = persistenceDir.listFiles()
-            ?.filter { it.isFile && it.name.endsWith("Entity.kt") && it.name != "BaseEntity.kt" }
-            ?: emptyList()
+        // Scan entity subdirectories for *Entity.kt files
+        val entityFiles = (persistenceDir.listFiles() ?: emptyArray())
+            .filter { it.isDirectory }
+            .flatMap { subDir ->
+                subDir.listFiles()?.filter { it.isFile && it.name.endsWith("Entity.kt") } ?: emptyList()
+            }
 
         val entityInfos = entityFiles.map { file ->
             val entityClassName = file.nameWithoutExtension // e.g., "UserProfileEntity"
             val entityName = entityClassName.removeSuffix("Entity") // e.g., "UserProfile"
+            val subPackage = "${persistencePackage}.${entityName.lowercase()}"
             EntityInfo(
                 entityName = entityName,
                 tableName = entityName.lowercase() + "s",
-                daoName = "${entityName}Dao"
+                daoName = "${entityName}Dao",
+                subPackage = subPackage
             )
         }
 
@@ -636,21 +642,27 @@ class ModuleSaveService {
             results.add("directory deletion failed: ${e.message}")
         }
 
-        // 3. Remove persistence files
+        // 3. Remove persistence entity subdirectory
         try {
-            val persistenceFileNames = listOf(
-                "${entityName}Entity.kt",
-                "${entityName}Dao.kt",
-                "${entityName}Repository.kt"
-            )
-            var persistenceRemoved = 0
-            for (fileName in persistenceFileNames) {
-                val file = File(persistenceDir, fileName)
-                if (file.exists() && file.delete()) {
-                    persistenceRemoved++
+            val entitySubDir = File(persistenceDir, entityName)
+            if (entitySubDir.isDirectory && entitySubDir.deleteRecursively()) {
+                results.add("persistence directory ${entityName}/")
+            } else {
+                // Fallback: try flat files for backwards compatibility
+                val persistenceFileNames = listOf(
+                    "${entityName}Entity.kt",
+                    "${entityName}Dao.kt",
+                    "${entityName}Repository.kt"
+                )
+                var persistenceRemoved = 0
+                for (fileName in persistenceFileNames) {
+                    val file = File(persistenceDir, fileName)
+                    if (file.exists() && file.delete()) {
+                        persistenceRemoved++
+                    }
                 }
+                if (persistenceRemoved > 0) results.add("$persistenceRemoved persistence file${if (persistenceRemoved != 1) "s" else ""}")
             }
-            if (persistenceRemoved > 0) results.add("$persistenceRemoved persistence file${if (persistenceRemoved != 1) "s" else ""}")
         } catch (e: Exception) {
             results.add("persistence removal failed: ${e.message}")
         }
@@ -667,17 +679,21 @@ class ModuleSaveService {
 
         // 4. Regenerate AppDatabase.kt from remaining entities (with incremented version)
         try {
-            val entityFiles = persistenceDir.listFiles()
-                ?.filter { it.isFile && it.name.endsWith("Entity.kt") && it.name != "BaseEntity.kt" }
-                ?: emptyList()
+            val entityFiles = (persistenceDir.listFiles() ?: emptyArray())
+                .filter { it.isDirectory }
+                .flatMap { subDir ->
+                    subDir.listFiles()?.filter { it.isFile && it.name.endsWith("Entity.kt") } ?: emptyList()
+                }
 
             val entityInfos = entityFiles.map { file ->
                 val entityClassName = file.nameWithoutExtension
                 val name = entityClassName.removeSuffix("Entity")
+                val subPackage = "io.codenode.persistence.${name.lowercase()}"
                 EntityInfo(
                     entityName = name,
                     tableName = name.lowercase() + "s",
-                    daoName = "${name}Dao"
+                    daoName = "${name}Dao",
+                    subPackage = subPackage
                 )
             }
 
@@ -793,14 +809,15 @@ class ModuleSaveService {
             unwired++
         }
 
-        // 2. Remove DAO registration from PersistenceBootstrap
+        // 2. Remove DAO registration and import from PersistenceBootstrap
         val bootstrapFile = File(projectDir, "persistence/src/commonMain/kotlin/io/codenode/persistence/PersistenceBootstrap.kt")
         if (bootstrapFile.exists()) {
             var content = bootstrapFile.readText()
             val daoLine = "single<${entityName}Dao>"
+            val daoImport = "import io.codenode.persistence.${entityName.lowercase()}.${entityName}Dao"
             val lines = content.lines().toMutableList()
             val originalSize = lines.size
-            lines.removeAll { it.contains(daoLine) }
+            lines.removeAll { it.contains(daoLine) || it.trim() == daoImport }
             if (lines.size != originalSize) {
                 bootstrapFile.writeText(lines.joinToString("\n"))
                 unwired++

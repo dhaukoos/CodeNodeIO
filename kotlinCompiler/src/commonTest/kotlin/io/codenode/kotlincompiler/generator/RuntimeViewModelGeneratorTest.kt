@@ -393,7 +393,7 @@ class RuntimeViewModelGeneratorTest {
         val flowGraph = createEntityModuleFlow()
         val result = generator.generate(flowGraph, basePackage, generatedPackage)
 
-        assertTrue(result.contains("geoLocationDao: GeoLocationDao"))
+        assertTrue(result.contains("sampleDao: SampleDao"))
     }
 
     @Test
@@ -401,7 +401,7 @@ class RuntimeViewModelGeneratorTest {
         val flowGraph = createEntityModuleFlow()
         val result = generator.generate(flowGraph, basePackage, generatedPackage)
 
-        assertTrue(result.contains("fun addEntity(geoLocation: GeoLocation)"))
+        assertTrue(result.contains("fun addEntity(sample: Sample)"))
     }
 
     @Test
@@ -409,7 +409,7 @@ class RuntimeViewModelGeneratorTest {
         val flowGraph = createEntityModuleFlow()
         val result = generator.generate(flowGraph, basePackage, generatedPackage)
 
-        assertTrue(result.contains("fun updateEntity(geoLocation: GeoLocation)"))
+        assertTrue(result.contains("fun updateEntity(sample: Sample)"))
     }
 
     @Test
@@ -417,7 +417,7 @@ class RuntimeViewModelGeneratorTest {
         val flowGraph = createEntityModuleFlow()
         val result = generator.generate(flowGraph, basePackage, generatedPackage)
 
-        assertTrue(result.contains("fun removeEntity(geoLocation: GeoLocation)"))
+        assertTrue(result.contains("fun removeEntity(sample: Sample)"))
     }
 
     @Test
@@ -426,7 +426,7 @@ class RuntimeViewModelGeneratorTest {
         val result = generator.generate(flowGraph, basePackage, generatedPackage)
 
         assertTrue(result.contains("init {"))
-        assertTrue(result.contains("GeoLocationRepository(geoLocationDao)"))
+        assertTrue(result.contains("SampleRepository(sampleDao)"))
         assertTrue(result.contains("repo.observeAll().collect"))
     }
 
@@ -435,9 +435,9 @@ class RuntimeViewModelGeneratorTest {
         val flowGraph = createEntityModuleFlow()
         val result = generator.generate(flowGraph, basePackage, generatedPackage)
 
-        assertTrue(result.contains("import io.codenode.persistence.GeoLocationDao"))
-        assertTrue(result.contains("import io.codenode.persistence.GeoLocationEntity"))
-        assertTrue(result.contains("import io.codenode.persistence.GeoLocationRepository"))
+        assertTrue(result.contains("import io.codenode.persistence.sample.SampleDao"))
+        assertTrue(result.contains("import io.codenode.persistence.sample.SampleEntity"))
+        assertTrue(result.contains("import io.codenode.persistence.sample.SampleRepository"))
     }
 
     @Test
@@ -454,15 +454,15 @@ class RuntimeViewModelGeneratorTest {
         val flowGraph = createEntityModuleFlow()
         val result = generator.generate(flowGraph, basePackage, generatedPackage)
 
-        assertTrue(result.contains("internal val _geoLocations = MutableStateFlow<List<GeoLocation>>(emptyList())"))
+        assertTrue(result.contains("internal val _samples = MutableStateFlow<List<Sample>>(emptyList())"))
     }
 
     @Test
-    fun `entity module generates geoLocations property in ViewModel`() {
+    fun `entity module generates samples property in ViewModel`() {
         val flowGraph = createEntityModuleFlow()
         val result = generator.generate(flowGraph, basePackage, generatedPackage)
 
-        assertTrue(result.contains("val geoLocations: StateFlow<List<GeoLocation>>"))
+        assertTrue(result.contains("val samples: StateFlow<List<Sample>>"))
     }
 
     @Test
@@ -480,7 +480,7 @@ class RuntimeViewModelGeneratorTest {
     private fun createEntityModuleFlow(): FlowGraph {
         val cudNode = CodeNode(
             id = "cud",
-            name = "GeoLocationCUD",
+            name = "SampleCUD",
             codeNodeType = CodeNodeType.TRANSFORMER,
             position = Node.Position(100.0, 400.0),
             outputPorts = listOf(
@@ -491,12 +491,12 @@ class RuntimeViewModelGeneratorTest {
             configuration = mapOf(
                 "_cudSource" to "true",
                 "_sourceIPTypeId" to "ip_test",
-                "_sourceIPTypeName" to "GeoLocation"
+                "_sourceIPTypeName" to "Sample"
             )
         )
         val repoNode = CodeNode(
             id = "repo",
-            name = "GeoLocationRepository",
+            name = "SampleRepository",
             codeNodeType = CodeNodeType.TRANSFORMER,
             position = Node.Position(400.0, 400.0),
             inputPorts = listOf(
@@ -511,12 +511,12 @@ class RuntimeViewModelGeneratorTest {
             configuration = mapOf(
                 "_repository" to "true",
                 "_sourceIPTypeId" to "ip_test",
-                "_sourceIPTypeName" to "GeoLocation"
+                "_sourceIPTypeName" to "Sample"
             )
         )
         val displayNode = CodeNode(
             id = "display",
-            name = "GeoLocationsDisplay",
+            name = "SamplesDisplay",
             codeNodeType = CodeNodeType.TRANSFORMER,
             position = Node.Position(700.0, 400.0),
             inputPorts = listOf(
@@ -526,11 +526,11 @@ class RuntimeViewModelGeneratorTest {
             configuration = mapOf(
                 "_display" to "true",
                 "_sourceIPTypeId" to "ip_test",
-                "_sourceIPTypeName" to "GeoLocation"
+                "_sourceIPTypeName" to "Sample"
             )
         )
         return createFlowGraph(
-            name = "GeoLocations",
+            name = "Samples",
             nodes = listOf(cudNode, repoNode, displayNode)
         )
     }

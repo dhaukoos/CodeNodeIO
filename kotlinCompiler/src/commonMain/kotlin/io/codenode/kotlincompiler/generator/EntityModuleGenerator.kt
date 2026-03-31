@@ -117,20 +117,21 @@ class EntityModuleGenerator {
         moduleFiles["src/commonMain/kotlin/$userInterfacePath/${spec.entityName}Row.kt"] =
             uiGenerator.generateRowView(spec)
 
-        // Persistence files (go to the shared persistence module)
+        // Persistence files (go to the shared persistence module, in entity subdirectory)
         val persistenceFiles = mutableMapOf<String, String>()
         val persistencePackage = spec.persistencePackage
-        val persistencePath = persistencePackage.replace(".", "/")
+        val entitySubPackage = "$persistencePackage.${spec.entityName.lowercase()}"
+        val entitySubPath = entitySubPackage.replace(".", "/")
         val tableName = spec.entityName.lowercase() + "s"
 
-        persistenceFiles["src/commonMain/kotlin/$persistencePath/${spec.entityName}Entity.kt"] =
-            repositoryCodeGenerator.generateEntity(spec.entityName, spec.properties, persistencePackage)
+        persistenceFiles["src/commonMain/kotlin/$entitySubPath/${spec.entityName}Entity.kt"] =
+            repositoryCodeGenerator.generateEntity(spec.entityName, spec.properties, entitySubPackage)
 
-        persistenceFiles["src/commonMain/kotlin/$persistencePath/${spec.entityName}Dao.kt"] =
-            repositoryCodeGenerator.generateDao(spec.entityName, tableName, persistencePackage)
+        persistenceFiles["src/commonMain/kotlin/$entitySubPath/${spec.entityName}Dao.kt"] =
+            repositoryCodeGenerator.generateDao(spec.entityName, tableName, entitySubPackage, persistencePackage)
 
-        persistenceFiles["src/commonMain/kotlin/$persistencePath/${spec.entityName}Repository.kt"] =
-            repositoryCodeGenerator.generateRepository(spec.entityName, persistencePackage)
+        persistenceFiles["src/commonMain/kotlin/$entitySubPath/${spec.entityName}Repository.kt"] =
+            repositoryCodeGenerator.generateRepository(spec.entityName, entitySubPackage)
 
         return EntityModuleOutput(
             moduleFiles = moduleFiles,
@@ -156,7 +157,7 @@ class EntityModuleGenerator {
             appendLine("package ${spec.basePackage}")
             appendLine()
             appendLine("import ${spec.ipTypesPackage}.$entityName")
-            appendLine("import ${spec.persistencePackage}.${entityName}Entity")
+            appendLine("import ${spec.persistencePackage}.${entityName.lowercase()}.${entityName}Entity")
             appendLine()
             appendLine("/** Convert IP type to persistence entity */")
             append("fun $entityName.toEntity() = ${entityName}Entity(id = id")

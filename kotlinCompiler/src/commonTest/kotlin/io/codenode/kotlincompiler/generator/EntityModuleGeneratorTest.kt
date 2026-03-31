@@ -1,7 +1,7 @@
 /*
  * EntityModuleGeneratorTest
  * End-to-end tests for the EntityModuleGenerator orchestrator.
- * Validates GeoLocation module generation matches UserProfiles patterns.
+ * Validates Sample module generation matches expected patterns.
  * License: Apache 2.0
  */
 
@@ -15,9 +15,9 @@ import kotlin.test.assertNotNull
 class EntityModuleGeneratorTest {
 
     private val generator = EntityModuleGenerator()
-    private val geoLocationSpec = EntityModuleSpec.fromIPType(
-        ipTypeName = "GeoLocation",
-        sourceIPTypeId = "test-geo-id",
+    private val sampleSpec = EntityModuleSpec.fromIPType(
+        ipTypeName = "Sample",
+        sourceIPTypeId = "test-sample-id",
         properties = listOf(
             EntityProperty("name", "String", isRequired = true),
             EntityProperty("lat", "Double", isRequired = true),
@@ -27,86 +27,95 @@ class EntityModuleGeneratorTest {
 
     @Test
     fun generateModule_producesAllExpectedModuleFiles() {
-        val output = generator.generateModule(geoLocationSpec)
+        val output = generator.generateModule(sampleSpec)
 
         // Verify the .flow.kt file
-        val flowKtKey = output.moduleFiles.keys.find { it.endsWith("GeoLocations.flow.kt") }
-        assertNotNull(flowKtKey, "Should generate GeoLocations.flow.kt")
+        val flowKtKey = output.moduleFiles.keys.find { it.endsWith("Samples.flow.kt") }
+        assertNotNull(flowKtKey, "Should generate Samples.flow.kt")
 
         // Verify node definition files in nodes/ subdirectory
-        val cudKey = output.moduleFiles.keys.find { it.endsWith("GeoLocationCUDCodeNode.kt") }
-        assertNotNull(cudKey, "Should generate GeoLocationCUDCodeNode.kt")
+        val cudKey = output.moduleFiles.keys.find { it.endsWith("SampleCUDCodeNode.kt") }
+        assertNotNull(cudKey, "Should generate SampleCUDCodeNode.kt")
         assertTrue(cudKey!!.contains("/nodes/"), "CUD node should be in nodes/ subdirectory")
 
-        val repoKey = output.moduleFiles.keys.find { it.endsWith("GeoLocationRepositoryCodeNode.kt") }
-        assertNotNull(repoKey, "Should generate GeoLocationRepositoryCodeNode.kt")
+        val repoKey = output.moduleFiles.keys.find { it.endsWith("SampleRepositoryCodeNode.kt") }
+        assertNotNull(repoKey, "Should generate SampleRepositoryCodeNode.kt")
 
-        val displayKey = output.moduleFiles.keys.find { it.endsWith("GeoLocationsDisplayCodeNode.kt") }
-        assertNotNull(displayKey, "Should generate GeoLocationsDisplayCodeNode.kt")
+        val displayKey = output.moduleFiles.keys.find { it.endsWith("SamplesDisplayCodeNode.kt") }
+        assertNotNull(displayKey, "Should generate SamplesDisplayCodeNode.kt")
 
         // Verify ViewModel
-        val vmKey = output.moduleFiles.keys.find { it.endsWith("GeoLocationsViewModel.kt") }
-        assertNotNull(vmKey, "Should generate GeoLocationsViewModel.kt")
+        val vmKey = output.moduleFiles.keys.find { it.endsWith("SamplesViewModel.kt") }
+        assertNotNull(vmKey, "Should generate SamplesViewModel.kt")
 
         // Verify Persistence Koin module
-        val persKey = output.moduleFiles.keys.find { it.endsWith("GeoLocationsPersistence.kt") }
-        assertNotNull(persKey, "Should generate GeoLocationsPersistence.kt")
+        val persKey = output.moduleFiles.keys.find { it.endsWith("SamplesPersistence.kt") }
+        assertNotNull(persKey, "Should generate SamplesPersistence.kt")
 
         // Verify 4 generated runtime files
         val generatedKeys = output.moduleFiles.keys.filter { it.contains("/generated/") }
         assertTrue(generatedKeys.size >= 4, "Should generate at least 4 runtime files in generated/")
-        assertTrue(generatedKeys.any { it.endsWith("GeoLocationsFlow.kt") }, "Should generate GeoLocationsFlow.kt")
-        assertTrue(generatedKeys.any { it.endsWith("GeoLocationsController.kt") }, "Should generate GeoLocationsController.kt")
-        assertTrue(generatedKeys.any { it.endsWith("GeoLocationsControllerInterface.kt") }, "Should generate GeoLocationsControllerInterface.kt")
-        assertTrue(generatedKeys.any { it.endsWith("GeoLocationsControllerAdapter.kt") }, "Should generate GeoLocationsControllerAdapter.kt")
+        assertTrue(generatedKeys.any { it.endsWith("SamplesFlow.kt") }, "Should generate SamplesFlow.kt")
+        assertTrue(generatedKeys.any { it.endsWith("SamplesController.kt") }, "Should generate SamplesController.kt")
+        assertTrue(generatedKeys.any { it.endsWith("SamplesControllerInterface.kt") }, "Should generate SamplesControllerInterface.kt")
+        assertTrue(generatedKeys.any { it.endsWith("SamplesControllerAdapter.kt") }, "Should generate SamplesControllerAdapter.kt")
 
         // Verify UI files
         val uiKeys = output.moduleFiles.keys.filter { it.contains("/userInterface/") }
-        assertTrue(uiKeys.any { it.endsWith("GeoLocations.kt") }, "Should generate GeoLocations.kt UI")
-        assertTrue(uiKeys.any { it.endsWith("AddUpdateGeoLocation.kt") }, "Should generate AddUpdateGeoLocation.kt UI")
-        assertTrue(uiKeys.any { it.endsWith("GeoLocationRow.kt") }, "Should generate GeoLocationRow.kt UI")
+        assertTrue(uiKeys.any { it.endsWith("Samples.kt") }, "Should generate Samples.kt UI")
+        assertTrue(uiKeys.any { it.endsWith("AddUpdateSample.kt") }, "Should generate AddUpdateSample.kt UI")
+        assertTrue(uiKeys.any { it.endsWith("SampleRow.kt") }, "Should generate SampleRow.kt UI")
     }
 
     @Test
     fun generateModule_producesAllPersistenceFiles() {
-        val output = generator.generateModule(geoLocationSpec)
+        val output = generator.generateModule(sampleSpec)
 
-        assertTrue(output.persistenceFiles.keys.any { it.endsWith("GeoLocationEntity.kt") },
-            "Should generate GeoLocationEntity.kt")
-        assertTrue(output.persistenceFiles.keys.any { it.endsWith("GeoLocationDao.kt") },
-            "Should generate GeoLocationDao.kt")
-        assertTrue(output.persistenceFiles.keys.any { it.endsWith("GeoLocationRepository.kt") },
-            "Should generate GeoLocationRepository.kt")
+        assertTrue(output.persistenceFiles.keys.any { it.endsWith("SampleEntity.kt") },
+            "Should generate SampleEntity.kt")
+        assertTrue(output.persistenceFiles.keys.any { it.endsWith("SampleDao.kt") },
+            "Should generate SampleDao.kt")
+        assertTrue(output.persistenceFiles.keys.any { it.endsWith("SampleRepository.kt") },
+            "Should generate SampleRepository.kt")
+
+        // Verify files are in entity subdirectory
+        assertTrue(output.persistenceFiles.keys.all { it.contains("/sample/") },
+            "All persistence files should be in sample/ subdirectory")
+
+        // Verify entity sub-package in generated content
+        val entity = output.persistenceFiles.entries.find { it.key.endsWith("SampleEntity.kt") }!!.value
+        assertTrue(entity.contains("package io.codenode.persistence.sample"),
+            "Entity should declare entity sub-package")
     }
 
     @Test
     fun generateModule_flowKtContainsThreeNodesAndConnections() {
-        val output = generator.generateModule(geoLocationSpec)
-        val flowKt = output.moduleFiles.entries.find { it.key.endsWith("GeoLocations.flow.kt") }!!.value
+        val output = generator.generateModule(sampleSpec)
+        val flowKt = output.moduleFiles.entries.find { it.key.endsWith("Samples.flow.kt") }!!.value
 
-        assertTrue(flowKt.contains("GeoLocationCUD"), "flow.kt should reference GeoLocationCUD")
-        assertTrue(flowKt.contains("GeoLocationRepository"), "flow.kt should reference GeoLocationRepository")
-        assertTrue(flowKt.contains("GeoLocationsDisplay"), "flow.kt should reference GeoLocationsDisplay")
+        assertTrue(flowKt.contains("SampleCUD"), "flow.kt should reference SampleCUD")
+        assertTrue(flowKt.contains("SampleRepository"), "flow.kt should reference SampleRepository")
+        assertTrue(flowKt.contains("SamplesDisplay"), "flow.kt should reference SamplesDisplay")
     }
 
     @Test
     fun generateModule_viewModelContainsCrudMethods() {
-        val output = generator.generateModule(geoLocationSpec)
-        val vm = output.moduleFiles.entries.find { it.key.endsWith("GeoLocationsViewModel.kt") }!!.value
+        val output = generator.generateModule(sampleSpec)
+        val vm = output.moduleFiles.entries.find { it.key.endsWith("SamplesViewModel.kt") }!!.value
 
-        assertTrue(vm.contains("geoLocationDao: GeoLocationDao"), "ViewModel should have DAO constructor param")
+        assertTrue(vm.contains("sampleDao: SampleDao"), "ViewModel should have DAO constructor param")
         assertTrue(vm.contains("fun addEntity("), "ViewModel should have addEntity method")
         assertTrue(vm.contains("fun updateEntity("), "ViewModel should have updateEntity method")
         assertTrue(vm.contains("fun removeEntity("), "ViewModel should have removeEntity method")
-        assertTrue(vm.contains("GeoLocationRepository("), "ViewModel should observe repository")
-        assertTrue(vm.contains("import io.codenode.persistence.GeoLocationDao"), "ViewModel should import DAO")
-        assertTrue(vm.contains("import io.codenode.persistence.GeoLocationEntity"), "ViewModel should import Entity")
+        assertTrue(vm.contains("SampleRepository("), "ViewModel should observe repository")
+        assertTrue(vm.contains("import io.codenode.persistence.sample.SampleDao"), "ViewModel should import DAO from entity sub-package")
+        assertTrue(vm.contains("import io.codenode.persistence.sample.SampleEntity"), "ViewModel should import Entity from entity sub-package")
     }
 
     @Test
     fun generateModule_persistenceEntityHasCorrectFields() {
-        val output = generator.generateModule(geoLocationSpec)
-        val entity = output.persistenceFiles.entries.find { it.key.endsWith("GeoLocationEntity.kt") }!!.value
+        val output = generator.generateModule(sampleSpec)
+        val entity = output.persistenceFiles.entries.find { it.key.endsWith("SampleEntity.kt") }!!.value
 
         assertTrue(entity.contains("name"), "Entity should have name field")
         assertTrue(entity.contains("lat"), "Entity should have lat field")
@@ -115,22 +124,22 @@ class EntityModuleGeneratorTest {
 
     @Test
     fun generateModule_uiListViewHasButtons() {
-        val output = generator.generateModule(geoLocationSpec)
+        val output = generator.generateModule(sampleSpec)
         val listView = output.moduleFiles.entries.find {
-            it.key.contains("/userInterface/") && it.key.endsWith("GeoLocations.kt")
+            it.key.contains("/userInterface/") && it.key.endsWith("Samples.kt")
         }!!.value
 
         assertTrue(listView.contains("@Composable"), "List view should be a composable")
-        assertTrue(listView.contains("fun GeoLocations("), "List view should have correct name")
+        assertTrue(listView.contains("fun Samples("), "List view should have correct name")
     }
 
     @Test
     fun generateModule_uiFormHasPropertyFields() {
-        val output = generator.generateModule(geoLocationSpec)
-        val form = output.moduleFiles.entries.find { it.key.endsWith("AddUpdateGeoLocation.kt") }!!.value
+        val output = generator.generateModule(sampleSpec)
+        val form = output.moduleFiles.entries.find { it.key.endsWith("AddUpdateSample.kt") }!!.value
 
         assertTrue(form.contains("@Composable"), "Form should be a composable")
-        assertTrue(form.contains("fun AddUpdateGeoLocation("), "Form should have correct name")
+        assertTrue(form.contains("fun AddUpdateSample("), "Form should have correct name")
         assertTrue(form.contains("name"), "Form should have name field")
         assertTrue(form.contains("lat"), "Form should have lat field")
         assertTrue(form.contains("lon"), "Form should have lon field")
@@ -138,10 +147,10 @@ class EntityModuleGeneratorTest {
 
     @Test
     fun generateModule_flowGraphHasCorrectStructure() {
-        val output = generator.generateModule(geoLocationSpec)
+        val output = generator.generateModule(sampleSpec)
         val flowGraph = output.flowGraph
 
-        assertEquals("GeoLocations", flowGraph.name.pascalCase())
+        assertEquals("Samples", flowGraph.name.pascalCase())
         val nodes = flowGraph.getAllNodes()
         assertEquals(3, nodes.size, "FlowGraph should have 3 nodes")
         assertEquals(5, flowGraph.connections.size, "FlowGraph should have 5 connections")
@@ -149,24 +158,24 @@ class EntityModuleGeneratorTest {
 
     @Test
     fun generateModule_cudCodeNodeHasReactiveSourceFlows() {
-        val output = generator.generateModule(geoLocationSpec)
-        val cud = output.moduleFiles.entries.find { it.key.endsWith("GeoLocationCUDCodeNode.kt") }!!.value
+        val output = generator.generateModule(sampleSpec)
+        val cud = output.moduleFiles.entries.find { it.key.endsWith("SampleCUDCodeNode.kt") }!!.value
 
         assertTrue(cud.contains("CodeNodeDefinition"), "CUD should implement CodeNodeDefinition")
-        assertTrue(cud.contains("GeoLocationsState"), "CUD should reference module state")
+        assertTrue(cud.contains("SamplesState"), "CUD should reference module state")
         assertTrue(cud.contains("_save"), "CUD should reference _save flow")
         assertTrue(cud.contains("_update"), "CUD should reference _update flow")
         assertTrue(cud.contains("_remove"), "CUD should reference _remove flow")
-        assertTrue(cud.contains("GeoLocation::class"), "CUD should use typed port specs")
+        assertTrue(cud.contains("Sample::class"), "CUD should use typed port specs")
     }
 
     @Test
     fun generateModule_displayCodeNodeHandlesTwoInputs() {
-        val output = generator.generateModule(geoLocationSpec)
-        val display = output.moduleFiles.entries.find { it.key.endsWith("GeoLocationsDisplayCodeNode.kt") }!!.value
+        val output = generator.generateModule(sampleSpec)
+        val display = output.moduleFiles.entries.find { it.key.endsWith("SamplesDisplayCodeNode.kt") }!!.value
 
         assertTrue(display.contains("CodeNodeDefinition"), "Display should implement CodeNodeDefinition")
-        assertTrue(display.contains("GeoLocationsState"), "Display should reference module state")
+        assertTrue(display.contains("SamplesState"), "Display should reference module state")
         assertTrue(display.contains("String::class"), "Display should use String port specs")
         assertTrue(display.contains("_result") || display.contains("result"),
             "Display should handle result input")
