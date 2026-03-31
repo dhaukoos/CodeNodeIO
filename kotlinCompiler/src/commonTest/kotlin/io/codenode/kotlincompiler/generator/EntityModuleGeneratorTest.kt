@@ -33,13 +33,16 @@ class EntityModuleGeneratorTest {
         val flowKtKey = output.moduleFiles.keys.find { it.endsWith("GeoLocations.flow.kt") }
         assertNotNull(flowKtKey, "Should generate GeoLocations.flow.kt")
 
-        // Verify CUD stub
-        val cudKey = output.moduleFiles.keys.find { it.endsWith("GeoLocationCUD.kt") }
-        assertNotNull(cudKey, "Should generate GeoLocationCUD.kt")
+        // Verify node definition files in nodes/ subdirectory
+        val cudKey = output.moduleFiles.keys.find { it.endsWith("GeoLocationCUDCodeNode.kt") }
+        assertNotNull(cudKey, "Should generate GeoLocationCUDCodeNode.kt")
+        assertTrue(cudKey!!.contains("/nodes/"), "CUD node should be in nodes/ subdirectory")
 
-        // Verify Display stub
-        val displayKey = output.moduleFiles.keys.find { it.endsWith("GeoLocationsDisplay.kt") }
-        assertNotNull(displayKey, "Should generate GeoLocationsDisplay.kt")
+        val repoKey = output.moduleFiles.keys.find { it.endsWith("GeoLocationRepositoryCodeNode.kt") }
+        assertNotNull(repoKey, "Should generate GeoLocationRepositoryCodeNode.kt")
+
+        val displayKey = output.moduleFiles.keys.find { it.endsWith("GeoLocationsDisplayCodeNode.kt") }
+        assertNotNull(displayKey, "Should generate GeoLocationsDisplayCodeNode.kt")
 
         // Verify ViewModel
         val vmKey = output.moduleFiles.keys.find { it.endsWith("GeoLocationsViewModel.kt") }
@@ -145,22 +148,26 @@ class EntityModuleGeneratorTest {
     }
 
     @Test
-    fun generateModule_cudStubHasReactiveSourceFlows() {
+    fun generateModule_cudCodeNodeHasReactiveSourceFlows() {
         val output = generator.generateModule(geoLocationSpec)
-        val cud = output.moduleFiles.entries.find { it.key.endsWith("GeoLocationCUD.kt") }!!.value
+        val cud = output.moduleFiles.entries.find { it.key.endsWith("GeoLocationCUDCodeNode.kt") }!!.value
 
+        assertTrue(cud.contains("CodeNodeDefinition"), "CUD should implement CodeNodeDefinition")
         assertTrue(cud.contains("GeoLocationsState"), "CUD should reference module state")
         assertTrue(cud.contains("_save"), "CUD should reference _save flow")
         assertTrue(cud.contains("_update"), "CUD should reference _update flow")
         assertTrue(cud.contains("_remove"), "CUD should reference _remove flow")
+        assertTrue(cud.contains("GeoLocation::class"), "CUD should use typed port specs")
     }
 
     @Test
-    fun generateModule_displayStubHandlesTwoInputs() {
+    fun generateModule_displayCodeNodeHandlesTwoInputs() {
         val output = generator.generateModule(geoLocationSpec)
-        val display = output.moduleFiles.entries.find { it.key.endsWith("GeoLocationsDisplay.kt") }!!.value
+        val display = output.moduleFiles.entries.find { it.key.endsWith("GeoLocationsDisplayCodeNode.kt") }!!.value
 
+        assertTrue(display.contains("CodeNodeDefinition"), "Display should implement CodeNodeDefinition")
         assertTrue(display.contains("GeoLocationsState"), "Display should reference module state")
+        assertTrue(display.contains("String::class"), "Display should use String port specs")
         assertTrue(display.contains("_result") || display.contains("result"),
             "Display should handle result input")
         assertTrue(display.contains("_error") || display.contains("error"),

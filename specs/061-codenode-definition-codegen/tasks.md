@@ -49,7 +49,7 @@
 - [X] T008 [US1] ModuleGenerator already includes preview-api in jvmMain (from feature 060).
 - [X] T009 [US1] ModuleSaveService already deletes entire module directory on removal (nodes/ included).
 - [X] T010 [US1] Tests: 502 total, 17 failures. 16 failures are expected (legacy path tests that need updating in T020-T021). 1 pre-existing (EntityUIGeneratorTest). Production code compiles.
-- [ ] T011 [US1] End-to-end test: Create a "TestItem" IP type in the graphEditor, click "Create Repository Module", compile the generated module with `./gradlew :TestItems:jvmJar` from the DemoProject. Verify zero compilation errors. [MANUAL TEST]
+- [X] T011 [US1] End-to-end test: Created TestItem, compiled successfully. Generated Flow.kt uses concrete types (TestItem, String) for runtime casts and observable state. No tick function references.
 
 **Checkpoint**: Generated modules compile out of the box. No tick function errors. No type mismatches.
 
@@ -63,10 +63,10 @@
 
 ### Implementation for User Story 2
 
-- [ ] T012 [US2] Verify generated `{Entity}CUDCodeNode.kt` uses typed output ports (`{Entity}::class` not `Any::class`), imports from `iptypes` package, and uses `createSourceOut3<{Entity}, {Entity}, {Entity}>`.
-- [ ] T013 [US2] Verify generated `{Entity}RepositoryCodeNode.kt` uses typed input ports (`{Entity}::class`), String output ports, identity tracking pattern (`lastSaveRef`, etc.), `toEntity()` conversion at DAO boundary, and proper error handling with `ProcessResult2`.
-- [ ] T014 [US2] Verify generated `{PluralName}DisplayCodeNode.kt` uses `String::class` input ports and `createSinkIn2<String, String>`.
-- [ ] T015 [US2] Verify the generated `.flow.kt` file shows concrete IP type names in port declarations (not `Any::class`) by loading the module in the graphEditor and switching to Textual view.
+- [X] T012 [US2] Verified: generated CUDCodeNode uses typed ports (TestItem::class), imports from iptypes, uses createSourceOut3<TestItem>.
+- [X] T013 [US2] Verified: generated RepositoryCodeNode uses typed input ports, String output ports, identity tracking, toEntity() conversion, ProcessResult2.
+- [X] T014 [US2] Verified: generated DisplayCodeNode uses String::class input ports and createSinkIn2<String, String>.
+- [X] T015 [US2] Verified: generated Flow.kt has concrete types in runtime casts and observable state.
 
 **Checkpoint**: Generated nodes are structurally identical to hand-written nodes. Types are concrete.
 
@@ -76,16 +76,14 @@
 
 **Goal**: No legacy tick functions or factory functions in generated code. RuntimeFlowGenerator simplified.
 
-**Independent Test**: Inspect generated `*Flow.kt` for absence of tick function references. Verify existing modules still work.
-
 ### Implementation for User Story 3
 
-- [ ] T016 [US3] Delete `EntityCUDGenerator` at `kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/EntityCUDGenerator.kt` and its test file. Replaced by `EntityCUDCodeNodeGenerator`.
-- [ ] T017 [US3] Delete `EntityDisplayGenerator` at `kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/EntityDisplayGenerator.kt` and its test file. Replaced by `EntityDisplayCodeNodeGenerator`.
-- [ ] T018 [US3] Verify generated `{PluralName}Flow.kt` contains NO tick function imports (no `import ... xxxTick`) and NO legacy factory calls (no `createXxxCUD()`, no `createXxxDisplay()`).
-- [ ] T019 [US3] Regression test: Verify existing modules compile — run from DemoProject: `./gradlew :UserProfiles:jvmJar :GeoLocations:jvmJar :Addresses:jvmJar :StopWatch:jvmJar :EdgeArtFilter:jvmJar :WeatherForecast:jvmJar`.
+- [X] T016 [US3] Deleted EntityCUDGenerator and EntityCUDGeneratorTest.
+- [X] T017 [US3] Deleted EntityDisplayGenerator and EntityDisplayGeneratorTest.
+- [X] T018 [US3] Verified: generated Flow.kt contains no tick function imports and no legacy factory calls. All nodes use CodeNodeDefinition.createRuntime().
+- [ ] T019 [US3] Regression test: Verify existing modules compile from DemoProject. [MANUAL TEST]
 
-**Checkpoint**: Legacy code paths deprecated. No regressions in existing modules.
+**Checkpoint**: Legacy code paths removed. No regressions in existing modules.
 
 ---
 
@@ -93,11 +91,11 @@
 
 **Purpose**: Test cleanup, documentation, and final validation
 
-- [ ] T020 [P] Update existing generator tests at `kotlinCompiler/src/commonTest/kotlin/io/codenode/kotlincompiler/generator/` — update `EntityModuleGeneratorTest` expectations for new file paths (nodes/ subdirectory) and CodeNodeDefinition output.
-- [ ] T021 [P] Update `RuntimeFlowGeneratorTest` at `kotlinCompiler/src/commonTest/kotlin/io/codenode/kotlincompiler/generator/RuntimeFlowGeneratorTest.kt` — remove tests for legacy tick function generation, add tests verifying CodeNodeDefinition-only path.
-- [ ] T022 Run full test suite: `./gradlew :kotlinCompiler:jvmTest` — verify all tests pass.
-- [ ] T023 Run quickstart.md scenarios 1-5 to validate end-to-end functionality.
-- [ ] T024 Clean up test artifacts (remove any TestItem module created during testing).
+- [X] T020 [P] Updated EntityModuleGeneratorTest — file paths now reference nodes/ subdirectory, assertions check for CodeNodeDefinition output.
+- [X] T021 [P] Updated RuntimeFlowGeneratorTest — removed 13 legacy tick-function tests. 25 remaining tests pass (wiring, observable state, CodeNodeDefinition path).
+- [X] T022 Full test suite: 469 tests, 1 failure (pre-existing EntityUIGeneratorTest). All generator changes pass.
+- [ ] T023 Run quickstart.md scenarios 1-5 to validate end-to-end functionality. [MANUAL TEST]
+- [ ] T024 Clean up test artifacts (remove any TestItem module created during testing). [MANUAL]
 
 ---
 
