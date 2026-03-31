@@ -386,6 +386,39 @@ class ModuleSaveService {
                 settingsFile.writeText("$trimmed\n$includeEntry\n")
             }
         }
+
+        // Ensure iptypes is in graphEditorRuntime in root build.gradle.kts
+        addToGraphEditorRuntime(projectDir, "iptypes")
+    }
+
+    /**
+     * Adds a module to the graphEditorRuntime configuration in the root build.gradle.kts.
+     * This ensures the module is on the classpath when running ./gradlew runGraphEditor.
+     */
+    private fun addToGraphEditorRuntime(projectDir: File, moduleName: String) {
+        val rootBuildFile = File(projectDir, "build.gradle.kts")
+        if (!rootBuildFile.exists()) return
+
+        val content = rootBuildFile.readText()
+        val runtimeEntry = "graphEditorRuntime(project(\":$moduleName\"))"
+        if (content.contains(runtimeEntry)) return
+
+        // Insert after the last graphEditorRuntime(project(":...")) block
+        val insertPattern = Regex("""graphEditorRuntime\(project\(":[^"]+"\)\)\s*\{[^}]*\}""")
+        val matches = insertPattern.findAll(content).toList()
+        val lastMatch = matches.lastOrNull() ?: return
+
+        val newEntry = buildString {
+            appendLine("    graphEditorRuntime(project(\":$moduleName\")) {")
+            appendLine("        attributes {")
+            appendLine("            attribute(Attribute.of(\"org.jetbrains.kotlin.platform.type\", String::class.java), \"jvm\")")
+            appendLine("        }")
+            append("    }")
+        }
+        val updated = content.substring(0, lastMatch.range.last + 1) +
+            "\n$newEntry" +
+            content.substring(lastMatch.range.last + 1)
+        rootBuildFile.writeText(updated)
     }
 
     /**
@@ -487,23 +520,9 @@ class ModuleSaveService {
             }
         }
 
-        // Update graphEditor/build.gradle.kts
-        val buildFile = File(projectDir, "graphEditor/build.gradle.kts")
-        if (buildFile.exists()) {
-            val content = buildFile.readText()
-            if (!content.contains(implEntry)) {
-                // Insert after the last implementation(project(":...")) line
-                val insertAfter = "implementation(project(\":persistence\"))"
-                if (content.contains(insertAfter)) {
-                    val updated = content.replace(
-                        insertAfter,
-                        "$insertAfter\n                $implEntry"
-                    )
-                    buildFile.writeText(updated)
-                    filesOverwritten.add("graphEditor/build.gradle.kts")
-                }
-            }
-        }
+        // Add module to graphEditorRuntime classpath in root build.gradle.kts
+        addToGraphEditorRuntime(projectDir, moduleName)
+        filesOverwritten.add("build.gradle.kts")
     }
 
     /**
