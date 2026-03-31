@@ -90,6 +90,8 @@ Auto-generated from all feature plans. Last updated: 2026-01-13
 - Git repositories (GitHub), Gradle composite builds (060-separate-repo)
 - Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + kotlinCompiler module (code generation), fbpDsl (runtime types) (061-codenode-definition-codegen)
 - N/A (generates source code files) (061-codenode-definition-codegen)
+- Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + Room 2.8.4 (KMP), Koin 4.0.0, kotlinx-coroutines 1.8.0, Compose Multiplatform 1.7.3 (062-group-persistence-files)
+- Room (KMP) with BundledSQLiteDriver — shared `persistence` module (062-group-persistence-files)
 
 - Kotlin 1.9+, Go 1.21+ (001-ide-plugin-platform)
 
@@ -109,9 +111,9 @@ tests/
 Kotlin 1.9+, Go 1.21+: Follow standard conventions
 
 ## Recent Changes
+- 062-group-persistence-files: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + Room 2.8.4 (KMP), Koin 4.0.0, kotlinx-coroutines 1.8.0, Compose Multiplatform 1.7.3
 - 061-codenode-definition-codegen: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + kotlinCompiler module (code generation), fbpDsl (runtime types)
 - 060-separate-repo: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + Compose Desktop 1.7.3 + Gradle 8.13 (build system), git filter-repo (history extraction), Koin 4.0.0 (DI)
-- 059-filesystem-ip-types: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + Compose Desktop 1.7.3 + kotlinx-coroutines 1.8.0, kotlinx-serialization 1.6.0, lifecycle-viewmodel-compose 2.8.0
 
 
 <!-- MANUAL ADDITIONS START -->
