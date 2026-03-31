@@ -48,6 +48,7 @@ class EntityFlowGraphBuilder {
                 config("_repository", "true")
                 config("_sourceIPTypeId", spec.sourceIPTypeId)
                 config("_sourceIPTypeName", entityName)
+                config("_ipTypesPackage", spec.ipTypesPackage)
             }
 
             val cud = codeNode("${entityName}CUD", nodeType = "SOURCE") {
@@ -60,6 +61,7 @@ class EntityFlowGraphBuilder {
                 config("_cudSource", "true")
                 config("_sourceIPTypeId", spec.sourceIPTypeId)
                 config("_sourceIPTypeName", entityName)
+                config("_ipTypesPackage", spec.ipTypesPackage)
             }
 
             val display = codeNode("${pluralName}Display", nodeType = "SINK") {
@@ -71,6 +73,7 @@ class EntityFlowGraphBuilder {
                 config("_display", "true")
                 config("_sourceIPTypeId", spec.sourceIPTypeId)
                 config("_sourceIPTypeName", entityName)
+                config("_ipTypesPackage", spec.ipTypesPackage)
             }
 
             val ipTypeId = "ip_${entityName.lowercase()}"

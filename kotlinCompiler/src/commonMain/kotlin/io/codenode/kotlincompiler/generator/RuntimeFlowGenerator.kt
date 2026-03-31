@@ -103,10 +103,12 @@ class RuntimeFlowGenerator {
         val ipTypeImports = mutableSetOf<String>()
         codeNodes.forEach { node ->
             val ipTypeName = node.configuration["_sourceIPTypeName"]
-            val codeNodeClass = node.configuration["_codeNodeClass"]
-            if (ipTypeName != null && codeNodeClass != null) {
-                // Derive iptypes package from codeNodeClass: io.codenode.{module}.nodes.XxxCodeNode → io.codenode.{module}.iptypes.{IpType}
-                val modulePackage = codeNodeClass.substringBeforeLast(".nodes.")
+            val ipTypesPackage = node.configuration["_ipTypesPackage"]
+            if (ipTypeName != null && ipTypesPackage != null) {
+                ipTypeImports.add("import $ipTypesPackage.$ipTypeName")
+            } else if (ipTypeName != null && node.configuration["_codeNodeClass"] != null) {
+                // Fallback: derive from codeNodeClass for existing modules
+                val modulePackage = node.configuration["_codeNodeClass"]!!.substringBeforeLast(".nodes.")
                 ipTypeImports.add("import $modulePackage.iptypes.$ipTypeName")
             }
         }

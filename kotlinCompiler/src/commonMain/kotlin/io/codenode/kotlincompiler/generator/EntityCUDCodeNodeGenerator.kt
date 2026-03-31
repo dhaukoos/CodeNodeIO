@@ -18,7 +18,7 @@ class EntityCUDCodeNodeGenerator {
         val entityName = spec.entityName
         val pluralName = spec.pluralName
         val nodesPackage = "${spec.basePackage}.nodes"
-        val ipTypesPackage = "${spec.basePackage}.iptypes"
+        val ipTypesPackage = spec.ipTypesPackage
 
         return buildString {
             appendLine("/*")

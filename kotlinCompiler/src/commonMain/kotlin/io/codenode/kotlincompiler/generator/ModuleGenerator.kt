@@ -305,6 +305,7 @@ class ModuleGenerator {
             appendLine("            dependencies {")
             appendLine("                implementation(\"io.codenode:fbpDsl\")")
             if (isEntityModule) {
+                appendLine("                implementation(project(\":iptypes\"))")
                 appendLine("                implementation(project(\":persistence\"))")
                 appendLine("                // Koin DI")
                 appendLine("                implementation(\"io.insert-koin:koin-core:$KOIN_VERSION\")")

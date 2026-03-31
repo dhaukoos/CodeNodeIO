@@ -165,8 +165,8 @@ class RuntimeViewModelGenerator {
             appendLine("import io.codenode.persistence.${entityInfo.entityName}Dao")
             appendLine("import io.codenode.persistence.${entityInfo.entityName}Entity")
             appendLine("import io.codenode.persistence.${entityInfo.entityName}Repository")
-            appendLine("import ${entityInfo.basePackage}.iptypes.${entityInfo.entityName}")
-            appendLine("import ${entityInfo.basePackage}.iptypes.to${entityInfo.entityName}")
+            appendLine("import ${entityInfo.ipTypesPackage}.${entityInfo.entityName}")
+            appendLine("import ${entityInfo.basePackage}.to${entityInfo.entityName}")
         }
     }
 
@@ -285,11 +285,14 @@ class RuntimeViewModelGenerator {
         val pluralName = pluralize(entityName)
         val basePackage = "io.codenode.${pluralName.lowercase()}"
 
+        val ipTypesPackage = repoNode.configuration["_ipTypesPackage"] ?: "$basePackage.iptypes"
+
         return EntityModuleInfo(
             entityName = entityName,
             entityNameLower = entityNameLower,
             pluralNameLower = pluralNameLower,
-            basePackage = basePackage
+            basePackage = basePackage,
+            ipTypesPackage = ipTypesPackage
         )
     }
 
@@ -313,6 +316,7 @@ class RuntimeViewModelGenerator {
         val entityName: String,
         val entityNameLower: String,
         val pluralNameLower: String,
-        val basePackage: String
+        val basePackage: String,
+        val ipTypesPackage: String
     )
 }

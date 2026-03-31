@@ -26,7 +26,8 @@ data class EntityModuleSpec(
     val properties: List<EntityProperty>,
     val sourceIPTypeId: String,
     val basePackage: String,
-    val persistencePackage: String = "io.codenode.persistence"
+    val persistencePackage: String = "io.codenode.persistence",
+    val ipTypesPackage: String = "io.codenode.iptypes"
 ) {
     companion object {
         /**

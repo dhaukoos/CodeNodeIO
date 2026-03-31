@@ -205,8 +205,12 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
     val ipTypeRepository = remember { FileIPTypeRepository() }
     val modulePaths = remember {
         // Dynamically discover module directories (any subdirectory with src/commonMain/kotlin)
+        // Exclude shared directories (iptypes/, nodes/) which are not modules
+        val sharedDirs = setOf("iptypes", "nodes", "persistence", "build", ".gradle", ".git")
         projectRoot.listFiles { file ->
-            file.isDirectory && java.io.File(file, "src/commonMain/kotlin").isDirectory
+            file.isDirectory &&
+            file.name !in sharedDirs &&
+            java.io.File(file, "src/commonMain/kotlin").isDirectory
         }?.toList() ?: emptyList()
     }
     val discovery = remember { IPTypeDiscovery(projectRoot, modulePaths) }

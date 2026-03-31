@@ -19,7 +19,7 @@ class EntityRepositoryCodeNodeGenerator {
         val entityNameLower = spec.entityNameLower
         val pluralName = spec.pluralName
         val nodesPackage = "${spec.basePackage}.nodes"
-        val ipTypesPackage = "${spec.basePackage}.iptypes"
+        val ipTypesPackage = spec.ipTypesPackage
 
         // Determine the first non-id property name for freshness check and display
         val displayProp = spec.properties.firstOrNull()?.name ?: "id"
@@ -55,7 +55,7 @@ class EntityRepositoryCodeNodeGenerator {
             appendLine("import ${spec.persistencePackage}.${entityName}Repository")
             appendLine("import ${spec.basePackage}.${pluralName}Persistence")
             appendLine("import $ipTypesPackage.$entityName")
-            appendLine("import $ipTypesPackage.toEntity")
+            appendLine("import ${spec.basePackage}.toEntity")
             appendLine()
             appendLine("/**")
             appendLine(" * Processor node that performs CRUD operations on ${pluralName.lowercase()}.")
