@@ -732,13 +732,16 @@ class ModuleSaveService {
                 }
             }
 
-            val implEntry = "implementation(project(\":$moduleName\"))"
-            val buildFile = File(projectDir, "graphEditor/build.gradle.kts")
-            if (buildFile.exists()) {
-                val lines = buildFile.readLines()
-                val filtered = lines.filter { !it.trim().contains(implEntry) }
-                if (filtered.size < lines.size) {
-                    buildFile.writeText(filtered.joinToString("\n") + "\n")
+            // Remove graphEditorRuntime block from root build.gradle.kts
+            val rootBuildFile = File(projectDir, "build.gradle.kts")
+            if (rootBuildFile.exists()) {
+                val runtimeBlock = Regex(
+                    """[ \t]*graphEditorRuntime\(project\(":$moduleName"\)\)\s*\{[^}]*\{[^}]*\}[^}]*\}\n?"""
+                )
+                val original = rootBuildFile.readText()
+                val updated = runtimeBlock.replace(original, "")
+                if (updated != original) {
+                    rootBuildFile.writeText(updated)
                     gradleRemoved++
                 }
             }
