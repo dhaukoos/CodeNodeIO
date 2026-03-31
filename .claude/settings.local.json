@@ -14,7 +14,9 @@
       "Bash(do sed:*)",
       "Bash(done)",
       "Bash(do rm:*)",
-      "Bash(find WeatherForecast/src -name \"*.kt\" -exec grep -l \"io.codenode.weatherforecast.models\" {})"
+      "Bash(find WeatherForecast/src -name \"*.kt\" -exec grep -l \"io.codenode.weatherforecast.models\" {})",
+      "Bash(git ls-tree:*)",
+      "Bash(grep \"\\\\.kt$\")"
     ]
   }
 }
