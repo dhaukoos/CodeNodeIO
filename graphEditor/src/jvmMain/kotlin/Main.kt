@@ -25,6 +25,7 @@ import io.codenode.grapheditor.state.SelectableElement
 import io.codenode.grapheditor.state.rememberUndoRedoManager
 import io.codenode.grapheditor.state.AddNodeCommand
 import io.codenode.grapheditor.state.NodeDefinitionRegistry
+import io.codenode.grapheditor.state.GraphNodeTemplateRegistry
 import io.codenode.grapheditor.viewmodel.SharedStateProvider
 import io.codenode.grapheditor.viewmodel.LocalSharedState
 import io.codenode.grapheditor.viewmodel.NodeGeneratorViewModel
@@ -144,6 +145,9 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
     // Track registry version to trigger recomposition when nodes are discovered
     var registryVersion by remember { mutableStateOf(0) }
 
+    // 063: Central registry for saved GraphNode templates
+    val graphNodeTemplateRegistry = remember { GraphNodeTemplateRegistry() }
+
     // NodeGeneratorViewModel for the Node Generator Panel
     val nodeGeneratorViewModel = remember {
         NodeGeneratorViewModel(
@@ -244,6 +248,9 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                 ipTypeRegistry.setEntityModule(ipType.id, true)
             }
         }
+
+        // Discover saved GraphNode templates from all three tiers
+        graphNodeTemplateRegistry.discoverAll(projectRoot, modulePaths)
 
         ipTypesVersion++
     }
