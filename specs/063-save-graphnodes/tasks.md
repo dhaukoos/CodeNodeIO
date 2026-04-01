@@ -71,10 +71,10 @@
 
 ### Implementation for User Story 2
 
-- [ ] T021 [US2] Update the "Palette" section in `PropertiesPanel.kt` to detect when the selected GraphNode matches an existing palette entry (by name via `GraphNodeTemplateRegistry.getByName()`), and toggle between "Add to Palette" and "Remove from Palette" buttons accordingly in `graphEditor/src/jvmMain/kotlin/ui/PropertiesPanel.kt`
-- [ ] T022 [US2] Add removal confirmation dialog: when "Remove from Palette" is clicked, show a dialog with the template name and level, with "Remove" and "Cancel" options in `graphEditor/src/jvmMain/kotlin/ui/PropertiesPanel.kt`
-- [ ] T023 [US2] Add remove action to `PropertiesPanelViewModel`: implement `removeGraphNodeFromPalette(name: String, level: PlacementLevel)` that calls `GraphNodeTemplateRegistry.removeTemplate()` and updates palette state in `graphEditor/src/jvmMain/kotlin/viewmodel/PropertiesPanelViewModel.kt`
-- [ ] T024 [US2] **MANUAL** Verify quickstart Scenario 4: save a GraphNode, then remove it, verify palette entry gone and `.flow.kts` file deleted, verify existing canvas instances remain functional
+- [X] T021 [US2] Update the "Palette" section in `PropertiesPanel.kt` to detect when the selected GraphNode matches an existing palette entry (by name via `GraphNodeTemplateRegistry.getByName()`), and toggle between "Add to Palette" and "Remove from Palette" buttons accordingly in `graphEditor/src/jvmMain/kotlin/ui/PropertiesPanel.kt`
+- [X] T022 [US2] Add removal confirmation dialog: when "Remove from Palette" is clicked, show a dialog with the template name and level, with "Remove" and "Cancel" options in `graphEditor/src/jvmMain/kotlin/ui/PropertiesPanel.kt`
+- [X] T023 [US2] Add remove action to `PropertiesPanelViewModel`: implement `removeGraphNodeFromPalette(name: String, level: PlacementLevel)` that calls `GraphNodeTemplateRegistry.removeTemplate()` and updates palette state in `graphEditor/src/jvmMain/kotlin/viewmodel/PropertiesPanelViewModel.kt`
+- [X] T024 [US2] **MANUAL** Verify quickstart Scenario 4: save a GraphNode, then remove it, verify palette entry gone and `.flow.kts` file deleted, verify existing canvas instances remain functional
 
 **Checkpoint**: Users can remove saved GraphNodes. Add and remove workflow is complete.
 

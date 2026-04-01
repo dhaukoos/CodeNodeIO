@@ -1462,6 +1462,8 @@ fun GraphNodePropertiesPanel(
                     Spacer(modifier = Modifier.height(4.dp))
 
                     if (isSavedToPalette && savedTier != null) {
+                        var showRemoveConfirmation by remember { mutableStateOf(false) }
+
                         Text(
                             text = "Saved at: ${savedTier.displayName} level",
                             fontSize = 11.sp,
@@ -1470,11 +1472,43 @@ fun GraphNodePropertiesPanel(
                         )
                         if (onRemoveFromPalette != null) {
                             Button(
-                                onClick = { onRemoveFromPalette(savedTier) },
+                                onClick = { showRemoveConfirmation = true },
                                 modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
                                 colors = ButtonDefaults.buttonColors(backgroundColor = Color(0xFFFFEBEE))
                             ) {
                                 Text("Remove from Palette", fontSize = 12.sp, color = Color(0xFFE53935))
+                            }
+
+                            if (showRemoveConfirmation) {
+                                AlertDialog(
+                                    onDismissRequest = { showRemoveConfirmation = false },
+                                    title = {
+                                        Text("Remove from Palette", fontWeight = FontWeight.Bold)
+                                    },
+                                    text = {
+                                        Text(
+                                            "Remove \"${graphNode.name}\" from the ${savedTier.displayName} palette?\n\n" +
+                                            "Existing canvas instances will not be affected.",
+                                            fontSize = 13.sp
+                                        )
+                                    },
+                                    confirmButton = {
+                                        Button(
+                                            onClick = {
+                                                showRemoveConfirmation = false
+                                                onRemoveFromPalette(savedTier)
+                                            },
+                                            colors = ButtonDefaults.buttonColors(backgroundColor = Color(0xFFE53935))
+                                        ) {
+                                            Text("Remove", color = Color.White)
+                                        }
+                                    },
+                                    dismissButton = {
+                                        TextButton(onClick = { showRemoveConfirmation = false }) {
+                                            Text("Cancel")
+                                        }
+                                    }
+                                )
                             }
                         }
                     } else if (onSaveToPalette != null) {
