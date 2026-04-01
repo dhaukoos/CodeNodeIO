@@ -37,6 +37,7 @@ import io.codenode.fbpdsl.model.IPColor
 import io.codenode.fbpdsl.model.GraphNode
 import io.codenode.fbpdsl.model.InformationPacketType
 import io.codenode.fbpdsl.model.Port
+import io.codenode.grapheditor.model.PlacementLevel
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.contentOrNull
@@ -1371,6 +1372,11 @@ fun GraphNodePropertiesPanel(
     onPortTypeChanged: (String, String) -> Unit = { _, _ -> },
     ipTypeRegistry: IPTypeRegistry? = null,
     portIPTypeNames: Map<String, String> = emptyMap(),
+    moduleLoaded: Boolean = false,
+    isSavedToPalette: Boolean = false,
+    savedTier: PlacementLevel? = null,
+    onSaveToPalette: ((PlacementLevel) -> Unit)? = null,
+    onRemoveFromPalette: ((PlacementLevel) -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     var nodeName by remember(graphNode.id, graphNode.name) { mutableStateOf(graphNode.name) }
@@ -1442,6 +1448,83 @@ fun GraphNodePropertiesPanel(
                         )
                     }
                 }
+
+                // Palette section
+                if (onSaveToPalette != null || onRemoveFromPalette != null) {
+                    Divider(modifier = Modifier.padding(vertical = 4.dp))
+
+                    Text(
+                        text = "Palette",
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colors.primary
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+
+                    if (isSavedToPalette && savedTier != null) {
+                        Text(
+                            text = "Saved at: ${savedTier.displayName} level",
+                            fontSize = 11.sp,
+                            color = MaterialTheme.colors.onSurface.copy(alpha = 0.7f),
+                            modifier = Modifier.padding(vertical = 2.dp)
+                        )
+                        if (onRemoveFromPalette != null) {
+                            Button(
+                                onClick = { onRemoveFromPalette(savedTier) },
+                                modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
+                                colors = ButtonDefaults.buttonColors(backgroundColor = Color(0xFFFFEBEE))
+                            ) {
+                                Text("Remove from Palette", fontSize = 12.sp, color = Color(0xFFE53935))
+                            }
+                        }
+                    } else if (onSaveToPalette != null) {
+                        var selectedLevel by remember { mutableStateOf(PlacementLevel.PROJECT) }
+                        var levelDropdownExpanded by remember { mutableStateOf(false) }
+                        val availableLevels = PlacementLevel.availableLevels(moduleLoaded)
+
+                        // Level selector
+                        Box(modifier = Modifier.fillMaxWidth()) {
+                            OutlinedTextField(
+                                value = selectedLevel.displayName,
+                                onValueChange = {},
+                                label = { Text("Level", fontSize = 10.sp) },
+                                readOnly = true,
+                                singleLine = true,
+                                modifier = Modifier.fillMaxWidth()
+                                    .clickable { levelDropdownExpanded = true },
+                                textStyle = androidx.compose.ui.text.TextStyle(fontSize = 12.sp),
+                                trailingIcon = {
+                                    Icon(
+                                        imageVector = Icons.Default.ArrowDropDown,
+                                        contentDescription = "Select level",
+                                        modifier = Modifier.clickable { levelDropdownExpanded = true }
+                                    )
+                                }
+                            )
+                            DropdownMenu(
+                                expanded = levelDropdownExpanded,
+                                onDismissRequest = { levelDropdownExpanded = false }
+                            ) {
+                                availableLevels.forEach { level ->
+                                    DropdownMenuItem(onClick = {
+                                        selectedLevel = level
+                                        levelDropdownExpanded = false
+                                    }) {
+                                        Text(level.displayName, fontSize = 12.sp)
+                                    }
+                                }
+                            }
+                        }
+
+                        Button(
+                            onClick = { onSaveToPalette(selectedLevel) },
+                            modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
+                            colors = ButtonDefaults.buttonColors(backgroundColor = Color(0xFF1565C0))
+                        ) {
+                            Text("Add to Palette", fontSize = 12.sp, color = Color.White)
+                        }
+                    }
+                }
             }
         }
     }
@@ -1477,6 +1560,11 @@ fun CompactPropertiesPanelWithViewModel(
     onCreateRepositoryModule: (() -> Unit)? = null,
     onRemoveRepositoryModule: (() -> Unit)? = null,
     moduleExists: Boolean = false,
+    moduleLoaded: Boolean = false,
+    graphNodeIsSaved: Boolean = false,
+    graphNodeSavedTier: PlacementLevel? = null,
+    onSaveGraphNodeToPalette: ((PlacementLevel) -> Unit)? = null,
+    onRemoveGraphNodeFromPalette: ((PlacementLevel) -> Unit)? = null,
     debugger: io.codenode.circuitsimulator.DataFlowDebugger? = null,
     isPaused: Boolean = false,
     isAnimateDataFlow: Boolean = false,
@@ -1519,14 +1607,14 @@ fun CompactPropertiesPanelWithViewModel(
             modifier = modifier.width(280.dp)
         )
     } else if (selectedGraphNode != null) {
-        // Build port IP type name map for GraphNode
-        val graphNodePortIPTypeNames = remember(flowGraph?.connections, ipTypeRegistry, selectedGraphNode.id) {
-            if (flowGraph == null || ipTypeRegistry == null) {
-                emptyMap()
-            } else {
-                val map = mutableMapOf<String, String>()
-                val allPortIds = (selectedGraphNode.inputPorts + selectedGraphNode.outputPorts).map { it.id }.toSet()
-                flowGraph.connections.forEach { connection ->
+        // Build port IP type name map for GraphNode from connections, internal connections, and type hints
+        val graphNodePortIPTypeNames = remember(flowGraph?.connections, ipTypeRegistry, selectedGraphNode.id, selectedGraphNode.internalConnections, selectedGraphNode.configuration) {
+            val map = mutableMapOf<String, String>()
+            val allPortIds = (selectedGraphNode.inputPorts + selectedGraphNode.outputPorts).map { it.id }.toSet()
+
+            // 1. Check top-level connections for GraphNode's own exposed ports
+            if (ipTypeRegistry != null) {
+                flowGraph?.connections?.forEach { connection ->
                     connection.ipTypeId?.let { typeId ->
                         ipTypeRegistry.getById(typeId)?.let { ipType ->
                             if (connection.sourcePortId in allPortIds) {
@@ -1538,8 +1626,42 @@ fun CompactPropertiesPanelWithViewModel(
                         }
                     }
                 }
-                map
+                // 2. Check internal connections for child node port types
+                selectedGraphNode.internalConnections.forEach { connection ->
+                    connection.ipTypeId?.let { typeId ->
+                        ipTypeRegistry.getById(typeId)?.let { ipType ->
+                            map[connection.sourcePortId] = ipType.typeName
+                            map[connection.targetPortId] = ipType.typeName
+                        }
+                    }
+                }
             }
+
+            // 3. Trace exposed ports through port mappings to child port types
+            // Exposed ports may have Any::class but child ports have the actual type
+            for (port in selectedGraphNode.inputPorts + selectedGraphNode.outputPorts) {
+                if (!map.containsKey(port.id)) {
+                    val mapping = selectedGraphNode.portMappings[port.name] ?: selectedGraphNode.portMappings[port.id]
+                    if (mapping != null) {
+                        val childNode = selectedGraphNode.childNodes.find { it.id == mapping.childNodeId }
+                        val childPort = childNode?.let { cn ->
+                            (cn.inputPorts + cn.outputPorts).find { it.name == mapping.childPortName }
+                        }
+                        val typeName = childPort?.dataType?.simpleName
+                        if (typeName != null && typeName != "Any") {
+                            map[port.id] = typeName
+                        }
+                    }
+                    // Fallback: check config hints (for cases where child types are also Any)
+                    if (!map.containsKey(port.id)) {
+                        selectedGraphNode.configuration["_portTypeHint_${port.name}"]?.let { typeName ->
+                            map[port.id] = typeName
+                        }
+                    }
+                }
+            }
+
+            map
         }
 
         GraphNodePropertiesPanel(
@@ -1549,6 +1671,11 @@ fun CompactPropertiesPanelWithViewModel(
             onPortTypeChanged = onGraphNodePortTypeChanged,
             ipTypeRegistry = ipTypeRegistry,
             portIPTypeNames = graphNodePortIPTypeNames,
+            moduleLoaded = moduleLoaded,
+            isSavedToPalette = graphNodeIsSaved,
+            savedTier = graphNodeSavedTier,
+            onSaveToPalette = onSaveGraphNodeToPalette,
+            onRemoveFromPalette = onRemoveGraphNodeFromPalette,
             modifier = modifier.width(280.dp)
         )
     } else {

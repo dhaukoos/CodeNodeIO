@@ -188,6 +188,7 @@ class GraphState(initialGraph: FlowGraph = flowGraph(
         // Create a copy of the node with the specified position
         val positionedNode = when (node) {
             is CodeNode -> node.copy(position = Node.Position(position.x.toDouble(), position.y.toDouble()))
+            is io.codenode.fbpdsl.model.GraphNode -> node.copy(position = Node.Position(position.x.toDouble(), position.y.toDouble()))
             else -> node
         }
 

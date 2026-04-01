@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.codenode.fbpdsl.model.CodeNodeType
 import io.codenode.fbpdsl.model.NodeTypeDefinition
+import io.codenode.grapheditor.model.GraphNodeTemplateMeta
 import io.codenode.grapheditor.viewmodel.NodePaletteViewModel
 import io.codenode.grapheditor.viewmodel.NodePaletteState
 
@@ -41,7 +42,9 @@ import io.codenode.grapheditor.viewmodel.NodePaletteState
 fun NodePalette(
     viewModel: NodePaletteViewModel,
     nodeTypes: List<NodeTypeDefinition>,
+    graphNodeTemplates: List<GraphNodeTemplateMeta> = emptyList(),
     onNodeSelected: (NodeTypeDefinition) -> Unit = {},
+    onGraphNodeTemplateSelected: (GraphNodeTemplateMeta) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val state by viewModel.state.collectAsState()
@@ -49,9 +52,11 @@ fun NodePalette(
     NodePaletteContent(
         state = state,
         nodeTypes = nodeTypes,
+        graphNodeTemplates = graphNodeTemplates,
         onSearchQueryChange = { viewModel.setSearchQuery(it) },
         onCategoryToggle = { viewModel.toggleCategory(it) },
         onNodeSelected = onNodeSelected,
+        onGraphNodeTemplateSelected = onGraphNodeTemplateSelected,
         onNodeDeleted = {},
         modifier = modifier
     )
@@ -65,9 +70,11 @@ fun NodePalette(
 private fun NodePaletteContent(
     state: NodePaletteState,
     nodeTypes: List<NodeTypeDefinition>,
+    graphNodeTemplates: List<GraphNodeTemplateMeta> = emptyList(),
     onSearchQueryChange: (String) -> Unit,
     onCategoryToggle: (CodeNodeType) -> Unit,
     onNodeSelected: (NodeTypeDefinition) -> Unit,
+    onGraphNodeTemplateSelected: (GraphNodeTemplateMeta) -> Unit = {},
     onNodeDeleted: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -80,6 +87,16 @@ private fun NodePaletteContent(
         }
         .groupBy { it.category }
         .toSortedMap()
+
+    // Filter GraphNode templates by search query
+    val filteredTemplates = graphNodeTemplates.filter { template ->
+        if (state.searchQuery.isBlank()) true
+        else template.name.contains(state.searchQuery, ignoreCase = true) ||
+             template.description?.contains(state.searchQuery, ignoreCase = true) == true
+    }
+
+    // Track GraphNodes section expand/collapse separately
+    var graphNodeSectionExpanded by remember { mutableStateOf(false) }
 
     Column(
         modifier = modifier
@@ -118,6 +135,18 @@ private fun NodePaletteContent(
                 .weight(1f)
                 .padding(8.dp)
         ) {
+            // GraphNodes section (above CodeNode categories)
+            if (filteredTemplates.isNotEmpty()) {
+                item {
+                    GraphNodePaletteSection(
+                        templates = filteredTemplates,
+                        isExpanded = graphNodeSectionExpanded,
+                        onToggle = { graphNodeSectionExpanded = !graphNodeSectionExpanded },
+                        onTemplateSelected = onGraphNodeTemplateSelected
+                    )
+                }
+            }
+
             groupedNodes.forEach { (category, nodes) ->
                 item {
                     CategoryHeader(

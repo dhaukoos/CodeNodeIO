@@ -19,7 +19,9 @@ import kotlin.reflect.KClass
 data class ParseResult(
     val isSuccess: Boolean,
     val graph: FlowGraph? = null,
-    val errorMessage: String? = null
+    val errorMessage: String? = null,
+    /** Maps port IDs to original type name strings for ports where KClass resolution fell back to Any::class */
+    val portTypeNameHints: Map<String, String> = emptyMap()
 )
 
 /**
@@ -70,8 +72,47 @@ class FlowKtParser {
         """targetPlatform\s*\(\s*FlowGraph\.TargetPlatform\.(\w+)\s*\)"""
     )
 
+    // GraphNode DSL patterns
+    private val graphNodePattern = Regex(
+        """val\s+(\w+)\s*=\s*graphNode\s*\(\s*"([^"]+)"\s*\)"""
+    )
+
+    private val descriptionPattern = Regex(
+        """description\s*=\s*"([^"]*)""""
+    )
+
+    private val internalConnectionPattern = Regex(
+        """internalConnection\s*\(\s*(\w+)\s*,\s*"([^"]+)"\s*,\s*(\w+)\s*,\s*"([^"]+)"\s*\)(?:\s*withType\s*"([^"]+)")?"""
+    )
+
+    private val portMappingPattern = Regex(
+        """portMapping\s*\(\s*"([^"]+)"\s*,\s*"([^"]+)"\s*,\s*"([^"]+)"\s*\)"""
+    )
+
+    private val exposeInputPattern = Regex(
+        """exposeInput\s*\(\s*"([^"]+)"\s*,\s*(\w+)::class(?:\s*,\s*required\s*=\s*(true|false))?(?:\s*,\s*upstream\s*=\s*"([^"]*)")?(?:\s*,\s*downstream\s*=\s*"([^"]*)")?\s*\)"""
+    )
+
+    private val exposeOutputPattern = Regex(
+        """exposeOutput\s*\(\s*"([^"]+)"\s*,\s*(\w+)::class(?:\s*,\s*required\s*=\s*(true|false))?(?:\s*,\s*upstream\s*=\s*"([^"]*)")?(?:\s*,\s*downstream\s*=\s*"([^"]*)")?\s*\)"""
+    )
+
     /** Map of simple class name → fully qualified class name, built from import statements */
     private var importMap: Map<String, String> = emptyMap()
+
+    /** Optional external type resolver for custom IP types (typeName → KClass) */
+    private var externalTypeResolver: ((String) -> KClass<*>?)? = null
+
+    /** Collects portId → original type name for ports where KClass resolution fell back to Any */
+    private val portTypeNameHints = mutableMapOf<String, String>()
+
+    /**
+     * Sets an external type resolver for custom IP types.
+     * Called before parseFlowKt when IP type resolution is needed.
+     */
+    fun setTypeResolver(resolver: (String) -> KClass<*>?) {
+        externalTypeResolver = resolver
+    }
 
     /**
      * Parses .flow.kt content into a FlowGraph.
@@ -88,6 +129,9 @@ class FlowKtParser {
                     errorMessage = "Invalid Kotlin syntax"
                 )
             }
+
+            // Reset state for this parse
+            portTypeNameHints.clear()
 
             // Build import map (simple name → FQCN) for resolving custom types
             importMap = buildImportMap(content)
@@ -118,8 +162,12 @@ class FlowKtParser {
             // Parse target platforms
             val targetPlatforms = parseTargetPlatforms(blockContent)
 
-            // Parse nodes
-            val (nodes, nodeVarMap) = parseCodeNodes(blockContent)
+            // Parse nodes (both CodeNodes and GraphNodes)
+            val (codeNodes, codeNodeVarMap) = parseCodeNodes(blockContent)
+            val (graphNodes, graphNodeVarMap) = parseGraphNodes(blockContent)
+
+            val allNodes: List<Node> = codeNodes + graphNodes
+            val nodeVarMap = codeNodeVarMap + graphNodeVarMap
 
             // Parse connections
             val connections = parseConnections(blockContent, nodeVarMap)
@@ -129,14 +177,15 @@ class FlowKtParser {
                 name = graphName,
                 version = graphVersion,
                 description = graphDescription,
-                rootNodes = nodes,
+                rootNodes = allNodes,
                 connections = connections,
                 targetPlatforms = targetPlatforms
             )
 
             ParseResult(
                 isSuccess = true,
-                graph = flowGraph
+                graph = flowGraph,
+                portTypeNameHints = portTypeNameHints.toMap()
             )
         } catch (e: Exception) {
             ParseResult(
@@ -282,6 +331,181 @@ class FlowKtParser {
     }
 
     /**
+     * Parses graphNode declarations from block content.
+     * Each graphNode contains child codeNodes, internal connections, port mappings, and exposed ports.
+     */
+    private fun parseGraphNodes(blockContent: String): Pair<List<GraphNode>, Map<String, String>> {
+        val nodes = mutableListOf<GraphNode>()
+        val nodeVarMap = mutableMapOf<String, String>()
+
+        val graphNodeMatches = graphNodePattern.findAll(blockContent)
+
+        for (match in graphNodeMatches) {
+            val varName = match.groupValues[1]
+            val nodeName = match.groupValues[2]
+
+            // Find the block for this graphNode
+            val nodeBlockStart = blockContent.indexOf("{", match.range.last)
+            val nodeBlockEnd = findMatchingBrace(blockContent, nodeBlockStart)
+
+            if (nodeBlockStart == -1 || nodeBlockEnd == -1) continue
+
+            val nodeBlockContent = blockContent.substring(nodeBlockStart + 1, nodeBlockEnd)
+
+            // Parse description
+            val description = descriptionPattern.find(nodeBlockContent)?.groupValues?.get(1)
+
+            // Parse position
+            val position = parsePosition(nodeBlockContent)
+
+            // Parse child CodeNodes within this graphNode block
+            val (childCodeNodes, childVarMap) = parseCodeNodes(nodeBlockContent)
+
+            // Parse child GraphNodes recursively
+            val (childGraphNodes, childGraphVarMap) = parseGraphNodes(nodeBlockContent)
+            val allChildVarMap = childVarMap + childGraphVarMap
+
+            val allChildNodes: List<Node> = childCodeNodes + childGraphNodes
+
+            // Set parent IDs on child nodes
+            val graphNodeId = "node_${nodeName.lowercase().replace(" ", "_")}"
+            val childNodesWithParent = allChildNodes.map { child ->
+                when (child) {
+                    is CodeNode -> child.copy(parentNodeId = graphNodeId)
+                    is GraphNode -> child.copy(parentNodeId = graphNodeId)
+                    else -> child
+                }
+            }
+
+            // Parse internal connections
+            val internalConnections = parseInternalConnections(nodeBlockContent, allChildVarMap)
+
+            // Parse port mappings
+            val portMappings = parsePortMappings(nodeBlockContent, allChildVarMap)
+
+            // Parse exposed input ports
+            val inputPorts = parseExposedPorts(nodeBlockContent, graphNodeId, Port.Direction.INPUT)
+
+            // Parse exposed output ports
+            val outputPorts = parseExposedPorts(nodeBlockContent, graphNodeId, Port.Direction.OUTPUT)
+
+            nodeVarMap[varName] = graphNodeId
+
+            val graphNode = GraphNode(
+                id = graphNodeId,
+                name = nodeName,
+                description = description,
+                position = position,
+                inputPorts = inputPorts,
+                outputPorts = outputPorts,
+                parentNodeId = null,
+                childNodes = childNodesWithParent,
+                internalConnections = internalConnections,
+                portMappings = portMappings,
+                executionState = ExecutionState.IDLE,
+                controlConfig = ControlConfig()
+            )
+
+            nodes.add(graphNode)
+        }
+
+        return Pair(nodes, nodeVarMap)
+    }
+
+    /**
+     * Parses internalConnection declarations within a graphNode block.
+     */
+    private fun parseInternalConnections(
+        blockContent: String,
+        childVarMap: Map<String, String>
+    ): List<Connection> {
+        val connections = mutableListOf<Connection>()
+
+        internalConnectionPattern.findAll(blockContent).forEachIndexed { index, match ->
+            val sourceVar = match.groupValues[1]
+            val sourcePortName = match.groupValues[2]
+            val targetVar = match.groupValues[3]
+            val targetPortName = match.groupValues[4]
+            val ipTypeId = match.groupValues.getOrNull(5)?.takeIf { it.isNotEmpty() }
+
+            val sourceNodeId = childVarMap[sourceVar] ?: return@forEachIndexed
+            val targetNodeId = childVarMap[targetVar] ?: return@forEachIndexed
+
+            connections.add(
+                Connection(
+                    id = "iconn_$index",
+                    sourceNodeId = sourceNodeId,
+                    sourcePortId = "${sourceNodeId.removePrefix("node_")}_${sourcePortName}",
+                    targetNodeId = targetNodeId,
+                    targetPortId = "${targetNodeId.removePrefix("node_")}_${targetPortName}",
+                    ipTypeId = ipTypeId
+                )
+            )
+        }
+
+        return connections
+    }
+
+    /**
+     * Parses portMapping declarations within a graphNode block.
+     * Format: portMapping("portName", "childVarName", "childPortName")
+     */
+    private fun parsePortMappings(
+        blockContent: String,
+        childVarMap: Map<String, String>
+    ): Map<String, GraphNode.PortMapping> {
+        val mappings = mutableMapOf<String, GraphNode.PortMapping>()
+
+        portMappingPattern.findAll(blockContent).forEach { match ->
+            val portName = match.groupValues[1]
+            val childVarName = match.groupValues[2]
+            val childPortName = match.groupValues[3]
+
+            // Resolve childVarName to childNodeId
+            val childNodeId = childVarMap[childVarName] ?: childVarName
+
+            mappings[portName] = GraphNode.PortMapping(
+                childNodeId = childNodeId,
+                childPortName = childPortName
+            )
+        }
+
+        return mappings
+    }
+
+    /**
+     * Parses exposeInput/exposeOutput declarations within a graphNode block.
+     */
+    private fun parseExposedPorts(
+        blockContent: String,
+        owningNodeId: String,
+        direction: Port.Direction
+    ): List<Port<Any>> {
+        val ports = mutableListOf<Port<Any>>()
+
+        val pattern = if (direction == Port.Direction.INPUT) exposeInputPattern else exposeOutputPattern
+        pattern.findAll(blockContent).forEach { match ->
+            val portName = match.groupValues[1]
+            val typeName = match.groupValues[2]
+            val required = match.groupValues.getOrNull(3) == "true"
+
+            @Suppress("UNCHECKED_CAST")
+            ports.add(
+                Port(
+                    id = portName,
+                    name = portName,
+                    direction = direction,
+                    dataType = resolveType(typeName) as KClass<Any>,
+                    required = required,
+                    owningNodeId = owningNodeId
+                )
+            )
+        }
+
+        return ports
+    }
+
+    /**
      * Parses position from node block content.
      */
     private fun parsePosition(nodeBlockContent: String): Node.Position {
@@ -306,14 +530,21 @@ class FlowKtParser {
             val portName = match.groupValues[1]
             val typeName = match.groupValues[2]
             val required = match.groupValues.getOrNull(3) == "true"
+            val resolvedType = resolveType(typeName)
+            val portId = "${nodeName.lowercase()}_${portName}"
+
+            // Store original type name if resolution fell back to Any
+            if (resolvedType == Any::class && typeName != "Any") {
+                portTypeNameHints[portId] = typeName
+            }
 
             @Suppress("UNCHECKED_CAST")
             ports.add(
                 Port(
-                    id = "${nodeName.lowercase()}_${portName}",
+                    id = portId,
                     name = portName,
                     direction = Port.Direction.INPUT,
-                    dataType = resolveType(typeName) as kotlin.reflect.KClass<Any>,
+                    dataType = resolvedType as kotlin.reflect.KClass<Any>,
                     required = required,
                     owningNodeId = ""
                 )
@@ -333,14 +564,21 @@ class FlowKtParser {
             val portName = match.groupValues[1]
             val typeName = match.groupValues[2]
             val required = match.groupValues.getOrNull(3) == "true"
+            val resolvedType = resolveType(typeName)
+            val portId = "${nodeName.lowercase()}_${portName}"
+
+            // Store original type name if resolution fell back to Any
+            if (resolvedType == Any::class && typeName != "Any") {
+                portTypeNameHints[portId] = typeName
+            }
 
             @Suppress("UNCHECKED_CAST")
             ports.add(
                 Port(
-                    id = "${nodeName.lowercase()}_${portName}",
+                    id = portId,
                     name = portName,
                     direction = Port.Direction.OUTPUT,
-                    dataType = resolveType(typeName) as kotlin.reflect.KClass<Any>,
+                    dataType = resolvedType as kotlin.reflect.KClass<Any>,
                     required = required,
                     owningNodeId = ""
                 )
@@ -447,7 +685,8 @@ class FlowKtParser {
             "Char" -> Char::class
             "Unit" -> Unit::class
             "Any" -> Any::class
-            else -> resolveCustomType(typeName)
+            else -> externalTypeResolver?.invoke(typeName)
+                ?: resolveCustomType(typeName)
         }
     }
 

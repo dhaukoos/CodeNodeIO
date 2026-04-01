@@ -619,6 +619,25 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                         NodePalette(
                             viewModel = nodePaletteViewModel,
                             nodeTypes = nodeTypes,
+                            graphNodeTemplates = graphNodeTemplateRegistry.getAll(),
+                            onGraphNodeTemplateSelected = { template ->
+                                io.codenode.grapheditor.state.GraphNodeTemplateInstantiator.instantiate(
+                                    template,
+                                    graphNodeTemplateRegistry,
+                                    ipTypeRegistry
+                                )?.let { graphNode ->
+                                    val nodeCount = graphState.flowGraph.rootNodes.size
+                                    val xOffset = 300.0 + (nodeCount % 3) * 150.0
+                                    val yOffset = 200.0 + (nodeCount / 3) * 100.0
+                                    val positioned = graphNode.copy(
+                                        position = io.codenode.fbpdsl.model.Node.Position(xOffset, yOffset)
+                                    )
+                                    graphState.addNode(positioned, Offset(xOffset.toFloat(), yOffset.toFloat()))
+                                    statusMessage = "Added GraphNode '${template.name}' from palette"
+                                } ?: run {
+                                    statusMessage = "Failed to load GraphNode template '${template.name}'"
+                                }
+                            },
                             onNodeSelected = { nodeType ->
                             // Clear IP type selection when working with nodes
                             selectedIPType = null
@@ -688,9 +707,30 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                     }
 
                     // Compute connection colors based on IP types
-                    val connectionColors: Map<String, Color> = remember(graphState.flowGraph.connections, ipTypeRegistry) {
+                    // Include both top-level connections and current GraphNode's internal connections
+                    val currentGraphNode = graphState.getCurrentGraphNode()
+                    val connectionColors: Map<String, Color> = remember(
+                        graphState.flowGraph.connections,
+                        ipTypeRegistry,
+                        currentGraphNode?.id,
+                        currentGraphNode?.internalConnections
+                    ) {
                         val colorMap = mutableMapOf<String, Color>()
+                        // Top-level connections
                         graphState.flowGraph.connections.forEach { connection ->
+                            connection.ipTypeId?.let { typeId ->
+                                ipTypeRegistry.getById(typeId)?.let { ipType ->
+                                    val ipColor = ipType.color
+                                    colorMap[connection.id] = Color(
+                                        red = ipColor.red / 255f,
+                                        green = ipColor.green / 255f,
+                                        blue = ipColor.blue / 255f
+                                    )
+                                }
+                            }
+                        }
+                        // Internal connections of current GraphNode (for interior view)
+                        currentGraphNode?.internalConnections?.forEach { connection ->
                             connection.ipTypeId?.let { typeId ->
                                 ipTypeRegistry.getById(typeId)?.let { ipType ->
                                     val ipColor = ipType.color
@@ -707,18 +747,19 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
 
                     // Compute boundary port colors for interior view of GraphNodes
                     // Maps boundary port ID to color from the parent-level connection's IP type
-                    val currentGraphNode = graphState.getCurrentGraphNode()
+                    // Also derives colors from internal connections via port mappings (for instantiated templates)
                     val boundaryConnectionColors: Map<String, Color> = remember(
                         graphState.flowGraph.connections,
                         ipTypeRegistry,
-                        currentGraphNode?.id
+                        currentGraphNode?.id,
+                        currentGraphNode?.internalConnections
                     ) {
                         if (currentGraphNode == null) {
                             emptyMap()
                         } else {
                             val colorMap = mutableMapOf<String, Color>()
+                            // 1. Colors from parent-level connections (external wiring)
                             graphState.flowGraph.connections.forEach { connection ->
-                                // Check if this connection targets the current GraphNode (input boundary)
                                 if (connection.targetNodeId == currentGraphNode.id) {
                                     connection.ipTypeId?.let { typeId ->
                                         ipTypeRegistry.getById(typeId)?.let { ipType ->
@@ -731,7 +772,6 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                                         }
                                     }
                                 }
-                                // Check if this connection sources from the current GraphNode (output boundary)
                                 if (connection.sourceNodeId == currentGraphNode.id) {
                                     connection.ipTypeId?.let { typeId ->
                                         ipTypeRegistry.getById(typeId)?.let { ipType ->
@@ -741,6 +781,59 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                                                 green = ipColor.green / 255f,
                                                 blue = ipColor.blue / 255f
                                             )
+                                        }
+                                    }
+                                }
+                            }
+                            // 2. Derive boundary port colors from internal connections via port mappings
+                            // This covers cases where the GraphNode isn't externally connected (e.g., instantiated templates)
+                            val childPortToIpType = mutableMapOf<String, String>()
+                            currentGraphNode.internalConnections.forEach { conn ->
+                                conn.ipTypeId?.let { typeId ->
+                                    childPortToIpType[conn.sourcePortId] = typeId
+                                    childPortToIpType[conn.targetPortId] = typeId
+                                }
+                            }
+                            for (port in currentGraphNode.inputPorts + currentGraphNode.outputPorts) {
+                                if (colorMap.containsKey(port.id)) continue
+                                val mapping = currentGraphNode.portMappings[port.name] ?: currentGraphNode.portMappings[port.id]
+                                if (mapping != null) {
+                                    // Find the child port ID that matches this mapping
+                                    val childNode = currentGraphNode.childNodes.find { it.id == mapping.childNodeId }
+                                    if (childNode != null) {
+                                        val childPort = (childNode.inputPorts + childNode.outputPorts).find { it.name == mapping.childPortName }
+                                        if (childPort != null) {
+                                            childPortToIpType[childPort.id]?.let { typeId ->
+                                                ipTypeRegistry.getById(typeId)?.let { ipType ->
+                                                    val ipColor = ipType.color
+                                                    colorMap[port.id] = Color(
+                                                        red = ipColor.red / 255f,
+                                                        green = ipColor.green / 255f,
+                                                        blue = ipColor.blue / 255f
+                                                    )
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                // Fallback: trace through port mapping to child port's actual type
+                                if (!colorMap.containsKey(port.id)) {
+                                    val mapping = currentGraphNode.portMappings[port.name] ?: currentGraphNode.portMappings[port.id]
+                                    if (mapping != null) {
+                                        val childNode = currentGraphNode.childNodes.find { it.id == mapping.childNodeId }
+                                        val childPort = childNode?.let { cn ->
+                                            (cn.inputPorts + cn.outputPorts).find { it.name == mapping.childPortName }
+                                        }
+                                        val typeName = childPort?.dataType?.simpleName
+                                        if (typeName != null && typeName != "Any") {
+                                            ipTypeRegistry.getByTypeName(typeName)?.let { ipType ->
+                                                val ipColor = ipType.color
+                                                colorMap[port.id] = Color(
+                                                    red = ipColor.red / 255f,
+                                                    green = ipColor.green / 255f,
+                                                    blue = ipColor.blue / 255f
+                                                )
+                                            }
                                         }
                                     }
                                 }
@@ -1068,6 +1161,29 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                         moduleExists = selectedIPType?.let { ipType ->
                             ipTypeRegistry.hasEntityModule(ipType.id)
                         } ?: false,
+                        moduleLoaded = moduleRootDir != null,
+                        graphNodeIsSaved = selectedGraphNode?.let { gn ->
+                            graphNodeTemplateRegistry.nameExists(gn.name)
+                        } ?: false,
+                        graphNodeSavedTier = selectedGraphNode?.let { gn ->
+                            graphNodeTemplateRegistry.getByName(gn.name)?.tier
+                        },
+                        onSaveGraphNodeToPalette = selectedGraphNode?.let { gn ->
+                            { level: io.codenode.grapheditor.model.PlacementLevel ->
+                                graphNodeTemplateRegistry.saveGraphNode(
+                                    gn, level, moduleRootDir?.absolutePath
+                                )
+                                statusMessage = "Saved '${gn.name}' to palette at ${level.displayName} level"
+                            }
+                        },
+                        onRemoveGraphNodeFromPalette = selectedGraphNode?.let { gn ->
+                            graphNodeTemplateRegistry.getByName(gn.name)?.let { meta ->
+                                { level: io.codenode.grapheditor.model.PlacementLevel ->
+                                    graphNodeTemplateRegistry.removeTemplate(gn.name, level)
+                                    statusMessage = "Removed '${gn.name}' from palette"
+                                }
+                            }
+                        },
                         debugger = runtimeSession?.debugger,
                         isPaused = runtimeExecutionState == ExecutionState.PAUSED,
                         isAnimateDataFlow = animateDataFlow,

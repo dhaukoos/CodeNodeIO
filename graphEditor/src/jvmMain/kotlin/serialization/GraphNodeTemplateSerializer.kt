@@ -9,6 +9,7 @@ package io.codenode.grapheditor.serialization
 import io.codenode.fbpdsl.model.*
 import io.codenode.grapheditor.model.GraphNodeTemplateMeta
 import io.codenode.grapheditor.model.PlacementLevel
+import io.codenode.grapheditor.state.IPTypeRegistry
 import java.io.File
 
 /**
@@ -101,12 +102,20 @@ object GraphNodeTemplateSerializer {
      * @param file The `.flow.kts` template file to load
      * @return The reconstructed GraphNode, or null if parsing fails
      */
-    fun loadTemplate(file: File): GraphNode? {
+    fun loadTemplate(file: File, ipTypeRegistry: IPTypeRegistry? = null): GraphNode? {
         if (!file.exists() || !file.isFile) return null
 
         return try {
             val content = file.readText()
             val parser = FlowKtParser()
+
+            // Wire IP type registry for custom type resolution
+            if (ipTypeRegistry != null) {
+                parser.setTypeResolver { typeName ->
+                    ipTypeRegistry.getByTypeName(typeName)?.payloadType
+                }
+            }
+
             val result = parser.parseFlowKt(content)
 
             if (!result.isSuccess || result.graph == null) {
@@ -114,18 +123,63 @@ object GraphNodeTemplateSerializer {
                 return null
             }
 
-            // The template wraps the GraphNode as the sole root node of a FlowGraph
-            val graphNode = result.graph.rootNodes.firstOrNull() as? GraphNode
+            // The template wraps the GraphNode as a root node of a FlowGraph
+            // (parser may also pick up child codeNodes as root-level due to flat regex matching)
+            val graphNode = result.graph.rootNodes.filterIsInstance<GraphNode>().firstOrNull()
             if (graphNode == null) {
                 println("Warning: Template ${file.name} does not contain a GraphNode as root")
                 return null
             }
 
-            graphNode
+            // Enrich GraphNode with port type name hints from parsing.
+            // (Hints cover the case where child port types resolve to Any::class)
+            if (result.portTypeNameHints.isNotEmpty()) {
+                enrichWithTypeHints(graphNode, result.portTypeNameHints)
+            } else {
+                graphNode
+            }
         } catch (e: Exception) {
             println("Warning: Failed to load GraphNode template ${file.name}: ${e.message}")
             null
         }
+    }
+
+    /**
+     * Stores port type name hints on GraphNode configuration for display.
+     * Keys are by port name (stable across ID remapping during instantiation).
+     * For each exposed port, traces through portMappings to find the child port's
+     * original type name from the parser hints.
+     */
+    private fun enrichWithTypeHints(graphNode: GraphNode, hints: Map<String, String>): GraphNode {
+        val typeHintConfig = mutableMapOf<String, String>()
+
+        // Build child port lookup from hints: childNodeId:portName → typeName
+        val childPortTypeNames = mutableMapOf<String, String>()
+        for (childNode in graphNode.childNodes) {
+            for (port in childNode.inputPorts + childNode.outputPorts) {
+                hints[port.id]?.let { typeName ->
+                    childPortTypeNames["${childNode.id}:${port.name}"] = typeName
+                }
+            }
+        }
+
+        // For each exposed port, trace through portMapping to find the child port type
+        for (port in graphNode.inputPorts + graphNode.outputPorts) {
+            val mapping = graphNode.portMappings[port.name] ?: graphNode.portMappings[port.id]
+            if (mapping != null) {
+                val typeName = childPortTypeNames["${mapping.childNodeId}:${mapping.childPortName}"]
+                if (typeName != null) {
+                    // Key by port name (stable across instantiation ID remapping)
+                    typeHintConfig["_portTypeHint_${port.name}"] = typeName
+                }
+            }
+        }
+
+        if (typeHintConfig.isEmpty()) return graphNode
+
+        return graphNode.copy(
+            configuration = graphNode.configuration + typeHintConfig
+        )
     }
 
     /**
