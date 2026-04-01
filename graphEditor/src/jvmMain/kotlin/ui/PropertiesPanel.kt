@@ -38,6 +38,7 @@ import io.codenode.fbpdsl.model.GraphNode
 import io.codenode.fbpdsl.model.InformationPacketType
 import io.codenode.fbpdsl.model.Port
 import io.codenode.grapheditor.model.PlacementLevel
+import io.codenode.grapheditor.state.PromotionCandidate
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.contentOrNull
@@ -1377,6 +1378,8 @@ fun GraphNodePropertiesPanel(
     savedTier: PlacementLevel? = null,
     onSaveToPalette: ((PlacementLevel) -> Unit)? = null,
     onRemoveFromPalette: ((PlacementLevel) -> Unit)? = null,
+    checkPromotionCandidates: ((PlacementLevel) -> List<PromotionCandidate>)? = null,
+    onPromoteAndSave: ((List<PromotionCandidate>, PlacementLevel) -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     var nodeName by remember(graphNode.id, graphNode.name) { mutableStateOf(graphNode.name) }
@@ -1515,6 +1518,8 @@ fun GraphNodePropertiesPanel(
                         var selectedLevel by remember { mutableStateOf(PlacementLevel.PROJECT) }
                         var levelDropdownExpanded by remember { mutableStateOf(false) }
                         val availableLevels = PlacementLevel.availableLevels(moduleLoaded)
+                        var showPromotionDialog by remember { mutableStateOf(false) }
+                        var pendingCandidates by remember { mutableStateOf<List<PromotionCandidate>>(emptyList()) }
 
                         // Level selector
                         Box(modifier = Modifier.fillMaxWidth()) {
@@ -1551,11 +1556,77 @@ fun GraphNodePropertiesPanel(
                         }
 
                         Button(
-                            onClick = { onSaveToPalette(selectedLevel) },
+                            onClick = {
+                                val candidates = checkPromotionCandidates?.invoke(selectedLevel) ?: emptyList()
+                                if (candidates.isNotEmpty() && onPromoteAndSave != null) {
+                                    pendingCandidates = candidates
+                                    showPromotionDialog = true
+                                } else {
+                                    onSaveToPalette(selectedLevel)
+                                }
+                            },
                             modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
                             colors = ButtonDefaults.buttonColors(backgroundColor = Color(0xFF1565C0))
                         ) {
                             Text("Add to Palette", fontSize = 12.sp, color = Color.White)
+                        }
+
+                        if (showPromotionDialog && pendingCandidates.isNotEmpty()) {
+                            AlertDialog(
+                                onDismissRequest = { showPromotionDialog = false },
+                                title = {
+                                    Text("Promote Child Nodes", fontWeight = FontWeight.Bold)
+                                },
+                                text = {
+                                    Column {
+                                        Text(
+                                            "The following child nodes will be promoted to ${selectedLevel.displayName} level:",
+                                            fontSize = 13.sp,
+                                            modifier = Modifier.padding(bottom = 8.dp)
+                                        )
+                                        pendingCandidates.forEach { candidate ->
+                                            Row(
+                                                modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
+                                                verticalAlignment = Alignment.CenterVertically
+                                            ) {
+                                                Icon(
+                                                    imageVector = Icons.Default.Warning,
+                                                    contentDescription = null,
+                                                    tint = Color(0xFFFFA000),
+                                                    modifier = Modifier.size(16.dp)
+                                                )
+                                                Spacer(modifier = Modifier.width(6.dp))
+                                                Text(
+                                                    text = "${candidate.nodeName} (${candidate.currentLevel.displayName})",
+                                                    fontSize = 12.sp
+                                                )
+                                            }
+                                        }
+                                        Spacer(modifier = Modifier.height(8.dp))
+                                        Text(
+                                            "Their .kt source files will be copied to the ${selectedLevel.displayName} level.",
+                                            fontSize = 11.sp,
+                                            color = MaterialTheme.colors.onSurface.copy(alpha = 0.6f)
+                                        )
+                                    }
+                                },
+                                confirmButton = {
+                                    Button(
+                                        onClick = {
+                                            showPromotionDialog = false
+                                            onPromoteAndSave?.invoke(pendingCandidates, selectedLevel)
+                                        },
+                                        colors = ButtonDefaults.buttonColors(backgroundColor = Color(0xFF1565C0))
+                                    ) {
+                                        Text("Continue", color = Color.White)
+                                    }
+                                },
+                                dismissButton = {
+                                    TextButton(onClick = { showPromotionDialog = false }) {
+                                        Text("Cancel")
+                                    }
+                                }
+                            )
                         }
                     }
                 }
@@ -1599,6 +1670,8 @@ fun CompactPropertiesPanelWithViewModel(
     graphNodeSavedTier: PlacementLevel? = null,
     onSaveGraphNodeToPalette: ((PlacementLevel) -> Unit)? = null,
     onRemoveGraphNodeFromPalette: ((PlacementLevel) -> Unit)? = null,
+    checkPromotionCandidates: ((PlacementLevel) -> List<PromotionCandidate>)? = null,
+    onPromoteAndSave: ((List<PromotionCandidate>, PlacementLevel) -> Unit)? = null,
     debugger: io.codenode.circuitsimulator.DataFlowDebugger? = null,
     isPaused: Boolean = false,
     isAnimateDataFlow: Boolean = false,
@@ -1710,6 +1783,8 @@ fun CompactPropertiesPanelWithViewModel(
             savedTier = graphNodeSavedTier,
             onSaveToPalette = onSaveGraphNodeToPalette,
             onRemoveFromPalette = onRemoveGraphNodeFromPalette,
+            checkPromotionCandidates = checkPromotionCandidates,
+            onPromoteAndSave = onPromoteAndSave,
             modifier = modifier.width(280.dp)
         )
     } else {

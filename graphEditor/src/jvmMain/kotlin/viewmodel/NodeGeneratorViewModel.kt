@@ -276,6 +276,7 @@ class NodeGeneratorViewModel(
             appendLine("package $packageName")
             appendLine()
             appendLine("import io.codenode.fbpdsl.model.CodeNodeFactory")
+            appendLine("import io.codenode.fbpdsl.model.CodeNodeType")
             appendLine("import io.codenode.fbpdsl.runtime.*")
             appendLine("import kotlin.reflect.KClass")
             appendLine()

@@ -162,15 +162,18 @@ class FlowKtParser {
             // Parse target platforms
             val targetPlatforms = parseTargetPlatforms(blockContent)
 
-            // Parse nodes (both CodeNodes and GraphNodes)
-            val (codeNodes, codeNodeVarMap) = parseCodeNodes(blockContent)
+            // Parse GraphNodes first to identify their block ranges
             val (graphNodes, graphNodeVarMap) = parseGraphNodes(blockContent)
+
+            // Parse top-level-only CodeNodes (exclude content inside graphNode blocks)
+            val topLevelContent = maskGraphNodeBlocks(blockContent)
+            val (codeNodes, codeNodeVarMap) = parseCodeNodes(topLevelContent)
 
             val allNodes: List<Node> = codeNodes + graphNodes
             val nodeVarMap = codeNodeVarMap + graphNodeVarMap
 
-            // Parse connections
-            val connections = parseConnections(blockContent, nodeVarMap)
+            // Parse top-level connections only (not internal connections inside graphNode blocks)
+            val connections = parseConnections(topLevelContent, nodeVarMap)
 
             val flowGraph = FlowGraph(
                 id = "flow_${graphName.lowercase().replace(" ", "_")}",
@@ -256,6 +259,30 @@ class FlowKtParser {
         }
 
         return -1
+    }
+
+    /**
+     * Returns a copy of blockContent with all graphNode block bodies replaced by spaces.
+     * This prevents nested codeNode/connection declarations from matching top-level patterns.
+     */
+    private fun maskGraphNodeBlocks(blockContent: String): String {
+        val result = StringBuilder(blockContent)
+        val graphNodeMatches = graphNodePattern.findAll(blockContent)
+
+        for (match in graphNodeMatches) {
+            val blockStart = blockContent.indexOf("{", match.range.last)
+            val blockEnd = findMatchingBrace(blockContent, blockStart)
+            if (blockStart == -1 || blockEnd == -1) continue
+
+            // Replace everything from the start of "val xxx = graphNode" through closing "}" with spaces
+            for (i in match.range.first..blockEnd) {
+                if (result[i] != '\n') {
+                    result.setCharAt(i, ' ')
+                }
+            }
+        }
+
+        return result.toString()
     }
 
     /**
@@ -413,27 +440,55 @@ class FlowKtParser {
     }
 
     /**
-     * Parses internalConnection declarations within a graphNode block.
+     * Parses internal connections within a graphNode block.
+     * Supports both formats:
+     * - `internalConnection(sourceVar, "portName", targetVar, "portName")` (FlowGraphSerializer)
+     * - `sourceVar.output("portName") connect targetVar.input("portName")` (FlowKtGenerator)
      */
     private fun parseInternalConnections(
         blockContent: String,
         childVarMap: Map<String, String>
     ): List<Connection> {
         val connections = mutableListOf<Connection>()
+        var index = 0
 
-        internalConnectionPattern.findAll(blockContent).forEachIndexed { index, match ->
+        // Format 1: internalConnection(sourceVar, "portName", targetVar, "portName")
+        internalConnectionPattern.findAll(blockContent).forEach { match ->
             val sourceVar = match.groupValues[1]
             val sourcePortName = match.groupValues[2]
             val targetVar = match.groupValues[3]
             val targetPortName = match.groupValues[4]
             val ipTypeId = match.groupValues.getOrNull(5)?.takeIf { it.isNotEmpty() }
 
-            val sourceNodeId = childVarMap[sourceVar] ?: return@forEachIndexed
-            val targetNodeId = childVarMap[targetVar] ?: return@forEachIndexed
+            val sourceNodeId = childVarMap[sourceVar] ?: return@forEach
+            val targetNodeId = childVarMap[targetVar] ?: return@forEach
 
             connections.add(
                 Connection(
-                    id = "iconn_$index",
+                    id = "iconn_${index++}",
+                    sourceNodeId = sourceNodeId,
+                    sourcePortId = "${sourceNodeId.removePrefix("node_")}_${sourcePortName}",
+                    targetNodeId = targetNodeId,
+                    targetPortId = "${targetNodeId.removePrefix("node_")}_${targetPortName}",
+                    ipTypeId = ipTypeId
+                )
+            )
+        }
+
+        // Format 2: sourceVar.output("portName") connect targetVar.input("portName")
+        connectionPattern.findAll(blockContent).forEach { match ->
+            val sourceVar = match.groupValues[1]
+            val sourcePortName = match.groupValues[2]
+            val targetVar = match.groupValues[3]
+            val targetPortName = match.groupValues[4]
+            val ipTypeId = match.groupValues.getOrNull(5)?.takeIf { it.isNotEmpty() }
+
+            val sourceNodeId = childVarMap[sourceVar] ?: return@forEach
+            val targetNodeId = childVarMap[targetVar] ?: return@forEach
+
+            connections.add(
+                Connection(
+                    id = "iconn_${index++}",
                     sourceNodeId = sourceNodeId,
                     sourcePortId = "${sourceNodeId.removePrefix("node_")}_${sourcePortName}",
                     targetNodeId = targetNodeId,
@@ -475,6 +530,8 @@ class FlowKtParser {
 
     /**
      * Parses exposeInput/exposeOutput declarations within a graphNode block.
+     * Port IDs use the same convention as CodeNode ports: `{nodeName}_{portName}`
+     * so that top-level connection port ID resolution works consistently.
      */
     private fun parseExposedPorts(
         blockContent: String,
@@ -482,17 +539,19 @@ class FlowKtParser {
         direction: Port.Direction
     ): List<Port<Any>> {
         val ports = mutableListOf<Port<Any>>()
+        val nodeNamePrefix = owningNodeId.removePrefix("node_").removePrefix("graphnode_")
 
         val pattern = if (direction == Port.Direction.INPUT) exposeInputPattern else exposeOutputPattern
         pattern.findAll(blockContent).forEach { match ->
             val portName = match.groupValues[1]
             val typeName = match.groupValues[2]
             val required = match.groupValues.getOrNull(3) == "true"
+            val portId = "${nodeNamePrefix}_${portName}"
 
             @Suppress("UNCHECKED_CAST")
             ports.add(
                 Port(
-                    id = portName,
+                    id = portId,
                     name = portName,
                     direction = direction,
                     dataType = resolveType(typeName) as KClass<Any>,

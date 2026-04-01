@@ -26,6 +26,8 @@ import io.codenode.grapheditor.state.rememberUndoRedoManager
 import io.codenode.grapheditor.state.AddNodeCommand
 import io.codenode.grapheditor.state.NodeDefinitionRegistry
 import io.codenode.grapheditor.state.GraphNodeTemplateRegistry
+import io.codenode.grapheditor.state.LevelCompatibilityChecker
+import io.codenode.grapheditor.state.NodePromoter
 import io.codenode.grapheditor.viewmodel.SharedStateProvider
 import io.codenode.grapheditor.viewmodel.LocalSharedState
 import io.codenode.grapheditor.viewmodel.NodeGeneratorViewModel
@@ -1182,6 +1184,24 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                                     graphNodeTemplateRegistry.removeTemplate(gn.name, level)
                                     statusMessage = "Removed '${gn.name}' from palette"
                                 }
+                            }
+                        },
+                        checkPromotionCandidates = selectedGraphNode?.let { gn ->
+                            { level: io.codenode.grapheditor.model.PlacementLevel ->
+                                LevelCompatibilityChecker.checkCompatibility(gn, level, registry)
+                            }
+                        },
+                        onPromoteAndSave = selectedGraphNode?.let { gn ->
+                            { candidates: List<io.codenode.grapheditor.state.PromotionCandidate>, level: io.codenode.grapheditor.model.PlacementLevel ->
+                                NodePromoter.promoteNodes(
+                                    candidates, level,
+                                    activeModulePath = moduleRootDir?.absolutePath,
+                                    projectRoot = projectRoot
+                                )
+                                graphNodeTemplateRegistry.saveGraphNode(
+                                    gn, level, moduleRootDir?.absolutePath
+                                )
+                                statusMessage = "Promoted ${candidates.size} node(s) and saved '${gn.name}' to palette at ${level.displayName} level"
                             }
                         },
                         debugger = runtimeSession?.debugger,

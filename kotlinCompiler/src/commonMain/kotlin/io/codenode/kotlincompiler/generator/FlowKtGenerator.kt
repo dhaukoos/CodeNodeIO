@@ -230,6 +230,17 @@ class FlowKtGenerator {
             }
         }
 
+        // Port mappings
+        if (node.portMappings.isNotEmpty()) {
+            node.portMappings.forEach { (portName, mapping) ->
+                val childNode = node.childNodes.find { it.id == mapping.childNodeId }
+                val childVarName = childVariables[mapping.childNodeId] ?: childNode?.name ?: mapping.childNodeId
+                val childPortName = mapping.childPortName
+                builder.appendLine("${innerIndent}portMapping(\"${escapeString(portName)}\", \"${escapeString(childVarName)}\", \"${escapeString(childPortName)}\")")
+            }
+            builder.appendLine()
+        }
+
         // Exposed ports
         if (node.inputPorts.isNotEmpty()) {
             node.inputPorts.forEach { port ->
