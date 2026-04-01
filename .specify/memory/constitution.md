@@ -136,6 +136,10 @@ All code changes MUST pass these gates before merging:
 3. **Fix**: Implement fix until test passes.
 4. **Prevention**: Add additional tests to prevent similar bugs. Update code review checklist if needed.
 
+### Refactoring Specs
+
+Refactoring specs are legitimate even though they don't add user-visible features. Their acceptance criteria center on "behavior unchanged, tests green, architecture improved."
+
 ### Technical Debt
 
 - **Definition**: Code that violates principles or creates maintenance burden. NOT "code I don't like."
