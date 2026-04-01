@@ -1204,6 +1204,11 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                                 statusMessage = "Promoted ${candidates.size} node(s) and saved '${gn.name}' to palette at ${level.displayName} level"
                             }
                         },
+                        checkDuplicateName = { name, level ->
+                            graphNodeTemplateRegistry.getByName(name)?.let { existing ->
+                                existing.tier == level
+                            } ?: false
+                        },
                         debugger = runtimeSession?.debugger,
                         isPaused = runtimeExecutionState == ExecutionState.PAUSED,
                         isAnimateDataFlow = animateDataFlow,

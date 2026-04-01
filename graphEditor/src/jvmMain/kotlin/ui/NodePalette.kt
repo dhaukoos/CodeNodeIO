@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.sp
 import io.codenode.fbpdsl.model.CodeNodeType
 import io.codenode.fbpdsl.model.NodeTypeDefinition
 import io.codenode.grapheditor.model.GraphNodeTemplateMeta
+import io.codenode.grapheditor.viewmodel.GraphNodePaletteViewModel
 import io.codenode.grapheditor.viewmodel.NodePaletteViewModel
 import io.codenode.grapheditor.viewmodel.NodePaletteState
 
@@ -41,6 +42,7 @@ import io.codenode.grapheditor.viewmodel.NodePaletteState
 @Composable
 fun NodePalette(
     viewModel: NodePaletteViewModel,
+    graphNodePaletteViewModel: GraphNodePaletteViewModel = GraphNodePaletteViewModel(),
     nodeTypes: List<NodeTypeDefinition>,
     graphNodeTemplates: List<GraphNodeTemplateMeta> = emptyList(),
     onNodeSelected: (NodeTypeDefinition) -> Unit = {},
@@ -48,11 +50,19 @@ fun NodePalette(
     modifier: Modifier = Modifier
 ) {
     val state by viewModel.state.collectAsState()
+    val graphNodePaletteState by graphNodePaletteViewModel.state.collectAsState()
+
+    // Filter GraphNode templates via ViewModel
+    val filteredTemplates = graphNodePaletteViewModel.filteredTemplates(
+        graphNodeTemplates, state.searchQuery
+    )
 
     NodePaletteContent(
         state = state,
         nodeTypes = nodeTypes,
-        graphNodeTemplates = graphNodeTemplates,
+        filteredGraphNodeTemplates = filteredTemplates,
+        graphNodeSectionExpanded = graphNodePaletteState.isExpanded,
+        onGraphNodeSectionToggle = { graphNodePaletteViewModel.toggleSection() },
         onSearchQueryChange = { viewModel.setSearchQuery(it) },
         onCategoryToggle = { viewModel.toggleCategory(it) },
         onNodeSelected = onNodeSelected,
@@ -70,7 +80,9 @@ fun NodePalette(
 private fun NodePaletteContent(
     state: NodePaletteState,
     nodeTypes: List<NodeTypeDefinition>,
-    graphNodeTemplates: List<GraphNodeTemplateMeta> = emptyList(),
+    filteredGraphNodeTemplates: List<GraphNodeTemplateMeta> = emptyList(),
+    graphNodeSectionExpanded: Boolean = false,
+    onGraphNodeSectionToggle: () -> Unit = {},
     onSearchQueryChange: (String) -> Unit,
     onCategoryToggle: (CodeNodeType) -> Unit,
     onNodeSelected: (NodeTypeDefinition) -> Unit,
@@ -87,16 +99,6 @@ private fun NodePaletteContent(
         }
         .groupBy { it.category }
         .toSortedMap()
-
-    // Filter GraphNode templates by search query
-    val filteredTemplates = graphNodeTemplates.filter { template ->
-        if (state.searchQuery.isBlank()) true
-        else template.name.contains(state.searchQuery, ignoreCase = true) ||
-             template.description?.contains(state.searchQuery, ignoreCase = true) == true
-    }
-
-    // Track GraphNodes section expand/collapse separately
-    var graphNodeSectionExpanded by remember { mutableStateOf(false) }
 
     Column(
         modifier = modifier
@@ -136,12 +138,12 @@ private fun NodePaletteContent(
                 .padding(8.dp)
         ) {
             // GraphNodes section (above CodeNode categories)
-            if (filteredTemplates.isNotEmpty()) {
+            if (filteredGraphNodeTemplates.isNotEmpty()) {
                 item {
                     GraphNodePaletteSection(
-                        templates = filteredTemplates,
+                        templates = filteredGraphNodeTemplates,
                         isExpanded = graphNodeSectionExpanded,
-                        onToggle = { graphNodeSectionExpanded = !graphNodeSectionExpanded },
+                        onToggle = onGraphNodeSectionToggle,
                         onTemplateSelected = onGraphNodeTemplateSelected
                     )
                 }

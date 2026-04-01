@@ -1380,6 +1380,7 @@ fun GraphNodePropertiesPanel(
     onRemoveFromPalette: ((PlacementLevel) -> Unit)? = null,
     checkPromotionCandidates: ((PlacementLevel) -> List<PromotionCandidate>)? = null,
     onPromoteAndSave: ((List<PromotionCandidate>, PlacementLevel) -> Unit)? = null,
+    checkDuplicateName: ((String, PlacementLevel) -> Boolean)? = null,
     modifier: Modifier = Modifier
 ) {
     var nodeName by remember(graphNode.id, graphNode.name) { mutableStateOf(graphNode.name) }
@@ -1520,6 +1521,20 @@ fun GraphNodePropertiesPanel(
                         val availableLevels = PlacementLevel.availableLevels(moduleLoaded)
                         var showPromotionDialog by remember { mutableStateOf(false) }
                         var pendingCandidates by remember { mutableStateOf<List<PromotionCandidate>>(emptyList()) }
+                        var showDuplicateDialog by remember { mutableStateOf(false) }
+                        var renameText by remember { mutableStateOf("") }
+                        var showRenameField by remember { mutableStateOf(false) }
+
+                        // Proceeds with save (promotion check then save)
+                        val proceedWithSave: (PlacementLevel) -> Unit = { level ->
+                            val candidates = checkPromotionCandidates?.invoke(level) ?: emptyList()
+                            if (candidates.isNotEmpty() && onPromoteAndSave != null) {
+                                pendingCandidates = candidates
+                                showPromotionDialog = true
+                            } else {
+                                onSaveToPalette(level)
+                            }
+                        }
 
                         // Level selector
                         Box(modifier = Modifier.fillMaxWidth()) {
@@ -1557,18 +1572,85 @@ fun GraphNodePropertiesPanel(
 
                         Button(
                             onClick = {
-                                val candidates = checkPromotionCandidates?.invoke(selectedLevel) ?: emptyList()
-                                if (candidates.isNotEmpty() && onPromoteAndSave != null) {
-                                    pendingCandidates = candidates
-                                    showPromotionDialog = true
+                                if (checkDuplicateName?.invoke(graphNode.name, selectedLevel) == true) {
+                                    showDuplicateDialog = true
+                                    showRenameField = false
+                                    renameText = graphNode.name
                                 } else {
-                                    onSaveToPalette(selectedLevel)
+                                    proceedWithSave(selectedLevel)
                                 }
                             },
                             modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
                             colors = ButtonDefaults.buttonColors(backgroundColor = Color(0xFF1565C0))
                         ) {
                             Text("Add to Palette", fontSize = 12.sp, color = Color.White)
+                        }
+
+                        // Duplicate name dialog
+                        if (showDuplicateDialog) {
+                            AlertDialog(
+                                onDismissRequest = { showDuplicateDialog = false },
+                                title = {
+                                    Text("Duplicate Name", fontWeight = FontWeight.Bold)
+                                },
+                                text = {
+                                    Column {
+                                        Text(
+                                            "A GraphNode named '${graphNode.name}' already exists at ${selectedLevel.displayName} level.",
+                                            fontSize = 13.sp,
+                                            modifier = Modifier.padding(bottom = 8.dp)
+                                        )
+                                        if (showRenameField) {
+                                            OutlinedTextField(
+                                                value = renameText,
+                                                onValueChange = { renameText = it },
+                                                label = { Text("New name", fontSize = 10.sp) },
+                                                singleLine = true,
+                                                modifier = Modifier.fillMaxWidth(),
+                                                textStyle = androidx.compose.ui.text.TextStyle(fontSize = 12.sp)
+                                            )
+                                        }
+                                    }
+                                },
+                                buttons = {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth().padding(8.dp),
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End)
+                                    ) {
+                                        TextButton(onClick = { showDuplicateDialog = false }) {
+                                            Text("Cancel")
+                                        }
+                                        if (!showRenameField) {
+                                            TextButton(onClick = { showRenameField = true }) {
+                                                Text("Rename")
+                                            }
+                                            Button(
+                                                onClick = {
+                                                    showDuplicateDialog = false
+                                                    proceedWithSave(selectedLevel)
+                                                },
+                                                colors = ButtonDefaults.buttonColors(backgroundColor = Color(0xFFFFA000))
+                                            ) {
+                                                Text("Overwrite", color = Color.White)
+                                            }
+                                        } else {
+                                            Button(
+                                                onClick = {
+                                                    if (renameText.isNotBlank() && renameText != graphNode.name) {
+                                                        showDuplicateDialog = false
+                                                        onNameChanged(renameText)
+                                                        proceedWithSave(selectedLevel)
+                                                    }
+                                                },
+                                                enabled = renameText.isNotBlank() && renameText != graphNode.name,
+                                                colors = ButtonDefaults.buttonColors(backgroundColor = Color(0xFF1565C0))
+                                            ) {
+                                                Text("Save as '${renameText}'", color = Color.White, fontSize = 11.sp)
+                                            }
+                                        }
+                                    }
+                                }
+                            )
                         }
 
                         if (showPromotionDialog && pendingCandidates.isNotEmpty()) {
@@ -1672,6 +1754,7 @@ fun CompactPropertiesPanelWithViewModel(
     onRemoveGraphNodeFromPalette: ((PlacementLevel) -> Unit)? = null,
     checkPromotionCandidates: ((PlacementLevel) -> List<PromotionCandidate>)? = null,
     onPromoteAndSave: ((List<PromotionCandidate>, PlacementLevel) -> Unit)? = null,
+    checkDuplicateName: ((String, PlacementLevel) -> Boolean)? = null,
     debugger: io.codenode.circuitsimulator.DataFlowDebugger? = null,
     isPaused: Boolean = false,
     isAnimateDataFlow: Boolean = false,
@@ -1785,6 +1868,7 @@ fun CompactPropertiesPanelWithViewModel(
             onRemoveFromPalette = onRemoveGraphNodeFromPalette,
             checkPromotionCandidates = checkPromotionCandidates,
             onPromoteAndSave = onPromoteAndSave,
+            checkDuplicateName = checkDuplicateName,
             modifier = modifier.width(280.dp)
         )
     } else {

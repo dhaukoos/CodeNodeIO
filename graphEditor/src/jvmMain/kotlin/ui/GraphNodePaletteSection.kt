@@ -19,6 +19,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.codenode.grapheditor.model.GraphNodeTemplateMeta
+import io.codenode.grapheditor.model.PlacementLevel
 
 /**
  * Collapsible "GraphNodes" section in the Node Palette.
@@ -84,6 +85,8 @@ fun GraphNodePaletteSection(
 
 /**
  * Card for a single GraphNode template in the palette.
+ * Visually distinct from CodeNode cards with blue tint, composition icon,
+ * and level indicator pill.
  */
 @Composable
 private fun GraphNodeTemplateCard(
@@ -105,14 +108,29 @@ private fun GraphNodeTemplateCard(
                 .padding(12.dp)
                 .fillMaxWidth()
         ) {
-            Text(
-                text = template.name,
-                fontSize = 13.sp,
-                fontWeight = FontWeight.Medium,
-                color = Color(0xFF212121),
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
+            // Name row with composition icon
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                // Composition icon (nested squares)
+                Text(
+                    text = "\u25A3",  // ▣ nested square
+                    fontSize = 14.sp,
+                    color = Color(0xFF1565C0),
+                    modifier = Modifier.padding(end = 6.dp)
+                )
+
+                Text(
+                    text = template.name,
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = Color(0xFF212121),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f)
+                )
+            }
 
             template.description?.let { desc ->
                 Text(
@@ -125,12 +143,13 @@ private fun GraphNodeTemplateCard(
                 )
             }
 
-            // Port count badges
+            // Badges row: ports, child count, and level indicator
             Row(
                 modifier = Modifier
                     .padding(top = 8.dp)
                     .fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 if (template.inputPortCount > 0) {
                     PortCountBadge(
@@ -155,8 +174,38 @@ private fun GraphNodeTemplateCard(
                         color = Color(0xFF9E9E9E)
                     )
                 }
+
+                Spacer(modifier = Modifier.weight(1f))
+
+                // Level indicator pill
+                LevelIndicatorPill(level = template.tier)
             }
         }
+    }
+}
+
+/**
+ * Level indicator pill showing Module/Project/Universal with tier-appropriate color.
+ */
+@Composable
+private fun LevelIndicatorPill(level: PlacementLevel) {
+    val (color, text) = when (level) {
+        PlacementLevel.MODULE -> Color(0xFF7B1FA2) to "Module"
+        PlacementLevel.PROJECT -> Color(0xFF1565C0) to "Project"
+        PlacementLevel.UNIVERSAL -> Color(0xFF2E7D32) to "Universal"
+    }
+    Surface(
+        shape = RoundedCornerShape(8.dp),
+        color = color.copy(alpha = 0.1f),
+        border = BorderStroke(1.dp, color.copy(alpha = 0.4f))
+    ) {
+        Text(
+            text = text,
+            fontSize = 9.sp,
+            color = color,
+            fontWeight = FontWeight.Medium,
+            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+        )
     }
 }
 

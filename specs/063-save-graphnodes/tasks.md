@@ -106,9 +106,9 @@
 
 ### Implementation for User Story 3
 
-- [ ] T030 [US3] Create `GraphNodePaletteViewModel` with state for expanded/collapsed "GraphNodes" section and search integration: expose `filteredTemplates(query: String): List<GraphNodeTemplateMeta>` that filters by name and description matching the palette search query in `graphEditor/src/jvmMain/kotlin/viewmodel/GraphNodePaletteViewModel.kt`
-- [ ] T031 [US3] Update `GraphNodePaletteSection` card design to be visually distinct: use blue-tinted background (#E3F2FD), blue border (#1565C0) matching GraphNodeRenderer, add a composition icon (nested squares), add child node count badge, and add a level indicator pill (Module/Project/Universal text with tier color) in `graphEditor/src/jvmMain/kotlin/ui/GraphNodePaletteSection.kt`
-- [ ] T032 [US3] Integrate GraphNode search into `NodePaletteViewModel`: update `setSearchQuery()` to also filter GraphNode templates via `GraphNodePaletteViewModel.filteredTemplates()`, and pass filtered results to `GraphNodePaletteSection` in `graphEditor/src/jvmMain/kotlin/viewmodel/NodePaletteViewModel.kt` and `graphEditor/src/jvmMain/kotlin/ui/NodePalette.kt`
+- [X] T030 [US3] Create `GraphNodePaletteViewModel` with state for expanded/collapsed "GraphNodes" section and search integration: expose `filteredTemplates(query: String): List<GraphNodeTemplateMeta>` that filters by name and description matching the palette search query in `graphEditor/src/jvmMain/kotlin/viewmodel/GraphNodePaletteViewModel.kt`
+- [X] T031 [US3] Update `GraphNodePaletteSection` card design to be visually distinct: use blue-tinted background (#E3F2FD), blue border (#1565C0) matching GraphNodeRenderer, add a composition icon (nested squares), add child node count badge, and add a level indicator pill (Module/Project/Universal text with tier color) in `graphEditor/src/jvmMain/kotlin/ui/GraphNodePaletteSection.kt`
+- [X] T032 [US3] Integrate GraphNode search into `NodePaletteViewModel`: update `setSearchQuery()` to also filter GraphNode templates via `GraphNodePaletteViewModel.filteredTemplates()`, and pass filtered results to `GraphNodePaletteSection` in `graphEditor/src/jvmMain/kotlin/viewmodel/NodePaletteViewModel.kt` and `graphEditor/src/jvmMain/kotlin/ui/NodePalette.kt`
 - [ ] T033 [US3] **MANUAL** Verify quickstart Scenario 6: save multiple GraphNodes at different levels, verify distinct card design with blue tint, verify level indicators, verify search filters both CodeNodes and GraphNodes
 
 **Checkpoint**: GraphNodes are visually distinct in the palette, show tier indicators, and are searchable.
@@ -119,10 +119,10 @@
 
 **Purpose**: Edge cases, validation, and final integration testing.
 
-- [ ] T034 Implement duplicate name handling: when saving a GraphNode with a name that already exists at the same tier, show a dialog with "Overwrite," "Rename," and "Cancel" options; integrate into the save flow in `graphEditor/src/jvmMain/kotlin/ui/PropertiesPanel.kt`
-- [ ] T035 Handle edge case: allow saving empty GraphNodes (no child nodes) — ensure serialization and instantiation work correctly with zero children in `graphEditor/src/jvmMain/kotlin/serialization/GraphNodeTemplateSerializer.kt`
-- [ ] T036 Handle edge case: saving GraphNodes containing nested GraphNodes — ensure recursive serialization captures full hierarchy and instantiation remaps IDs at all nesting levels in `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/state/GraphNodeTemplateInstantiator.kt`
-- [ ] T037 Run `./gradlew :graphEditor:jvmTest` to verify all tests pass
+- [X] T034 Implement duplicate name handling: when saving a GraphNode with a name that already exists at the same tier, show a dialog with "Overwrite," "Rename," and "Cancel" options; integrate into the save flow in `graphEditor/src/jvmMain/kotlin/ui/PropertiesPanel.kt`
+- [X] T035 Handle edge case: allow saving empty GraphNodes (no child nodes) — ensure serialization and instantiation work correctly with zero children in `graphEditor/src/jvmMain/kotlin/serialization/GraphNodeTemplateSerializer.kt`
+- [X] T036 Handle edge case: saving GraphNodes containing nested GraphNodes — ensure recursive serialization captures full hierarchy and instantiation remaps IDs at all nesting levels in `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/state/GraphNodeTemplateInstantiator.kt`
+- [X] T037 Run `./gradlew :graphEditor:jvmTest` to verify all tests pass
 - [ ] T038 **MANUAL** Verify quickstart Scenario 7: duplicate name handling with overwrite/rename/cancel
 - [ ] T039 **MANUAL** End-to-end validation: save, instantiate, restart, remove, promotion — all scenarios from quickstart.md
 
