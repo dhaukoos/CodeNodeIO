@@ -16,7 +16,9 @@
       "Bash(do rm:*)",
       "Bash(find WeatherForecast/src -name \"*.kt\" -exec grep -l \"io.codenode.weatherforecast.models\" {})",
       "Bash(git ls-tree:*)",
-      "Bash(grep \"\\\\.kt$\")"
+      "Bash(grep \"\\\\.kt$\")",
+      "Bash(grep -h \"^import \" graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/state/*.kt)",
+      "Bash(find /Users/dhaukoos/CodeNodeIO/graphEditor/src -name *Serializer*.kt -o -name *serialization* -type f)"
     ]
   }
 }
