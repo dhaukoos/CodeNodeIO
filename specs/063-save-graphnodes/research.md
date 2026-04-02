@@ -58,25 +58,29 @@ The metadata comment header (similar to `@IPType` markers on IP type files) enab
 
 ---
 
-## R4: Child Node Promotion Strategy
+## R4: Child Node Level Compatibility and Promotion
 
-**Decision**: When a GraphNode is saved at a level more general than one of its child nodes, the child node's source file is **copied** to the target level's corresponding directory. The original file at the more specific level is left intact.
+**Decision**: When a GraphNode is saved at a level more general than one of its child nodes, the system first checks whether each child node's imports can be resolved at the target level. Nodes with only standard dependencies (FBP DSL, Kotlin stdlib, coroutines) are **promotable** — their `.kt` source files are copied to the target level's directory with updated package declarations. Nodes with module-specific dependencies (module-level IP types, third-party libraries like Ktor) **block the save** — the user is told which nodes are incompatible and which level would work.
 
 **Rationale**:
 - Copy (not move) preserves the original at its specific level — the module that owns it still works
-- The promoted copy makes the child node available at the target level, satisfying the GraphNode's dependency
-- This mirrors how a developer would manually make a module-specific node available project-wide
+- Import analysis prevents creating broken promoted files that reference unavailable types or libraries
+- Blocking the save (rather than silently skipping unpromotable nodes) prevents creating GraphNode templates that won't compile when used
+- The dialog recommends the appropriate level, guiding the user to a working save
 - Promotion applies to CodeNode `.kt` files (copy to target-level `nodes/` directory) and IP type `.kt` files (copy to target-level `iptypes/` directory)
 
 **Complications addressed**:
 - **Package declaration mismatch**: The promoted copy needs its `package` declaration updated to match the target level (e.g., `io.codenode.modulename.nodes` → `io.codenode.nodes` for Project level)
-- **Import resolution**: If the promoted CodeNode references module-specific IP types, those IP types must also be promoted (transitive promotion)
-- **Name collisions**: If a node with the same name already exists at the target level, the promotion dialog lists the conflict and offers to skip (reuse existing) or rename
+- **Unresolvable imports**: Module-specific types and third-party libraries are not available at higher levels; these block the save with a clear explanation
+- **Transitive IP types**: If a promotable CodeNode references module-specific IP types with standard imports, those IP types are also promoted
+- **Name collisions**: If a node with the same name already exists at the target level, the promotion skips the copy (reuses existing)
 
 **Alternatives considered**:
 - **Move instead of copy**: Would break the source module. Rejected.
 - **Symbolic links / references**: Not portable across OS or version control. Rejected.
-- **Save warning badge only (original spec approach)**: Would create broken GraphNode templates. User clarified that promotion is the correct behavior.
+- **Save warning badge only**: Would create broken GraphNode templates. Rejected.
+- **Import all dependencies transitively (including Gradle deps)**: Technically possible but fragile — would require parsing `build.gradle.kts` and modifying the target module's build file. Rejected as over-engineered for the current use case.
+- **Skip unpromotable nodes and save anyway**: Would create templates that compile but fail at runtime when the skipped nodes are missing. Rejected in favor of blocking the save entirely.
 
 ---
 

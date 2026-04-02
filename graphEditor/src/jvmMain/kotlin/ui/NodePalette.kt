@@ -42,7 +42,7 @@ import io.codenode.grapheditor.viewmodel.NodePaletteState
 @Composable
 fun NodePalette(
     viewModel: NodePaletteViewModel,
-    graphNodePaletteViewModel: GraphNodePaletteViewModel = GraphNodePaletteViewModel(),
+    graphNodePaletteViewModel: GraphNodePaletteViewModel = remember { GraphNodePaletteViewModel() },
     nodeTypes: List<NodeTypeDefinition>,
     graphNodeTemplates: List<GraphNodeTemplateMeta> = emptyList(),
     onNodeSelected: (NodeTypeDefinition) -> Unit = {},

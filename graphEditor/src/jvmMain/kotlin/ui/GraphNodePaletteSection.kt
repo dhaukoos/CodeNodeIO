@@ -143,13 +143,12 @@ private fun GraphNodeTemplateCard(
                 )
             }
 
-            // Badges row: ports, child count, and level indicator
+            // Badges row: ports and child count
             Row(
                 modifier = Modifier
                     .padding(top = 8.dp)
                     .fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 if (template.inputPortCount > 0) {
                     PortCountBadge(
@@ -174,10 +173,15 @@ private fun GraphNodeTemplateCard(
                         color = Color(0xFF9E9E9E)
                     )
                 }
+            }
 
-                Spacer(modifier = Modifier.weight(1f))
-
-                // Level indicator pill
+            // Level indicator pill on its own row
+            Row(
+                modifier = Modifier
+                    .padding(top = 4.dp)
+                    .fillMaxWidth(),
+                horizontalArrangement = Arrangement.End
+            ) {
                 LevelIndicatorPill(level = template.tier)
             }
         }
@@ -189,10 +193,15 @@ private fun GraphNodeTemplateCard(
  */
 @Composable
 private fun LevelIndicatorPill(level: PlacementLevel) {
-    val (color, text) = when (level) {
-        PlacementLevel.MODULE -> Color(0xFF7B1FA2) to "Module"
-        PlacementLevel.PROJECT -> Color(0xFF1565C0) to "Project"
-        PlacementLevel.UNIVERSAL -> Color(0xFF2E7D32) to "Universal"
+    val color = when (level) {
+        PlacementLevel.MODULE -> Color(0xFF7B1FA2)
+        PlacementLevel.PROJECT -> Color(0xFF1565C0)
+        PlacementLevel.UNIVERSAL -> Color(0xFF2E7D32)
+    }
+    val label = when (level) {
+        PlacementLevel.MODULE -> "Module"
+        PlacementLevel.PROJECT -> "Project"
+        PlacementLevel.UNIVERSAL -> "Universal"
     }
     Surface(
         shape = RoundedCornerShape(8.dp),
@@ -200,7 +209,7 @@ private fun LevelIndicatorPill(level: PlacementLevel) {
         border = BorderStroke(1.dp, color.copy(alpha = 0.4f))
     ) {
         Text(
-            text = text,
+            text = label,
             fontSize = 9.sp,
             color = color,
             fontWeight = FontWeight.Medium,

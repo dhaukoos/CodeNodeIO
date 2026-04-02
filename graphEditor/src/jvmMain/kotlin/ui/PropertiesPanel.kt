@@ -1465,7 +1465,7 @@ fun GraphNodePropertiesPanel(
                     )
                     Spacer(modifier = Modifier.height(4.dp))
 
-                    if (isSavedToPalette && savedTier != null) {
+                    if (isSavedToPalette && savedTier != null && onRemoveFromPalette != null) {
                         var showRemoveConfirmation by remember { mutableStateOf(false) }
 
                         Text(
@@ -1474,48 +1474,48 @@ fun GraphNodePropertiesPanel(
                             color = MaterialTheme.colors.onSurface.copy(alpha = 0.7f),
                             modifier = Modifier.padding(vertical = 2.dp)
                         )
-                        if (onRemoveFromPalette != null) {
-                            Button(
-                                onClick = { showRemoveConfirmation = true },
-                                modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
-                                colors = ButtonDefaults.buttonColors(backgroundColor = Color(0xFFFFEBEE))
-                            ) {
-                                Text("Remove from Palette", fontSize = 12.sp, color = Color(0xFFE53935))
-                            }
-
-                            if (showRemoveConfirmation) {
-                                AlertDialog(
-                                    onDismissRequest = { showRemoveConfirmation = false },
-                                    title = {
-                                        Text("Remove from Palette", fontWeight = FontWeight.Bold)
-                                    },
-                                    text = {
-                                        Text(
-                                            "Remove \"${graphNode.name}\" from the ${savedTier.displayName} palette?\n\n" +
-                                            "Existing canvas instances will not be affected.",
-                                            fontSize = 13.sp
-                                        )
-                                    },
-                                    confirmButton = {
-                                        Button(
-                                            onClick = {
-                                                showRemoveConfirmation = false
-                                                onRemoveFromPalette(savedTier)
-                                            },
-                                            colors = ButtonDefaults.buttonColors(backgroundColor = Color(0xFFE53935))
-                                        ) {
-                                            Text("Remove", color = Color.White)
-                                        }
-                                    },
-                                    dismissButton = {
-                                        TextButton(onClick = { showRemoveConfirmation = false }) {
-                                            Text("Cancel")
-                                        }
-                                    }
-                                )
-                            }
+                        Button(
+                            onClick = { showRemoveConfirmation = true },
+                            modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
+                            colors = ButtonDefaults.buttonColors(backgroundColor = Color(0xFFFFEBEE))
+                        ) {
+                            Text("Remove from Palette", fontSize = 12.sp, color = Color(0xFFE53935))
                         }
-                    } else if (onSaveToPalette != null) {
+
+                        if (showRemoveConfirmation) {
+                            AlertDialog(
+                                onDismissRequest = { showRemoveConfirmation = false },
+                                title = {
+                                    Text("Remove from Palette", fontWeight = FontWeight.Bold)
+                                },
+                                text = {
+                                    Text(
+                                        "Remove \"${graphNode.name}\" from the ${savedTier.displayName} palette?\n\n" +
+                                        "Existing canvas instances will not be affected.",
+                                        fontSize = 13.sp
+                                    )
+                                },
+                                confirmButton = {
+                                    Button(
+                                        onClick = {
+                                            showRemoveConfirmation = false
+                                            onRemoveFromPalette(savedTier)
+                                        },
+                                        colors = ButtonDefaults.buttonColors(backgroundColor = Color(0xFFE53935))
+                                    ) {
+                                        Text("Remove", color = Color.White)
+                                    }
+                                },
+                                dismissButton = {
+                                    TextButton(onClick = { showRemoveConfirmation = false }) {
+                                        Text("Cancel")
+                                    }
+                                }
+                            )
+                        }
+                    }
+
+                    if (onSaveToPalette != null) {
                         var selectedLevel by remember { mutableStateOf(PlacementLevel.PROJECT) }
                         var levelDropdownExpanded by remember { mutableStateOf(false) }
                         val availableLevels = PlacementLevel.availableLevels(moduleLoaded)
@@ -1654,58 +1654,111 @@ fun GraphNodePropertiesPanel(
                         }
 
                         if (showPromotionDialog && pendingCandidates.isNotEmpty()) {
+                            val hasUnpromotable = pendingCandidates.any { !it.promotable }
+                            val allPromotable = pendingCandidates.filter { it.promotable }
+                            // Recommend the most specific level that all children share
+                            val recommendedLevel = if (hasUnpromotable) {
+                                pendingCandidates.filter { !it.promotable }
+                                    .maxByOrNull { it.currentLevel.ordinal }
+                                    ?.currentLevel ?: PlacementLevel.MODULE
+                            } else null
+
                             AlertDialog(
                                 onDismissRequest = { showPromotionDialog = false },
                                 title = {
-                                    Text("Promote Child Nodes", fontWeight = FontWeight.Bold)
+                                    Text(
+                                        if (hasUnpromotable) "Cannot Save at ${selectedLevel.displayName}" else "Promote Child Nodes",
+                                        fontWeight = FontWeight.Bold
+                                    )
                                 },
                                 text = {
                                     Column {
-                                        Text(
-                                            "The following child nodes will be promoted to ${selectedLevel.displayName} level:",
-                                            fontSize = 13.sp,
-                                            modifier = Modifier.padding(bottom = 8.dp)
-                                        )
-                                        pendingCandidates.forEach { candidate ->
-                                            Row(
-                                                modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
-                                                verticalAlignment = Alignment.CenterVertically
-                                            ) {
-                                                Icon(
-                                                    imageVector = Icons.Default.Warning,
-                                                    contentDescription = null,
-                                                    tint = Color(0xFFFFA000),
-                                                    modifier = Modifier.size(16.dp)
-                                                )
-                                                Spacer(modifier = Modifier.width(6.dp))
-                                                Text(
-                                                    text = "${candidate.nodeName} (${candidate.currentLevel.displayName})",
-                                                    fontSize = 12.sp
-                                                )
+                                        if (hasUnpromotable) {
+                                            Text(
+                                                "Some child nodes have dependencies that are not available at ${selectedLevel.displayName} level:",
+                                                fontSize = 13.sp,
+                                                modifier = Modifier.padding(bottom = 8.dp)
+                                            )
+                                            pendingCandidates.filter { !it.promotable }.forEach { candidate ->
+                                                Row(
+                                                    modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
+                                                    verticalAlignment = Alignment.CenterVertically
+                                                ) {
+                                                    Icon(
+                                                        imageVector = Icons.Default.Warning,
+                                                        contentDescription = null,
+                                                        tint = Color(0xFFE53935),
+                                                        modifier = Modifier.size(16.dp)
+                                                    )
+                                                    Spacer(modifier = Modifier.width(6.dp))
+                                                    Text(
+                                                        text = "${candidate.nodeName} (${candidate.currentLevel.displayName})",
+                                                        fontSize = 12.sp
+                                                    )
+                                                }
                                             }
+                                            Spacer(modifier = Modifier.height(8.dp))
+                                            Text(
+                                                "Try saving at ${recommendedLevel?.displayName ?: "Module"} level instead.",
+                                                fontSize = 12.sp,
+                                                fontWeight = FontWeight.Medium,
+                                                color = Color(0xFF1565C0)
+                                            )
+                                        } else {
+                                            Text(
+                                                "The following child nodes will be promoted to ${selectedLevel.displayName} level:",
+                                                fontSize = 13.sp,
+                                                modifier = Modifier.padding(bottom = 8.dp)
+                                            )
+                                            allPromotable.forEach { candidate ->
+                                                Row(
+                                                    modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
+                                                    verticalAlignment = Alignment.CenterVertically
+                                                ) {
+                                                    Icon(
+                                                        imageVector = Icons.Default.Warning,
+                                                        contentDescription = null,
+                                                        tint = Color(0xFFFFA000),
+                                                        modifier = Modifier.size(16.dp)
+                                                    )
+                                                    Spacer(modifier = Modifier.width(6.dp))
+                                                    Text(
+                                                        text = "${candidate.nodeName} (${candidate.currentLevel.displayName})",
+                                                        fontSize = 12.sp
+                                                    )
+                                                }
+                                            }
+                                            Spacer(modifier = Modifier.height(8.dp))
+                                            Text(
+                                                "Their .kt source files will be copied to the ${selectedLevel.displayName} level.",
+                                                fontSize = 11.sp,
+                                                color = MaterialTheme.colors.onSurface.copy(alpha = 0.6f)
+                                            )
                                         }
-                                        Spacer(modifier = Modifier.height(8.dp))
-                                        Text(
-                                            "Their .kt source files will be copied to the ${selectedLevel.displayName} level.",
-                                            fontSize = 11.sp,
-                                            color = MaterialTheme.colors.onSurface.copy(alpha = 0.6f)
-                                        )
                                     }
                                 },
                                 confirmButton = {
-                                    Button(
-                                        onClick = {
-                                            showPromotionDialog = false
-                                            onPromoteAndSave?.invoke(pendingCandidates, selectedLevel)
-                                        },
-                                        colors = ButtonDefaults.buttonColors(backgroundColor = Color(0xFF1565C0))
-                                    ) {
-                                        Text("Continue", color = Color.White)
+                                    if (hasUnpromotable) {
+                                        TextButton(onClick = { showPromotionDialog = false }) {
+                                            Text("OK")
+                                        }
+                                    } else {
+                                        Button(
+                                            onClick = {
+                                                showPromotionDialog = false
+                                                onPromoteAndSave?.invoke(pendingCandidates, selectedLevel)
+                                            },
+                                            colors = ButtonDefaults.buttonColors(backgroundColor = Color(0xFF1565C0))
+                                        ) {
+                                            Text("Continue", color = Color.White)
+                                        }
                                     }
                                 },
                                 dismissButton = {
-                                    TextButton(onClick = { showPromotionDialog = false }) {
-                                        Text("Cancel")
+                                    if (!hasUnpromotable) {
+                                        TextButton(onClick = { showPromotionDialog = false }) {
+                                            Text("Cancel")
+                                        }
                                     }
                                 }
                             )

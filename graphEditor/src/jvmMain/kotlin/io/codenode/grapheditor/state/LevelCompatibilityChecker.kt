@@ -17,11 +17,13 @@ import java.io.File
  * @property nodeName Name of the child CodeNode
  * @property currentLevel The level where the child node currently exists
  * @property sourceFilePath Absolute path to the child node's source .kt file
+ * @property promotable Whether this node can be promoted (false if it has unresolvable imports)
  */
 data class PromotionCandidate(
     val nodeName: String,
     val currentLevel: PlacementLevel,
-    val sourceFilePath: String
+    val sourceFilePath: String,
+    val promotable: Boolean = true
 )
 
 /**
@@ -81,11 +83,14 @@ object LevelCompatibilityChecker {
                     // So promotion is needed when currentLevel.ordinal < targetLevel.ordinal
                     // (i.e., the node is at a more specific level than the target).
                     if (currentLevel.ordinal < targetLevel.ordinal) {
+                        val sourceContent = try { java.io.File(sourcePath).readText() } catch (_: Exception) { "" }
+                        val canPromote = !NodePromoter.hasUnresolvableImports(sourceContent, targetLevel)
                         candidates.add(
                             PromotionCandidate(
                                 nodeName = node.name,
                                 currentLevel = currentLevel,
-                                sourceFilePath = sourcePath
+                                sourceFilePath = sourcePath,
+                                promotable = canPromote
                             )
                         )
                     }

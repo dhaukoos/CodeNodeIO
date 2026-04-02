@@ -149,9 +149,9 @@ Saved GraphNode templates use the existing `.flow.kts` DSL format (FlowGraphSeri
 
 `GraphNodeTemplateRegistry` scans all three tier directories on startup, parsing only the metadata comment header (first ~10 lines) from each `.flow.kts` file. Full deserialization is deferred to instantiation time.
 
-### 3. Promotion: Copy with Package Update
+### 3. Level Compatibility Check and Promotion
 
-When saving at a more general level, child CodeNode `.kt` files are copied (not moved) to the target tier's `nodes/` directory. Package declarations are updated. Transitive IP type dependencies are also promoted. The original files remain intact.
+When saving at a more general level, `LevelCompatibilityChecker` analyzes each child CodeNode's imports to determine promotability. Nodes with only standard dependencies (`io.codenode.fbpdsl.*`, `kotlin.*`, `kotlinx.coroutines.*`) can be promoted — their `.kt` files are copied to the target tier's `nodes/` directory with updated package declarations, and transitive IP type dependencies are also promoted. Nodes with module-specific dependencies (module-level IP types, third-party libraries like Ktor) **block the save** — the user is shown which nodes are incompatible and which level would work instead. The original files always remain intact.
 
 ### 4. Instantiation: Deep Copy with ID Remapping
 

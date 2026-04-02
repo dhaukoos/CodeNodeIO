@@ -82,19 +82,19 @@
 
 ## Phase 5: User Story 4 — Heterogeneous Child Node Level Promotion (Priority: P2)
 
-**Goal**: When saving a GraphNode at a more general level than its child nodes, the system shows a promotion dialog and copies child node definitions to the target level.
+**Goal**: When saving a GraphNode at a more general level than its child nodes, the system checks import compatibility. Nodes with unresolvable dependencies (module-specific types, third-party libraries) block the save with a recommendation. Nodes with only standard dependencies can be promoted (copied with updated packages).
 
-**Independent Test**: Create a GraphNode with mixed-level child nodes → save at Universal → verify promotion dialog → confirm → verify child node files copied with updated packages.
+**Independent Test**: Create a GraphNode with mixed-level child nodes → save at Universal → verify blocking dialog for nodes with module-specific deps, or promotion dialog for simple nodes → verify appropriate behavior for each case.
 
 ### Implementation for User Story 4
 
-- [X] T025 [US4] Implement `LevelCompatibilityChecker` with `checkCompatibility(graphNode: GraphNode, targetLevel: PlacementLevel, nodeRegistry: NodeDefinitionRegistry): List<PromotionCandidate>` that recursively walks all child nodes (including nested GraphNodes), determines each child's current level via source file path lookup in the registry, and returns a list of nodes that need promotion (current level more specific than target) in `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/state/LevelCompatibilityChecker.kt`
-- [X] T026 [P] [US4] Implement `NodePromoter` with `promoteNodes(candidates: List<PromotionCandidate>, targetLevel: PlacementLevel, activeModulePath: String?)` that copies each candidate CodeNode `.kt` file to the target level's `nodes/` directory, updates the `package` declaration to match the target level, and handles transitive IP type promotion (copies referenced module-specific IP type `.kt` files to the target level's `iptypes/` directory with updated packages) in `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/state/NodePromoter.kt`
-- [X] T027 [US4] Create promotion dialog composable: display the list of child nodes to be promoted with their current levels and target level, with "Continue" and "Cancel" buttons; integrate into the save flow in `PropertiesPanel.kt` — when "Add to Palette" is clicked and `LevelCompatibilityChecker` returns non-empty candidates, show the dialog before proceeding in `graphEditor/src/jvmMain/kotlin/ui/PropertiesPanel.kt`
-- [X] T028 [US4] Update `PropertiesPanelViewModel.saveGraphNodeToPalette()` to call `LevelCompatibilityChecker` before saving, surface promotion candidates to the UI, and on confirmation call `NodePromoter.promoteNodes()` before `GraphNodeTemplateRegistry.saveGraphNode()` in `graphEditor/src/jvmMain/kotlin/viewmodel/PropertiesPanelViewModel.kt`
-- [X] T029 [US4] **MANUAL** Verify quickstart Scenario 5: create a GraphNode with Module-level and Project-level child nodes, save at Universal, verify promotion dialog lists affected nodes, confirm and verify `.kt` files copied to `~/.codenode/nodes/` with updated packages, cancel and verify no changes
+- [X] T025 [US4] Implement `LevelCompatibilityChecker` with `checkCompatibility(graphNode: GraphNode, targetLevel: PlacementLevel, nodeRegistry: NodeDefinitionRegistry): List<PromotionCandidate>` that recursively walks all child nodes (including nested GraphNodes), determines each child's current level via source file path lookup in the registry, analyzes each node's imports for promotability, and returns a list of candidates with `promotable` flag indicating whether their dependencies can be resolved at the target level in `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/state/LevelCompatibilityChecker.kt`
+- [X] T026 [P] [US4] Implement `NodePromoter` with `promoteNodes(...)` that copies promotable candidate CodeNode `.kt` files to the target level's `nodes/` directory (skipping nodes with unresolvable imports), updates `package` declarations, and handles transitive IP type promotion. Includes `hasUnresolvableImports()` that checks for module-specific or third-party imports not available at the target level in `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/state/NodePromoter.kt`
+- [X] T027 [US4] Create level compatibility dialog composable: when all candidates are promotable, show promotion dialog with "Continue"/"Cancel"; when any candidates have unresolvable dependencies, show blocking dialog titled "Cannot Save at {Level}" listing incompatible nodes and recommending the appropriate level, with only an "OK" dismiss button in `graphEditor/src/jvmMain/kotlin/ui/PropertiesPanel.kt`
+- [X] T028 [US4] Wire `LevelCompatibilityChecker` into the save flow in `Main.kt` and `PropertiesPanelViewModel`: call checker before saving, surface candidates to the UI, block save when unpromotable nodes exist, and on confirmation of promotable-only candidates call `NodePromoter.promoteNodes()` before `GraphNodeTemplateRegistry.saveGraphNode()`
+- [X] T029 [US4] **MANUAL** Verify quickstart Scenario 5a (blocked save with module-specific deps) and 5b (promotable simple nodes): verify blocking dialog with level recommendation, verify promotion of simple nodes, verify cancel makes no changes
 
-**Checkpoint**: Level compatibility checking and promotion works. Users cannot create broken palette entries.
+**Checkpoint**: Level compatibility checking blocks saves with unresolvable dependencies and promotes simple nodes. Users cannot create broken palette entries.
 
 ---
 
@@ -109,7 +109,7 @@
 - [X] T030 [US3] Create `GraphNodePaletteViewModel` with state for expanded/collapsed "GraphNodes" section and search integration: expose `filteredTemplates(query: String): List<GraphNodeTemplateMeta>` that filters by name and description matching the palette search query in `graphEditor/src/jvmMain/kotlin/viewmodel/GraphNodePaletteViewModel.kt`
 - [X] T031 [US3] Update `GraphNodePaletteSection` card design to be visually distinct: use blue-tinted background (#E3F2FD), blue border (#1565C0) matching GraphNodeRenderer, add a composition icon (nested squares), add child node count badge, and add a level indicator pill (Module/Project/Universal text with tier color) in `graphEditor/src/jvmMain/kotlin/ui/GraphNodePaletteSection.kt`
 - [X] T032 [US3] Integrate GraphNode search into `NodePaletteViewModel`: update `setSearchQuery()` to also filter GraphNode templates via `GraphNodePaletteViewModel.filteredTemplates()`, and pass filtered results to `GraphNodePaletteSection` in `graphEditor/src/jvmMain/kotlin/viewmodel/NodePaletteViewModel.kt` and `graphEditor/src/jvmMain/kotlin/ui/NodePalette.kt`
-- [ ] T033 [US3] **MANUAL** Verify quickstart Scenario 6: save multiple GraphNodes at different levels, verify distinct card design with blue tint, verify level indicators, verify search filters both CodeNodes and GraphNodes
+- [X] T033 [US3] **MANUAL** Verify quickstart Scenario 6: save multiple GraphNodes at different levels, verify distinct card design with blue tint, verify level indicators, verify search filters both CodeNodes and GraphNodes
 
 **Checkpoint**: GraphNodes are visually distinct in the palette, show tier indicators, and are searchable.
 
@@ -123,8 +123,8 @@
 - [X] T035 Handle edge case: allow saving empty GraphNodes (no child nodes) — ensure serialization and instantiation work correctly with zero children in `graphEditor/src/jvmMain/kotlin/serialization/GraphNodeTemplateSerializer.kt`
 - [X] T036 Handle edge case: saving GraphNodes containing nested GraphNodes — ensure recursive serialization captures full hierarchy and instantiation remaps IDs at all nesting levels in `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/state/GraphNodeTemplateInstantiator.kt`
 - [X] T037 Run `./gradlew :graphEditor:jvmTest` to verify all tests pass
-- [ ] T038 **MANUAL** Verify quickstart Scenario 7: duplicate name handling with overwrite/rename/cancel
-- [ ] T039 **MANUAL** End-to-end validation: save, instantiate, restart, remove, promotion — all scenarios from quickstart.md
+- [X] T038 **MANUAL** Verify quickstart Scenario 7: duplicate name handling with overwrite/rename/cancel
+- [X] T039 **MANUAL** End-to-end validation: save, instantiate, restart, remove, promotion — all scenarios from quickstart.md
 
 ---
 

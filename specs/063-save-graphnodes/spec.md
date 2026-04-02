@@ -63,14 +63,14 @@ A GraphNode may contain child nodes that originate from different placement leve
 
 **Why this priority**: This is a data integrity concern. A GraphNode saved at the Universal level that references Module-level child nodes would be broken when used outside that module. Addressing this prevents users from creating unusable palette entries.
 
-**Independent Test**: Create a GraphNode with child nodes at mixed levels (e.g., one Module-level and one Project-level). Attempt to save it at Universal level and verify the system displays a promotion dialog listing the affected child nodes, with options to cancel or continue.
+**Independent Test**: Create a GraphNode with child nodes at mixed levels (e.g., one Module-level CodeNode with module-specific dependencies and one Project-level CodeNode). Attempt to save it at Universal level and verify the system blocks the save, explains which nodes are incompatible, and recommends the appropriate level.
 
 **Acceptance Scenarios**:
 
-1. **Given** a GraphNode contains only child nodes available at or above the target save level, **When** the user saves the GraphNode, **Then** the save succeeds without any promotion dialog.
-2. **Given** a GraphNode contains a child node that is only available at a more specific level than the target save level (e.g., Module-level child, but saving at Project level), **When** the user clicks "Add to Palette," **Then** the system displays a dialog explaining that the affected child nodes will be promoted to the target level, listing each child node and its current level, with options to Cancel or Continue.
-3. **Given** the promotion dialog is displayed, **When** the user clicks "Continue," **Then** the GraphNode is saved at the target level and the affected child nodes are promoted (their definitions are copied/moved to the target level so they are available wherever the GraphNode is used).
-4. **Given** the promotion dialog is displayed, **When** the user clicks "Cancel," **Then** the save is aborted and no changes are made to any level.
+1. **Given** a GraphNode contains only child nodes available at or above the target save level, **When** the user saves the GraphNode, **Then** the save succeeds without any compatibility dialog.
+2. **Given** a GraphNode contains a child node with only standard dependencies (FBP DSL, Kotlin stdlib, coroutines) at a more specific level than the target, **When** the user clicks "Add to Palette," **Then** the system displays a promotion dialog listing each affected child node and its current level, with options to Cancel or Continue. Clicking "Continue" copies the child node `.kt` files to the target level with updated package declarations.
+3. **Given** a GraphNode contains a child node with module-specific dependencies (module-level IP types, third-party libraries) at a more specific level than the target, **When** the user clicks "Add to Palette," **Then** the system blocks the save, displays a dialog explaining which nodes have unresolvable dependencies, and recommends the level that would work (e.g., "Try saving at Module level instead").
+4. **Given** the compatibility dialog is displayed, **When** the user clicks "Cancel" or "OK" (for blocked saves), **Then** no changes are made to any level.
 
 ---
 
@@ -79,7 +79,7 @@ A GraphNode may contain child nodes that originate from different placement leve
 - What happens when a user tries to save a GraphNode with the same name as an existing palette entry at the same level? The system prompts whether to overwrite or rename.
 - What happens when a saved GraphNode's child node definitions change after saving (e.g., a CodeNode is updated)? The saved GraphNode references child node types by identity; instantiation uses the latest version of each child node type available at the target level.
 - What happens when a user saves an empty GraphNode (no child nodes)? The system allows it — an empty GraphNode is a valid composition that the user may populate later.
-- What happens when a GraphNode contains nested GraphNodes (GraphNodes within GraphNodes)? The save captures the full hierarchy. The same level compatibility and promotion rules apply recursively to all descendants — the promotion dialog lists all affected nodes across the entire hierarchy.
+- What happens when a GraphNode contains nested GraphNodes (GraphNodes within GraphNodes)? The save captures the full hierarchy. The same level compatibility rules apply recursively to all descendants — if any descendant at any nesting level has unresolvable dependencies, the save is blocked.
 - What happens when the user tries to remove a GraphNode from the palette while instances exist on the canvas? Removal proceeds — existing canvas instances are independent copies and are not affected by palette removal.
 
 ## Requirements
@@ -96,8 +96,8 @@ A GraphNode may contain child nodes that originate from different placement leve
 - **FR-008**: System MUST display a level indicator on each GraphNode palette card showing its placement tier (Module/Project/Universal).
 - **FR-009**: System MUST include saved GraphNodes in the palette's search/filter results when the user types a query.
 - **FR-010**: When a saved GraphNode is dragged from the palette onto the canvas, the system MUST create a fully independent copy with the same child node structure, internal connections, and port mappings.
-- **FR-011**: System MUST validate child node level compatibility when saving a GraphNode. If any child nodes are only available at a more specific level than the target save level, the system MUST display a dialog explaining that those child nodes will be promoted to the target level, listing each affected node and its current level, with Cancel and Continue options.
-- **FR-012**: When the user confirms promotion via the dialog, the system MUST promote (copy/move) the affected child node definitions to the target level so they are available wherever the saved GraphNode is used.
+- **FR-011**: System MUST validate child node level compatibility when saving a GraphNode. If any child nodes have module-specific dependencies (module-level IP types, third-party libraries) that are not available at the target level, the system MUST block the save and display a dialog listing the incompatible nodes and recommending the appropriate level.
+- **FR-012**: If all incompatible child nodes have only standard dependencies (FBP DSL, Kotlin stdlib, coroutines), the system MUST offer to promote them by copying their `.kt` files to the target level with updated package declarations. The user must confirm before promotion proceeds.
 - **FR-013**: System MUST prompt for overwrite or rename when saving a GraphNode with the same name as an existing entry at the same level.
 - **FR-014**: System MUST discover saved GraphNode definitions from all three tier locations on startup and merge them into the palette with the same precedence rules used for CodeNodes and IP types (Module > Project > Universal).
 
@@ -114,7 +114,7 @@ A GraphNode may contain child nodes that originate from different placement leve
 - **SC-001**: Users can save a GraphNode to the palette and reuse it by dragging it onto the canvas in under 10 seconds per operation.
 - **SC-002**: Saved GraphNode definitions persist across application restarts with 100% reliability — no data loss on normal shutdown.
 - **SC-003**: Users can visually distinguish GraphNode palette cards from CodeNode palette cards at a glance without reading labels.
-- **SC-004**: The system detects and presents the promotion dialog in 100% of cases where child nodes exist at more specific levels than the target save level — no silent promotions or broken references.
+- **SC-004**: The system detects and blocks saves in 100% of cases where child nodes have unresolvable dependencies at the target level — no broken templates or compilation failures from promoted files.
 - **SC-005**: Instantiating a saved GraphNode from the palette produces a fully functional, independent copy with all child nodes and connections intact.
 - **SC-006**: The Node Palette search returns matching GraphNodes alongside CodeNodes with no additional user action required.
 

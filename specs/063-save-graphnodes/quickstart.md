@@ -85,18 +85,37 @@
 
 ---
 
-## Scenario 5: Heterogeneous Level Promotion (US4 - P2)
+## Scenario 5: Heterogeneous Level Compatibility Check (US4 - P2)
 
-### Steps
+### Scenario 5a: Blocked by unresolvable dependencies
+
+#### Steps
 
 1. Create a GraphNode containing:
-   - A Module-level CodeNode (only available in the current module)
+   - A Module-level CodeNode that has module-specific dependencies (e.g., imports from `io.codenode.weatherforecast.*` or third-party libraries like Ktor)
    - A Project-level CodeNode (available project-wide)
 2. Select the GraphNode and choose "Universal" level
 3. Click "Add to Palette"
-4. Observe the promotion dialog listing the Module-level and Project-level child nodes that will be promoted to Universal
 
-### Expected Result
+#### Expected Result
+
+- Dialog title: "Cannot Save at Universal"
+- Lists the child nodes that have unresolvable dependencies with their current levels
+- Recommends the level that would work: "Try saving at Module level instead."
+- Only an "OK" button to dismiss — save is blocked
+- No files are created or modified
+
+### Scenario 5b: Promotable child nodes (simple dependencies)
+
+#### Steps
+
+1. Create a GraphNode containing:
+   - A Module-level CodeNode that only uses standard imports (`io.codenode.fbpdsl.*`, `kotlin.*`, `kotlinx.coroutines.*`)
+   - A Project-level CodeNode
+2. Select the GraphNode and choose "Universal" level
+3. Click "Add to Palette"
+
+#### Expected Result
 
 - Dialog explains: "The following child nodes will be promoted to Universal level:" with a list of affected nodes and their current levels
 - Clicking "Continue":

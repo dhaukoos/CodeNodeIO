@@ -41,6 +41,11 @@ object NodePromoter {
             val sourceFile = File(candidate.sourceFilePath)
             if (!sourceFile.exists()) continue
 
+            val content = sourceFile.readText()
+
+            // Skip nodes with unresolvable imports at the target level
+            if (hasUnresolvableImports(content, targetLevel)) continue
+
             val targetDir = resolveNodesDir(targetLevel, activeModulePath, projectRoot) ?: continue
             targetDir.mkdirs()
 
@@ -49,7 +54,6 @@ object NodePromoter {
             // Skip if a file with the same name already exists at the target level
             if (targetFile.exists()) continue
 
-            val content = sourceFile.readText()
             val updatedContent = updatePackageDeclaration(content, targetLevel)
 
             targetFile.writeText(updatedContent)
@@ -60,6 +64,44 @@ object NodePromoter {
         }
 
         return createdFiles
+    }
+
+    /**
+     * Checks whether a CodeNode source file has imports that cannot be resolved
+     * at the target level. Module-specific imports (e.g., `io.codenode.weatherforecast.*`)
+     * and third-party library imports not available in the `nodes` module (e.g., Ktor)
+     * make a node unpromotable.
+     */
+    internal fun hasUnresolvableImports(content: String, targetLevel: PlacementLevel): Boolean {
+        if (targetLevel == PlacementLevel.MODULE) return false // Module-to-module keeps all imports
+
+        val importPattern = Regex("""^import\s+(.+)$""", RegexOption.MULTILINE)
+        val imports = importPattern.findAll(content).map { it.groupValues[1].trim() }
+
+        // Allowed import prefixes at project/universal level
+        val allowedPrefixes = listOf(
+            "io.codenode.fbpdsl.",       // FBP DSL runtime (always available)
+            "io.codenode.nodes.",         // Project-level nodes package
+            "io.codenode.iptypes.",       // Project-level IP types package
+            "kotlin.",                    // Kotlin stdlib
+            "kotlinx.coroutines.",        // Coroutines (always available)
+            "java.",                      // JDK
+            "javax.",                     // JDK extensions
+        )
+
+        for (import in imports) {
+            // Module-specific codenode imports (e.g., io.codenode.weatherforecast.*)
+            if (import.startsWith("io.codenode.") &&
+                !allowedPrefixes.any { import.startsWith(it) }) {
+                return true
+            }
+            // Third-party libraries not available in the nodes module
+            if (!import.startsWith("io.codenode.") &&
+                !allowedPrefixes.any { import.startsWith(it) }) {
+                return true
+            }
+        }
+        return false
     }
 
     /**
