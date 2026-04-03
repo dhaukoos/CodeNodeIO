@@ -126,11 +126,11 @@
 
 ### Implementation for User Story 3
 
-- [ ] T023 [US3] Define module boundaries in `MIGRATION.md` (repo root) — for each of the five target modules (flowGraph-compose, flowGraph-persist, flowGraph-execute, flowGraph-generate, flowGraph-inspect), list which files from all three module audits move to that module and which files stay in graphEditor (composition root). Every file must appear in exactly one module assignment. Note which target modules absorb kotlinCompiler and circuitSimulator files.
-- [ ] T024 [US3] Define public APIs in `MIGRATION.md` — for each target module, specify the Kotlin interfaces that represent the functions currently called across module boundaries. Include interface name, method signatures, and which current call sites would use them.
-- [ ] T025 [US3] Define extraction order in `MIGRATION.md` — document the five extraction steps (persist→inspect→execute→generate→compose per research.md R5). For each step specify: which files move (from which source module), which interfaces are created, which call sites change to delegation, and which characterization tests must pass.
-- [ ] T026 [US3] Validate extraction order in `MIGRATION.md` — verify no step N depends on a module scheduled for step N+1 or later. Document the dependency justification for each step. Add a dependency diagram showing the extraction sequence.
-- [ ] T027 [US3] Cross-validate migration map against all three audits in `MIGRATION.md` — verify every file across graphEditor/ARCHITECTURE.md, kotlinCompiler/ARCHITECTURE.md, and circuitSimulator/ARCHITECTURE.md appears in exactly one module assignment. Verify seam boundaries align with module interfaces. Document any discrepancies resolved.
+- [X] T023 [US3] Define module boundaries in `MIGRATION.md` (repo root) — for each of the five target modules (flowGraph-compose, flowGraph-persist, flowGraph-execute, flowGraph-generate, flowGraph-inspect), list which files from all three module audits move to that module and which files stay in graphEditor (composition root). Every file must appear in exactly one module assignment. Note which target modules absorb kotlinCompiler and circuitSimulator files.
+- [X] T024 [US3] Define public APIs in `MIGRATION.md` — for each target module, specify the Kotlin interfaces that represent the functions currently called across module boundaries. Include interface name, method signatures, and which current call sites would use them.
+- [X] T025 [US3] Define extraction order in `MIGRATION.md` — document the five extraction steps (persist→inspect→execute→generate→compose per research.md R5). For each step specify: which files move (from which source module), which interfaces are created, which call sites change to delegation, and which characterization tests must pass.
+- [X] T026 [US3] Validate extraction order in `MIGRATION.md` — verify no step N depends on a module scheduled for step N+1 or later. Document the dependency justification for each step. Add a dependency diagram showing the extraction sequence.
+- [X] T027 [US3] Cross-validate migration map against all three audits in `MIGRATION.md` — verify every file across graphEditor/ARCHITECTURE.md, kotlinCompiler/ARCHITECTURE.md, and circuitSimulator/ARCHITECTURE.md appears in exactly one module assignment. Verify seam boundaries align with module interfaces. Document any discrepancies resolved.
 
 **Checkpoint**: MIGRATION.md is complete with file assignments from all three modules, interfaces, and validated extraction order
 
@@ -140,13 +140,13 @@
 
 **Goal**: Create a .flow.kts file representing the target architecture as a FlowGraph viewable in the graphEditor
 
-**Independent Test**: Open architecture.flow.kts in graphEditor — it loads without errors, shows all five module nodes with connections matching the migration map.
+**Independent Test**: Open architecture.flow.kt in graphEditor — it loads without errors, shows all five module nodes with connections matching the migration map.
 
 ### Implementation for User Story 4
 
-- [ ] T028 [US4] Create `graphEditor/architecture.flow.kts` — write a FlowGraph in the existing .flow.kts DSL format with six nodes (flowGraph-compose, flowGraph-persist, flowGraph-execute, flowGraph-generate, flowGraph-inspect, graphEditor composition root). Define input/output ports per module matching the public APIs from MIGRATION.md. Connect ports to show inter-module data flow.
-- [ ] T029 [US4] Verify `graphEditor/architecture.flow.kts` loads in the graphEditor — launch graphEditor, open the file, confirm all six nodes render on canvas with connections visible. Fix any parsing or rendering issues.
-- [ ] T030 [US4] Cross-validate `graphEditor/architecture.flow.kts` against `MIGRATION.md` — verify one-to-one correspondence between FlowGraph connections and migration map dependencies. Document the mapping in a comment block at the top of the .flow.kts file.
+- [X] T028 [US4] Create `graphEditor/architecture.flow.kt` — write a FlowGraph in the existing .flow.kts DSL format with six nodes (flowGraph-compose, flowGraph-persist, flowGraph-execute, flowGraph-generate, flowGraph-inspect, graphEditor composition root). Define input/output ports per module matching the public APIs from MIGRATION.md. Connect ports to show inter-module data flow.
+- [X] T029 [US4] Verify `graphEditor/architecture.flow.kt` loads in the graphEditor — launch graphEditor, open the file, confirm all six nodes render on canvas with connections visible. Fix any parsing or rendering issues.
+- [X] T030 [US4] Cross-validate `graphEditor/architecture.flow.kt` against `MIGRATION.md` — verify one-to-one correspondence between FlowGraph connections and migration map dependencies. Document the mapping in a comment block at the top of the .flow.kts file.
 
 **Checkpoint**: Meta-FlowGraph loads in graphEditor and visually represents the target architecture
 
