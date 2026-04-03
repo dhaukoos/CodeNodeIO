@@ -37,7 +37,7 @@ class ArchitectureFlowKtsTest {
     }
 
     @Test
-    fun `architecture flow kts parses successfully`() {
+    fun `architecture flow kt parses successfully`() {
         val content = loadArchitectureFile()
         val result = parser.parseFlowKt(content)
 
@@ -46,7 +46,7 @@ class ArchitectureFlowKtsTest {
     }
 
     @Test
-    fun `architecture flow kts has correct graph name`() {
+    fun `architecture flow kt has correct graph name`() {
         val content = loadArchitectureFile()
         val result = parser.parseFlowKt(content)
 
@@ -55,7 +55,7 @@ class ArchitectureFlowKtsTest {
     }
 
     @Test
-    fun `architecture flow kts contains all six module nodes`() {
+    fun `architecture flow kt contains all seven module nodes`() {
         val content = loadArchitectureFile()
         val result = parser.parseFlowKt(content)
 
@@ -63,7 +63,8 @@ class ArchitectureFlowKtsTest {
         val graph = result.graph!!
         val nodeNames = graph.rootNodes.map { it.name }.toSet()
 
-        assertEquals(6, graph.rootNodes.size, "Should have 6 nodes (5 slices + root)")
+        assertEquals(7, graph.rootNodes.size, "Should have 7 nodes (6 slices + root)")
+        assertTrue("flowGraph-types" in nodeNames, "Missing flowGraph-types node")
         assertTrue("flowGraph-inspect" in nodeNames, "Missing flowGraph-inspect node")
         assertTrue("flowGraph-persist" in nodeNames, "Missing flowGraph-persist node")
         assertTrue("flowGraph-compose" in nodeNames, "Missing flowGraph-compose node")
@@ -73,31 +74,69 @@ class ArchitectureFlowKtsTest {
     }
 
     @Test
-    fun `architecture flow kts has connections between modules`() {
+    fun `architecture flow kt has exactly 15 connections forming a DAG`() {
         val content = loadArchitectureFile()
         val result = parser.parseFlowKt(content)
 
         assertTrue(result.isSuccess, "Parse failed: ${result.errorMessage}")
         val graph = result.graph!!
 
-        assertTrue(graph.connections.isNotEmpty(), "Should have inter-module connections")
-        assertTrue(graph.connections.size >= 15,
-            "Should have at least 15 connections (got ${graph.connections.size})")
+        assertEquals(15, graph.connections.size,
+            "Should have exactly 15 connections (no back-edges)")
     }
 
     @Test
-    fun `inspect node is the most connected source`() {
+    fun `types and inspect are the two hub nodes`() {
         val content = loadArchitectureFile()
         val result = parser.parseFlowKt(content)
 
         assertTrue(result.isSuccess, "Parse failed: ${result.errorMessage}")
         val graph = result.graph!!
 
+        val typesNode = graph.rootNodes.first { it.name == "flowGraph-types" }
         val inspectNode = graph.rootNodes.first { it.name == "flowGraph-inspect" }
+        val typesOutbound = graph.connections.count { it.sourceNodeId == typesNode.id }
         val inspectOutbound = graph.connections.count { it.sourceNodeId == inspectNode.id }
 
-        assertTrue(inspectOutbound >= 8,
-            "inspect should have most outbound connections (got $inspectOutbound)")
+        assertEquals(4, typesOutbound,
+            "types should have 4 outbound connections (got $typesOutbound)")
+        assertEquals(4, inspectOutbound,
+            "inspect should have 4 outbound connections (got $inspectOutbound)")
+    }
+
+    @Test
+    fun `no cycles exist in the connection graph`() {
+        val content = loadArchitectureFile()
+        val result = parser.parseFlowKt(content)
+
+        assertTrue(result.isSuccess, "Parse failed: ${result.errorMessage}")
+        val graph = result.graph!!
+
+        // Build adjacency from source node → target nodes
+        val adjacency = mutableMapOf<String, MutableSet<String>>()
+        for (conn in graph.connections) {
+            adjacency.getOrPut(conn.sourceNodeId) { mutableSetOf() }.add(conn.targetNodeId)
+        }
+
+        // DFS cycle detection
+        val visited = mutableSetOf<String>()
+        val inStack = mutableSetOf<String>()
+
+        fun hasCycle(nodeId: String): Boolean {
+            if (nodeId in inStack) return true
+            if (nodeId in visited) return false
+            visited.add(nodeId)
+            inStack.add(nodeId)
+            for (neighbor in adjacency[nodeId] ?: emptySet()) {
+                if (hasCycle(neighbor)) return true
+            }
+            inStack.remove(nodeId)
+            return false
+        }
+
+        val nodeIds = graph.rootNodes.map { it.id }
+        val cycleFound = nodeIds.any { hasCycle(it) }
+        assertFalse(cycleFound, "Connection graph should be a DAG — no cycles allowed")
     }
 
     @Test

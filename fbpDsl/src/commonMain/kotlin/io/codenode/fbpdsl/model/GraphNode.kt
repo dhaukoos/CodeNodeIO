@@ -104,12 +104,7 @@ data class GraphNode(
         val baseValidation = super.validate()
         errors.addAll(baseValidation.errors)
 
-        // GraphNode-specific validation: must have at least one child
-        if (childNodes.isEmpty()) {
-            errors.add("GraphNode '$name' must have at least one child node")
-        }
-
-        // Validate all child nodes
+        // Validate all child nodes (empty containers are valid for top-down design)
         childNodes.forEach { child ->
             val childValidation = child.validate()
             if (!childValidation.success) {
@@ -159,10 +154,13 @@ data class GraphNode(
             }
         }
 
-        // Validate all GraphNode ports have mappings
-        getAllPorts().forEach { port ->
-            if (!portMappings.containsKey(port.name)) {
-                errors.add("GraphNode port '${port.name}' has no mapping to child node port")
+        // Validate all GraphNode ports have mappings (only when children exist —
+        // empty containers define their interface without internal wiring)
+        if (childNodes.isNotEmpty()) {
+            getAllPorts().forEach { port ->
+                if (!portMappings.containsKey(port.name)) {
+                    errors.add("GraphNode port '${port.name}' has no mapping to child node port")
+                }
             }
         }
 

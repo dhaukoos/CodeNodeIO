@@ -5,7 +5,7 @@
 
 ## Cross-Module Seam Summary
 
-Three source modules are being decomposed into five vertical-slice target modules. This section documents the cross-module seams — dependencies that cross the boundaries between graphEditor, kotlinCompiler, and circuitSimulator.
+Three source modules are being decomposed into six vertical-slice target modules plus a composition root. This section documents the cross-module seams — dependencies that cross the boundaries between graphEditor, kotlinCompiler, and circuitSimulator.
 
 ### Source Module Dependency Direction
 
@@ -64,6 +64,27 @@ circuitSimulator ──depends on──► fbpDsl (shared vocabulary)
 
 Every file from the three source module audits (graphEditor: 77, kotlinCompiler: 38, circuitSimulator: 5 = 120 total) is assigned to exactly one target module below.
 
+### flowGraph-types (9 files)
+
+IP type lifecycle — discovery, registry, repository, file generation, and migration. Consolidates IP type concerns that were previously scattered across inspect, persist, and generate, eliminating both cyclic dependencies in the module graph.
+
+| File | Source Module | Current Path | Previously Assigned To |
+|------|-------------|-------------|----------------------|
+| IPTypeDiscovery.kt | graphEditor | state/IPTypeDiscovery.kt | inspect |
+| IPTypeRegistry.kt | graphEditor | state/IPTypeRegistry.kt | inspect |
+| IPProperty.kt | graphEditor | model/IPProperty.kt | inspect |
+| IPPropertyMeta.kt | graphEditor | model/IPPropertyMeta.kt | inspect |
+| IPTypeFileMeta.kt | graphEditor | model/IPTypeFileMeta.kt | inspect |
+| IPTypeMigration.kt | graphEditor | repository/IPTypeMigration.kt | inspect |
+| FileIPTypeRepository.kt | graphEditor | repository/FileIPTypeRepository.kt | persist |
+| SerializableIPType.kt | graphEditor | model/SerializableIPType.kt | persist |
+| IPTypeFileGenerator.kt | graphEditor | state/IPTypeFileGenerator.kt | generate |
+
+**Outbound dependencies**: fbpDsl (shared vocabulary)
+**Inbound consumers**: compose, persist, generate, root (all via ipTypeMetadata). **Types is a hub module — no back-edges.**
+
+**Why this module exists**: Without it, inspect ↔ persist and inspect ↔ generate form cycles (inspect provides IP type metadata to persist/generate, but persist provides FileIPTypeRepository back to inspect and generate provides IPTypeFileGenerator back to inspect). Extracting the IP type lifecycle into its own module makes all three relationships one-way.
+
 ### flowGraph-compose (10 files)
 
 Graph mutation logic — the path from user gesture to valid FlowGraph.
@@ -84,9 +105,9 @@ Graph mutation logic — the path from user gesture to valid FlowGraph.
 **Outbound dependencies**: inspect (IPTypeRegistry, NodeDefinitionRegistry, PlacementLevel)
 **Inbound consumers**: root (8 seams — GraphState is the most referenced target)
 
-### flowGraph-persist (10 files)
+### flowGraph-persist (8 files)
 
-Round-trip workflow between in-memory FlowGraph and `.flow.kts` files on disk.
+Round-trip workflow between in-memory FlowGraph and `.flow.kt` files on disk.
 
 | File | Source Module | Current Path |
 |------|-------------|-------------|
@@ -94,15 +115,15 @@ Round-trip workflow between in-memory FlowGraph and `.flow.kts` files on disk.
 | FlowKtParser.kt | graphEditor | serialization/FlowKtParser.kt |
 | GraphNodeTemplateSerializer.kt | graphEditor | serialization/GraphNodeTemplateSerializer.kt |
 | GraphNodeTemplateMeta.kt | graphEditor | model/GraphNodeTemplateMeta.kt |
-| SerializableIPType.kt | graphEditor | model/SerializableIPType.kt |
-| FileIPTypeRepository.kt | graphEditor | repository/FileIPTypeRepository.kt |
 | ViewSynchronizer.kt | graphEditor | state/ViewSynchronizer.kt |
 | TextualView.kt | graphEditor | ui/TextualView.kt |
 | GraphNodeTemplateInstantiator.kt | graphEditor | io/.../state/GraphNodeTemplateInstantiator.kt |
 | GraphNodeTemplateRegistry.kt | graphEditor | io/.../state/GraphNodeTemplateRegistry.kt |
 
-**Outbound dependencies**: compose (ViewSynchronizer→GraphState), inspect (GraphNodeTemplateSerializer→IPTypeRegistry, TextualView→SyntaxHighlighter)
-**Inbound consumers**: root (2 seams), compose (0), generate (1 — ModuleSaveService→FlowGraphSerializer), inspect (2 — IPPaletteVM, IPTypeMigration→FileIPTypeRepository)
+**Moved to flowGraph-types**: SerializableIPType.kt, FileIPTypeRepository.kt
+
+**Outbound dependencies**: types (ipTypeMetadata for serialization), compose (ViewSynchronizer→GraphState), inspect (TextualView→SyntaxHighlighter)
+**Inbound consumers**: root (2 seams), generate (1 — ModuleSaveService→FlowGraphSerializer)
 
 ### flowGraph-execute (7 files from graphEditor + 5 from circuitSimulator = 12 files)
 
@@ -130,7 +151,7 @@ Running a flow graph and observing results — from "press Play" to "see results
 **Outbound dependencies**: inspect (ModuleSessionFactory→NodeDefinitionRegistry)
 **Inbound consumers**: root (1 seam — FlowGraphCanvas→ConnectionAnimation)
 
-### flowGraph-generate (47 files from kotlinCompiler + 9 from graphEditor = 56 files)
+### flowGraph-generate (46 files: 38 from kotlinCompiler + 8 from graphEditor)
 
 Producing deployable code from a graph — FlowGraph to generated source files on disk.
 
@@ -177,7 +198,7 @@ Producing deployable code from a graph — FlowGraph to generated source files o
 | RegenerateStopWatch.kt | kotlinCompiler | jvmMain/tools/RegenerateStopWatch.kt |
 | GenerateGeoLocationModule.kt | kotlinCompiler | jvmMain/GenerateGeoLocationModule.kt |
 
-**From graphEditor (generate bucket — 9 files)**:
+**From graphEditor (generate bucket — 8 files)**:
 
 | File | Source Module | Current Path |
 |------|-------------|-------------|
@@ -185,18 +206,19 @@ Producing deployable code from a graph — FlowGraph to generated source files o
 | NodeGeneratorPanel.kt | graphEditor | ui/NodeGeneratorPanel.kt |
 | IPGeneratorViewModel.kt | graphEditor | viewmodel/IPGeneratorViewModel.kt |
 | NodeGeneratorViewModel.kt | graphEditor | viewmodel/NodeGeneratorViewModel.kt |
-| IPTypeFileGenerator.kt | graphEditor | state/IPTypeFileGenerator.kt |
 | CompilationService.kt | graphEditor | compilation/CompilationService.kt |
 | CompilationValidator.kt | graphEditor | compilation/CompilationValidator.kt |
 | RequiredPropertyValidator.kt | graphEditor | compilation/RequiredPropertyValidator.kt |
 | ModuleSaveService.kt | graphEditor | save/ModuleSaveService.kt |
 
-**Outbound dependencies**: inspect (IPGeneratorVM→IPTypeRegistry/IPTypeDiscovery, NodeGeneratorVM→NodeDefinitionRegistry), persist (ModuleSaveService→FlowGraphSerializer)
-**Inbound consumers**: root (0 direct — generation is triggered from root ViewModels), inspect (1 — IPTypeMigration→IPTypeFileGenerator)
+**Moved to flowGraph-types**: IPTypeFileGenerator.kt
 
-### flowGraph-inspect (19 files)
+**Outbound dependencies**: types (ipTypeMetadata), inspect (NodeGeneratorVM→NodeDefinitionRegistry), persist (ModuleSaveService→FlowGraphSerializer)
+**Inbound consumers**: root (0 direct — generation is triggered from root ViewModels)
 
-Understanding available components — discovery, registry, palette, and text editing.
+### flowGraph-inspect (13 files)
+
+Understanding available components — node palette, filesystem node scanning, CodeNode text editing.
 
 | File | Source Module | Current Path |
 |------|-------------|-------------|
@@ -211,17 +233,13 @@ Understanding available components — discovery, registry, palette, and text ed
 | GraphNodePaletteViewModel.kt | graphEditor | viewmodel/GraphNodePaletteViewModel.kt |
 | IPPaletteViewModel.kt | graphEditor | viewmodel/IPPaletteViewModel.kt |
 | NodePaletteViewModel.kt | graphEditor | viewmodel/NodePaletteViewModel.kt |
-| IPTypeDiscovery.kt | graphEditor | state/IPTypeDiscovery.kt |
-| IPTypeRegistry.kt | graphEditor | state/IPTypeRegistry.kt |
-| IPProperty.kt | graphEditor | model/IPProperty.kt |
-| IPPropertyMeta.kt | graphEditor | model/IPPropertyMeta.kt |
-| IPTypeFileMeta.kt | graphEditor | model/IPTypeFileMeta.kt |
 | PlacementLevel.kt | graphEditor | model/PlacementLevel.kt |
 | NodeDefinitionRegistry.kt | graphEditor | io/.../state/NodeDefinitionRegistry.kt |
-| IPTypeMigration.kt | graphEditor | repository/IPTypeMigration.kt |
 
-**Outbound dependencies**: persist (IPPaletteVM→FileIPTypeRepository, IPTypeMigration→FileIPTypeRepository), generate (IPTypeMigration→IPTypeFileGenerator)
-**Inbound consumers**: compose (4 seams), generate (3 seams), persist (2 seams), execute (1 seam), root (3 seams). **Inspect is the most depended-upon slice.**
+**Moved to flowGraph-types**: IPTypeDiscovery.kt, IPTypeRegistry.kt, IPProperty.kt, IPPropertyMeta.kt, IPTypeFileMeta.kt, IPTypeMigration.kt
+
+**Outbound dependencies**: types (IPPaletteVM uses ipTypeMetadata)
+**Inbound consumers**: compose (nodeDescriptors), execute (nodeDescriptors), generate (nodeDescriptors), root (nodeDescriptors). Inspect provides node discovery; IP type concerns are now in types.
 
 ### graphEditor — composition root (22 files, stays)
 
@@ -268,11 +286,12 @@ Compose UI composables, orchestration ViewModels, DI wiring. No business logic.
 
 | Target Module | Files | Source Breakdown |
 |--------------|-------|-----------------|
+| flowGraph-types | 9 | graphEditor: 9 |
 | flowGraph-compose | 10 | graphEditor: 10 |
-| flowGraph-persist | 10 | graphEditor: 10 |
+| flowGraph-persist | 8 | graphEditor: 8 |
 | flowGraph-execute | 7 | circuitSimulator: 5, graphEditor: 2 |
-| flowGraph-generate | 47 | kotlinCompiler: 38, graphEditor: 9 |
-| flowGraph-inspect | 19 | graphEditor: 19 |
+| flowGraph-generate | 46 | kotlinCompiler: 38, graphEditor: 8 |
+| flowGraph-inspect | 13 | graphEditor: 13 |
 | graphEditor (root) | 27 | graphEditor: 27 |
 | **Total** | **120** | graphEditor: 77, kotlinCompiler: 38, circuitSimulator: 5 |
 
@@ -283,6 +302,50 @@ Compose UI composables, orchestration ViewModels, DI wiring. No business logic.
 ## Public APIs
 
 Each target module exposes a public API through Kotlin interfaces. These interfaces replace the direct function calls currently crossing module boundaries (documented in the seam matrices).
+
+### flowGraph-types API
+
+**Interface: `IPTypeRegistryService`**
+Exposes IP type lookup from `IPTypeRegistry.kt`. This is the **most broadly consumed interface** — used by compose, persist, generate, and root.
+
+```kotlin
+interface IPTypeRegistryService {
+    val registeredTypes: StateFlow<List<InformationPacketType>>
+    fun getType(typeId: String): InformationPacketType?
+    fun registerType(type: InformationPacketType)
+    fun search(query: String): List<InformationPacketType>
+}
+```
+
+**Current call sites** (consumed by 4 other slices):
+- `GraphState.kt`, `ConnectionContextMenu.kt` (compose→types)
+- `GraphNodeTemplateSerializer.kt` (persist→types)
+- `SharedStateProvider.kt`, `PropertiesPanel.kt`, `GraphNodePaletteSection.kt` (root→types)
+- `IPGeneratorViewModel.kt` (generate→types)
+
+**Interface: `IPTypeGenerationService`**
+Exposes IP type file generation from `IPTypeFileGenerator.kt`.
+
+```kotlin
+interface IPTypeGenerationService {
+    fun generateIPTypeFile(name: String, properties: List<IPProperty>, level: PlacementLevel): String
+}
+```
+
+**Note**: `IPTypeMigration.kt` (also in types) calls `IPTypeFileGenerator.kt` (also in types) — this was the former inspect→generate back-edge, now internal to the types module.
+
+**Interface: `IPTypeRepositoryService`**
+Exposes IP type persistence from `FileIPTypeRepository.kt`.
+
+```kotlin
+interface IPTypeRepositoryService {
+    fun loadTypes(): List<SerializableIPType>
+    fun saveTypes(types: List<SerializableIPType>)
+    fun migrate()
+}
+```
+
+**Note**: `IPPaletteViewModel.kt` (inspect) and `IPTypeMigration.kt` (types) were the former consumers of `FileIPTypeRepository` — the latter is now internal to types, and the former uses `IPTypeRepositoryService`.
 
 ### flowGraph-compose API
 
@@ -418,22 +481,12 @@ interface CodeGenerationService {
 }
 ```
 
-**Interface: `IPTypeGenerationService`**
-Exposes IP type file generation from `IPTypeFileGenerator.kt`.
-
-```kotlin
-interface IPTypeGenerationService {
-    fun generateIPTypeFile(name: String, properties: List<IPProperty>, level: PlacementLevel): String
-}
-```
-
-**Current call sites**:
-- `IPTypeMigration.kt` → IPTypeFileGenerator (inspect→generate)
+**Moved to flowGraph-types**: `IPTypeGenerationService` (IPTypeFileGenerator.kt moved to types)
 
 ### flowGraph-inspect API
 
 **Interface: `NodeRegistryService`**
-Exposes node discovery from `NodeDefinitionRegistry.kt`. This is the **most consumed interface** across all slices.
+Exposes node discovery from `NodeDefinitionRegistry.kt`. Consumed by compose, execute, generate, and root.
 
 ```kotlin
 interface NodeRegistryService {
@@ -449,45 +502,51 @@ interface NodeRegistryService {
 - `ModuleSessionFactory.kt` (execute→inspect)
 - `NodeGeneratorViewModel.kt` (generate→inspect)
 
-**Interface: `IPTypeRegistryService`**
-Exposes IP type lookup from `IPTypeRegistry.kt`.
-
-```kotlin
-interface IPTypeRegistryService {
-    val registeredTypes: StateFlow<List<InformationPacketType>>
-    fun getType(typeId: String): InformationPacketType?
-    fun registerType(type: InformationPacketType)
-    fun search(query: String): List<InformationPacketType>
-}
-```
-
-**Current call sites** (consumed by 3 other slices):
-- `GraphState.kt`, `ConnectionContextMenu.kt` (compose→inspect)
-- `GraphNodeTemplateSerializer.kt` (persist→inspect)
-- `SharedStateProvider.kt`, `PropertiesPanel.kt`, `GraphNodePaletteSection.kt` (root→inspect)
-- `IPGeneratorViewModel.kt` (generate→inspect)
+**Moved to flowGraph-types**: `IPTypeRegistryService` (IPTypeRegistry.kt moved to types)
 
 ### Interface Summary
 
 | Module | Interfaces Exposed | Consumers |
 |--------|-------------------|-----------|
+| flowGraph-types | IPTypeRegistryService, IPTypeGenerationService, IPTypeRepositoryService | compose, persist, generate, inspect, root |
 | flowGraph-compose | GraphCompositionService, UndoRedoService | root |
-| flowGraph-persist | FlowGraphPersistenceService, GraphNodeTemplateService | root, generate, inspect |
+| flowGraph-persist | FlowGraphPersistenceService, GraphNodeTemplateService | root, generate |
 | flowGraph-execute | RuntimeExecutionService, ConnectionAnimationProvider, DebugSnapshotProvider | root |
-| flowGraph-generate | CodeGenerationService, IPTypeGenerationService | root, inspect |
-| flowGraph-inspect | NodeRegistryService, IPTypeRegistryService | compose, persist, execute, generate, root |
+| flowGraph-generate | CodeGenerationService | root |
+| flowGraph-inspect | NodeRegistryService | compose, execute, generate, root |
 
 ---
 
 ## Extraction Order
 
-Per research.md R5: extract in order of decreasing independence and decreasing risk.
+Per research.md R5: extract in order of decreasing independence and decreasing risk. Types first because it is the most broadly consumed module and has no outbound dependencies.
 
-### Step 1: flowGraph-persist (10 files)
+### Step 1: flowGraph-types (9 files)
 
-**Why first**: Serialization is the most self-contained — clear inputs (FlowGraph) and outputs (.flow.kts text). Fewest inbound dependencies from other business logic. No runtime or UI state management.
+**Why first**: IP type lifecycle is the most broadly consumed concern — compose, persist, generate, inspect, and root all depend on it. Extracting types first makes its interfaces available to every subsequent step. It has no outbound dependencies (only fbpDsl). Its extraction also eliminates both cycles from the module graph immediately.
 
-**Files that move**: 10 files from graphEditor (serialization/, 2 model files, repository/FileIPTypeRepository, state/ViewSynchronizer, ui/TextualView, 2 io/.../state/ template files)
+**Files that move**: 9 files from graphEditor (2 state/, 4 model/, 2 repository/, 1 state/)
+
+**Interfaces created**:
+- `IPTypeRegistryService` (IP type lookup — most broadly consumed)
+- `IPTypeGenerationService` (IP type file generation)
+- `IPTypeRepositoryService` (IP type persistence)
+
+**Call sites that change to delegation**:
+- `GraphState.kt`, `ConnectionContextMenu.kt` → use `IPTypeRegistryService` instead of `IPTypeRegistry` directly
+- `GraphNodeTemplateSerializer.kt` → uses `IPTypeRegistryService`
+- `IPGeneratorViewModel.kt` → uses `IPTypeRegistryService`
+- `SharedStateProvider.kt`, `PropertiesPanel.kt`, `GraphNodePaletteSection.kt` → use `IPTypeRegistryService`
+- `IPPaletteViewModel.kt` → uses `IPTypeRepositoryService` instead of `FileIPTypeRepository` directly
+
+**Characterization tests that must pass**:
+- All existing tests: `./gradlew :graphEditor:jvmTest :kotlinCompiler:jvmTest :circuitSimulator:jvmTest`
+
+### Step 2: flowGraph-persist (8 files)
+
+**Why second**: Serialization is self-contained — clear inputs (FlowGraph) and outputs (.flow.kt text). Depends only on types (for IP type metadata during serialization) which is already extracted. No runtime or UI state management.
+
+**Files that move**: 8 files from graphEditor (serialization/, 1 model file, state/ViewSynchronizer, ui/TextualView, 2 io/.../state/ template files)
 
 **Interfaces created**:
 - `FlowGraphPersistenceService` (serialize/deserialize)
@@ -503,33 +562,28 @@ Per research.md R5: extract in order of decreasing independence and decreasing r
 - `FlowKtGeneratorCharacterizationTest` (kotlinCompiler — FlowKtGenerator also produces .flow.kt but lives in generate, not persist)
 - All existing tests: `./gradlew :graphEditor:jvmTest :kotlinCompiler:jvmTest :circuitSimulator:jvmTest`
 
-### Step 2: flowGraph-inspect (19 files)
+### Step 3: flowGraph-inspect (13 files)
 
-**Why second**: Discovery/registry logic is read-only with respect to graph state. Depends on persist for loading definitions (IPPaletteVM→FileIPTypeRepository) but persist is already extracted. Inspect is the most depended-upon slice — extracting it early makes its interfaces available to all later extractions.
+**Why third**: Node discovery logic is read-only with respect to graph state. No longer depends on persist or generate (those dependencies moved to types). Inspect provides `NodeRegistryService` consumed by compose, execute, and generate.
 
-**Files that move**: 19 files from graphEditor (7 ui/, 4 viewmodel/, 2 state/, 4 model/, 1 io/.../state/, 1 repository/)
+**Files that move**: 13 files from graphEditor (7 ui/, 3 viewmodel/, 1 model/, 1 io/.../state/)
 
 **Interfaces created**:
-- `NodeRegistryService` (node discovery — consumed by compose, execute, generate)
-- `IPTypeRegistryService` (IP type lookup — consumed by compose, persist, generate, root)
+- `NodeRegistryService` (node discovery — consumed by compose, execute, generate, root)
 
 **Call sites that change to delegation**:
-- `GraphState.kt` → calls `IPTypeRegistryService` instead of `IPTypeRegistry` directly
-- `ConnectionContextMenu.kt` → uses `IPTypeRegistryService` for type lookup
 - `DragAndDropHandler.kt` → uses `NodeRegistryService` for node definitions
 - `LevelCompatibilityChecker.kt` → uses `NodeRegistryService`
 - `ModuleSessionFactory.kt` → uses `NodeRegistryService`
-- `SharedStateProvider.kt` → provides `IPTypeRegistryService` instead of `IPTypeRegistry`
-- `GraphNodeTemplateSerializer.kt` → uses `IPTypeRegistryService`
-- `IPGeneratorViewModel.kt`, `NodeGeneratorViewModel.kt` → use both registry services
+- `NodeGeneratorViewModel.kt` → uses `NodeRegistryService`
 
 **Characterization tests that must pass**:
 - `ViewModelCharacterizationTest` (graphEditor — palette and registry state)
 - All existing tests across all modules
 
-### Step 3: flowGraph-execute (7 files)
+### Step 4: flowGraph-execute (7 files)
 
-**Why third**: Runtime pipeline has clear boundaries (FlowGraph in, execution state out). Depends on inspect (ModuleSessionFactory→NodeDefinitionRegistry) which is already extracted. The animation state integration with UI requires the `ConnectionAnimationProvider` interface.
+**Why fourth**: Runtime pipeline has clear boundaries (FlowGraph in, execution state out). Depends on inspect (ModuleSessionFactory→NodeDefinitionRegistry) which is already extracted. The animation state integration with UI requires the `ConnectionAnimationProvider` interface.
 
 **Files that move**: 5 files from circuitSimulator (entire module) + 2 files from graphEditor (ModuleSessionFactory, RuntimePreviewPanel)
 
@@ -547,26 +601,24 @@ Per research.md R5: extract in order of decreasing independence and decreasing r
 - `RuntimeExecutionCharacterizationTest` (graphEditor)
 - All existing tests across all modules
 
-### Step 4: flowGraph-generate (47 files)
+### Step 5: flowGraph-generate (46 files)
 
-**Why fourth**: Code generation depends on persist (for .flow.kts output) and inspect (for node definitions). Both are already extracted and stable. This is the largest extraction (47 files) but the simplest structurally — kotlinCompiler moves wholesale, plus 9 graphEditor generate-bucket files.
+**Why fifth**: Code generation depends on types (IP type metadata), persist (serialized output), and inspect (node definitions). All three are already extracted and stable. This is the largest extraction (46 files) but the simplest structurally — kotlinCompiler moves wholesale, plus 8 graphEditor generate-bucket files.
 
-**Files that move**: 38 files from kotlinCompiler (entire module) + 9 files from graphEditor (2 ui/, 2 viewmodel/, 1 state/, 3 compilation/, 1 save/)
+**Files that move**: 38 files from kotlinCompiler (entire module) + 8 files from graphEditor (2 ui/, 2 viewmodel/, 3 compilation/, 1 save/)
 
 **Interfaces created**:
 - `CodeGenerationService` (module generation)
-- `IPTypeGenerationService` (IP type file generation)
 
 **Call sites that change to delegation**:
 - Root orchestration → uses `CodeGenerationService` instead of calling generators directly
-- `IPTypeMigration.kt` → uses `IPTypeGenerationService` instead of `IPTypeFileGenerator` directly
 
 **Characterization tests that must pass**:
 - `CodeGenerationCharacterizationTest` (kotlinCompiler)
 - `FlowKtGeneratorCharacterizationTest` (kotlinCompiler)
 - All existing tests across all modules
 
-### Step 5: flowGraph-compose (10 files)
+### Step 6: flowGraph-compose (10 files)
 
 **Why last**: Graph composition is the most tightly coupled to the UI — GraphState alone has 8 inbound seams from root. All other slices are stable, so compose extraction only needs to create interfaces consumed by root (the composition shell).
 
@@ -592,23 +644,27 @@ Per research.md R5: extract in order of decreasing independence and decreasing r
 ### Extraction Order Dependency Diagram
 
 ```
-Step 1: flowGraph-persist ──────────────────────────────────────────────►
+Step 1: flowGraph-types ────────────────────────────────────────────────►
+            │
+            │ types interfaces available (most broadly consumed)
+            ▼
+Step 2: flowGraph-persist ──────────────────────────────────────────────►
             │
             │ persist interfaces available
             ▼
-Step 2: flowGraph-inspect ──────────────────────────────────────────────►
+Step 3: flowGraph-inspect ──────────────────────────────────────────────►
             │
-            │ inspect interfaces available (most consumed)
+            │ inspect interfaces available
             ▼
-Step 3: flowGraph-execute ──────────────────────────────────────────────►
+Step 4: flowGraph-execute ──────────────────────────────────────────────►
             │
             │ execute interfaces available
             ▼
-Step 4: flowGraph-generate ─────────────────────────────────────────────►
+Step 5: flowGraph-generate ─────────────────────────────────────────────►
             │
             │ generate interfaces available
             ▼
-Step 5: flowGraph-compose ──────────────────────────────────────────────►
+Step 6: flowGraph-compose ──────────────────────────────────────────────►
             │
             │ all slices extracted
             ▼
@@ -619,17 +675,14 @@ Step 5: flowGraph-compose ──────────────────
 
 | Step | Module | Depends On | Already Extracted? | Circular? |
 |------|--------|-----------|-------------------|-----------|
-| 1 | persist | fbpDsl (shared vocab) | N/A (not extracted) | No |
-| 2 | inspect | persist (IPPaletteVM→FileIPTypeRepository), fbpDsl | Step 1 ✓ | No |
-| 3 | execute | inspect (ModuleSessionFactory→NodeDefinitionRegistry), fbpDsl | Step 2 ✓ | No |
-| 4 | generate | persist (ModuleSaveService→FlowGraphSerializer), inspect (IPGeneratorVM→registries), fbpDsl | Steps 1-2 ✓ | No |
-| 5 | compose | inspect (GraphState→IPTypeRegistry, DragAndDropHandler→NodeDefinitionRegistry), fbpDsl | Step 2 ✓ | No |
+| 1 | types | fbpDsl (shared vocab) | N/A (not extracted) | No |
+| 2 | persist | types (ipTypeMetadata), fbpDsl | Step 1 ✓ | No |
+| 3 | inspect | fbpDsl | N/A (no module deps) | No |
+| 4 | execute | inspect (ModuleSessionFactory→NodeDefinitionRegistry), fbpDsl | Step 3 ✓ | No |
+| 5 | generate | types (ipTypeMetadata), persist (serializedOutput), inspect (nodeDescriptors), fbpDsl | Steps 1-3 ✓ | No |
+| 6 | compose | types (ipTypeMetadata), inspect (nodeDescriptors), fbpDsl | Steps 1, 3 ✓ | No |
 
-**No circular dependencies**: Every step depends only on modules extracted in earlier steps (or fbpDsl which is never extracted — it's shared vocabulary).
-
-**Note on inspect→generate**: `IPTypeMigration.kt` (inspect) depends on `IPTypeFileGenerator.kt` (generate). This is a forward dependency — inspect is extracted in Step 2 but generate isn't extracted until Step 4. During Step 2, this call goes through the generate interface which still lives in graphEditor. When generate is extracted in Step 4, the call becomes cross-module via `IPTypeGenerationService`. This is safe because:
-1. During Step 2: IPTypeMigration calls IPTypeFileGenerator in graphEditor (same module, unchanged)
-2. During Step 4: IPTypeMigration calls IPTypeGenerationService interface (cross-module, clean)
+**No circular dependencies**: Every step depends only on modules extracted in earlier steps (or fbpDsl which is never extracted — it's shared vocabulary). The former cycles (inspect ↔ persist, inspect ↔ generate) were eliminated by extracting flowGraph-types.
 
 ---
 
@@ -657,13 +710,15 @@ For each extraction step N:
 
 ### Post-extraction state
 
-After all five extractions:
+After all six extractions:
 - `graphEditor/` contains only 27 files: Compose composables, orchestration ViewModels, renderers, DI wiring, Main.kt
+- `flowGraph-types/` contains 9 files with `IPTypeRegistryService`, `IPTypeGenerationService`, `IPTypeRepositoryService` interfaces
 - `flowGraph-compose/` contains 10 files with `GraphCompositionService` and `UndoRedoService` interfaces
-- `flowGraph-persist/` contains 10 files with `FlowGraphPersistenceService` and `GraphNodeTemplateService` interfaces
+- `flowGraph-persist/` contains 8 files with `FlowGraphPersistenceService` and `GraphNodeTemplateService` interfaces
 - `flowGraph-execute/` contains 7 files with `RuntimeExecutionService`, `ConnectionAnimationProvider`, `DebugSnapshotProvider` interfaces
-- `flowGraph-generate/` contains 47 files with `CodeGenerationService` and `IPTypeGenerationService` interfaces
-- `flowGraph-inspect/` contains 19 files with `NodeRegistryService` and `IPTypeRegistryService` interfaces
+- `flowGraph-generate/` contains 46 files with `CodeGenerationService` interface
+- `flowGraph-inspect/` contains 13 files with `NodeRegistryService` interface
 - `kotlinCompiler/` module is **removed** (absorbed into flowGraph-generate)
 - `circuitSimulator/` module is **removed** (absorbed into flowGraph-execute)
 - All modules depend on `fbpDsl` for shared vocabulary (FlowGraph, Node, Port, Connection, etc.)
+- The module dependency graph is a **DAG** — no circular dependencies

@@ -1,130 +1,138 @@
 /*
  * Flow Graph: Target Architecture
- * Version: 1.0.0
- * Description: Vertical-slice decomposition of graphEditor, kotlinCompiler, and circuitSimulator into five workflow-oriented modules plus composition root
- * Generated: 2026-04-02
+ * Version: 2.0.0
+ * Description: Vertical-slice decomposition with dedicated type catalog module — six workflow modules plus composition root
+ * Generated: 2026-04-03
  *
  * Cross-validation with MIGRATION.md:
  *
  * Connection                                          | MIGRATION.md Interface                    | Seam Boundary
  * --------------------------------------------------- | ----------------------------------------- | --------------------
- * inspect.nodeDescriptors → compose.nodeRegistry      | NodeRegistryService                       | compose→inspect (4)
- * inspect.ipTypeMetadata → compose.ipTypeRegistry     | IPTypeRegistryService                     | compose→inspect (4)
- * inspect.nodeDescriptors → execute.nodeRegistry      | NodeRegistryService                       | execute→inspect (1)
- * inspect.nodeDescriptors → generate.nodeRegistry     | NodeRegistryService                       | generate→inspect (3)
- * inspect.ipTypeMetadata → generate.ipTypeRegistry    | IPTypeRegistryService                     | generate→inspect (3)
- * inspect.ipTypeMetadata → persist.ipTypeRegistry     | IPTypeRegistryService                     | persist→inspect (2)
- * persist.serializedOutput → generate.serializer      | FlowGraphPersistenceService               | generate→persist (1)
- * persist.ipRepository → inspect.ipRepository         | FileIPTypeRepository (inspect→persist)     | inspect→persist (2)
- * generate.ipTypeFiles → inspect.generatedTypes       | IPTypeGenerationService                   | inspect→generate (1)
- * compose.graphState → root.graphState                | GraphCompositionService, UndoRedoService  | root→compose (8)
- * persist.fileService → root.fileService              | FlowGraphPersistenceService               | root→persist (2)
- * persist.templateService → root.templateService      | GraphNodeTemplateService                  | root→persist (2)
- * execute.executionState → root.executionState        | RuntimeExecutionService                   | root→execute (via UI)
- * execute.animations → root.animations                | ConnectionAnimationProvider               | root→execute (1 seam)
- * generate.generatedOutput → root.generatedOutput     | CodeGenerationService                     | root→generate (via UI)
- * inspect.nodeDescriptors → root.nodeDescriptors      | NodeRegistryService                       | root→inspect (3)
- * inspect.ipTypeMetadata → root.ipTypeMetadata        | IPTypeRegistryService                     | root→inspect (3)
+ * types.ipTypeMetadata → compose.ipTypeMetadata       | IPTypeRegistryService                     | compose→types
+ * types.ipTypeMetadata → persist.ipTypeMetadata       | IPTypeRegistryService                     | persist→types
+ * types.ipTypeMetadata → generate.ipTypeMetadata      | IPTypeRegistryService                     | generate→types
+ * types.ipTypeMetadata → root.ipTypeMetadata          | IPTypeRegistryService                     | root→types
+ * inspect.nodeDescriptors → compose.nodeDescriptors   | NodeRegistryService                       | compose→inspect
+ * inspect.nodeDescriptors → execute.nodeDescriptors   | NodeRegistryService                       | execute→inspect
+ * inspect.nodeDescriptors → generate.nodeDescriptors  | NodeRegistryService                       | generate→inspect
+ * inspect.nodeDescriptors → root.nodeDescriptors      | NodeRegistryService                       | root→inspect
+ * persist.serializedOutput → generate.serializedOutput| FlowGraphPersistenceService               | generate→persist
+ * persist.fileService → root.fileService              | FlowGraphPersistenceService               | root→persist
+ * persist.graphNodeTemplates → root.graphNodeTemplates| GraphNodeTemplateService                  | root→persist
+ * compose.graphState → root.graphState                | GraphCompositionService, UndoRedoService  | root→compose
+ * execute.executionState → root.executionState        | RuntimeExecutionService                   | root→execute
+ * execute.animations → root.animations                | ConnectionAnimationProvider               | root→execute
+ * generate.generatedOutput → root.generatedOutput     | CodeGenerationService                     | root→generate
  *
- * Total connections: 17 (matches 28 cross-boundary seams consolidated into interface-level flows)
- * All connections verified against MIGRATION.md Interface Summary table
+ * Total connections: 15 (DAG — no cycles)
+ * Former cycles eliminated by extracting flowGraph-types:
+ *   - persist.ipRepository → inspect (FileIPTypeRepository now internal to types)
+ *   - generate.ipTypeFiles → inspect (IPTypeFileGenerator now internal to types)
+ *
+ * File movements (from 5-module to 6-module partition):
+ *   From inspect → types: IPTypeDiscovery.kt, IPTypeRegistry.kt, IPProperty.kt,
+ *                          IPPropertyMeta.kt, IPTypeFileMeta.kt, IPTypeMigration.kt
+ *   From persist → types: FileIPTypeRepository.kt, SerializableIPType.kt
+ *   From generate → types: IPTypeFileGenerator.kt
+ *
+ * Revised file counts: types:9, inspect:13, persist:8, compose:10, execute:7,
+ *                       generate:46, root:27 = 120
  */
 
 import io.codenode.fbpdsl.dsl.*
 import io.codenode.fbpdsl.model.*
 
-val graph = flowGraph("Target Architecture", version = "1.0.0", description = "Vertical-slice module decomposition — five workflow modules plus composition root") {
+val graph = flowGraph("Target Architecture", version = "2.0.0", description = "Vertical-slice module decomposition with dedicated type catalog module — six workflow modules plus composition root") {
     // Target Platforms
     targetPlatform(FlowGraph.TargetPlatform.KMP_DESKTOP)
     targetPlatform(FlowGraph.TargetPlatform.KMP_ANDROID)
     targetPlatform(FlowGraph.TargetPlatform.KMP_IOS)
 
-    // Nodes
-    val inspect = codeNode("flowGraph-inspect", nodeType = "SOURCE") {
-        description = "Understanding available components: node palette, IP type registry, filesystem scanner, CodeNode text editor. 19 files. Absorbs no external modules."
-        position(100.0, 300.0)
-        input("filesystemPaths", String::class)
-        input("classpathEntries", String::class)
-        input("ipRepository", String::class)
-        input("generatedTypes", String::class)
-        output("nodeDescriptors", String::class)
-        output("ipTypeMetadata", String::class)
-        output("ipRepository", String::class)
+    // Nodes (GraphNodes — empty containers representing target vertical-slice modules)
+
+    val types = graphNode("flowGraph-types") {
+        description = "IP type lifecycle: discovery, registry, repository, file generation, migration. 9 files. Consolidates IP type concerns from inspect, persist, and generate."
+        position(100.0, 100.0)
+        exposeInput("filesystemPaths", String::class)
+        exposeInput("classpathEntries", String::class)
+        exposeOutput("ipTypeMetadata", String::class)
     }
 
-    val persist = codeNode("flowGraph-persist") {
-        description = "Saving and loading flow graphs: FlowGraphSerializer, FlowKtParser, template registry, file I/O. 10 files. Absorbs no external modules."
+    val inspect = graphNode("flowGraph-inspect") {
+        description = "Understanding available components: node palette, filesystem node scanning, CodeNode text editor. 13 files."
+        position(100.0, 400.0)
+        exposeInput("filesystemPaths", String::class)
+        exposeInput("classpathEntries", String::class)
+        exposeOutput("nodeDescriptors", String::class)
+    }
+
+    val persist = graphNode("flowGraph-persist") {
+        description = "Saving and loading flow graphs: FlowGraphSerializer, FlowKtParser, template registry, file I/O. 8 files."
         position(400.0, 100.0)
-        input("flowGraph", String::class)
-        input("ipTypeRegistry", String::class)
-        output("serializedOutput", String::class)
-        output("fileService", String::class)
-        output("templateService", String::class)
-        output("ipRepository", String::class)
+        exposeInput("flowGraph", String::class)
+        exposeInput("ipTypeMetadata", String::class)
+        exposeOutput("serializedOutput", String::class)
+        exposeOutput("fileService", String::class)
+        exposeOutput("graphNodeTemplates", String::class)
     }
 
-    val compose = codeNode("flowGraph-compose") {
-        description = "Building a flow graph interactively: graph mutations, port connections, validation, undo/redo. 10 files. Absorbs no external modules."
-        position(400.0, 300.0)
-        input("nodeRegistry", String::class)
-        input("ipTypeRegistry", String::class)
-        output("graphState", String::class)
+    val compose = graphNode("flowGraph-compose") {
+        description = "Building a flow graph interactively: graph mutations, port connections, validation, undo/redo. 10 files."
+        position(400.0, 400.0)
+        exposeInput("nodeDescriptors", String::class)
+        exposeInput("ipTypeMetadata", String::class)
+        exposeOutput("graphState", String::class)
     }
 
-    val execute = codeNode("flowGraph-execute") {
+    val execute = graphNode("flowGraph-execute") {
         description = "Running and observing flow graphs: runtime pipeline, execution control, animation, debugging. 7 files. Absorbs circuitSimulator (5 files)."
-        position(400.0, 500.0)
-        input("flowGraph", String::class)
-        input("nodeRegistry", String::class)
-        output("executionState", String::class)
-        output("animations", String::class)
-        output("debugSnapshots", String::class)
+        position(400.0, 600.0)
+        exposeInput("flowGraph", String::class)
+        exposeInput("nodeDescriptors", String::class)
+        exposeOutput("executionState", String::class)
+        exposeOutput("animations", String::class)
+        exposeOutput("debugSnapshots", String::class)
     }
 
-    val generate = codeNode("flowGraph-generate") {
-        description = "Producing deployable code: all generators, templates, validators, module save. 47 files. Absorbs kotlinCompiler (38 files)."
-        position(700.0, 300.0)
-        input("flowGraph", String::class)
-        input("serializer", String::class)
-        input("nodeRegistry", String::class)
-        input("ipTypeRegistry", String::class)
-        output("generatedOutput", String::class)
-        output("ipTypeFiles", String::class)
+    val generate = graphNode("flowGraph-generate") {
+        description = "Producing deployable code: all generators, templates, validators, module save. 46 files. Absorbs kotlinCompiler (38 files)."
+        position(700.0, 400.0)
+        exposeInput("flowGraph", String::class)
+        exposeInput("serializedOutput", String::class)
+        exposeInput("nodeDescriptors", String::class)
+        exposeInput("ipTypeMetadata", String::class)
+        exposeOutput("generatedOutput", String::class)
     }
 
-    val root = codeNode("graphEditor", nodeType = "SINK") {
+    val root = graphNode("graphEditor") {
         description = "Composition root: Compose UI, ViewModels, renderers, DI wiring. 27 files. Orchestrates all slices."
-        position(1000.0, 300.0)
-        input("graphState", String::class)
-        input("fileService", String::class)
-        input("templateService", String::class)
-        input("executionState", String::class)
-        input("animations", String::class)
-        input("generatedOutput", String::class)
-        input("nodeDescriptors", String::class)
-        input("ipTypeMetadata", String::class)
+        position(1000.0, 400.0)
+        exposeInput("graphState", String::class)
+        exposeInput("fileService", String::class)
+        exposeInput("graphNodeTemplates", String::class)
+        exposeInput("executionState", String::class)
+        exposeInput("animations", String::class)
+        exposeInput("generatedOutput", String::class)
+        exposeInput("nodeDescriptors", String::class)
+        exposeInput("ipTypeMetadata", String::class)
     }
 
-    // Connections: inspect → consumers (inspect is the most depended-upon module)
-    inspect.output("nodeDescriptors") connect compose.input("nodeRegistry")
-    inspect.output("ipTypeMetadata") connect compose.input("ipTypeRegistry")
-    inspect.output("nodeDescriptors") connect execute.input("nodeRegistry")
-    inspect.output("nodeDescriptors") connect generate.input("nodeRegistry")
-    inspect.output("ipTypeMetadata") connect generate.input("ipTypeRegistry")
-    inspect.output("ipTypeMetadata") connect persist.input("ipTypeRegistry")
+    // Connections: types → consumers (IP type metadata for all modules that need type info)
+    types.output("ipTypeMetadata") connect compose.input("ipTypeMetadata")
+    types.output("ipTypeMetadata") connect persist.input("ipTypeMetadata")
+    types.output("ipTypeMetadata") connect generate.input("ipTypeMetadata")
+    types.output("ipTypeMetadata") connect root.input("ipTypeMetadata")
+
+    // Connections: inspect → consumers (node descriptors only — IP type data now from types)
+    inspect.output("nodeDescriptors") connect compose.input("nodeDescriptors")
+    inspect.output("nodeDescriptors") connect execute.input("nodeDescriptors")
+    inspect.output("nodeDescriptors") connect generate.input("nodeDescriptors")
     inspect.output("nodeDescriptors") connect root.input("nodeDescriptors")
-    inspect.output("ipTypeMetadata") connect root.input("ipTypeMetadata")
 
     // Connections: persist → consumers
-    persist.output("serializedOutput") connect generate.input("serializer")
+    persist.output("serializedOutput") connect generate.input("serializedOutput")
     persist.output("fileService") connect root.input("fileService")
-    persist.output("templateService") connect root.input("templateService")
-
-    // Connections: persist ↔ inspect (bidirectional)
-    persist.output("ipRepository") connect inspect.input("ipRepository")
-
-    // Connections: generate → inspect (bidirectional)
-    generate.output("ipTypeFiles") connect inspect.input("generatedTypes")
+    persist.output("graphNodeTemplates") connect root.input("graphNodeTemplates")
 
     // Connections: compose → root
     compose.output("graphState") connect root.input("graphState")

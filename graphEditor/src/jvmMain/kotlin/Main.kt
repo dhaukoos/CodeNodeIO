@@ -100,8 +100,8 @@ import androidx.compose.foundation.focusable
 import io.codenode.fbpdsl.model.ExecutionState
 import kotlinx.coroutines.flow.drop
 import java.io.File
-import javax.swing.JFileChooser
-import javax.swing.filechooser.FileNameExtensionFilter
+import java.awt.FileDialog
+import java.awt.Frame
 
 /**
  * Main composable for the GraphEditor application
@@ -1726,33 +1726,23 @@ data class FileOpenResult(val file: File? = null, val error: String? = null)
 /**
  * Show file open dialog for .flow.kt files or module directories.
  *
- * Accepts both files and directories. When a directory (module folder) is selected,
- * resolves the .flow.kt file at the conventional path:
+ * Uses java.awt.FileDialog for native macOS file picker. Accepts both files and
+ * directories. When a directory (module folder) is selected, resolves the .flow.kt
+ * file at the conventional path:
  *   {moduleDir}/src/commonMain/kotlin/io/codenode/{modulename}/{ModuleName}.flow.kt
  */
 fun showFileOpenDialog(): FileOpenResult {
-    // Start the file chooser at the project directory
     val startDir = System.getProperty("codenode.project.dir")?.let { File(it) }
         ?: File(System.getProperty("user.dir"))
-    val fileChooser = JFileChooser(startDir).apply {
-        dialogTitle = "Open Flow Graph or Module Folder"
-        fileSelectionMode = JFileChooser.FILES_AND_DIRECTORIES
-        fileFilter = FileNameExtensionFilter("Flow Graph Files (*.flow.kt)", "kt")
-        isAcceptAllFileFilterUsed = true
-    }
 
-    if (fileChooser.showOpenDialog(null) != JFileChooser.APPROVE_OPTION) return FileOpenResult()
+    val dialog = FileDialog(null as Frame?, "Open Flow Graph", FileDialog.LOAD)
+    dialog.directory = startDir.absolutePath
+    dialog.setFilenameFilter { _, name -> name.endsWith(".flow.kt") }
+    dialog.isVisible = true
 
-    val selected = fileChooser.selectedFile
-    if (selected.isFile) return FileOpenResult(file = selected)
-
-    // Directory selected — find .flow.kt at the conventional module path
-    val flowFile = resolveFlowKtFromModule(selected)
-    return if (flowFile != null) {
-        FileOpenResult(file = flowFile)
-    } else {
-        FileOpenResult(error = "No .flow.kt found in ${selected.name}/src/commonMain/kotlin/io/codenode/...")
-    }
+    val dir = dialog.directory ?: return FileOpenResult()
+    val fileName = dialog.file ?: return FileOpenResult()
+    return FileOpenResult(file = File(dir, fileName))
 }
 
 /**
@@ -1777,17 +1767,25 @@ private fun resolveFlowKtFromModule(moduleDir: File): File? {
 fun showDirectoryChooser(title: String = "Select Output Directory for KMP Module"): File? {
     val startDir = System.getProperty("codenode.project.dir")?.let { File(it) }
         ?: File(System.getProperty("user.dir"))
-    val fileChooser = JFileChooser(startDir).apply {
-        dialogTitle = title
-        fileSelectionMode = JFileChooser.DIRECTORIES_ONLY
-        isAcceptAllFileFilterUsed = false
+
+    // Enable directory selection in the native macOS dialog
+    val prevDirProp = System.getProperty("apple.awt.fileDialogForDirectories")
+    System.setProperty("apple.awt.fileDialogForDirectories", "true")
+
+    val dialog = FileDialog(null as Frame?, title, FileDialog.LOAD)
+    dialog.directory = startDir.absolutePath
+    dialog.isVisible = true
+
+    // Restore previous setting
+    if (prevDirProp != null) {
+        System.setProperty("apple.awt.fileDialogForDirectories", prevDirProp)
+    } else {
+        System.clearProperty("apple.awt.fileDialogForDirectories")
     }
 
-    return if (fileChooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
-        fileChooser.selectedFile
-    } else {
-        null
-    }
+    val dir = dialog.directory ?: return null
+    val fileName = dialog.file ?: return null
+    return File(dir, fileName)
 }
 
 /**
@@ -1835,7 +1833,7 @@ fun main(args: Array<String> = emptyArray()) {
     val resolvedProjectDir = (projectDirArg ?: projectDirEnv)?.let { File(it).absoluteFile }
 
     // Store the resolved project directory for downstream use.
-    // Do NOT set user.dir — it breaks JFileChooser directory navigation.
+    // Do NOT set user.dir — it breaks FileDialog directory navigation.
     if (resolvedProjectDir != null) {
         System.setProperty("codenode.project.dir", resolvedProjectDir.absolutePath)
     }
