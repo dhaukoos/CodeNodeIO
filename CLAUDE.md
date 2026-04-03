@@ -94,7 +94,7 @@ Auto-generated from all feature plans. Last updated: 2026-01-13
 - Room (KMP) with BundledSQLiteDriver — shared `persistence` module (062-group-persistence-files)
 - Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + Compose Desktop 1.7.3 (UI), kotlinx-coroutines 1.8.0, kotlinx-serialization 1.6.0, lifecycle-viewmodel-compose 2.8.0 (063-save-graphnodes)
 - Filesystem — `.flow.kts` template files at three tier locations (063-save-graphnodes)
-- N/A (deliverables are documentation and test files) (064-grapheditor-refactor-plan)
+- N/A (deliverables are documentation and test files) (064-vertical-slice-refactor)
 
 - Kotlin 1.9+, Go 1.21+ (001-ide-plugin-platform)
 
@@ -114,7 +114,7 @@ tests/
 Kotlin 1.9+, Go 1.21+: Follow standard conventions
 
 ## Recent Changes
-- 064-grapheditor-refactor-plan: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + Compose Desktop 1.7.3 (UI), kotlinx-coroutines 1.8.0, kotlinx-serialization 1.6.0, lifecycle-viewmodel-compose 2.8.0
+- 064-vertical-slice-refactor: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + Compose Desktop 1.7.3 (UI), kotlinx-coroutines 1.8.0, kotlinx-serialization 1.6.0, lifecycle-viewmodel-compose 2.8.0
 - 063-save-graphnodes: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + Compose Desktop 1.7.3 (UI), kotlinx-coroutines 1.8.0, kotlinx-serialization 1.6.0, lifecycle-viewmodel-compose 2.8.0
 - 062-group-persistence-files: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + Room 2.8.4 (KMP), Koin 4.0.0, kotlinx-coroutines 1.8.0, Compose Multiplatform 1.7.3
 

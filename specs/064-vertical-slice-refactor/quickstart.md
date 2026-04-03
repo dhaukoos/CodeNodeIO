@@ -1,13 +1,13 @@
-# Quickstart: GraphEditor Refactoring Plan
+# Quickstart: Vertical Slice Refactor
 
-**Feature**: 064-grapheditor-refactor-plan
+**Feature**: 064-vertical-slice-refactor
 **Date**: 2026-04-02
 
 ## Prerequisites
 
-- CodeNodeIO graphEditor builds and all existing tests pass (`./gradlew :graphEditor:jvmTest`)
-- Access to graphEditor source tree (77 files in `graphEditor/src/jvmMain/kotlin/`)
-- Familiarity with the existing test patterns in `graphEditor/src/jvmTest/kotlin/`
+- CodeNodeIO builds and all existing tests pass (`./gradlew :graphEditor:jvmTest :kotlinCompiler:jvmTest`)
+- Access to all three source trees: graphEditor (77 files), kotlinCompiler (41 main files), circuitSimulator (5 files)
+- Familiarity with the existing test patterns in `graphEditor/src/jvmTest/kotlin/` and `kotlinCompiler/src/jvmTest/kotlin/`
 
 ---
 
@@ -15,17 +15,17 @@
 
 ### Steps
 
-1. Open `graphEditor/ARCHITECTURE.md`
-2. Count the total number of file entries in the audit table
-3. Run `find graphEditor/src/jvmMain/kotlin -name "*.kt" | wc -l` to count actual source files
+1. Open `graphEditor/ARCHITECTURE.md`, `kotlinCompiler/ARCHITECTURE.md`, and `circuitSimulator/ARCHITECTURE.md`
+2. Count the total number of file entries across all three audit documents
+3. Count actual source files across all three modules
 4. Compare the two counts
 
 ### Expected Result
 
-- The audit table contains exactly 77 entries (one per `.kt` file)
+- The audit documents contain ~123 entries total (77 graphEditor + 41 kotlinCompiler + 5 circuitSimulator)
 - Every file has exactly one bucket assignment: `compose`, `persist`, `execute`, `generate`, `inspect`, or `root` (composition root)
 - No files appear in multiple buckets
-- No files from the source tree are missing from the audit
+- No files from any source tree are missing from the audits
 
 ---
 
@@ -48,18 +48,17 @@
 
 ### Steps
 
-1. Run `./gradlew :graphEditor:jvmTest`
-2. Check that all four characterization test classes pass:
-   - `GraphDataOpsCharacterizationTest`
-   - `RuntimeExecutionCharacterizationTest`
-   - `ViewModelCharacterizationTest`
-   - `SerializationRoundTripCharacterizationTest`
+1. Run `./gradlew :graphEditor:jvmTest :kotlinCompiler:jvmTest`
+2. Check that all characterization test classes pass:
+   - graphEditor: `GraphDataOpsCharacterizationTest`, `RuntimeExecutionCharacterizationTest`, `ViewModelCharacterizationTest`, `SerializationRoundTripCharacterizationTest`
+   - kotlinCompiler: `CodeGenerationCharacterizationTest`, `FlowKtGeneratorCharacterizationTest`
+   - circuitSimulator: `RuntimeSessionCharacterizationTest`
 
 ### Expected Result
 
 - All characterization tests pass alongside existing tests
 - No existing tests are broken by the addition of characterization tests
-- Test output shows characterization tests running in the `characterization/` package
+- Test output shows characterization tests running in the `characterization/` packages across modules
 
 ---
 
@@ -83,16 +82,16 @@
 
 ### Steps
 
-1. Open `graphEditor/MIGRATION.md`
+1. Open `MIGRATION.md` (repo root)
 2. For each of the five target modules (flowGraph-compose, flowGraph-persist, flowGraph-execute, flowGraph-generate, flowGraph-inspect):
-   - Verify it lists which files move from the audit
+   - Verify it lists which files move from each source module's audit
    - Verify it defines a public API as Kotlin interfaces
    - Verify it specifies the extraction order step number
-3. Cross-reference: every file in the audit should appear in exactly one module's file list (or in "stays in graphEditor")
+3. Cross-reference: every file in all three audits should appear in exactly one target module's file list (or in "stays in graphEditor")
 
 ### Expected Result
 
-- All 77 audited files have a target module assignment
+- All ~123 audited files have a target module assignment
 - Each module has at least one Kotlin interface definition
 - The extraction order is: persist (1st) → inspect (2nd) → execute (3rd) → generate (4th) → compose (5th)
 - Each extraction step specifies: files to move, interfaces to create, call sites to change, and which characterization tests must pass
@@ -103,7 +102,7 @@
 
 ### Steps
 
-1. In `graphEditor/MIGRATION.md`, review the extraction order
+1. In `MIGRATION.md`, review the extraction order
 2. For each step N, check that the module being extracted does not depend on any module scheduled for step N+1 or later
 3. Verify that each step explicitly states: "After this extraction, all characterization tests pass"
 
@@ -139,7 +138,7 @@
 
 ### Steps
 
-1. Compare the connections in `graphEditor/architecture.flow.kts` with the module dependencies documented in `graphEditor/MIGRATION.md`
+1. Compare the connections in `graphEditor/architecture.flow.kts` with the module dependencies documented in `MIGRATION.md`
 2. For each connection in the FlowGraph, verify a corresponding dependency exists in the migration map
 3. For each dependency in the migration map, verify a corresponding connection exists in the FlowGraph
 

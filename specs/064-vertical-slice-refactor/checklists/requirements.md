@@ -1,4 +1,4 @@
-# Specification Quality Checklist: GraphEditor Refactoring Plan
+# Specification Quality Checklist: Vertical Slice Refactor
 
 **Purpose**: Validate specification completeness and quality before proceeding to planning
 **Created**: 2026-04-02
