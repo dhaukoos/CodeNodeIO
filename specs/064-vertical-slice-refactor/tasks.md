@@ -18,11 +18,11 @@
 - [X] T001 Create characterization test directory at `graphEditor/src/jvmTest/kotlin/characterization/`
 - [X] T002 [P] Create placeholder `graphEditor/ARCHITECTURE.md` with section headers (File Audit, Responsibility Buckets, Seam Matrix)
 - [X] T003 [P] Create placeholder `graphEditor/MIGRATION.md` with section headers (Module Boundaries, Public APIs, Extraction Order, Step-by-Step Instructions)
-- [ ] T034 [P] Create characterization test directory at `kotlinCompiler/src/jvmTest/kotlin/characterization/`
-- [ ] T035 [P] Create placeholder `kotlinCompiler/ARCHITECTURE.md` with section headers matching graphEditor/ARCHITECTURE.md
-- [ ] T036 [P] Create placeholder `circuitSimulator/ARCHITECTURE.md` with section headers matching graphEditor/ARCHITECTURE.md
-- [ ] T037 [P] Create characterization test directory at `circuitSimulator/src/commonTest/kotlin/characterization/`
-- [ ] T038 Move `graphEditor/MIGRATION.md` to repo root `MIGRATION.md` — migration map spans all three modules
+- [X] T034 [P] Create characterization test directory at `kotlinCompiler/src/jvmTest/kotlin/characterization/`
+- [X] T035 [P] Create placeholder `kotlinCompiler/ARCHITECTURE.md` with section headers matching graphEditor/ARCHITECTURE.md
+- [X] T036 [P] Create placeholder `circuitSimulator/ARCHITECTURE.md` with section headers matching graphEditor/ARCHITECTURE.md
+- [X] T037 [P] Create characterization test directory at `circuitSimulator/src/commonTest/kotlin/characterization/`
+- [X] T038 Move `graphEditor/MIGRATION.md` to repo root `MIGRATION.md` — migration map spans all three modules
 
 **Checkpoint**: Directory structure and placeholder files exist for all three modules
 
@@ -64,22 +64,22 @@
 
 ### kotlinCompiler Audit (New)
 
-- [ ] T039 [US1] Audit all generator files in `kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/` (~25 files) — for each file, read imports and primary types, assign to one bucket (most will be `generate`), note cross-bucket dependencies. Record results in `kotlinCompiler/ARCHITECTURE.md` audit table.
-- [ ] T040 [P] [US1] Audit all template files in `kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/templates/` (~8 files) — read imports, assign buckets, note dependencies. Record in `kotlinCompiler/ARCHITECTURE.md`.
-- [ ] T041 [P] [US1] Audit validator and JVM-specific files in `kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/validator/` and `kotlinCompiler/src/jvmMain/kotlin/` (~3 files) — read imports, assign buckets, note dependencies. Record in `kotlinCompiler/ARCHITECTURE.md`.
-- [ ] T042 [US1] Build seam matrix for `kotlinCompiler/ARCHITECTURE.md` — consolidate cross-bucket dependencies, noting cross-module seams (kotlinCompiler→graphEditor, kotlinCompiler→fbpDsl). Count seams per boundary.
-- [ ] T043 [US1] Validate kotlinCompiler audit completeness — verify total file count matches actual count, every file appears exactly once.
+- [X] T039 [US1] Audit all generator files in `kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/` (27 files) — for each file, read imports and primary types, assign to one bucket (all `generate`), note cross-bucket dependencies. Record results in `kotlinCompiler/ARCHITECTURE.md` audit table.
+- [X] T040 [P] [US1] Audit all template files in `kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/templates/` (8 files) — read imports, assign buckets, note dependencies. Record in `kotlinCompiler/ARCHITECTURE.md`.
+- [X] T041 [P] [US1] Audit validator and JVM-specific files in `kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/validator/` and `kotlinCompiler/src/jvmMain/kotlin/` (3 files) — read imports, assign buckets, note dependencies. Record in `kotlinCompiler/ARCHITECTURE.md`.
+- [X] T042 [US1] Build seam matrix for `kotlinCompiler/ARCHITECTURE.md` — consolidate cross-bucket dependencies, noting cross-module seams (kotlinCompiler→graphEditor, kotlinCompiler→fbpDsl). Count seams per boundary.
+- [X] T043 [US1] Validate kotlinCompiler audit completeness — verify total file count matches actual count (38 files), every file appears exactly once.
 
 ### circuitSimulator Audit (New)
 
-- [ ] T044 [US1] Audit all 5 files in `circuitSimulator/src/commonMain/kotlin/io/codenode/circuitsimulator/` — for each file, read imports and primary types, assign to one bucket (most will be `execute`), note cross-bucket dependencies. Record results in `circuitSimulator/ARCHITECTURE.md` audit table.
-- [ ] T045 [US1] Build seam matrix for `circuitSimulator/ARCHITECTURE.md` — consolidate cross-bucket dependencies, noting cross-module seams (circuitSimulator→fbpDsl, circuitSimulator→graphEditor). Count seams per boundary.
-- [ ] T046 [US1] Validate circuitSimulator audit completeness — verify total file count equals 5, every file appears exactly once.
+- [X] T044 [US1] Audit all 5 files in `circuitSimulator/src/commonMain/kotlin/io/codenode/circuitsimulator/` — for each file, read imports and primary types, assign to one bucket (all `execute`), note cross-bucket dependencies. Record results in `circuitSimulator/ARCHITECTURE.md` audit table.
+- [X] T045 [US1] Build seam matrix for `circuitSimulator/ARCHITECTURE.md` — consolidate cross-bucket dependencies, noting cross-module seams (circuitSimulator→fbpDsl, circuitSimulator→graphEditor). Count seams per boundary.
+- [X] T046 [US1] Validate circuitSimulator audit completeness — verify total file count equals 5, every file appears exactly once.
 
 ### Cross-Module Validation
 
-- [ ] T047 [US1] Build consolidated cross-module seam summary — document all seams that cross module boundaries (graphEditor↔kotlinCompiler, graphEditor↔circuitSimulator) in a summary table. These become the primary extraction interfaces.
-- [ ] T048 [US1] Validate total audit completeness across all three modules — verify combined file count matches actual count (~123 files), every file appears exactly once across the three ARCHITECTURE.md files.
+- [X] T047 [US1] Build consolidated cross-module seam summary — document all seams that cross module boundaries (graphEditor↔kotlinCompiler, graphEditor↔circuitSimulator) in a summary table. These become the primary extraction interfaces.
+- [X] T048 [US1] Validate total audit completeness across all three modules — verify combined file count matches actual count (120 files), every file appears exactly once across the three ARCHITECTURE.md files.
 
 **Checkpoint**: All three ARCHITECTURE.md files contain complete audits; cross-module seams documented
 
@@ -101,18 +101,18 @@
 
 ### kotlinCompiler Characterization Tests (New)
 
-- [ ] T049 [P] [US2] Write `CodeGenerationCharacterizationTest.kt` in `kotlinCompiler/src/jvmTest/kotlin/characterization/` — tests that create known FlowGraphs, run them through KotlinCodeGenerator/ComponentGenerator, and assert on generated Kotlin source output. Pin current code generation behavior for component generation, flow generation, and module generation.
-- [ ] T050 [P] [US2] Write `FlowKtGeneratorCharacterizationTest.kt` in `kotlinCompiler/src/jvmTest/kotlin/characterization/` — tests that create FlowGraphs and run them through FlowKtGenerator, asserting on the generated .flow.kt content. Cover nodes with various port configurations, connections, and IP type overrides.
-- [ ] T051 [US2] Run `./gradlew :kotlinCompiler:jvmTest` and verify all characterization tests pass alongside existing tests — no test regressions
+- [X] T049 [P] [US2] Write `CodeGenerationCharacterizationTest.kt` in `kotlinCompiler/src/jvmTest/kotlin/characterization/` — tests that create known FlowGraphs, run them through KotlinCodeGenerator/ComponentGenerator, and assert on generated Kotlin source output. Pin current code generation behavior for component generation, flow generation, and module generation.
+- [X] T050 [P] [US2] Write `FlowKtGeneratorCharacterizationTest.kt` in `kotlinCompiler/src/jvmTest/kotlin/characterization/` — tests that create FlowGraphs and run them through FlowKtGenerator, asserting on the generated .flow.kt content. Cover nodes with various port configurations, connections, and IP type overrides.
+- [X] T051 [US2] Run `./gradlew :kotlinCompiler:jvmTest` and verify all characterization tests pass alongside existing tests — no test regressions
 
 ### circuitSimulator Characterization Tests (New)
 
-- [ ] T052 [P] [US2] Write `RuntimeSessionCharacterizationTest.kt` in `circuitSimulator/src/commonTest/kotlin/characterization/` — tests that create RuntimeSession instances with mock ModuleControllers, exercise start/stop/pause/resume lifecycle, and assert on execution state transitions. Pin animation controller and debugger observer behavior.
-- [ ] T053 [US2] Verify circuitSimulator characterization tests compile and pass — run appropriate Gradle test task
+- [X] T052 [P] [US2] Write `RuntimeSessionCharacterizationTest.kt` in `circuitSimulator/src/commonTest/kotlin/characterization/` — tests that create RuntimeSession instances with mock ModuleControllers, exercise start/stop/pause/resume lifecycle, and assert on execution state transitions. Pin animation controller and debugger observer behavior.
+- [X] T053 [US2] Verify circuitSimulator characterization tests compile and pass — run appropriate Gradle test task
 
 ### Full Verification
 
-- [ ] T054 [US2] Run `./gradlew :graphEditor:jvmTest :kotlinCompiler:jvmTest` and verify ALL characterization tests across all modules pass alongside existing tests — no regressions anywhere
+- [X] T054 [US2] Run `./gradlew :graphEditor:jvmTest :kotlinCompiler:jvmTest :circuitSimulator:jvmTest` and verify ALL characterization tests across all modules pass alongside existing tests — no regressions anywhere
 
 **Checkpoint**: All characterization test classes pass across all modules. Existing tests unaffected. Safety net is in place for future extraction.
 

@@ -1,6 +1,6 @@
 # GraphEditor Architecture Audit
 
-**Feature**: 064-grapheditor-refactor-plan
+**Feature**: 064-vertical-slice-refactor
 **Date**: 2026-04-02
 **Total Source Files**: 77 (graphEditor/src/jvmMain/kotlin/)
 
