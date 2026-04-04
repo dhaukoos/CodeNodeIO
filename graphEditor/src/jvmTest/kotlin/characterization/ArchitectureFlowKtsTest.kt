@@ -74,19 +74,19 @@ class ArchitectureFlowKtsTest {
     }
 
     @Test
-    fun `architecture flow kt has exactly 15 connections forming a DAG`() {
+    fun `architecture flow kt has exactly 19 connections`() {
         val content = loadArchitectureFile()
         val result = parser.parseFlowKt(content)
 
         assertTrue(result.isSuccess, "Parse failed: ${result.errorMessage}")
         val graph = result.graph!!
 
-        assertEquals(15, graph.connections.size,
-            "Should have exactly 15 connections (no back-edges)")
+        assertEquals(19, graph.connections.size,
+            "Should have exactly 19 connections (15 state flows + 4 command flows)")
     }
 
     @Test
-    fun `types and inspect are the two hub nodes`() {
+    fun `types and inspect are the two hub source nodes`() {
         val content = loadArchitectureFile()
         val result = parser.parseFlowKt(content)
 
@@ -105,42 +105,7 @@ class ArchitectureFlowKtsTest {
     }
 
     @Test
-    fun `no cycles exist in the connection graph`() {
-        val content = loadArchitectureFile()
-        val result = parser.parseFlowKt(content)
-
-        assertTrue(result.isSuccess, "Parse failed: ${result.errorMessage}")
-        val graph = result.graph!!
-
-        // Build adjacency from source node → target nodes
-        val adjacency = mutableMapOf<String, MutableSet<String>>()
-        for (conn in graph.connections) {
-            adjacency.getOrPut(conn.sourceNodeId) { mutableSetOf() }.add(conn.targetNodeId)
-        }
-
-        // DFS cycle detection
-        val visited = mutableSetOf<String>()
-        val inStack = mutableSetOf<String>()
-
-        fun hasCycle(nodeId: String): Boolean {
-            if (nodeId in inStack) return true
-            if (nodeId in visited) return false
-            visited.add(nodeId)
-            inStack.add(nodeId)
-            for (neighbor in adjacency[nodeId] ?: emptySet()) {
-                if (hasCycle(neighbor)) return true
-            }
-            inStack.remove(nodeId)
-            return false
-        }
-
-        val nodeIds = graph.rootNodes.map { it.id }
-        val cycleFound = nodeIds.any { hasCycle(it) }
-        assertFalse(cycleFound, "Connection graph should be a DAG — no cycles allowed")
-    }
-
-    @Test
-    fun `root node has no outbound connections`() {
+    fun `root has bidirectional data flow — command outputs and state inputs`() {
         val content = loadArchitectureFile()
         val result = parser.parseFlowKt(content)
 
@@ -149,9 +114,36 @@ class ArchitectureFlowKtsTest {
 
         val rootNode = graph.rootNodes.first { it.name == "graphEditor" }
         val rootOutbound = graph.connections.count { it.sourceNodeId == rootNode.id }
+        val rootInbound = graph.connections.count { it.targetNodeId == rootNode.id }
 
-        assertEquals(0, rootOutbound,
-            "Root (composition root) should have no outbound connections — it only consumes")
+        assertEquals(4, rootOutbound,
+            "Root should have 4 command outputs (flowGraphModel → compose, persist, execute, generate)")
+        assertTrue(rootInbound >= 7,
+            "Root should have at least 7 state inputs (got $rootInbound)")
+    }
+
+    @Test
+    fun `no unconnected flowGraphModel inputs exist`() {
+        val content = loadArchitectureFile()
+        val result = parser.parseFlowKt(content)
+
+        assertTrue(result.isSuccess, "Parse failed: ${result.errorMessage}")
+        val graph = result.graph!!
+
+        // Every node with a flowGraphModel input should have an inbound connection to it
+        val rootNode = graph.rootNodes.first { it.name == "graphEditor" }
+        val commandTargets = graph.connections
+            .filter { it.sourceNodeId == rootNode.id }
+            .map { it.targetNodeId }
+            .toSet()
+
+        val modulesNeedingFlowGraph = listOf("flowGraph-compose", "flowGraph-persist",
+            "flowGraph-execute", "flowGraph-generate")
+        for (moduleName in modulesNeedingFlowGraph) {
+            val node = graph.rootNodes.first { it.name == moduleName }
+            assertTrue(node.id in commandTargets,
+                "$moduleName should receive flowGraphModel from root")
+        }
     }
 
     @Test
