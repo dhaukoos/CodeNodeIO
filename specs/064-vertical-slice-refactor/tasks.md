@@ -157,9 +157,9 @@
 
 **Purpose**: Final validation across all deliverables
 
-- [ ] T053 Run full validation per `specs/064-vertical-slice-refactor/quickstart.md` — execute all 9 scenarios and verify expected results
-- [ ] T054 Run `./gradlew :graphEditor:jvmTest :kotlinCompiler:jvmTest` — confirm all characterization tests and existing tests pass together
-- [ ] T055 Review all three ARCHITECTURE.md files and MIGRATION.md for readability — verify a developer unfamiliar with the codebase can understand the file assignments, seam analysis, module boundaries, and extraction order (SC-008)
+- [X] T053 Run full validation per `specs/064-vertical-slice-refactor/quickstart.md` — execute all 9 scenarios and verify expected results
+- [X] T054 Run `./gradlew :graphEditor:jvmTest :kotlinCompiler:jvmTest` — confirm all characterization tests and existing tests pass together
+- [X] T055 Review all three ARCHITECTURE.md files and MIGRATION.md for readability — verify a developer unfamiliar with the codebase can understand the file assignments, seam analysis, module boundaries, and extraction order (SC-008)
 
 ---
 
