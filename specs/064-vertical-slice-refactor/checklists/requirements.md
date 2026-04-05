@@ -1,7 +1,7 @@
 # Specification Quality Checklist: Vertical Slice Refactor
 
 **Purpose**: Validate specification completeness and quality before proceeding to planning
-**Created**: 2026-04-02
+**Created**: 2026-04-04
 **Feature**: [spec.md](../spec.md)
 
 ## Content Quality
@@ -31,5 +31,6 @@
 
 ## Notes
 
-- All items pass validation. The spec is unusual in that its deliverables are planning artifacts (audit, tests, migration map, meta-FlowGraph) rather than production code, but the user stories and requirements are well-defined and testable.
+- All items pass validation. The spec is unusual in that its deliverables are planning artifacts (audit, tests, migration map, architecture FlowGraph) rather than production code, but the user stories and requirements are well-defined and testable.
 - The spec references specific Kotlin/Gradle concepts (`.kt` files, `./gradlew`, Kotlin interfaces) because the deliverables are inherently tied to the project's technology — these are domain terms, not implementation prescriptions.
+- Updated 2026-04-04 to reflect the six-module partition (adding flowGraph-types), source/sink root split, three-phase migration plan (A/B/C), and the vision that architecture.flow.kt becomes a real executable flow graph.

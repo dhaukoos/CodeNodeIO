@@ -115,8 +115,8 @@ Kotlin 1.9+, Go 1.21+: Follow standard conventions
 
 ## Recent Changes
 - 064-vertical-slice-refactor: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + Compose Desktop 1.7.3 (UI), kotlinx-coroutines 1.8.0, kotlinx-serialization 1.6.0, lifecycle-viewmodel-compose 2.8.0
+- 064-vertical-slice-refactor: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + Compose Desktop 1.7.3 (UI), kotlinx-coroutines 1.8.0, kotlinx-serialization 1.6.0, lifecycle-viewmodel-compose 2.8.0
 - 063-save-graphnodes: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + Compose Desktop 1.7.3 (UI), kotlinx-coroutines 1.8.0, kotlinx-serialization 1.6.0, lifecycle-viewmodel-compose 2.8.0
-- 062-group-persistence-files: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + Room 2.8.4 (KMP), Koin 4.0.0, kotlinx-coroutines 1.8.0, Compose Multiplatform 1.7.3
 
 
 <!-- MANUAL ADDITIONS START -->
