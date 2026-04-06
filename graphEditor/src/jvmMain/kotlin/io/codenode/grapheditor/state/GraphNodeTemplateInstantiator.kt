@@ -7,6 +7,7 @@
 package io.codenode.grapheditor.state
 
 import io.codenode.fbpdsl.model.*
+import io.codenode.flowgraphtypes.registry.IPTypeRegistry
 import io.codenode.grapheditor.model.GraphNodeTemplateMeta
 import io.codenode.grapheditor.serialization.GraphNodeTemplateSerializer
 import java.io.File

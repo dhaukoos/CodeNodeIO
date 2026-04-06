@@ -12,8 +12,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import io.codenode.fbpdsl.model.InformationPacketType
-import io.codenode.grapheditor.repository.FileIPTypeRepository
-import io.codenode.grapheditor.state.IPTypeRegistry
+import io.codenode.flowgraphtypes.repository.FileIPTypeRepository
+import io.codenode.flowgraphtypes.registry.IPTypeRegistry
 
 /**
  * State data class for the IP Palette Panel.

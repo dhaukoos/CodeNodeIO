@@ -9,7 +9,7 @@ package io.codenode.grapheditor.ui
 import androidx.compose.ui.geometry.Offset
 import io.codenode.fbpdsl.model.InformationPacketType
 import io.codenode.fbpdsl.model.IPColor
-import io.codenode.grapheditor.state.IPTypeRegistry
+import io.codenode.flowgraphtypes.registry.IPTypeRegistry
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue

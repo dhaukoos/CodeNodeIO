@@ -10,7 +10,7 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import io.codenode.grapheditor.state.GraphState
 import io.codenode.grapheditor.state.UndoRedoManager
 import io.codenode.grapheditor.state.PropertyChangeTracker
-import io.codenode.grapheditor.state.IPTypeRegistry
+import io.codenode.flowgraphtypes.registry.IPTypeRegistry
 /**
  * Container for shared state that multiple ViewModels need access to.
  *

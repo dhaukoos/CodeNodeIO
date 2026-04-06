@@ -7,13 +7,13 @@
 package io.codenode.grapheditor.viewmodel
 
 import androidx.lifecycle.ViewModel
-import io.codenode.grapheditor.model.CustomIPTypeDefinition
-import io.codenode.grapheditor.model.IPProperty
+import io.codenode.flowgraphtypes.model.CustomIPTypeDefinition
+import io.codenode.flowgraphtypes.model.IPProperty
 import io.codenode.fbpdsl.model.PlacementLevel
-import io.codenode.grapheditor.repository.FileIPTypeRepository
-import io.codenode.grapheditor.state.IPTypeDiscovery
-import io.codenode.grapheditor.state.IPTypeFileGenerator
-import io.codenode.grapheditor.state.IPTypeRegistry
+import io.codenode.flowgraphtypes.repository.FileIPTypeRepository
+import io.codenode.flowgraphtypes.discovery.IPTypeDiscovery
+import io.codenode.flowgraphtypes.generator.IPTypeFileGenerator
+import io.codenode.flowgraphtypes.registry.IPTypeRegistry
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow

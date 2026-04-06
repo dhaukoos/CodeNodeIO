@@ -20,6 +20,7 @@ kotlin {
                 implementation(libs.coroutines.core)
                 implementation(libs.serialization.json)
                 implementation(project(":fbpDsl"))
+                implementation(project(":flowGraph-types"))
                 implementation(project(":preview-api"))
                 implementation(project(":circuitSimulator"))
                 // Koin DI

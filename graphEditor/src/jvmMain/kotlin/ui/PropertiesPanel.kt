@@ -30,7 +30,7 @@ import io.codenode.fbpdsl.model.CodeNodeType
 import io.codenode.fbpdsl.model.Connection
 import io.codenode.fbpdsl.model.FlowGraph
 import io.codenode.fbpdsl.model.NodeTypeDefinition
-import io.codenode.grapheditor.state.IPTypeRegistry
+import io.codenode.flowgraphtypes.registry.IPTypeRegistry
 import io.codenode.grapheditor.viewmodel.PropertiesPanelViewModel
 import io.codenode.grapheditor.viewmodel.PropertiesPanelViewModelState
 import io.codenode.fbpdsl.model.IPColor

@@ -15,7 +15,7 @@ import io.codenode.fbpdsl.model.GraphNode
 import io.codenode.fbpdsl.model.Node
 import io.codenode.fbpdsl.model.Port
 import io.codenode.grapheditor.state.GraphState
-import io.codenode.grapheditor.state.IPTypeRegistry
+import io.codenode.flowgraphtypes.registry.IPTypeRegistry
 import kotlin.test.*
 
 /**

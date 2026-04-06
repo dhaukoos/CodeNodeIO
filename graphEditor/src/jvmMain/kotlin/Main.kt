@@ -64,8 +64,8 @@ import io.codenode.grapheditor.ui.RuntimePreviewPanel
 import io.codenode.circuitsimulator.ConnectionAnimation
 import io.codenode.circuitsimulator.RuntimeSession
 import io.codenode.grapheditor.ui.PropertiesPanelState
-import io.codenode.grapheditor.repository.FileIPTypeRepository
-import io.codenode.grapheditor.repository.IPTypeMigration
+import io.codenode.flowgraphtypes.repository.FileIPTypeRepository
+import io.codenode.flowgraphtypes.repository.IPTypeMigration
 import io.codenode.grapheditor.viewmodel.IPGeneratorViewModel
 import io.codenode.grapheditor.ui.IPGeneratorPanel
 import io.codenode.grapheditor.state.rememberPropertyChangeTracker
@@ -80,9 +80,9 @@ import io.codenode.fbpdsl.model.CodeNode
 import io.codenode.fbpdsl.model.CodeNodeType
 import io.codenode.fbpdsl.model.GraphNode
 import io.codenode.fbpdsl.model.InformationPacketType
-import io.codenode.grapheditor.state.IPTypeDiscovery
-import io.codenode.grapheditor.state.IPTypeFileGenerator
-import io.codenode.grapheditor.state.IPTypeRegistry
+import io.codenode.flowgraphtypes.discovery.IPTypeDiscovery
+import io.codenode.flowgraphtypes.generator.IPTypeFileGenerator
+import io.codenode.flowgraphtypes.registry.IPTypeRegistry
 import io.codenode.grapheditor.ui.IPPalette
 import io.codenode.grapheditor.ui.ConnectionContextMenu
 import io.codenode.grapheditor.ui.NavigationBreadcrumbBar

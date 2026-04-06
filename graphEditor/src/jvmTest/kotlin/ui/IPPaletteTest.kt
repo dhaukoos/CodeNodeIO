@@ -8,7 +8,7 @@ package io.codenode.grapheditor.ui
 
 import io.codenode.fbpdsl.model.IPColor
 import io.codenode.fbpdsl.model.InformationPacketType
-import io.codenode.grapheditor.state.IPTypeRegistry
+import io.codenode.flowgraphtypes.registry.IPTypeRegistry
 import kotlin.test.*
 
 /**

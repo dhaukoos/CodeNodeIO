@@ -24,7 +24,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.codenode.fbpdsl.model.InformationPacketType
-import io.codenode.grapheditor.model.CustomIPTypeDefinition
+import io.codenode.flowgraphtypes.model.CustomIPTypeDefinition
 import io.codenode.fbpdsl.model.PlacementLevel
 import io.codenode.grapheditor.viewmodel.IPGeneratorViewModel
 import io.codenode.grapheditor.viewmodel.IPGeneratorPanelState

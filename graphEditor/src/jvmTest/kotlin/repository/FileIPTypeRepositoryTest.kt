@@ -6,8 +6,9 @@
 package io.codenode.grapheditor.repository
 
 import io.codenode.fbpdsl.model.IPColor
-import io.codenode.grapheditor.model.CustomIPTypeDefinition
-import io.codenode.grapheditor.model.IPProperty
+import io.codenode.flowgraphtypes.model.CustomIPTypeDefinition
+import io.codenode.flowgraphtypes.model.IPProperty
+import io.codenode.flowgraphtypes.repository.FileIPTypeRepository
 import java.io.File
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest

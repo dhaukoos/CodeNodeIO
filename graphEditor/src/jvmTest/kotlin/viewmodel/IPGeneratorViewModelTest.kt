@@ -6,10 +6,10 @@
 
 package io.codenode.grapheditor.viewmodel
 
-import io.codenode.grapheditor.model.CustomIPTypeDefinition
-import io.codenode.grapheditor.model.IPProperty
-import io.codenode.grapheditor.repository.FileIPTypeRepository
-import io.codenode.grapheditor.state.IPTypeRegistry
+import io.codenode.flowgraphtypes.model.CustomIPTypeDefinition
+import io.codenode.flowgraphtypes.model.IPProperty
+import io.codenode.flowgraphtypes.repository.FileIPTypeRepository
+import io.codenode.flowgraphtypes.registry.IPTypeRegistry
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import java.io.File

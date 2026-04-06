@@ -107,15 +107,15 @@
 
 **Independent Test**: `./gradlew :graphEditor:jvmTest :kotlinCompiler:jvmTest :circuitSimulator:jvmTest` — all tests pass
 
-- [ ] T029 [US2] Add dependency on `:flowGraph-types` in `graphEditor/build.gradle.kts`
-- [ ] T030 [US2] Update `graphEditor/src/jvmMain/kotlin/viewmodel/SharedStateProvider.kt` to hold current `ipTypeMetadata` data (received from CodeNode output channel) instead of `IPTypeRegistry` instance
-- [ ] T031 [US2] Update `graphEditor/src/jvmMain/kotlin/state/GraphState.kt` to query locally-held `ipTypeMetadata` instead of `ipTypeRegistry.getByTypeName(name)`
-- [ ] T032 [US2] Update `graphEditor/src/jvmMain/kotlin/serialization/GraphNodeTemplateSerializer.kt` to receive `ipTypeMetadata` as parameter and query locally instead of `ipTypeRegistry.getByTypeName(name)`
-- [ ] T033 [US2] Update `graphEditor/src/jvmMain/kotlin/ui/PropertiesPanel.kt` to query locally-held `ipTypeMetadata` instead of `ipTypeRegistry.getAllTypes()` / `.getById(id)`
-- [ ] T034 [US2] Update `graphEditor/src/jvmMain/kotlin/viewmodel/IPGeneratorViewModel.kt` to send `ipTypeCommands` (register/generate) to CodeNode input port and receive updated `ipTypeMetadata` from output, replacing direct `ipTypeRegistry.register(...)`, `discovery.parseIPTypeFile(...)`, `repository.add(...)` calls
-- [ ] T035 [US2] Update `graphEditor/src/jvmMain/kotlin/viewmodel/IPPaletteViewModel.kt` to send `ipTypeCommands` (unregister/remove) to CodeNode input port and receive updated `ipTypeMetadata` from output, replacing direct `ipTypeRegistry.unregister(id)`, `repository.remove(id)` calls
-- [ ] T036 [US2] Wire FlowGraphTypesCodeNode in composition root: construct, start, send filesystemPaths/classpathEntries/ipTypeCommands to input ports, distribute ipTypeMetadata output to ViewModels and UI state
-- [ ] T037 [US2] Run `./gradlew :graphEditor:jvmTest :kotlinCompiler:jvmTest :circuitSimulator:jvmTest` to verify no regressions after call site migration
+- [X] T029 [US2] Add dependency on `:flowGraph-types` in `graphEditor/build.gradle.kts`
+- [X] T030 [US2] Update `graphEditor/src/jvmMain/kotlin/viewmodel/SharedStateProvider.kt` to hold current `ipTypeMetadata` data (received from CodeNode output channel) instead of `IPTypeRegistry` instance
+- [X] T031 [US2] Update `graphEditor/src/jvmMain/kotlin/state/GraphState.kt` to query locally-held `ipTypeMetadata` instead of `ipTypeRegistry.getByTypeName(name)`
+- [X] T032 [US2] Update `graphEditor/src/jvmMain/kotlin/serialization/GraphNodeTemplateSerializer.kt` to receive `ipTypeMetadata` as parameter and query locally instead of `ipTypeRegistry.getByTypeName(name)`
+- [X] T033 [US2] Update `graphEditor/src/jvmMain/kotlin/ui/PropertiesPanel.kt` to query locally-held `ipTypeMetadata` instead of `ipTypeRegistry.getAllTypes()` / `.getById(id)`
+- [X] T034 [US2] Update `graphEditor/src/jvmMain/kotlin/viewmodel/IPGeneratorViewModel.kt` to send `ipTypeCommands` (register/generate) to CodeNode input port and receive updated `ipTypeMetadata` from output, replacing direct `ipTypeRegistry.register(...)`, `discovery.parseIPTypeFile(...)`, `repository.add(...)` calls
+- [X] T035 [US2] Update `graphEditor/src/jvmMain/kotlin/viewmodel/IPPaletteViewModel.kt` to send `ipTypeCommands` (unregister/remove) to CodeNode input port and receive updated `ipTypeMetadata` from output, replacing direct `ipTypeRegistry.unregister(id)`, `repository.remove(id)` calls
+- [X] T036 [US2] Wire FlowGraphTypesCodeNode in composition root: construct, start, send filesystemPaths/classpathEntries/ipTypeCommands to input ports, distribute ipTypeMetadata output to ViewModels and UI state
+- [X] T037 [US2] Run `./gradlew :graphEditor:jvmTest :kotlinCompiler:jvmTest :circuitSimulator:jvmTest` to verify no regressions after call site migration
 
 **Checkpoint**: All 6 call sites migrated to data flow consumption. No direct IPTypeRegistry/IPTypeDiscovery/FileIPTypeRepository imports remain in call site files. All tests pass.
 

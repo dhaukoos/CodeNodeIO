@@ -9,7 +9,7 @@ package io.codenode.grapheditor.serialization
 import io.codenode.fbpdsl.model.*
 import io.codenode.grapheditor.model.GraphNodeTemplateMeta
 import io.codenode.fbpdsl.model.PlacementLevel
-import io.codenode.grapheditor.state.IPTypeRegistry
+import io.codenode.flowgraphtypes.registry.IPTypeRegistry
 import java.io.File
 
 /**

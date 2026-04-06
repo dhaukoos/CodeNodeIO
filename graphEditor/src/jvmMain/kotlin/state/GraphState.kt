@@ -18,6 +18,7 @@ import io.codenode.fbpdsl.model.ControlConfig
 import io.codenode.fbpdsl.model.ExecutionState
 import io.codenode.fbpdsl.model.GraphNode
 import io.codenode.fbpdsl.model.NodeTypeDefinition
+import io.codenode.flowgraphtypes.registry.IPTypeRegistry
 import io.codenode.grapheditor.ui.ConnectionContextMenuState
 
 /**
