@@ -19,7 +19,10 @@
       "Bash(grep \"\\\\.kt$\")",
       "Bash(grep -h \"^import \" graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/state/*.kt)",
       "Bash(find /Users/dhaukoos/CodeNodeIO/graphEditor/src -name *Serializer*.kt -o -name *serialization* -type f)",
-      "Bash(git mv:*)"
+      "Bash(git mv:*)",
+      "Bash(git fetch:*)",
+      "Bash(grep -E 'refs/heads/[0-9]+-extract-flowgraph-types$')",
+      "Bash(grep -E '^[* ]*[0-9]+-extract-flowgraph-types$')"
     ]
   }
 }
