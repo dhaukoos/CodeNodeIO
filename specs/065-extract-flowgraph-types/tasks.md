@@ -19,13 +19,13 @@
 
 **Purpose**: Move PlacementLevel to fbpDsl and create the flowGraph-types module skeleton
 
-- [ ] T001 Move `PlacementLevel.kt` from `graphEditor/src/jvmMain/kotlin/model/PlacementLevel.kt` to `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/PlacementLevel.kt` with package update to `io.codenode.fbpdsl.model`
-- [ ] T002 Update all imports of `io.codenode.grapheditor.model.PlacementLevel` to `io.codenode.fbpdsl.model.PlacementLevel` across the codebase
-- [ ] T003 Run `./gradlew :graphEditor:jvmTest :kotlinCompiler:jvmTest :circuitSimulator:jvmTest` to verify no regressions after PlacementLevel move
-- [ ] T004 Add `include("flowGraph-types")` to `settings.gradle.kts`
-- [ ] T005 Create `flowGraph-types/build.gradle.kts` with KMP configuration depending only on `:fbpDsl`
-- [ ] T006 Create directory structure: `flowGraph-types/src/commonMain/kotlin/io/codenode/flowgraphtypes/model/`, `flowGraph-types/src/commonMain/kotlin/io/codenode/flowgraphtypes/registry/`, `flowGraph-types/src/jvmMain/kotlin/io/codenode/flowgraphtypes/discovery/`, `flowGraph-types/src/jvmMain/kotlin/io/codenode/flowgraphtypes/repository/`, `flowGraph-types/src/jvmMain/kotlin/io/codenode/flowgraphtypes/generator/`, `flowGraph-types/src/jvmMain/kotlin/io/codenode/flowgraphtypes/node/`, `flowGraph-types/src/jvmTest/kotlin/io/codenode/flowgraphtypes/node/`
-- [ ] T007 Run `./gradlew :flowGraph-types:build` to verify empty module compiles
+- [X] T001 Move `PlacementLevel.kt` from `graphEditor/src/jvmMain/kotlin/model/PlacementLevel.kt` to `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/PlacementLevel.kt` with package update to `io.codenode.fbpdsl.model`
+- [X] T002 Update all imports of `io.codenode.grapheditor.model.PlacementLevel` to `io.codenode.fbpdsl.model.PlacementLevel` across the codebase
+- [X] T003 Run `./gradlew :graphEditor:jvmTest :kotlinCompiler:jvmTest :circuitSimulator:jvmTest` to verify no regressions after PlacementLevel move
+- [X] T004 Add `include("flowGraph-types")` to `settings.gradle.kts`
+- [X] T005 Create `flowGraph-types/build.gradle.kts` with KMP configuration depending only on `:fbpDsl`
+- [X] T006 Create directory structure: `flowGraph-types/src/commonMain/kotlin/io/codenode/flowgraphtypes/model/`, `flowGraph-types/src/commonMain/kotlin/io/codenode/flowgraphtypes/registry/`, `flowGraph-types/src/jvmMain/kotlin/io/codenode/flowgraphtypes/discovery/`, `flowGraph-types/src/jvmMain/kotlin/io/codenode/flowgraphtypes/repository/`, `flowGraph-types/src/jvmMain/kotlin/io/codenode/flowgraphtypes/generator/`, `flowGraph-types/src/jvmMain/kotlin/io/codenode/flowgraphtypes/node/`, `flowGraph-types/src/jvmTest/kotlin/io/codenode/flowgraphtypes/node/`
+- [X] T007 Run `./gradlew :flowGraph-types:build` to verify empty module compiles
 
 **Checkpoint**: PlacementLevel lives in fbpDsl. flowGraph-types module exists and compiles. All existing tests pass.
 

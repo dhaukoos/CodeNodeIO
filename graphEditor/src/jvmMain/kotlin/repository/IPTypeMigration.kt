@@ -5,7 +5,7 @@
 
 package io.codenode.grapheditor.repository
 
-import io.codenode.grapheditor.model.PlacementLevel
+import io.codenode.fbpdsl.model.PlacementLevel
 import io.codenode.grapheditor.state.IPTypeDiscovery
 import io.codenode.grapheditor.state.IPTypeFileGenerator
 import java.io.File

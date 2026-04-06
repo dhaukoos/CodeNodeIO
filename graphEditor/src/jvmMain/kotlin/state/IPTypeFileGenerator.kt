@@ -6,7 +6,7 @@
 package io.codenode.grapheditor.state
 
 import io.codenode.grapheditor.model.CustomIPTypeDefinition
-import io.codenode.grapheditor.model.PlacementLevel
+import io.codenode.fbpdsl.model.PlacementLevel
 import java.io.File
 
 /**

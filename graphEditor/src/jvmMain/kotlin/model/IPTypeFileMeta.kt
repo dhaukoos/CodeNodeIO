@@ -6,6 +6,7 @@
 package io.codenode.grapheditor.model
 
 import io.codenode.fbpdsl.model.IPColor
+import io.codenode.fbpdsl.model.PlacementLevel
 
 /**
  * Metadata extracted from a `.kt` IP type definition file during filesystem discovery.

@@ -43,6 +43,7 @@ rootProject.name = "codenode-io"
 
 // Core platform modules
 include(":fbpDsl")
+include(":flowGraph-types")
 include(":preview-api")
 include(":graphEditor")
 include(":circuitSimulator")

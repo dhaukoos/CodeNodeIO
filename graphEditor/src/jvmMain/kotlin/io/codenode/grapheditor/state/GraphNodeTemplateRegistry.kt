@@ -8,7 +8,7 @@ package io.codenode.grapheditor.state
 
 import io.codenode.fbpdsl.model.GraphNode
 import io.codenode.grapheditor.model.GraphNodeTemplateMeta
-import io.codenode.grapheditor.model.PlacementLevel
+import io.codenode.fbpdsl.model.PlacementLevel
 import io.codenode.grapheditor.serialization.GraphNodeTemplateSerializer
 import java.io.File
 

@@ -11,7 +11,7 @@ import io.codenode.fbpdsl.model.InformationPacketType
 import io.codenode.grapheditor.model.CustomIPTypeDefinition
 import io.codenode.grapheditor.model.IPProperty
 import io.codenode.grapheditor.model.IPTypeFileMeta
-import io.codenode.grapheditor.model.PlacementLevel
+import io.codenode.fbpdsl.model.PlacementLevel
 import kotlin.reflect.KClass
 
 /**

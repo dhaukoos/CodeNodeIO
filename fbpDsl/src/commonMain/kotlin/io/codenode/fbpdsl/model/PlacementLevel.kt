@@ -4,7 +4,7 @@
  * License: Apache 2.0
  */
 
-package io.codenode.grapheditor.model
+package io.codenode.fbpdsl.model
 
 /**
  * Placement level for generated files (nodes and IP types).

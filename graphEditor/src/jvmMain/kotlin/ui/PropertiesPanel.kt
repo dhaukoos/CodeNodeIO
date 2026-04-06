@@ -37,7 +37,7 @@ import io.codenode.fbpdsl.model.IPColor
 import io.codenode.fbpdsl.model.GraphNode
 import io.codenode.fbpdsl.model.InformationPacketType
 import io.codenode.fbpdsl.model.Port
-import io.codenode.grapheditor.model.PlacementLevel
+import io.codenode.fbpdsl.model.PlacementLevel
 import io.codenode.grapheditor.state.PromotionCandidate
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject

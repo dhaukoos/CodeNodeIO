@@ -8,7 +8,7 @@ package io.codenode.grapheditor.state
 import io.codenode.fbpdsl.model.IPColor
 import io.codenode.grapheditor.model.IPPropertyMeta
 import io.codenode.grapheditor.model.IPTypeFileMeta
-import io.codenode.grapheditor.model.PlacementLevel
+import io.codenode.fbpdsl.model.PlacementLevel
 import java.io.File
 import kotlin.reflect.KClass
 

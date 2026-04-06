@@ -6,6 +6,8 @@
 
 package io.codenode.grapheditor.model
 
+import io.codenode.fbpdsl.model.PlacementLevel
+
 /**
  * Lightweight metadata extracted from a saved GraphNode `.flow.kts` template file.
  * Parsed from the metadata comment header during filesystem discovery.

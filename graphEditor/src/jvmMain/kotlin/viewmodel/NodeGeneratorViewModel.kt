@@ -11,7 +11,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
-import io.codenode.grapheditor.model.PlacementLevel
+import io.codenode.fbpdsl.model.PlacementLevel
 import io.codenode.grapheditor.state.NodeDefinitionRegistry
 import io.codenode.grapheditor.state.NodeTemplateMeta
 import io.codenode.fbpdsl.model.CodeNodeType

@@ -1171,7 +1171,7 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                             graphNodeTemplateRegistry.getByName(gn.name)?.tier
                         },
                         onSaveGraphNodeToPalette = selectedGraphNode?.let { gn ->
-                            { level: io.codenode.grapheditor.model.PlacementLevel ->
+                            { level: io.codenode.fbpdsl.model.PlacementLevel ->
                                 graphNodeTemplateRegistry.saveGraphNode(
                                     gn, level, moduleRootDir?.absolutePath
                                 )
@@ -1180,19 +1180,19 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                         },
                         onRemoveGraphNodeFromPalette = selectedGraphNode?.let { gn ->
                             graphNodeTemplateRegistry.getByName(gn.name)?.let { meta ->
-                                { level: io.codenode.grapheditor.model.PlacementLevel ->
+                                { level: io.codenode.fbpdsl.model.PlacementLevel ->
                                     graphNodeTemplateRegistry.removeTemplate(gn.name, level)
                                     statusMessage = "Removed '${gn.name}' from palette"
                                 }
                             }
                         },
                         checkPromotionCandidates = selectedGraphNode?.let { gn ->
-                            { level: io.codenode.grapheditor.model.PlacementLevel ->
+                            { level: io.codenode.fbpdsl.model.PlacementLevel ->
                                 LevelCompatibilityChecker.checkCompatibility(gn, level, registry)
                             }
                         },
                         onPromoteAndSave = selectedGraphNode?.let { gn ->
-                            { candidates: List<io.codenode.grapheditor.state.PromotionCandidate>, level: io.codenode.grapheditor.model.PlacementLevel ->
+                            { candidates: List<io.codenode.grapheditor.state.PromotionCandidate>, level: io.codenode.fbpdsl.model.PlacementLevel ->
                                 NodePromoter.promoteNodes(
                                     candidates, level,
                                     activeModulePath = moduleRootDir?.absolutePath,

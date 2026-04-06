@@ -6,6 +6,7 @@
 package io.codenode.grapheditor.model
 
 import io.codenode.fbpdsl.model.IPColor
+import io.codenode.fbpdsl.model.PlacementLevel
 
 /**
  * Represents a single named, typed property within a custom IP type definition.

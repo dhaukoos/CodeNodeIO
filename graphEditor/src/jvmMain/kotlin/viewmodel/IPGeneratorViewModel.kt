@@ -9,7 +9,7 @@ package io.codenode.grapheditor.viewmodel
 import androidx.lifecycle.ViewModel
 import io.codenode.grapheditor.model.CustomIPTypeDefinition
 import io.codenode.grapheditor.model.IPProperty
-import io.codenode.grapheditor.model.PlacementLevel
+import io.codenode.fbpdsl.model.PlacementLevel
 import io.codenode.grapheditor.repository.FileIPTypeRepository
 import io.codenode.grapheditor.state.IPTypeDiscovery
 import io.codenode.grapheditor.state.IPTypeFileGenerator

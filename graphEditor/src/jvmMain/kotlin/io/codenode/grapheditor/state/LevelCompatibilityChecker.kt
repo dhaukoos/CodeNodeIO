@@ -8,7 +8,7 @@ package io.codenode.grapheditor.state
 import io.codenode.fbpdsl.model.CodeNode
 import io.codenode.fbpdsl.model.GraphNode
 import io.codenode.fbpdsl.model.Node
-import io.codenode.grapheditor.model.PlacementLevel
+import io.codenode.fbpdsl.model.PlacementLevel
 import java.io.File
 
 /**
