@@ -95,6 +95,8 @@ Auto-generated from all feature plans. Last updated: 2026-01-13
 - Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + Compose Desktop 1.7.3 (UI), kotlinx-coroutines 1.8.0, kotlinx-serialization 1.6.0, lifecycle-viewmodel-compose 2.8.0 (063-save-graphnodes)
 - Filesystem — `.flow.kts` template files at three tier locations (063-save-graphnodes)
 - N/A (deliverables are documentation and test files) (064-vertical-slice-refactor)
+- Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + fbpDsl (core FBP domain model), Koin 4.0.0 (DI), kotlinx-coroutines 1.8.0, kotlinx-serialization 1.6.2 (065-extract-flowgraph-types)
+- Filesystem (`~/.codenode/custom-ip-types.json` for legacy FileIPTypeRepository) (065-extract-flowgraph-types)
 
 - Kotlin 1.9+, Go 1.21+ (001-ide-plugin-platform)
 
@@ -114,9 +116,9 @@ tests/
 Kotlin 1.9+, Go 1.21+: Follow standard conventions
 
 ## Recent Changes
+- 065-extract-flowgraph-types: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + fbpDsl (core FBP domain model), Koin 4.0.0 (DI), kotlinx-coroutines 1.8.0, kotlinx-serialization 1.6.2
 - 064-vertical-slice-refactor: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + Compose Desktop 1.7.3 (UI), kotlinx-coroutines 1.8.0, kotlinx-serialization 1.6.0, lifecycle-viewmodel-compose 2.8.0
 - 064-vertical-slice-refactor: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + Compose Desktop 1.7.3 (UI), kotlinx-coroutines 1.8.0, kotlinx-serialization 1.6.0, lifecycle-viewmodel-compose 2.8.0
-- 063-save-graphnodes: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + Compose Desktop 1.7.3 (UI), kotlinx-coroutines 1.8.0, kotlinx-serialization 1.6.0, lifecycle-viewmodel-compose 2.8.0
 
 
 <!-- MANUAL ADDITIONS START -->
