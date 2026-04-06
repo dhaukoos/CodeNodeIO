@@ -72,12 +72,12 @@
 
 **Independent Test**: Tests compile but FAIL (no implementation yet)
 
-- [ ] T020 [US4] Create `FlowGraphTypesCodeNodeTest.kt` at `flowGraph-types/src/jvmTest/kotlin/io/codenode/flowgraphtypes/node/FlowGraphTypesCodeNodeTest.kt` with test verifying the CodeNode has exactly 3 input ports (`filesystemPaths`, `classpathEntries`, `ipTypeCommands`) and 1 output port (`ipTypeMetadata`)
-- [ ] T021 [US4] Add test verifying the CodeNode uses `anyInput` mode — re-emits on any input change
-- [ ] T022 [US4] Add test verifying data flows through channels: providing filesystem paths and classpath entries produces IP type metadata output
-- [ ] T023 [US4] Add test verifying mutation commands (register, unregister) through `ipTypeCommands` produce updated metadata output
-- [ ] T024 [US4] Add tests verifying boundary conditions: empty inputs, invalid paths, malformed commands are handled gracefully
-- [ ] T025 [US4] Run `./gradlew :flowGraph-types:jvmTest` to confirm tests compile but FAIL (no CodeNode implementation)
+- [X] T020 [US4] Create `FlowGraphTypesCodeNodeTest.kt` at `flowGraph-types/src/jvmTest/kotlin/io/codenode/flowgraphtypes/node/FlowGraphTypesCodeNodeTest.kt` with test verifying the CodeNode has exactly 3 input ports (`filesystemPaths`, `classpathEntries`, `ipTypeCommands`) and 1 output port (`ipTypeMetadata`)
+- [X] T021 [US4] Add test verifying the CodeNode uses `anyInput` mode — re-emits on any input change
+- [X] T022 [US4] Add test verifying data flows through channels: providing filesystem paths and classpath entries produces IP type metadata output
+- [X] T023 [US4] Add test verifying mutation commands (register, unregister) through `ipTypeCommands` produce updated metadata output
+- [X] T024 [US4] Add tests verifying boundary conditions: empty inputs, invalid paths, malformed commands are handled gracefully
+- [X] T025 [US4] Run `./gradlew :flowGraph-types:jvmTest` to confirm tests compile but FAIL (no CodeNode implementation)
 
 **Checkpoint**: TDD tests written and confirmed failing. Git history shows tests before implementation.
 
@@ -91,9 +91,9 @@
 
 **Independent Test**: `./gradlew :flowGraph-types:jvmTest` — all CodeNode tests pass
 
-- [ ] T026 [US3] Create `FlowGraphTypesCodeNode.kt` at `flowGraph-types/src/jvmMain/kotlin/io/codenode/flowgraphtypes/node/FlowGraphTypesCodeNode.kt` implementing `CodeNodeDefinition` with `In3AnyOut1Runtime<String, String, String, String>` and `anyInput = true`
-- [ ] T027 [US3] Implement processing logic: filesystemPaths/classpathEntries changes trigger IPTypeDiscovery re-scan; ipTypeCommands changes deserialize and apply mutations (register, unregister, generate, update color); all cases serialize current registry state and emit as ipTypeMetadata
-- [ ] T028 [US3] Run `./gradlew :flowGraph-types:jvmTest` to verify all CodeNode tests pass
+- [X] T026 [US3] Create `FlowGraphTypesCodeNode.kt` at `flowGraph-types/src/jvmMain/kotlin/io/codenode/flowgraphtypes/node/FlowGraphTypesCodeNode.kt` implementing `CodeNodeDefinition` with `In3AnyOut1Runtime<String, String, String, String>` and `anyInput = true`
+- [X] T027 [US3] Implement processing logic: filesystemPaths/classpathEntries changes trigger IPTypeDiscovery re-scan; ipTypeCommands changes deserialize and apply mutations (register, unregister, generate, update color); all cases serialize current registry state and emit as ipTypeMetadata
+- [X] T028 [US3] Run `./gradlew :flowGraph-types:jvmTest` to verify all CodeNode tests pass
 
 **Checkpoint**: CodeNode implemented. All TDD tests pass. Module builds independently.
 
