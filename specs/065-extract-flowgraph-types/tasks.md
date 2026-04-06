@@ -41,24 +41,24 @@
 
 ### commonMain files (5 files)
 
-- [ ] T008 [P] [US1] Copy `IPProperty.kt` from `graphEditor/src/jvmMain/kotlin/model/IPProperty.kt` to `flowGraph-types/src/commonMain/kotlin/io/codenode/flowgraphtypes/model/IPProperty.kt` with package update to `io.codenode.flowgraphtypes.model`
-- [ ] T009 [P] [US1] Copy `IPPropertyMeta.kt` from `graphEditor/src/jvmMain/kotlin/model/IPPropertyMeta.kt` to `flowGraph-types/src/commonMain/kotlin/io/codenode/flowgraphtypes/model/IPPropertyMeta.kt` with package update to `io.codenode.flowgraphtypes.model`
-- [ ] T010 [P] [US1] Copy `IPTypeFileMeta.kt` from `graphEditor/src/jvmMain/kotlin/model/IPTypeFileMeta.kt` to `flowGraph-types/src/commonMain/kotlin/io/codenode/flowgraphtypes/model/IPTypeFileMeta.kt` with package update to `io.codenode.flowgraphtypes.model`
-- [ ] T011 [P] [US1] Copy `SerializableIPType.kt` from `graphEditor/src/jvmMain/kotlin/model/SerializableIPType.kt` to `flowGraph-types/src/commonMain/kotlin/io/codenode/flowgraphtypes/model/SerializableIPType.kt` with package update to `io.codenode.flowgraphtypes.model`
-- [ ] T012 [P] [US1] Copy `IPTypeRegistry.kt` from `graphEditor/src/jvmMain/kotlin/state/IPTypeRegistry.kt` to `flowGraph-types/src/commonMain/kotlin/io/codenode/flowgraphtypes/registry/IPTypeRegistry.kt` with package update to `io.codenode.flowgraphtypes.registry`
+- [X] T008 [P] [US1] Copy `IPProperty.kt` from `graphEditor/src/jvmMain/kotlin/model/IPProperty.kt` to `flowGraph-types/src/commonMain/kotlin/io/codenode/flowgraphtypes/model/IPProperty.kt` with package update to `io.codenode.flowgraphtypes.model`
+- [X] T009 [P] [US1] Copy `IPPropertyMeta.kt` from `graphEditor/src/jvmMain/kotlin/model/IPPropertyMeta.kt` to `flowGraph-types/src/commonMain/kotlin/io/codenode/flowgraphtypes/model/IPPropertyMeta.kt` with package update to `io.codenode.flowgraphtypes.model`
+- [X] T010 [P] [US1] Copy `IPTypeFileMeta.kt` from `graphEditor/src/jvmMain/kotlin/model/IPTypeFileMeta.kt` to `flowGraph-types/src/commonMain/kotlin/io/codenode/flowgraphtypes/model/IPTypeFileMeta.kt` with package update to `io.codenode.flowgraphtypes.model`
+- [X] T011 [P] [US1] Copy `SerializableIPType.kt` from `graphEditor/src/jvmMain/kotlin/model/SerializableIPType.kt` to `flowGraph-types/src/commonMain/kotlin/io/codenode/flowgraphtypes/model/SerializableIPType.kt` with package update to `io.codenode.flowgraphtypes.model`
+- [X] T012 [P] [US1] Copy `IPTypeRegistry.kt` from `graphEditor/src/jvmMain/kotlin/state/IPTypeRegistry.kt` to `flowGraph-types/src/commonMain/kotlin/io/codenode/flowgraphtypes/registry/IPTypeRegistry.kt` with package update to `io.codenode.flowgraphtypes.registry`
 
 ### jvmMain files (4 files)
 
-- [ ] T013 [P] [US1] Copy `IPTypeDiscovery.kt` from `graphEditor/src/jvmMain/kotlin/state/IPTypeDiscovery.kt` to `flowGraph-types/src/jvmMain/kotlin/io/codenode/flowgraphtypes/discovery/IPTypeDiscovery.kt` with package update to `io.codenode.flowgraphtypes.discovery`
-- [ ] T014 [P] [US1] Copy `FileIPTypeRepository.kt` from `graphEditor/src/jvmMain/kotlin/repository/FileIPTypeRepository.kt` to `flowGraph-types/src/jvmMain/kotlin/io/codenode/flowgraphtypes/repository/FileIPTypeRepository.kt` with package update to `io.codenode.flowgraphtypes.repository`
-- [ ] T015 [P] [US1] Copy `IPTypeMigration.kt` from `graphEditor/src/jvmMain/kotlin/repository/IPTypeMigration.kt` to `flowGraph-types/src/jvmMain/kotlin/io/codenode/flowgraphtypes/repository/IPTypeMigration.kt` with package update to `io.codenode.flowgraphtypes.repository`
-- [ ] T016 [P] [US1] Copy `IPTypeFileGenerator.kt` from `graphEditor/src/jvmMain/kotlin/state/IPTypeFileGenerator.kt` to `flowGraph-types/src/jvmMain/kotlin/io/codenode/flowgraphtypes/generator/IPTypeFileGenerator.kt` with package update to `io.codenode.flowgraphtypes.generator`
+- [X] T013 [P] [US1] Copy `IPTypeDiscovery.kt` from `graphEditor/src/jvmMain/kotlin/state/IPTypeDiscovery.kt` to `flowGraph-types/src/jvmMain/kotlin/io/codenode/flowgraphtypes/discovery/IPTypeDiscovery.kt` with package update to `io.codenode.flowgraphtypes.discovery`
+- [X] T014 [P] [US1] Copy `FileIPTypeRepository.kt` from `graphEditor/src/jvmMain/kotlin/repository/FileIPTypeRepository.kt` to `flowGraph-types/src/jvmMain/kotlin/io/codenode/flowgraphtypes/repository/FileIPTypeRepository.kt` with package update to `io.codenode.flowgraphtypes.repository`
+- [X] T015 [P] [US1] Copy `IPTypeMigration.kt` from `graphEditor/src/jvmMain/kotlin/repository/IPTypeMigration.kt` to `flowGraph-types/src/jvmMain/kotlin/io/codenode/flowgraphtypes/repository/IPTypeMigration.kt` with package update to `io.codenode.flowgraphtypes.repository`
+- [X] T016 [P] [US1] Copy `IPTypeFileGenerator.kt` from `graphEditor/src/jvmMain/kotlin/state/IPTypeFileGenerator.kt` to `flowGraph-types/src/jvmMain/kotlin/io/codenode/flowgraphtypes/generator/IPTypeFileGenerator.kt` with package update to `io.codenode.flowgraphtypes.generator`
 
 ### Verification
 
-- [ ] T017 [US1] Update internal imports within copied files to reference new `io.codenode.flowgraphtypes.*` packages
-- [ ] T018 [US1] Run `./gradlew :flowGraph-types:build` to verify new module compiles with all 9 files
-- [ ] T019 [US1] Run `./gradlew :graphEditor:jvmTest :kotlinCompiler:jvmTest :circuitSimulator:jvmTest` to verify no regressions (originals still in graphEditor)
+- [X] T017 [US1] Update internal imports within copied files to reference new `io.codenode.flowgraphtypes.*` packages
+- [X] T018 [US1] Run `./gradlew :flowGraph-types:build` to verify new module compiles with all 9 files
+- [X] T019 [US1] Run `./gradlew :graphEditor:jvmTest :kotlinCompiler:jvmTest :circuitSimulator:jvmTest` to verify no regressions (originals still in graphEditor)
 
 **Checkpoint**: 9 files exist in flowGraph-types with correct packages. Module compiles. All existing tests pass. Originals remain in graphEditor.
 
