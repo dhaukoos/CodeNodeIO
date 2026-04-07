@@ -153,11 +153,11 @@
 
 **Independent Test**: `./gradlew :graphEditor:jvmTest --tests "characterization.ArchitectureFlowKtsTest"` — all tests pass
 
-- [ ] T049 [US5] Add `ipTypeCommands` input port to the flowGraph-types GraphNode container in `graphEditor/architecture.flow.kt`
-- [ ] T050 [US5] Add connection from `graphEditor-source` to `flowGraph-types.ipTypeCommands` in `graphEditor/architecture.flow.kt`
-- [ ] T051 [US5] Populate the flowGraph-types GraphNode container with `FlowGraphTypesCodeNode` in `graphEditor/architecture.flow.kt`
-- [ ] T052 [US5] Update `ArchitectureFlowKtsTest` for 20 connections (from 19) and verify: `architecture flow kt has exactly 20 connections`, `graphEditor-source has only command outputs` includes ipTypeCommands, all existing test assertions remain valid
-- [ ] T053 [US5] Run `./gradlew :graphEditor:jvmTest --tests "characterization.ArchitectureFlowKtsTest"` to verify all architecture tests pass
+- [X] T049 [US5] Add `ipTypeCommands` input port to the flowGraph-types GraphNode container in `graphEditor/architecture.flow.kt`
+- [X] T050 [US5] Add connection from `graphEditor-source` to `flowGraph-types.ipTypeCommands` in `graphEditor/architecture.flow.kt`
+- [X] T051 [US5] Populate the flowGraph-types GraphNode container with `FlowGraphTypesCodeNode` in `graphEditor/architecture.flow.kt`
+- [X] T052 [US5] Update `ArchitectureFlowKtsTest` for 20 connections (from 19) and verify: `architecture flow kt has exactly 20 connections`, `graphEditor-source has only command outputs` includes ipTypeCommands, all existing test assertions remain valid
+- [X] T053 [US5] Run `./gradlew :graphEditor:jvmTest --tests "characterization.ArchitectureFlowKtsTest"` to verify all architecture tests pass
 
 **Checkpoint**: architecture.flow.kt updated. flowGraph-types node has 3 inputs, 1 output. 20 connections. All architecture tests pass.
 

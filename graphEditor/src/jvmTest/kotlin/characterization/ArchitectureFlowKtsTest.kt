@@ -75,15 +75,15 @@ class ArchitectureFlowKtsTest {
     }
 
     @Test
-    fun `architecture flow kt has exactly 19 connections`() {
+    fun `architecture flow kt has exactly 20 connections`() {
         val content = loadArchitectureFile()
         val result = parser.parseFlowKt(content)
 
         assertTrue(result.isSuccess, "Parse failed: ${result.errorMessage}")
         val graph = result.graph!!
 
-        assertEquals(19, graph.connections.size,
-            "Should have exactly 19 connections (15 state flows + 4 command flows)")
+        assertEquals(20, graph.connections.size,
+            "Should have exactly 20 connections (15 state flows + 5 command flows)")
     }
 
     @Test
@@ -117,8 +117,8 @@ class ArchitectureFlowKtsTest {
         val sourceOutbound = graph.connections.count { it.sourceNodeId == sourceNode.id }
         val sourceInbound = graph.connections.count { it.targetNodeId == sourceNode.id }
 
-        assertEquals(4, sourceOutbound,
-            "graphEditor-source should have 4 command outputs (got $sourceOutbound)")
+        assertEquals(5, sourceOutbound,
+            "graphEditor-source should have 5 command outputs (got $sourceOutbound)")
         assertEquals(0, sourceInbound,
             "graphEditor-source should have no inbound connections (got $sourceInbound)")
     }

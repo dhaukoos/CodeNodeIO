@@ -27,8 +27,9 @@
  * rootSource.flowGraphModel → persist.flowGraphModel                | (command flow)                            | root → persist
  * rootSource.flowGraphModel → execute.flowGraphModel                | (command flow)                            | root → execute
  * rootSource.flowGraphModel → generate.flowGraphModel               | (command flow)                            | root → generate
+ * rootSource.ipTypeCommands → types.ipTypeCommands                  | (command flow)                            | root → types
  *
- * Total connections: 19
+ * Total connections: 20
  * graphEditor-source and graphEditor-sink are two views of the same module (27 files).
  * Source = ViewModel command actions (user intent flowing out to workflow modules).
  * Sink = reactive Compose UI state (display data flowing in from workflow modules).
@@ -53,6 +54,7 @@ val graph = flowGraph("Target Architecture", version = "4.0.0", description = "V
         position(100.0, 100.0)
         exposeInput("filesystemPaths", String::class)
         exposeInput("classpathEntries", String::class)
+        exposeInput("ipTypeCommands", String::class)
         exposeOutput("ipTypeMetadata", String::class)
     }
 
@@ -68,6 +70,7 @@ val graph = flowGraph("Target Architecture", version = "4.0.0", description = "V
         description = "Composition root — command side: ViewModel actions that dispatch user intent to workflow modules. Part of graphEditor (27 files shared with graphEditor-sink)."
         position(100.0, 700.0)
         exposeOutput("flowGraphModel", String::class)
+        exposeOutput("ipTypeCommands", String::class)
     }
 
     val persist = graphNode("flowGraph-persist") {
@@ -154,4 +157,5 @@ val graph = flowGraph("Target Architecture", version = "4.0.0", description = "V
     rootSource.output("flowGraphModel") connect persist.input("flowGraphModel")
     rootSource.output("flowGraphModel") connect execute.input("flowGraphModel")
     rootSource.output("flowGraphModel") connect generate.input("flowGraphModel")
+    rootSource.output("ipTypeCommands") connect types.input("ipTypeCommands")
 }
