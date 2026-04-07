@@ -129,17 +129,17 @@
 
 **Independent Test**: `./gradlew :graphEditor:jvmTest :kotlinCompiler:jvmTest :circuitSimulator:jvmTest` — all tests pass
 
-- [ ] T038 [P] [US1] Remove `graphEditor/src/jvmMain/kotlin/model/IPProperty.kt`
-- [ ] T039 [P] [US1] Remove `graphEditor/src/jvmMain/kotlin/model/IPPropertyMeta.kt`
-- [ ] T040 [P] [US1] Remove `graphEditor/src/jvmMain/kotlin/model/IPTypeFileMeta.kt`
-- [ ] T041 [P] [US1] Remove `graphEditor/src/jvmMain/kotlin/model/SerializableIPType.kt`
-- [ ] T042 [P] [US1] Remove `graphEditor/src/jvmMain/kotlin/state/IPTypeRegistry.kt`
-- [ ] T043 [P] [US1] Remove `graphEditor/src/jvmMain/kotlin/state/IPTypeDiscovery.kt`
-- [ ] T044 [P] [US1] Remove `graphEditor/src/jvmMain/kotlin/repository/FileIPTypeRepository.kt`
-- [ ] T045 [P] [US1] Remove `graphEditor/src/jvmMain/kotlin/repository/IPTypeMigration.kt`
-- [ ] T046 [P] [US1] Remove `graphEditor/src/jvmMain/kotlin/state/IPTypeFileGenerator.kt`
-- [ ] T047 [US1] Update remaining graphEditor imports to use `io.codenode.flowgraphtypes.*` packages for any files that still reference the extracted types
-- [ ] T048 [US1] Run `./gradlew :graphEditor:jvmTest :kotlinCompiler:jvmTest :circuitSimulator:jvmTest` to verify no regressions after original file removal
+- [X] T038 [P] [US1] Remove `graphEditor/src/jvmMain/kotlin/model/IPProperty.kt`
+- [X] T039 [P] [US1] Remove `graphEditor/src/jvmMain/kotlin/model/IPPropertyMeta.kt`
+- [X] T040 [P] [US1] Remove `graphEditor/src/jvmMain/kotlin/model/IPTypeFileMeta.kt`
+- [X] T041 [P] [US1] Remove `graphEditor/src/jvmMain/kotlin/model/SerializableIPType.kt`
+- [X] T042 [P] [US1] Remove `graphEditor/src/jvmMain/kotlin/state/IPTypeRegistry.kt`
+- [X] T043 [P] [US1] Remove `graphEditor/src/jvmMain/kotlin/state/IPTypeDiscovery.kt`
+- [X] T044 [P] [US1] Remove `graphEditor/src/jvmMain/kotlin/repository/FileIPTypeRepository.kt`
+- [X] T045 [P] [US1] Remove `graphEditor/src/jvmMain/kotlin/repository/IPTypeMigration.kt`
+- [X] T046 [P] [US1] Remove `graphEditor/src/jvmMain/kotlin/state/IPTypeFileGenerator.kt`
+- [X] T047 [US1] Update remaining graphEditor imports to use `io.codenode.flowgraphtypes.*` packages for any files that still reference the extracted types
+- [X] T048 [US1] Run `./gradlew :graphEditor:jvmTest :kotlinCompiler:jvmTest :circuitSimulator:jvmTest` to verify no regressions after original file removal
 
 **Checkpoint**: Original files removed. graphEditor depends on flowGraph-types for all IP type functionality. All tests pass.
 
