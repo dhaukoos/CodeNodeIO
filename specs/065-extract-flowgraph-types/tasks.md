@@ -167,11 +167,11 @@
 
 **Purpose**: Verify cyclic dependency elimination and Strangler Fig pattern compliance
 
-- [ ] T054 [US6] Verify no dependency on `:graphEditor` in `flowGraph-types/build.gradle.kts` — dependency direction is graphEditor → flowGraph-types → fbpDsl
-- [ ] T055 [US6] Verify no circular dependency exists by running `./gradlew :flowGraph-types:dependencies` and confirming only fbpDsl appears
-- [ ] T056 [US7] Verify Strangler Fig sequence in git history: prerequisite move → module creation → file copy → TDD tests → CodeNode implementation → call site update → old file removal → architecture wiring
-- [ ] T057 Run full test suite: `./gradlew :graphEditor:jvmTest :kotlinCompiler:jvmTest :circuitSimulator:jvmTest :flowGraph-types:jvmTest` to verify zero regressions
-- [ ] T058 Run quickstart.md validation scenarios (Scenarios 1-4, 6-10)
+- [X] T054 [US6] Verify no dependency on `:graphEditor` in `flowGraph-types/build.gradle.kts` — dependency direction is graphEditor → flowGraph-types → fbpDsl
+- [X] T055 [US6] Verify no circular dependency exists by running `./gradlew :flowGraph-types:dependencies` and confirming only fbpDsl appears
+- [X] T056 [US7] Verify Strangler Fig sequence in git history: prerequisite move → module creation → file copy → TDD tests → CodeNode implementation → call site update → old file removal → architecture wiring
+- [X] T057 Run full test suite: `./gradlew :graphEditor:jvmTest :kotlinCompiler:jvmTest :circuitSimulator:jvmTest :flowGraph-types:jvmTest` to verify zero regressions
+- [X] T058 Run quickstart.md validation scenarios (Scenarios 1-4, 6-10)
 
 **Checkpoint**: All verification complete. No cycles. Strangler Fig pattern followed. Zero regressions.
 

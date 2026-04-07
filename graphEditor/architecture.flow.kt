@@ -56,6 +56,20 @@ val graph = flowGraph("Target Architecture", version = "4.0.0", description = "V
         exposeInput("classpathEntries", String::class)
         exposeInput("ipTypeCommands", String::class)
         exposeOutput("ipTypeMetadata", String::class)
+
+        // Child CodeNode — FlowGraphTypesCodeNode (In3AnyOut1Runtime, anyInput)
+        val flowGraphTypes = codeNode("FlowGraphTypes", nodeType = "TRANSFORMER") {
+            input("filesystemPaths", String::class)
+            input("classpathEntries", String::class)
+            input("ipTypeCommands", String::class)
+            output("ipTypeMetadata", String::class)
+        }
+
+        // Port mappings — wire exposed GraphNode ports to child CodeNode ports
+        portMapping("filesystemPaths", "flowGraphTypes", "filesystemPaths")
+        portMapping("classpathEntries", "flowGraphTypes", "classpathEntries")
+        portMapping("ipTypeCommands", "flowGraphTypes", "ipTypeCommands")
+        portMapping("ipTypeMetadata", "flowGraphTypes", "ipTypeMetadata")
     }
 
     val inspect = graphNode("flowGraph-inspect") {
