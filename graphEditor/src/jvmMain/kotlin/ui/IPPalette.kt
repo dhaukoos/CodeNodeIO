@@ -24,8 +24,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.codenode.fbpdsl.model.IPColor
 import io.codenode.fbpdsl.model.InformationPacketType
-import io.codenode.grapheditor.viewmodel.IPPaletteViewModel
-import io.codenode.grapheditor.viewmodel.IPPaletteState
+import io.codenode.flowgraphinspect.viewmodel.IPPaletteViewModel
+import io.codenode.flowgraphinspect.viewmodel.IPPaletteState
 
 /**
  * IP Palette component for browsing and selecting InformationPacket types.

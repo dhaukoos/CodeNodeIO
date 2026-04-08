@@ -5,6 +5,7 @@
 
 package io.codenode.grapheditor.ui
 
+import io.codenode.flowgraphinspect.discovery.discoverComposables
 import io.codenode.previewapi.PreviewRegistry
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable

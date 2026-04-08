@@ -23,9 +23,9 @@ import androidx.compose.ui.unit.sp
 import io.codenode.fbpdsl.model.CodeNodeType
 import io.codenode.fbpdsl.model.NodeTypeDefinition
 import io.codenode.flowgraphpersist.model.GraphNodeTemplateMeta
-import io.codenode.grapheditor.viewmodel.GraphNodePaletteViewModel
-import io.codenode.grapheditor.viewmodel.NodePaletteViewModel
-import io.codenode.grapheditor.viewmodel.NodePaletteState
+import io.codenode.flowgraphinspect.viewmodel.GraphNodePaletteViewModel
+import io.codenode.flowgraphinspect.viewmodel.NodePaletteViewModel
+import io.codenode.flowgraphinspect.viewmodel.NodePaletteState
 
 /**
  * Node palette component for browsing and selecting node types.

@@ -22,6 +22,7 @@ kotlin {
                 implementation(project(":fbpDsl"))
                 implementation(project(":flowGraph-types"))
                 implementation(project(":flowGraph-persist"))
+                implementation(project(":flowGraph-inspect"))
                 implementation(project(":preview-api"))
                 implementation(project(":circuitSimulator"))
                 // Koin DI

@@ -15,7 +15,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import io.codenode.grapheditor.viewmodel.FileEntry
+import io.codenode.flowgraphinspect.viewmodel.FileEntry
 
 /**
  * Dropdown file selector for choosing between flowGraph and CodeNode source files.

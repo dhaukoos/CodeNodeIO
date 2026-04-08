@@ -12,8 +12,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import io.codenode.fbpdsl.model.PlacementLevel
-import io.codenode.grapheditor.state.NodeDefinitionRegistry
-import io.codenode.grapheditor.state.NodeTemplateMeta
+import io.codenode.flowgraphinspect.registry.NodeDefinitionRegistry
+import io.codenode.flowgraphinspect.registry.NodeTemplateMeta
 import io.codenode.fbpdsl.model.CodeNodeType
 import java.io.File
 

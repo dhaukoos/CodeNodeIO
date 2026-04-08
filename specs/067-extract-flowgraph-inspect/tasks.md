@@ -90,16 +90,16 @@
 
 **Independent Test**: `./gradlew :graphEditor:jvmTest :kotlinCompiler:jvmTest :circuitSimulator:jvmTest` — all tests pass
 
-- [ ] T020 [US3] Add dependency on `:flowGraph-inspect` in `graphEditor/build.gradle.kts`
-- [ ] T021 [US3] Update `graphEditor/src/jvmMain/kotlin/Main.kt` — change imports of NodeDefinitionRegistry, CodeEditorViewModel, IPPaletteViewModel, NodePaletteViewModel, DynamicPreviewDiscovery to `io.codenode.flowgraphinspect.*` packages
-- [ ] T022 [P] [US3] Update `graphEditor/src/jvmMain/kotlin/ui/CodeEditor.kt` — change import of CodeEditorViewModel to `io.codenode.flowgraphinspect.viewmodel.CodeEditorViewModel`
-- [ ] T023 [P] [US3] Update `graphEditor/src/jvmMain/kotlin/ui/IPPalette.kt` — change import of IPPaletteViewModel to `io.codenode.flowgraphinspect.viewmodel.IPPaletteViewModel`
-- [ ] T024 [P] [US3] Update `graphEditor/src/jvmMain/kotlin/ui/NodePalette.kt` — change import of NodePaletteViewModel to `io.codenode.flowgraphinspect.viewmodel.NodePaletteViewModel`
-- [ ] T025 [P] [US3] Update `graphEditor/src/jvmMain/kotlin/ui/RuntimePreviewPanel.kt` — change import of `discoverComposables` to `io.codenode.flowgraphinspect.discovery.discoverComposables`
-- [ ] T026 [P] [US3] Update `graphEditor/src/jvmMain/kotlin/viewmodel/NodeGeneratorViewModel.kt` — change imports of NodeDefinitionRegistry and NodeTemplateMeta to `io.codenode.flowgraphinspect.registry.*`
-- [ ] T027 [P] [US3] Update `graphEditor/src/jvmMain/kotlin/ui/ModuleSessionFactory.kt` — change import of NodeDefinitionRegistry to `io.codenode.flowgraphinspect.registry.NodeDefinitionRegistry`
-- [ ] T028 [US3] Update all graphEditor test files that reference the migrated classes to use new `io.codenode.flowgraphinspect.*` imports — specifically `characterization/ViewModelCharacterizationTest.kt` and any test files importing NodeDefinitionRegistry, palette ViewModels, or discovery utilities
-- [ ] T029 [US3] Run `./gradlew :graphEditor:jvmTest :kotlinCompiler:jvmTest :circuitSimulator:jvmTest` to verify no regressions after call site migration
+- [X] T020 [US3] Add dependency on `:flowGraph-inspect` in `graphEditor/build.gradle.kts`
+- [X] T021 [US3] Update `graphEditor/src/jvmMain/kotlin/Main.kt` — change imports of NodeDefinitionRegistry, CodeEditorViewModel, IPPaletteViewModel, NodePaletteViewModel, DynamicPreviewDiscovery to `io.codenode.flowgraphinspect.*` packages
+- [X] T022 [P] [US3] Update `graphEditor/src/jvmMain/kotlin/ui/CodeEditor.kt` — change import of CodeEditorViewModel to `io.codenode.flowgraphinspect.viewmodel.CodeEditorViewModel`
+- [X] T023 [P] [US3] Update `graphEditor/src/jvmMain/kotlin/ui/IPPalette.kt` — change import of IPPaletteViewModel to `io.codenode.flowgraphinspect.viewmodel.IPPaletteViewModel`
+- [X] T024 [P] [US3] Update `graphEditor/src/jvmMain/kotlin/ui/NodePalette.kt` — change import of NodePaletteViewModel to `io.codenode.flowgraphinspect.viewmodel.NodePaletteViewModel`
+- [X] T025 [P] [US3] Update `graphEditor/src/jvmMain/kotlin/ui/RuntimePreviewPanel.kt` — change import of `discoverComposables` to `io.codenode.flowgraphinspect.discovery.discoverComposables`
+- [X] T026 [P] [US3] Update `graphEditor/src/jvmMain/kotlin/viewmodel/NodeGeneratorViewModel.kt` — change imports of NodeDefinitionRegistry and NodeTemplateMeta to `io.codenode.flowgraphinspect.registry.*`
+- [X] T027 [P] [US3] Update `graphEditor/src/jvmMain/kotlin/ui/ModuleSessionFactory.kt` — change import of NodeDefinitionRegistry to `io.codenode.flowgraphinspect.registry.NodeDefinitionRegistry`
+- [X] T028 [US3] Update all graphEditor test files that reference the migrated classes to use new `io.codenode.flowgraphinspect.*` imports — specifically `characterization/ViewModelCharacterizationTest.kt` and any test files importing NodeDefinitionRegistry, palette ViewModels, or discovery utilities
+- [X] T029 [US3] Run `./gradlew :graphEditor:jvmTest :kotlinCompiler:jvmTest :circuitSimulator:jvmTest` to verify no regressions after call site migration
 
 **Checkpoint**: All call sites migrated. Old files are dead code. All tests pass.
 

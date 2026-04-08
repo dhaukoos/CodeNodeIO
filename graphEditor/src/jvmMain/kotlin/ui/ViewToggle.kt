@@ -15,7 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import io.codenode.fbpdsl.model.FlowGraph
-import io.codenode.grapheditor.viewmodel.FileEntry
+import io.codenode.flowgraphinspect.viewmodel.FileEntry
 
 /**
  * View mode enumeration

@@ -14,7 +14,7 @@ import io.codenode.fbpdsl.model.Node
 import io.codenode.fbpdsl.model.Port
 import io.codenode.grapheditor.viewmodel.EditorDialog
 import io.codenode.grapheditor.viewmodel.GraphEditorViewModel
-import io.codenode.grapheditor.viewmodel.NodePaletteViewModel
+import io.codenode.flowgraphinspect.viewmodel.NodePaletteViewModel
 import io.codenode.grapheditor.viewmodel.PropertiesPanelViewModel
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest

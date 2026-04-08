@@ -28,7 +28,7 @@ import androidx.compose.ui.text.input.TransformedText
 import androidx.compose.ui.text.input.OffsetMapping
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import io.codenode.grapheditor.viewmodel.CodeEditorViewModel
+import io.codenode.flowgraphinspect.viewmodel.CodeEditorViewModel
 
 /**
  * VisualTransformation that applies syntax highlighting to text.

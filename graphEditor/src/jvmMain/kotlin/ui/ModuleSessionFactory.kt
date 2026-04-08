@@ -9,7 +9,7 @@ import io.codenode.circuitsimulator.RuntimeSession
 import io.codenode.fbpdsl.model.FlowGraph
 import io.codenode.fbpdsl.runtime.DynamicPipelineBuilder
 import io.codenode.fbpdsl.runtime.DynamicPipelineController
-import io.codenode.grapheditor.state.NodeDefinitionRegistry
+import io.codenode.flowgraphinspect.registry.NodeDefinitionRegistry
 import java.io.File
 import java.lang.reflect.InvocationHandler
 import java.lang.reflect.Proxy
