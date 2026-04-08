@@ -58,9 +58,9 @@
 
 **Independent Test**: `./gradlew :flowGraph-inspect:jvmTest` — tests compile but fail
 
-- [ ] T014 [US2] Create `flowGraph-inspect/src/jvmTest/kotlin/io/codenode/flowgraphinspect/node/FlowGraphInspectCodeNodeTest.kt` with TDD tests covering: port signatures (2 inputs, 1 output, all String), anyInput mode, createRuntime returns In2AnyOut1Runtime, toNodeTypeDefinition returns correct metadata
-- [ ] T015 [US2] Add TDD tests for data flow: filesystemPaths input triggers node discovery and emits nodeDescriptors, classpathEntries input triggers compiled node discovery and emits nodeDescriptors, either input independently triggers processing using cached value from other input
-- [ ] T016 [US2] Add TDD tests for boundary conditions: empty input is no-op, directory that doesn't exist returns empty list, no CodeNode definitions found returns empty nodeDescriptors
+- [X] T014 [US2] Create `flowGraph-inspect/src/jvmTest/kotlin/io/codenode/flowgraphinspect/node/FlowGraphInspectCodeNodeTest.kt` with TDD tests covering: port signatures (2 inputs, 1 output, all String), anyInput mode, createRuntime returns In2AnyOut1Runtime, toNodeTypeDefinition returns correct metadata
+- [X] T015 [US2] Add TDD tests for data flow: filesystemPaths input triggers node discovery and emits nodeDescriptors, classpathEntries input triggers compiled node discovery and emits nodeDescriptors, either input independently triggers processing using cached value from other input
+- [X] T016 [US2] Add TDD tests for boundary conditions: empty input is no-op, directory that doesn't exist returns empty list, no CodeNode definitions found returns empty nodeDescriptors
 
 **Checkpoint**: TDD tests written and failing. Ready for CodeNode implementation.
 
@@ -74,9 +74,9 @@
 
 **Independent Test**: `./gradlew :flowGraph-inspect:jvmTest` — all CodeNode tests pass
 
-- [ ] T017 [US2] Create `flowGraph-inspect/src/jvmMain/kotlin/io/codenode/flowgraphinspect/node/FlowGraphInspectCodeNode.kt` implementing `CodeNodeDefinition` with `In2AnyOut1Runtime<String, String, String>` and `anyInput = true`
-- [ ] T018 [US2] Implement processing logic: filesystemPaths input scans directories for .kt source files containing CodeNode definitions; classpathEntries input uses ServiceLoader to discover compiled CodeNodes; combined results emitted as JSON nodeDescriptors on the output port; either input uses cached value from the other
-- [ ] T019 [US2] Run `./gradlew :flowGraph-inspect:jvmTest` to verify all CodeNode tests pass
+- [X] T017 [US2] Create `flowGraph-inspect/src/jvmMain/kotlin/io/codenode/flowgraphinspect/node/FlowGraphInspectCodeNode.kt` implementing `CodeNodeDefinition` with `In2AnyOut1Runtime<String, String, String>` and `anyInput = true`
+- [X] T018 [US2] Implement processing logic: filesystemPaths input scans directories for .kt source files containing CodeNode definitions; classpathEntries input uses ServiceLoader to discover compiled CodeNodes; combined results emitted as JSON nodeDescriptors on the output port; either input uses cached value from the other
+- [X] T019 [US2] Run `./gradlew :flowGraph-inspect:jvmTest` to verify all CodeNode tests pass
 
 **Checkpoint**: CodeNode implemented. All TDD tests pass. Module builds independently.
 
