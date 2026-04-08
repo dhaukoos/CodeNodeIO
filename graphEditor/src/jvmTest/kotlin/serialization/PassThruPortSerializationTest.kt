@@ -7,6 +7,7 @@
 package io.codenode.grapheditor.serialization
 
 import io.codenode.fbpdsl.model.*
+import io.codenode.flowgraphpersist.serialization.FlowGraphSerializer
 import kotlin.test.*
 
 /**

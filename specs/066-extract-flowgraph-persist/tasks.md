@@ -109,14 +109,14 @@
 
 **Independent Test**: `./gradlew :graphEditor:jvmTest :kotlinCompiler:jvmTest :circuitSimulator:jvmTest` — all tests pass
 
-- [ ] T026 [P] [US4] Remove `graphEditor/src/jvmMain/kotlin/serialization/FlowGraphSerializer.kt`
-- [ ] T027 [P] [US4] Remove `graphEditor/src/jvmMain/kotlin/serialization/FlowKtParser.kt`
-- [ ] T028 [P] [US4] Remove `graphEditor/src/jvmMain/kotlin/serialization/GraphNodeTemplateSerializer.kt`
-- [ ] T029 [P] [US4] Remove `graphEditor/src/jvmMain/kotlin/model/GraphNodeTemplateMeta.kt`
-- [ ] T030 [P] [US4] Remove `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/state/GraphNodeTemplateRegistry.kt`
-- [ ] T031 [P] [US4] Remove `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/state/GraphNodeTemplateInstantiator.kt`
-- [ ] T032 [US4] Fix any remaining same-package reference errors by adding explicit imports to `io.codenode.flowgraphpersist.*` in test or source files that relied on same-package access
-- [ ] T033 [US4] Run `./gradlew :graphEditor:jvmTest :kotlinCompiler:jvmTest :circuitSimulator:jvmTest` to verify no regressions after original file removal
+- [X] T026 [P] [US4] Remove `graphEditor/src/jvmMain/kotlin/serialization/FlowGraphSerializer.kt`
+- [X] T027 [P] [US4] Remove `graphEditor/src/jvmMain/kotlin/serialization/FlowKtParser.kt`
+- [X] T028 [P] [US4] Remove `graphEditor/src/jvmMain/kotlin/serialization/GraphNodeTemplateSerializer.kt`
+- [X] T029 [P] [US4] Remove `graphEditor/src/jvmMain/kotlin/model/GraphNodeTemplateMeta.kt`
+- [X] T030 [P] [US4] Remove `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/state/GraphNodeTemplateRegistry.kt`
+- [X] T031 [P] [US4] Remove `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/state/GraphNodeTemplateInstantiator.kt`
+- [X] T032 [US4] Fix any remaining same-package reference errors by adding explicit imports to `io.codenode.flowgraphpersist.*` in test or source files that relied on same-package access
+- [X] T033 [US4] Run `./gradlew :graphEditor:jvmTest :kotlinCompiler:jvmTest :circuitSimulator:jvmTest` to verify no regressions after original file removal
 
 **Checkpoint**: Original files removed. graphEditor depends on flowGraph-persist for all serialization/template functionality. All tests pass.
 
