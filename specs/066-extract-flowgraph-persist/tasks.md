@@ -19,10 +19,10 @@
 
 **Purpose**: Create flowGraph-persist module structure and Gradle configuration
 
-- [ ] T001 Add `include("flowGraph-persist")` to `settings.gradle.kts` after `:flowGraph-types`
-- [ ] T002 Create `flowGraph-persist/build.gradle.kts` following the flowGraph-types pattern: KMP module with JVM + iOS targets, depends on `:fbpDsl` and `:flowGraph-types`, kotlinx-serialization plugin, JUnit 5 for tests
-- [ ] T003 Create source directory structure: `flowGraph-persist/src/commonMain/kotlin/io/codenode/flowgraphpersist/model/`, `flowGraph-persist/src/jvmMain/kotlin/io/codenode/flowgraphpersist/serialization/`, `flowGraph-persist/src/jvmMain/kotlin/io/codenode/flowgraphpersist/state/`, `flowGraph-persist/src/jvmMain/kotlin/io/codenode/flowgraphpersist/node/`, `flowGraph-persist/src/jvmTest/kotlin/io/codenode/flowgraphpersist/node/`
-- [ ] T004 Run `./gradlew :flowGraph-persist:compileKotlinJvm` to verify empty module compiles
+- [X] T001 Add `include("flowGraph-persist")` to `settings.gradle.kts` after `:flowGraph-types`
+- [X] T002 Create `flowGraph-persist/build.gradle.kts` following the flowGraph-types pattern: KMP module with JVM + iOS targets, depends on `:fbpDsl` and `:flowGraph-types`, kotlinx-serialization plugin, JUnit 5 for tests
+- [X] T003 Create source directory structure: `flowGraph-persist/src/commonMain/kotlin/io/codenode/flowgraphpersist/model/`, `flowGraph-persist/src/jvmMain/kotlin/io/codenode/flowgraphpersist/serialization/`, `flowGraph-persist/src/jvmMain/kotlin/io/codenode/flowgraphpersist/state/`, `flowGraph-persist/src/jvmMain/kotlin/io/codenode/flowgraphpersist/node/`, `flowGraph-persist/src/jvmTest/kotlin/io/codenode/flowgraphpersist/node/`
+- [X] T004 Run `./gradlew :flowGraph-persist:compileKotlinJvm` to verify empty module compiles
 
 **Checkpoint**: Empty module compiles. Ready for file extraction.
 
@@ -36,13 +36,13 @@
 
 **Independent Test**: `./gradlew :flowGraph-persist:compileKotlinJvm` succeeds
 
-- [ ] T005 [P] [US1] Copy `graphEditor/src/jvmMain/kotlin/model/GraphNodeTemplateMeta.kt` to `flowGraph-persist/src/commonMain/kotlin/io/codenode/flowgraphpersist/model/GraphNodeTemplateMeta.kt` — update package to `io.codenode.flowgraphpersist.model`
-- [ ] T006 [P] [US1] Copy `graphEditor/src/jvmMain/kotlin/serialization/FlowGraphSerializer.kt` to `flowGraph-persist/src/jvmMain/kotlin/io/codenode/flowgraphpersist/serialization/FlowGraphSerializer.kt` — update package to `io.codenode.flowgraphpersist.serialization`, update internal imports
-- [ ] T007 [P] [US1] Copy `graphEditor/src/jvmMain/kotlin/serialization/FlowKtParser.kt` to `flowGraph-persist/src/jvmMain/kotlin/io/codenode/flowgraphpersist/serialization/FlowKtParser.kt` — update package to `io.codenode.flowgraphpersist.serialization`
-- [ ] T008 [P] [US1] Copy `graphEditor/src/jvmMain/kotlin/serialization/GraphNodeTemplateSerializer.kt` to `flowGraph-persist/src/jvmMain/kotlin/io/codenode/flowgraphpersist/serialization/GraphNodeTemplateSerializer.kt` — update package to `io.codenode.flowgraphpersist.serialization`, update internal imports to reference new model and serialization packages
-- [ ] T009 [P] [US1] Copy `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/state/GraphNodeTemplateRegistry.kt` to `flowGraph-persist/src/jvmMain/kotlin/io/codenode/flowgraphpersist/state/GraphNodeTemplateRegistry.kt` — update package to `io.codenode.flowgraphpersist.state`, update internal imports
-- [ ] T010 [P] [US1] Copy `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/state/GraphNodeTemplateInstantiator.kt` to `flowGraph-persist/src/jvmMain/kotlin/io/codenode/flowgraphpersist/state/GraphNodeTemplateInstantiator.kt` — update package to `io.codenode.flowgraphpersist.state`, update internal imports
-- [ ] T011 [US1] Run `./gradlew :flowGraph-persist:compileKotlinJvm` to verify all 6 copied files compile in the new module
+- [X] T005 [P] [US1] Copy `graphEditor/src/jvmMain/kotlin/model/GraphNodeTemplateMeta.kt` to `flowGraph-persist/src/commonMain/kotlin/io/codenode/flowgraphpersist/model/GraphNodeTemplateMeta.kt` — update package to `io.codenode.flowgraphpersist.model`
+- [X] T006 [P] [US1] Copy `graphEditor/src/jvmMain/kotlin/serialization/FlowGraphSerializer.kt` to `flowGraph-persist/src/jvmMain/kotlin/io/codenode/flowgraphpersist/serialization/FlowGraphSerializer.kt` — update package to `io.codenode.flowgraphpersist.serialization`, update internal imports
+- [X] T007 [P] [US1] Copy `graphEditor/src/jvmMain/kotlin/serialization/FlowKtParser.kt` to `flowGraph-persist/src/jvmMain/kotlin/io/codenode/flowgraphpersist/serialization/FlowKtParser.kt` — update package to `io.codenode.flowgraphpersist.serialization`
+- [X] T008 [P] [US1] Copy `graphEditor/src/jvmMain/kotlin/serialization/GraphNodeTemplateSerializer.kt` to `flowGraph-persist/src/jvmMain/kotlin/io/codenode/flowgraphpersist/serialization/GraphNodeTemplateSerializer.kt` — update package to `io.codenode.flowgraphpersist.serialization`, update internal imports to reference new model and serialization packages
+- [X] T009 [P] [US1] Copy `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/state/GraphNodeTemplateRegistry.kt` to `flowGraph-persist/src/jvmMain/kotlin/io/codenode/flowgraphpersist/state/GraphNodeTemplateRegistry.kt` — update package to `io.codenode.flowgraphpersist.state`, update internal imports
+- [X] T010 [P] [US1] Copy `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/state/GraphNodeTemplateInstantiator.kt` to `flowGraph-persist/src/jvmMain/kotlin/io/codenode/flowgraphpersist/state/GraphNodeTemplateInstantiator.kt` — update package to `io.codenode.flowgraphpersist.state`, update internal imports
+- [X] T011 [US1] Run `./gradlew :flowGraph-persist:compileKotlinJvm` to verify all 6 copied files compile in the new module
 
 **Checkpoint**: 6 files copied and compiling. Both modules coexist (Strangler Fig).
 
