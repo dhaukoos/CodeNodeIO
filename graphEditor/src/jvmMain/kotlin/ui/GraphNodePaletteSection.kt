@@ -18,7 +18,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import io.codenode.grapheditor.model.GraphNodeTemplateMeta
+import io.codenode.flowgraphpersist.model.GraphNodeTemplateMeta
 import io.codenode.fbpdsl.model.PlacementLevel
 
 /**

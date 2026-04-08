@@ -22,7 +22,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.codenode.fbpdsl.model.CodeNodeType
 import io.codenode.fbpdsl.model.NodeTypeDefinition
-import io.codenode.grapheditor.model.GraphNodeTemplateMeta
+import io.codenode.flowgraphpersist.model.GraphNodeTemplateMeta
 import io.codenode.grapheditor.viewmodel.GraphNodePaletteViewModel
 import io.codenode.grapheditor.viewmodel.NodePaletteViewModel
 import io.codenode.grapheditor.viewmodel.NodePaletteState

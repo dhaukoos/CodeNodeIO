@@ -88,14 +88,14 @@
 
 **Independent Test**: `./gradlew :graphEditor:jvmTest :kotlinCompiler:jvmTest :circuitSimulator:jvmTest` — all tests pass
 
-- [ ] T018 [US3] Add dependency on `:flowGraph-persist` in `graphEditor/build.gradle.kts`
-- [ ] T019 [US3] Update all graphEditor source files that import `io.codenode.grapheditor.serialization.FlowGraphSerializer` to use `io.codenode.flowgraphpersist.serialization.FlowGraphSerializer`
-- [ ] T020 [US3] Update all graphEditor source files that import `io.codenode.grapheditor.serialization.FlowKtParser` to use `io.codenode.flowgraphpersist.serialization.FlowKtParser`
-- [ ] T021 [US3] Update all graphEditor source files that import `io.codenode.grapheditor.serialization.GraphNodeTemplateSerializer` to use `io.codenode.flowgraphpersist.serialization.GraphNodeTemplateSerializer`
-- [ ] T022 [US3] Update all graphEditor source files that import `io.codenode.grapheditor.model.GraphNodeTemplateMeta` to use `io.codenode.flowgraphpersist.model.GraphNodeTemplateMeta`
-- [ ] T023 [US3] Update all graphEditor source files that import `io.codenode.grapheditor.state.GraphNodeTemplateRegistry` or `io.codenode.grapheditor.state.GraphNodeTemplateInstantiator` to use `io.codenode.flowgraphpersist.state.*`
-- [ ] T024 [US3] Update all graphEditor test files that reference the migrated classes to use new `io.codenode.flowgraphpersist.*` imports
-- [ ] T025 [US3] Run `./gradlew :graphEditor:jvmTest :kotlinCompiler:jvmTest :circuitSimulator:jvmTest` to verify no regressions after call site migration
+- [X] T018 [US3] Add dependency on `:flowGraph-persist` in `graphEditor/build.gradle.kts`
+- [X] T019 [US3] Update all graphEditor source files that import `io.codenode.grapheditor.serialization.FlowGraphSerializer` to use `io.codenode.flowgraphpersist.serialization.FlowGraphSerializer`
+- [X] T020 [US3] Update all graphEditor source files that import `io.codenode.grapheditor.serialization.FlowKtParser` to use `io.codenode.flowgraphpersist.serialization.FlowKtParser`
+- [X] T021 [US3] Update all graphEditor source files that import `io.codenode.grapheditor.serialization.GraphNodeTemplateSerializer` to use `io.codenode.flowgraphpersist.serialization.GraphNodeTemplateSerializer`
+- [X] T022 [US3] Update all graphEditor source files that import `io.codenode.grapheditor.model.GraphNodeTemplateMeta` to use `io.codenode.flowgraphpersist.model.GraphNodeTemplateMeta`
+- [X] T023 [US3] Update all graphEditor source files that import `io.codenode.grapheditor.state.GraphNodeTemplateRegistry` or `io.codenode.grapheditor.state.GraphNodeTemplateInstantiator` to use `io.codenode.flowgraphpersist.state.*`
+- [X] T024 [US3] Update all graphEditor test files that reference the migrated classes to use new `io.codenode.flowgraphpersist.*` imports
+- [X] T025 [US3] Run `./gradlew :graphEditor:jvmTest :kotlinCompiler:jvmTest :circuitSimulator:jvmTest` to verify no regressions after call site migration
 
 **Checkpoint**: All call sites migrated. Old files are dead code. All tests pass.
 

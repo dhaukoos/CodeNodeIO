@@ -1,8 +1,8 @@
 package serialization
 
-import io.codenode.grapheditor.serialization.FlowKtParser
-import io.codenode.grapheditor.serialization.GraphNodeTemplateSerializer
-import io.codenode.grapheditor.state.GraphNodeTemplateInstantiator
+import io.codenode.flowgraphpersist.serialization.FlowKtParser
+import io.codenode.flowgraphpersist.serialization.GraphNodeTemplateSerializer
+import io.codenode.flowgraphpersist.state.GraphNodeTemplateInstantiator
 import io.codenode.fbpdsl.model.GraphNode
 import java.io.File
 import kotlin.test.*

@@ -21,6 +21,7 @@ kotlin {
                 implementation(libs.serialization.json)
                 implementation(project(":fbpDsl"))
                 implementation(project(":flowGraph-types"))
+                implementation(project(":flowGraph-persist"))
                 implementation(project(":preview-api"))
                 implementation(project(":circuitSimulator"))
                 // Koin DI

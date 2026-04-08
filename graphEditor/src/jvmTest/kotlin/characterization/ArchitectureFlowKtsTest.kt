@@ -7,7 +7,7 @@
 
 package characterization
 
-import io.codenode.grapheditor.serialization.FlowKtParser
+import io.codenode.flowgraphpersist.serialization.FlowKtParser
 import java.io.File
 import kotlin.test.*
 

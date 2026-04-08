@@ -14,7 +14,7 @@ import io.codenode.fbpdsl.model.Connection
 import io.codenode.fbpdsl.model.GraphNode
 import io.codenode.fbpdsl.model.Node
 import io.codenode.fbpdsl.model.Port
-import io.codenode.grapheditor.serialization.FlowKtParser
+import io.codenode.flowgraphpersist.serialization.FlowKtParser
 import io.codenode.kotlincompiler.generator.FlowKtGenerator
 import kotlin.test.*
 

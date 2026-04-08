@@ -7,7 +7,7 @@
 package io.codenode.grapheditor.serialization
 
 import io.codenode.fbpdsl.model.*
-import io.codenode.grapheditor.serialization.ParseResult
+import io.codenode.flowgraphpersist.serialization.ParseResult
 import kotlin.test.*
 
 /**

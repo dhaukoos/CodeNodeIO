@@ -7,7 +7,7 @@
 package io.codenode.grapheditor.viewmodel
 
 import androidx.lifecycle.ViewModel
-import io.codenode.grapheditor.model.GraphNodeTemplateMeta
+import io.codenode.flowgraphpersist.model.GraphNodeTemplateMeta
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow

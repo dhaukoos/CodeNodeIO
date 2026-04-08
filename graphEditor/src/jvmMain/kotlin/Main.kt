@@ -25,7 +25,7 @@ import io.codenode.grapheditor.state.SelectableElement
 import io.codenode.grapheditor.state.rememberUndoRedoManager
 import io.codenode.grapheditor.state.AddNodeCommand
 import io.codenode.grapheditor.state.NodeDefinitionRegistry
-import io.codenode.grapheditor.state.GraphNodeTemplateRegistry
+import io.codenode.flowgraphpersist.state.GraphNodeTemplateRegistry
 import io.codenode.grapheditor.state.LevelCompatibilityChecker
 import io.codenode.grapheditor.state.NodePromoter
 import io.codenode.grapheditor.viewmodel.SharedStateProvider
@@ -69,7 +69,7 @@ import io.codenode.flowgraphtypes.repository.IPTypeMigration
 import io.codenode.grapheditor.viewmodel.IPGeneratorViewModel
 import io.codenode.grapheditor.ui.IPGeneratorPanel
 import io.codenode.grapheditor.state.rememberPropertyChangeTracker
-import io.codenode.grapheditor.serialization.FlowKtParser
+import io.codenode.flowgraphpersist.serialization.FlowKtParser
 import io.codenode.grapheditor.save.ModuleSaveService
 import io.codenode.kotlincompiler.generator.EntityModuleSpec
 import io.codenode.kotlincompiler.generator.EntityProperty
@@ -623,7 +623,7 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                             nodeTypes = nodeTypes,
                             graphNodeTemplates = graphNodeTemplateRegistry.getAll(),
                             onGraphNodeTemplateSelected = { template ->
-                                io.codenode.grapheditor.state.GraphNodeTemplateInstantiator.instantiate(
+                                io.codenode.flowgraphpersist.state.GraphNodeTemplateInstantiator.instantiate(
                                     template,
                                     graphNodeTemplateRegistry,
                                     ipTypeRegistry
@@ -1300,12 +1300,13 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                         // T062: Only support .flow.kt files (removed .flow.kts support)
                         val parser = FlowKtParser()
                         val parseResult = parser.parseFlowKt(file.readText())
-                        if (parseResult.isSuccess && parseResult.graph != null) {
-                            graphState.setGraph(parseResult.graph, markDirty = false)
+                        val loadedGraph = parseResult.graph
+                        if (parseResult.isSuccess && loadedGraph != null) {
+                            graphState.setGraph(loadedGraph, markDirty = false)
                             moduleRootDir = findModuleRoot(file.parentFile)
                             // Register save location so re-save skips the directory prompt
                             moduleRootDir?.parentFile?.let { parentDir ->
-                                saveLocationRegistry[parseResult.graph.name] = parentDir
+                                saveLocationRegistry[loadedGraph.name] = parentDir
                             }
                             statusMessage = "Opened ${file.name}"
                         } else {
