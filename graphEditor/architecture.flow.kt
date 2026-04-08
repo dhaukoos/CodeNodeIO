@@ -88,13 +88,29 @@ val graph = flowGraph("Target Architecture", version = "4.0.0", description = "V
     }
 
     val persist = graphNode("flowGraph-persist") {
-        description = "Saving and loading flow graphs: FlowGraphSerializer, FlowKtParser, template registry, file I/O. 8 files."
+        description = "Saving and loading flow graphs: FlowGraphSerializer, FlowKtParser, template registry, file I/O. 6 files."
         position(400.0, 100.0)
         exposeInput("flowGraphModel", String::class)
         exposeInput("ipTypeMetadata", String::class)
         exposeOutput("serializedOutput", String::class)
         exposeOutput("loadedFlowGraph", String::class)
         exposeOutput("graphNodeTemplates", String::class)
+
+        // Child CodeNode — FlowGraphPersistCodeNode (In2AnyOut3Runtime, anyInput)
+        val flowGraphPersist = codeNode("FlowGraphPersist", nodeType = "TRANSFORMER") {
+            input("flowGraphModel", String::class)
+            input("ipTypeMetadata", String::class)
+            output("serializedOutput", String::class)
+            output("loadedFlowGraph", String::class)
+            output("graphNodeTemplates", String::class)
+        }
+
+        // Port mappings — wire exposed GraphNode ports to child CodeNode ports
+        portMapping("flowGraphModel", "flowGraphPersist", "flowGraphModel")
+        portMapping("ipTypeMetadata", "flowGraphPersist", "ipTypeMetadata")
+        portMapping("serializedOutput", "flowGraphPersist", "serializedOutput")
+        portMapping("loadedFlowGraph", "flowGraphPersist", "loadedFlowGraph")
+        portMapping("graphNodeTemplates", "flowGraphPersist", "graphNodeTemplates")
     }
 
     val compose = graphNode("flowGraph-compose") {
