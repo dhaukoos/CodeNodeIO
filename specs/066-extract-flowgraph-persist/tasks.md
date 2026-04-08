@@ -56,9 +56,9 @@
 
 **Independent Test**: `./gradlew :flowGraph-persist:jvmTest` — tests compile but fail
 
-- [ ] T012 [US2] Create `flowGraph-persist/src/jvmTest/kotlin/io/codenode/flowgraphpersist/node/FlowGraphPersistCodeNodeTest.kt` with TDD tests covering: port signatures (2 inputs, 3 outputs, all String), anyInput mode, createRuntime returns In2AnyOut3Runtime, toNodeTypeDefinition returns correct metadata
-- [ ] T013 [US2] Add TDD tests for data flow: serialize command on flowGraphModel produces output on serializedOutput, deserialize command produces output on loadedFlowGraph, template commands produce output on graphNodeTemplates
-- [ ] T014 [US2] Add TDD tests for boundary conditions: empty/null input is no-op, malformed JSON command returns error on appropriate output, ipTypeMetadata is cached and used during serialization
+- [X] T012 [US2] Create `flowGraph-persist/src/jvmTest/kotlin/io/codenode/flowgraphpersist/node/FlowGraphPersistCodeNodeTest.kt` with TDD tests covering: port signatures (2 inputs, 3 outputs, all String), anyInput mode, createRuntime returns In2AnyOut3Runtime, toNodeTypeDefinition returns correct metadata
+- [X] T013 [US2] Add TDD tests for data flow: serialize command on flowGraphModel produces output on serializedOutput, deserialize command produces output on loadedFlowGraph, template commands produce output on graphNodeTemplates
+- [X] T014 [US2] Add TDD tests for boundary conditions: empty/null input is no-op, malformed JSON command returns error on appropriate output, ipTypeMetadata is cached and used during serialization
 
 **Checkpoint**: TDD tests written and failing. Ready for CodeNode implementation.
 
@@ -72,9 +72,9 @@
 
 **Independent Test**: `./gradlew :flowGraph-persist:jvmTest` — all CodeNode tests pass
 
-- [ ] T015 [US2] Create `flowGraph-persist/src/jvmMain/kotlin/io/codenode/flowgraphpersist/node/FlowGraphPersistCodeNode.kt` implementing `CodeNodeDefinition` with `In2AnyOut3Runtime<String, String, String, String, String>` and `anyInput = true`
-- [ ] T016 [US2] Implement processing logic: flowGraphModel input deserializes JSON commands (serialize, deserialize, saveTemplate, loadTemplate, deleteTemplate, listTemplates); ipTypeMetadata input caches type data for serialization; outputs emit on appropriate ports based on command type
-- [ ] T017 [US2] Run `./gradlew :flowGraph-persist:jvmTest` to verify all CodeNode tests pass
+- [X] T015 [US2] Create `flowGraph-persist/src/jvmMain/kotlin/io/codenode/flowgraphpersist/node/FlowGraphPersistCodeNode.kt` implementing `CodeNodeDefinition` with `In2AnyOut3Runtime<String, String, String, String, String>` and `anyInput = true`
+- [X] T016 [US2] Implement processing logic: flowGraphModel input deserializes JSON commands (serialize, deserialize, saveTemplate, loadTemplate, deleteTemplate, listTemplates); ipTypeMetadata input caches type data for serialization; outputs emit on appropriate ports based on command type
+- [X] T017 [US2] Run `./gradlew :flowGraph-persist:jvmTest` to verify all CodeNode tests pass
 
 **Checkpoint**: CodeNode implemented. All TDD tests pass. Module builds independently.
 
