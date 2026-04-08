@@ -45,6 +45,7 @@ rootProject.name = "codenode-io"
 include(":fbpDsl")
 include(":flowGraph-types")
 include(":flowGraph-persist")
+include(":flowGraph-inspect")
 include(":preview-api")
 include(":graphEditor")
 include(":circuitSimulator")

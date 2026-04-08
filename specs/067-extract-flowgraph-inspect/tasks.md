@@ -19,10 +19,10 @@
 
 **Purpose**: Create flowGraph-inspect module structure and Gradle configuration
 
-- [ ] T001 Add `include("flowGraph-inspect")` to `settings.gradle.kts` after `:flowGraph-persist`
-- [ ] T002 Create `flowGraph-inspect/build.gradle.kts` following the flowGraph-persist pattern: KMP module with JVM + iOS targets, depends on `:fbpDsl`, `:flowGraph-types`, and `:flowGraph-persist`, kotlinx-coroutines, kotlinx-serialization, androidx.lifecycle-viewmodel plugin, JUnit 5 for tests
-- [ ] T003 Create source directory structure: `flowGraph-inspect/src/commonMain/kotlin/io/codenode/flowgraphinspect/`, `flowGraph-inspect/src/jvmMain/kotlin/io/codenode/flowgraphinspect/registry/`, `flowGraph-inspect/src/jvmMain/kotlin/io/codenode/flowgraphinspect/viewmodel/`, `flowGraph-inspect/src/jvmMain/kotlin/io/codenode/flowgraphinspect/discovery/`, `flowGraph-inspect/src/jvmMain/kotlin/io/codenode/flowgraphinspect/node/`, `flowGraph-inspect/src/jvmTest/kotlin/io/codenode/flowgraphinspect/node/`
-- [ ] T004 Run `./gradlew :flowGraph-inspect:compileKotlinJvm` to verify empty module compiles
+- [X] T001 Add `include("flowGraph-inspect")` to `settings.gradle.kts` after `:flowGraph-persist`
+- [X] T002 Create `flowGraph-inspect/build.gradle.kts` following the flowGraph-persist pattern: KMP module with JVM + iOS targets, depends on `:fbpDsl`, `:flowGraph-types`, and `:flowGraph-persist`, kotlinx-coroutines, kotlinx-serialization, androidx.lifecycle-viewmodel plugin, JUnit 5 for tests
+- [X] T003 Create source directory structure: `flowGraph-inspect/src/commonMain/kotlin/io/codenode/flowgraphinspect/`, `flowGraph-inspect/src/jvmMain/kotlin/io/codenode/flowgraphinspect/registry/`, `flowGraph-inspect/src/jvmMain/kotlin/io/codenode/flowgraphinspect/viewmodel/`, `flowGraph-inspect/src/jvmMain/kotlin/io/codenode/flowgraphinspect/discovery/`, `flowGraph-inspect/src/jvmMain/kotlin/io/codenode/flowgraphinspect/node/`, `flowGraph-inspect/src/jvmTest/kotlin/io/codenode/flowgraphinspect/node/`
+- [X] T004 Run `./gradlew :flowGraph-inspect:compileKotlinJvm` to verify empty module compiles
 
 **Checkpoint**: Empty module compiles. Ready for file extraction.
 
@@ -36,15 +36,15 @@
 
 **Independent Test**: `./gradlew :flowGraph-inspect:compileKotlinJvm` succeeds
 
-- [ ] T005 [P] [US1] Copy `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/state/NodeDefinitionRegistry.kt` to `flowGraph-inspect/src/jvmMain/kotlin/io/codenode/flowgraphinspect/registry/NodeDefinitionRegistry.kt` — update package to `io.codenode.flowgraphinspect.registry`
-- [ ] T006 [P] [US1] Copy `graphEditor/src/jvmMain/kotlin/viewmodel/CodeEditorViewModel.kt` to `flowGraph-inspect/src/jvmMain/kotlin/io/codenode/flowgraphinspect/viewmodel/CodeEditorViewModel.kt` — update package to `io.codenode.flowgraphinspect.viewmodel`, update NodeDefinitionRegistry import to `io.codenode.flowgraphinspect.registry.NodeDefinitionRegistry`, remove `: BaseState` from CodeEditorState
-- [ ] T007 [P] [US1] Copy `graphEditor/src/jvmMain/kotlin/viewmodel/IPPaletteViewModel.kt` to `flowGraph-inspect/src/jvmMain/kotlin/io/codenode/flowgraphinspect/viewmodel/IPPaletteViewModel.kt` — update package to `io.codenode.flowgraphinspect.viewmodel`, remove `: BaseState` from IPPaletteState
-- [ ] T008 [P] [US1] Copy `graphEditor/src/jvmMain/kotlin/viewmodel/GraphNodePaletteViewModel.kt` to `flowGraph-inspect/src/jvmMain/kotlin/io/codenode/flowgraphinspect/viewmodel/GraphNodePaletteViewModel.kt` — update package to `io.codenode.flowgraphinspect.viewmodel`, remove `: BaseState` from GraphNodePaletteState
-- [ ] T009 [P] [US1] Copy `graphEditor/src/jvmMain/kotlin/viewmodel/NodePaletteViewModel.kt` to `flowGraph-inspect/src/jvmMain/kotlin/io/codenode/flowgraphinspect/viewmodel/NodePaletteViewModel.kt` — update package to `io.codenode.flowgraphinspect.viewmodel`, remove `: BaseState` from NodePaletteState
-- [ ] T010 [P] [US1] Copy `graphEditor/src/jvmMain/kotlin/ui/ComposableDiscovery.kt` to `flowGraph-inspect/src/jvmMain/kotlin/io/codenode/flowgraphinspect/discovery/ComposableDiscovery.kt` — update package to `io.codenode.flowgraphinspect.discovery`
-- [ ] T011 [P] [US1] Copy `graphEditor/src/jvmMain/kotlin/ui/DynamicPreviewDiscovery.kt` to `flowGraph-inspect/src/jvmMain/kotlin/io/codenode/flowgraphinspect/discovery/DynamicPreviewDiscovery.kt` — update package to `io.codenode.flowgraphinspect.discovery`
-- [ ] T012 [US1] Run `./gradlew :flowGraph-inspect:compileKotlinJvm` to verify all 7 copied files compile in the new module
-- [ ] T013 [US1] Verify Compose UI files remain unchanged in graphEditor: `CodeEditor.kt`, `ColorEditor.kt`, `IPPalette.kt`, `NodePalette.kt`, `SyntaxHighlighter.kt` all still exist in `graphEditor/src/jvmMain/kotlin/ui/`
+- [X] T005 [P] [US1] Copy `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/state/NodeDefinitionRegistry.kt` to `flowGraph-inspect/src/jvmMain/kotlin/io/codenode/flowgraphinspect/registry/NodeDefinitionRegistry.kt` — update package to `io.codenode.flowgraphinspect.registry`
+- [X] T006 [P] [US1] Copy `graphEditor/src/jvmMain/kotlin/viewmodel/CodeEditorViewModel.kt` to `flowGraph-inspect/src/jvmMain/kotlin/io/codenode/flowgraphinspect/viewmodel/CodeEditorViewModel.kt` — update package to `io.codenode.flowgraphinspect.viewmodel`, update NodeDefinitionRegistry import to `io.codenode.flowgraphinspect.registry.NodeDefinitionRegistry`, remove `: BaseState` from CodeEditorState
+- [X] T007 [P] [US1] Copy `graphEditor/src/jvmMain/kotlin/viewmodel/IPPaletteViewModel.kt` to `flowGraph-inspect/src/jvmMain/kotlin/io/codenode/flowgraphinspect/viewmodel/IPPaletteViewModel.kt` — update package to `io.codenode.flowgraphinspect.viewmodel`, remove `: BaseState` from IPPaletteState
+- [X] T008 [P] [US1] Copy `graphEditor/src/jvmMain/kotlin/viewmodel/GraphNodePaletteViewModel.kt` to `flowGraph-inspect/src/jvmMain/kotlin/io/codenode/flowgraphinspect/viewmodel/GraphNodePaletteViewModel.kt` — update package to `io.codenode.flowgraphinspect.viewmodel`, remove `: BaseState` from GraphNodePaletteState
+- [X] T009 [P] [US1] Copy `graphEditor/src/jvmMain/kotlin/viewmodel/NodePaletteViewModel.kt` to `flowGraph-inspect/src/jvmMain/kotlin/io/codenode/flowgraphinspect/viewmodel/NodePaletteViewModel.kt` — update package to `io.codenode.flowgraphinspect.viewmodel`, remove `: BaseState` from NodePaletteState
+- [X] T010 [P] [US1] Copy `graphEditor/src/jvmMain/kotlin/ui/ComposableDiscovery.kt` to `flowGraph-inspect/src/jvmMain/kotlin/io/codenode/flowgraphinspect/discovery/ComposableDiscovery.kt` — update package to `io.codenode.flowgraphinspect.discovery`
+- [X] T011 [P] [US1] Copy `graphEditor/src/jvmMain/kotlin/ui/DynamicPreviewDiscovery.kt` to `flowGraph-inspect/src/jvmMain/kotlin/io/codenode/flowgraphinspect/discovery/DynamicPreviewDiscovery.kt` — update package to `io.codenode.flowgraphinspect.discovery`
+- [X] T012 [US1] Run `./gradlew :flowGraph-inspect:compileKotlinJvm` to verify all 7 copied files compile in the new module
+- [X] T013 [US1] Verify Compose UI files remain unchanged in graphEditor: `CodeEditor.kt`, `ColorEditor.kt`, `IPPalette.kt`, `NodePalette.kt`, `SyntaxHighlighter.kt` all still exist in `graphEditor/src/jvmMain/kotlin/ui/`
 
 **Checkpoint**: 7 files copied and compiling. Both modules coexist (Strangler Fig).
 
