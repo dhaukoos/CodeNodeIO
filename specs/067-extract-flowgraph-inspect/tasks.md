@@ -113,16 +113,16 @@
 
 **Independent Test**: `./gradlew :graphEditor:jvmTest :kotlinCompiler:jvmTest :circuitSimulator:jvmTest` — all tests pass
 
-- [ ] T030 [P] [US4] Remove `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/state/NodeDefinitionRegistry.kt`
-- [ ] T031 [P] [US4] Remove `graphEditor/src/jvmMain/kotlin/viewmodel/CodeEditorViewModel.kt`
-- [ ] T032 [P] [US4] Remove `graphEditor/src/jvmMain/kotlin/viewmodel/IPPaletteViewModel.kt`
-- [ ] T033 [P] [US4] Remove `graphEditor/src/jvmMain/kotlin/viewmodel/GraphNodePaletteViewModel.kt`
-- [ ] T034 [P] [US4] Remove `graphEditor/src/jvmMain/kotlin/viewmodel/NodePaletteViewModel.kt`
-- [ ] T035 [P] [US4] Remove `graphEditor/src/jvmMain/kotlin/ui/ComposableDiscovery.kt`
-- [ ] T036 [P] [US4] Remove `graphEditor/src/jvmMain/kotlin/ui/DynamicPreviewDiscovery.kt`
-- [ ] T037 [US4] Fix any remaining same-package reference errors by adding explicit imports to `io.codenode.flowgraphinspect.*` in test or source files that relied on same-package access
-- [ ] T038 [US4] Migrate test files: move `graphEditor/src/jvmTest/kotlin/viewmodel/IPPaletteViewModelTest.kt` and `graphEditor/src/jvmTest/kotlin/viewmodel/NodePaletteViewModelTest.kt` to `flowGraph-inspect/src/jvmTest/kotlin/io/codenode/flowgraphinspect/viewmodel/` with updated packages and imports
-- [ ] T039 [US4] Run `./gradlew :graphEditor:jvmTest :kotlinCompiler:jvmTest :circuitSimulator:jvmTest :flowGraph-inspect:jvmTest` to verify no regressions after original file removal
+- [X] T030 [P] [US4] Remove `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/state/NodeDefinitionRegistry.kt`
+- [X] T031 [P] [US4] Remove `graphEditor/src/jvmMain/kotlin/viewmodel/CodeEditorViewModel.kt`
+- [X] T032 [P] [US4] Remove `graphEditor/src/jvmMain/kotlin/viewmodel/IPPaletteViewModel.kt`
+- [X] T033 [P] [US4] Remove `graphEditor/src/jvmMain/kotlin/viewmodel/GraphNodePaletteViewModel.kt`
+- [X] T034 [P] [US4] Remove `graphEditor/src/jvmMain/kotlin/viewmodel/NodePaletteViewModel.kt`
+- [X] T035 [P] [US4] Remove `graphEditor/src/jvmMain/kotlin/ui/ComposableDiscovery.kt`
+- [X] T036 [P] [US4] Remove `graphEditor/src/jvmMain/kotlin/ui/DynamicPreviewDiscovery.kt`
+- [X] T037 [US4] Fix any remaining same-package reference errors by adding explicit imports to `io.codenode.flowgraphinspect.*` in test or source files that relied on same-package access
+- [X] T038 [US4] Migrate test files: move `graphEditor/src/jvmTest/kotlin/viewmodel/IPPaletteViewModelTest.kt` and `graphEditor/src/jvmTest/kotlin/viewmodel/NodePaletteViewModelTest.kt` to `flowGraph-inspect/src/jvmTest/kotlin/io/codenode/flowgraphinspect/viewmodel/` with updated packages and imports
+- [X] T039 [US4] Run `./gradlew :graphEditor:jvmTest :kotlinCompiler:jvmTest :circuitSimulator:jvmTest :flowGraph-inspect:jvmTest` to verify no regressions after original file removal
 
 **Checkpoint**: Original files removed. graphEditor depends on flowGraph-inspect for all node discovery/palette state functionality. All tests pass.
 

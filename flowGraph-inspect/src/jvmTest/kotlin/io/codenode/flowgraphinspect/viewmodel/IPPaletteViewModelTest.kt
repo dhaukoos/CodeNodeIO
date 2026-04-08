@@ -4,7 +4,7 @@
  * License: Apache 2.0
  */
 
-package io.codenode.grapheditor.viewmodel
+package io.codenode.flowgraphinspect.viewmodel
 
 import io.codenode.fbpdsl.model.InformationPacketType
 import io.codenode.fbpdsl.model.IPColor
