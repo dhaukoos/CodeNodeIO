@@ -742,8 +742,8 @@ private fun PropertiesContent(
         // Shared name and port sections
         SharedNodeProperties(
             nodeName = state.nodeName,
-            inputPorts = if (state.isGenericNode) state.selectedNode?.inputPorts ?: emptyList() else emptyList(),
-            outputPorts = if (state.isGenericNode) state.selectedNode?.outputPorts ?: emptyList() else emptyList(),
+            inputPorts = state.selectedNode?.inputPorts ?: emptyList(),
+            outputPorts = state.selectedNode?.outputPorts ?: emptyList(),
             onNameChange = onNameChange,
             onPortNameChange = onPortNameChange,
             onPortTypeChange = onPortTypeChange,
