@@ -99,6 +99,8 @@ Auto-generated from all feature plans. Last updated: 2026-01-13
 - Filesystem (`~/.codenode/custom-ip-types.json` for legacy FileIPTypeRepository) (065-extract-flowgraph-types)
 - Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + fbpDsl (core FBP domain model), flowGraph-types (IPTypeRegistry for template loading), kotlinx-coroutines 1.8.0, kotlinx-serialization 1.6.2 (066-extract-flowgraph-persist)
 - Filesystem (GraphNode template .flow.kts files at three-tier locations) (066-extract-flowgraph-persist)
+- Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + fbpDsl (core FBP domain model), flowGraph-types (IPTypeRegistry for IPPaletteViewModel), flowGraph-persist (GraphNodeTemplateMeta for GraphNodePaletteViewModel), kotlinx-coroutines 1.8.0, androidx.lifecycle-viewmodel (067-extract-flowgraph-inspect)
+- Filesystem (scanning directories for .kt source files and compiled CodeNode definitions) (067-extract-flowgraph-inspect)
 
 - Kotlin 1.9+, Go 1.21+ (001-ide-plugin-platform)
 
@@ -118,9 +120,9 @@ tests/
 Kotlin 1.9+, Go 1.21+: Follow standard conventions
 
 ## Recent Changes
+- 067-extract-flowgraph-inspect: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + fbpDsl (core FBP domain model), flowGraph-types (IPTypeRegistry for IPPaletteViewModel), flowGraph-persist (GraphNodeTemplateMeta for GraphNodePaletteViewModel), kotlinx-coroutines 1.8.0, androidx.lifecycle-viewmodel
 - 066-extract-flowgraph-persist: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + fbpDsl (core FBP domain model), flowGraph-types (IPTypeRegistry for template loading), kotlinx-coroutines 1.8.0, kotlinx-serialization 1.6.2
 - 065-extract-flowgraph-types: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + fbpDsl (core FBP domain model), Koin 4.0.0 (DI), kotlinx-coroutines 1.8.0, kotlinx-serialization 1.6.2
-- 064-vertical-slice-refactor: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + Compose Desktop 1.7.3 (UI), kotlinx-coroutines 1.8.0, kotlinx-serialization 1.6.0, lifecycle-viewmodel-compose 2.8.0
 
 
 <!-- MANUAL ADDITIONS START -->
