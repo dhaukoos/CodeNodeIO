@@ -3,6 +3,14 @@
 **Feature**: 064-vertical-slice-refactor
 **Date**: 2026-04-02
 
+## Guiding Principle: Compose Stays in graphEditor
+
+**Established during feature 066 (flowGraph-persist extraction)**: Files containing `@Composable` functions or primarily Compose UI rendering remain in graphEditor as presentation concerns. Only non-UI logic, state management, and ViewModels are extracted into vertical-slice modules. This principle was validated when ViewSynchronizer.kt and TextualView.kt were kept in graphEditor during the persist extraction, and again when 5 Compose UI files (CodeEditor, ColorEditor, IPPalette, NodePalette, SyntaxHighlighter) were kept during the inspect spec (feature 067).
+
+**Why**: Compose composables are presentation layer — they render state but don't own business logic. Extracting them would pull Compose Desktop dependencies into modules that should be pure Kotlin/KMP. The extracted modules expose their functionality through CodeNode FBP ports, not through UI composables.
+
+---
+
 ## Cross-Module Seam Summary
 
 Three source modules are being decomposed into six vertical-slice target modules plus a composition root. This section documents the cross-module seams — dependencies that cross the boundaries between graphEditor, kotlinCompiler, and circuitSimulator.
@@ -38,7 +46,7 @@ circuitSimulator ──depends on──► fbpDsl (shared vocabulary)
 | ui/ModuleSessionFactory.kt | RuntimeSession.kt | Function call | execute | flowGraph-execute |
 | ui/FlowGraphCanvas.kt | ConnectionAnimation.kt | Type reference | root | root→execute |
 
-**Resolution**: RuntimePreviewPanel and ModuleSessionFactory are in the `execute` bucket — they move to flowGraph-execute alongside circuitSimulator files, so those seams become internal. FlowGraphCanvas.kt references ConnectionAnimation for rendering animated dots; this is the one true cross-module interface needed (root→execute boundary).
+**Resolution**: ModuleSessionFactory moves to flowGraph-execute alongside circuitSimulator files, so its seam with RuntimeSession becomes internal. RuntimePreviewPanel.kt stays in graphEditor (Compose UI) and will reference execute via the module's CodeNode ports. FlowGraphCanvas.kt references ConnectionAnimation for rendering animated dots; this is the one true cross-module interface needed (root→execute boundary).
 
 ### Consolidated Seam Counts
 
@@ -55,7 +63,7 @@ circuitSimulator ──depends on──► fbpDsl (shared vocabulary)
 
 | Source Module | File Count | Bucket Distribution |
 |--------------|-----------|-------------------|
-| graphEditor | 77 | root: 28, inspect: 17, persist: 13, compose: 9, generate: 7, execute: 3 |
+| graphEditor | 77 | root: 43 (incl. Compose UI files), inspect: 7, persist: 6, compose: 4, generate: 6, execute: 1 |
 | kotlinCompiler | 38 | generate: 38 |
 | circuitSimulator | 5 | execute: 5 |
 | **Total** | **120** | |
@@ -85,27 +93,29 @@ IP type lifecycle — discovery, registry, repository, file generation, and migr
 
 **Why this module exists**: Without it, inspect ↔ persist and inspect ↔ generate form cycles (inspect provides IP type metadata to persist/generate, but persist provides FileIPTypeRepository back to inspect and generate provides IPTypeFileGenerator back to inspect). Extracting the IP type lifecycle into its own module makes all three relationships one-way.
 
-### flowGraph-compose (10 files)
+### flowGraph-compose (4 files)
 
-Graph mutation logic — the path from user gesture to valid FlowGraph.
+Graph mutation logic — the path from user gesture to valid FlowGraph. Non-UI state and logic only.
 
 | File | Source Module | Current Path |
 |------|-------------|-------------|
-| GraphState.kt | graphEditor | state/GraphState.kt |
-| PropertyChangeTracker.kt | graphEditor | state/PropertyChangeTracker.kt |
-| UndoRedoManager.kt | graphEditor | state/UndoRedoManager.kt |
-| ConnectionContextMenu.kt | graphEditor | ui/ConnectionContextMenu.kt |
-| ConnectionHandler.kt | graphEditor | ui/ConnectionHandler.kt |
-| DragAndDropHandler.kt | graphEditor | ui/DragAndDropHandler.kt |
 | CanvasInteractionViewModel.kt | graphEditor | viewmodel/CanvasInteractionViewModel.kt |
 | PropertiesPanelViewModel.kt | graphEditor | viewmodel/PropertiesPanelViewModel.kt |
 | LevelCompatibilityChecker.kt | graphEditor | io/.../state/LevelCompatibilityChecker.kt |
 | NodePromoter.kt | graphEditor | io/.../state/NodePromoter.kt |
 
-**Outbound dependencies**: inspect (IPTypeRegistry, NodeDefinitionRegistry, PlacementLevel)
-**Inbound consumers**: root (8 seams — GraphState is the most referenced target)
+**Compose UI files staying in graphEditor** (per guiding principle):
+- GraphState.kt (has @Composable snapshot-aware helpers)
+- PropertyChangeTracker.kt (has @Composable rememberPropertyChangeTracker)
+- UndoRedoManager.kt (has @Composable rememberUndoRedoManager)
+- ConnectionContextMenu.kt (has @Composable)
+- ConnectionHandler.kt (has @Composable rememberConnectionCreationState)
+- DragAndDropHandler.kt (has @Composable rememberDragAndDropState)
 
-### flowGraph-persist (8 files)
+**Outbound dependencies**: inspect (NodeDefinitionRegistry, PlacementLevel)
+**Inbound consumers**: root (seams through GraphState which stays in root)
+
+### flowGraph-persist (6 files) — **EXTRACTED in feature 066**
 
 Round-trip workflow between in-memory FlowGraph and `.flow.kt` files on disk.
 
@@ -115,17 +125,19 @@ Round-trip workflow between in-memory FlowGraph and `.flow.kt` files on disk.
 | FlowKtParser.kt | graphEditor | serialization/FlowKtParser.kt |
 | GraphNodeTemplateSerializer.kt | graphEditor | serialization/GraphNodeTemplateSerializer.kt |
 | GraphNodeTemplateMeta.kt | graphEditor | model/GraphNodeTemplateMeta.kt |
-| ViewSynchronizer.kt | graphEditor | state/ViewSynchronizer.kt |
-| TextualView.kt | graphEditor | ui/TextualView.kt |
 | GraphNodeTemplateInstantiator.kt | graphEditor | io/.../state/GraphNodeTemplateInstantiator.kt |
 | GraphNodeTemplateRegistry.kt | graphEditor | io/.../state/GraphNodeTemplateRegistry.kt |
 
+**Compose UI files staying in graphEditor** (per guiding principle):
+- ViewSynchronizer.kt (Compose-aware state synchronization)
+- TextualView.kt (Compose UI composable)
+
 **Moved to flowGraph-types**: SerializableIPType.kt, FileIPTypeRepository.kt
 
-**Outbound dependencies**: types (ipTypeMetadata for serialization), compose (ViewSynchronizer→GraphState), inspect (TextualView→SyntaxHighlighter)
-**Inbound consumers**: root (2 seams), generate (1 — ModuleSaveService→FlowGraphSerializer)
+**Outbound dependencies**: types (ipTypeMetadata for serialization)
+**Inbound consumers**: root (2 seams), generate (1 — ModuleSaveService→FlowGraphSerializer), inspect (GraphNodePaletteViewModel→GraphNodeTemplateMeta)
 
-### flowGraph-execute (7 files from graphEditor + 5 from circuitSimulator = 12 files)
+### flowGraph-execute (1 file from graphEditor + 5 from circuitSimulator = 6 files)
 
 Running a flow graph and observing results — from "press Play" to "see results."
 
@@ -144,14 +156,14 @@ Running a flow graph and observing results — from "press Play" to "see results
 | File | Source Module | Current Path |
 |------|-------------|-------------|
 | ModuleSessionFactory.kt | graphEditor | ui/ModuleSessionFactory.kt |
-| RuntimePreviewPanel.kt | graphEditor | ui/RuntimePreviewPanel.kt |
 
-**Note**: Only 2 graphEditor files are in the execute bucket (not 3 as estimated in the audit summary — the summary count was slightly off). Total: 7 files.
+**Compose UI files staying in graphEditor** (per guiding principle):
+- RuntimePreviewPanel.kt (has @Composable — Compose UI for runtime preview)
 
 **Outbound dependencies**: inspect (ModuleSessionFactory→NodeDefinitionRegistry)
 **Inbound consumers**: root (1 seam — FlowGraphCanvas→ConnectionAnimation)
 
-### flowGraph-generate (46 files: 38 from kotlinCompiler + 8 from graphEditor)
+### flowGraph-generate (44 files: 38 from kotlinCompiler + 6 from graphEditor)
 
 Producing deployable code from a graph — FlowGraph to generated source files on disk.
 
@@ -198,12 +210,10 @@ Producing deployable code from a graph — FlowGraph to generated source files o
 | RegenerateStopWatch.kt | kotlinCompiler | jvmMain/tools/RegenerateStopWatch.kt |
 | GenerateGeoLocationModule.kt | kotlinCompiler | jvmMain/GenerateGeoLocationModule.kt |
 
-**From graphEditor (generate bucket — 8 files)**:
+**From graphEditor (generate bucket — 6 files)**:
 
 | File | Source Module | Current Path |
 |------|-------------|-------------|
-| IPGeneratorPanel.kt | graphEditor | ui/IPGeneratorPanel.kt |
-| NodeGeneratorPanel.kt | graphEditor | ui/NodeGeneratorPanel.kt |
 | IPGeneratorViewModel.kt | graphEditor | viewmodel/IPGeneratorViewModel.kt |
 | NodeGeneratorViewModel.kt | graphEditor | viewmodel/NodeGeneratorViewModel.kt |
 | CompilationService.kt | graphEditor | compilation/CompilationService.kt |
@@ -211,39 +221,48 @@ Producing deployable code from a graph — FlowGraph to generated source files o
 | RequiredPropertyValidator.kt | graphEditor | compilation/RequiredPropertyValidator.kt |
 | ModuleSaveService.kt | graphEditor | save/ModuleSaveService.kt |
 
+**Compose UI files staying in graphEditor** (per guiding principle):
+- IPGeneratorPanel.kt (has @Composable — IP type generator UI)
+- NodeGeneratorPanel.kt (has @Composable — node generator UI)
+
 **Moved to flowGraph-types**: IPTypeFileGenerator.kt
 
 **Outbound dependencies**: types (ipTypeMetadata), inspect (NodeGeneratorVM→NodeDefinitionRegistry), persist (ModuleSaveService→FlowGraphSerializer)
 **Inbound consumers**: root (0 direct — generation is triggered from root ViewModels)
 
-### flowGraph-inspect (13 files)
+### flowGraph-inspect (7 files)
 
-Understanding available components — node palette, filesystem node scanning, CodeNode text editing.
+Node discovery, definition registry, palette state management, filesystem scanning, and preview discovery. Non-UI logic only.
 
 | File | Source Module | Current Path |
 |------|-------------|-------------|
-| CodeEditor.kt | graphEditor | ui/CodeEditor.kt |
-| ColorEditor.kt | graphEditor | ui/ColorEditor.kt |
+| NodeDefinitionRegistry.kt | graphEditor | io/.../state/NodeDefinitionRegistry.kt |
+| CodeEditorViewModel.kt | graphEditor | viewmodel/CodeEditorViewModel.kt |
+| IPPaletteViewModel.kt | graphEditor | viewmodel/IPPaletteViewModel.kt |
+| GraphNodePaletteViewModel.kt | graphEditor | viewmodel/GraphNodePaletteViewModel.kt |
+| NodePaletteViewModel.kt | graphEditor | viewmodel/NodePaletteViewModel.kt |
 | ComposableDiscovery.kt | graphEditor | ui/ComposableDiscovery.kt |
 | DynamicPreviewDiscovery.kt | graphEditor | ui/DynamicPreviewDiscovery.kt |
-| IPPalette.kt | graphEditor | ui/IPPalette.kt |
-| NodePalette.kt | graphEditor | ui/NodePalette.kt |
-| SyntaxHighlighter.kt | graphEditor | ui/SyntaxHighlighter.kt |
-| CodeEditorViewModel.kt | graphEditor | viewmodel/CodeEditorViewModel.kt |
-| GraphNodePaletteViewModel.kt | graphEditor | viewmodel/GraphNodePaletteViewModel.kt |
-| IPPaletteViewModel.kt | graphEditor | viewmodel/IPPaletteViewModel.kt |
-| NodePaletteViewModel.kt | graphEditor | viewmodel/NodePaletteViewModel.kt |
-| PlacementLevel.kt | graphEditor | model/PlacementLevel.kt |
-| NodeDefinitionRegistry.kt | graphEditor | io/.../state/NodeDefinitionRegistry.kt |
+
+**Compose UI files staying in graphEditor** (per guiding principle):
+- CodeEditor.kt (has @Composable — code editor UI)
+- ColorEditor.kt (has @Composable — color picker UI)
+- IPPalette.kt (has @Composable — IP type palette UI)
+- NodePalette.kt (has @Composable — node palette UI)
+- SyntaxHighlighter.kt (has @Composable — syntax highlighting UI)
+
+**Already in fbpDsl**: PlacementLevel.kt (not a graphEditor file — lives in fbpDsl/src/commonMain)
 
 **Moved to flowGraph-types**: IPTypeDiscovery.kt, IPTypeRegistry.kt, IPProperty.kt, IPPropertyMeta.kt, IPTypeFileMeta.kt, IPTypeMigration.kt
 
-**Outbound dependencies**: types (IPPaletteVM uses ipTypeMetadata)
+**Outbound dependencies**: types (IPPaletteVM uses ipTypeMetadata), persist (GraphNodePaletteViewModel→GraphNodeTemplateMeta)
 **Inbound consumers**: compose (nodeDescriptors), execute (nodeDescriptors), generate (nodeDescriptors), root (nodeDescriptors). Inspect provides node discovery; IP type concerns are now in types.
 
-### graphEditor — composition root (22 files, stays)
+### graphEditor — composition root (43 files, stays)
 
-Compose UI composables, orchestration ViewModels, DI wiring. No business logic.
+Compose UI composables, orchestration ViewModels, DI wiring, renderers, and all @Composable presentation files retained per the "Compose stays in graphEditor" principle. No business logic.
+
+**Original root files (27)**:
 
 | File | Source Module | Current Path |
 |------|-------------|-------------|
@@ -269,39 +288,59 @@ Compose UI composables, orchestration ViewModels, DI wiring. No business logic.
 | SelectableElement.kt | graphEditor | io/.../state/SelectableElement.kt |
 | SelectionState.kt | graphEditor | io/.../state/SelectionState.kt |
 | Main.kt | graphEditor | Main.kt |
-
-**Plus 5 UI-only composables** (already in io/.../ui/):
-
-| File | Source Module | Current Path |
-|------|-------------|-------------|
 | GraphNodeRenderer.kt | graphEditor | io/.../ui/GraphNodeRenderer.kt |
 | GroupContextMenu.kt | graphEditor | io/.../ui/GroupContextMenu.kt |
 | NavigationBreadcrumb.kt | graphEditor | io/.../ui/NavigationBreadcrumb.kt |
 | NavigationZoomOutButton.kt | graphEditor | io/.../ui/NavigationZoomOutButton.kt |
 | SelectionBox.kt | graphEditor | io/.../ui/SelectionBox.kt |
 
-**Total root: 27 files**
+**Compose UI files retained from extraction buckets (+16)**:
+
+| File | Originally Assigned To | Reason Retained |
+|------|----------------------|-----------------|
+| ViewSynchronizer.kt | persist | @Composable — state synchronization UI |
+| TextualView.kt | persist | @Composable — textual view composable |
+| GraphState.kt | compose | @Composable snapshot-aware helpers |
+| PropertyChangeTracker.kt | compose | @Composable rememberPropertyChangeTracker |
+| UndoRedoManager.kt | compose | @Composable rememberUndoRedoManager |
+| ConnectionContextMenu.kt | compose | @Composable — connection context menu UI |
+| ConnectionHandler.kt | compose | @Composable rememberConnectionCreationState |
+| DragAndDropHandler.kt | compose | @Composable rememberDragAndDropState |
+| RuntimePreviewPanel.kt | execute | @Composable — runtime preview UI |
+| IPGeneratorPanel.kt | generate | @Composable — IP type generator UI |
+| NodeGeneratorPanel.kt | generate | @Composable — node generator UI |
+| CodeEditor.kt | inspect | @Composable — code editor UI |
+| ColorEditor.kt | inspect | @Composable — color picker UI |
+| IPPalette.kt | inspect | @Composable — IP type palette UI |
+| NodePalette.kt | inspect | @Composable — node palette UI |
+| SyntaxHighlighter.kt | inspect | @Composable — syntax highlighting UI |
+
+**Total root: 43 files** (27 original + 16 Compose UI retained)
 
 ### File Count Validation
 
 | Target Module | Files | Source Breakdown |
 |--------------|-------|-----------------|
 | flowGraph-types | 9 | graphEditor: 9 |
-| flowGraph-compose | 10 | graphEditor: 10 |
-| flowGraph-persist | 8 | graphEditor: 8 |
-| flowGraph-execute | 7 | circuitSimulator: 5, graphEditor: 2 |
-| flowGraph-generate | 46 | kotlinCompiler: 38, graphEditor: 8 |
-| flowGraph-inspect | 13 | graphEditor: 13 |
-| graphEditor (root) | 27 | graphEditor: 27 |
-| **Total** | **120** | graphEditor: 77, kotlinCompiler: 38, circuitSimulator: 5 |
+| flowGraph-compose | 4 | graphEditor: 4 |
+| flowGraph-persist | 6 | graphEditor: 6 |
+| flowGraph-execute | 6 | circuitSimulator: 5, graphEditor: 1 |
+| flowGraph-generate | 44 | kotlinCompiler: 38, graphEditor: 6 |
+| flowGraph-inspect | 7 | graphEditor: 7 |
+| graphEditor (root) | 43 | graphEditor: 43 (27 original + 16 Compose UI retained) |
+| **Total** | **119** | graphEditor: 76*, kotlinCompiler: 38, circuitSimulator: 5 |
 
-**Note on audit summary discrepancies**: The original graphEditor/ARCHITECTURE.md summary listed bucket counts (root: 28, inspect: 17, persist: 13, compose: 9, generate: 7, execute: 3) that differ slightly from the file-by-file tally above. The per-file audit tables are authoritative; the summary was an approximation. This migration map uses the file-by-file assignments.
+*PlacementLevel.kt was originally counted in the graphEditor audit (77 files) but already lives in fbpDsl/src/commonMain. Corrected count: 76 actual graphEditor files.
+
+**Note on "Compose stays in graphEditor" correction**: The original audit assigned files to extraction buckets without distinguishing UI composables from non-UI logic. During feature 066 (persist extraction), the principle was established that @Composable files stay in graphEditor. This table reflects the corrected counts after applying that principle across all buckets. 16 Compose UI files moved from extraction buckets back to graphEditor root.
 
 ---
 
 ## Public APIs
 
-Each target module exposes a public API through Kotlin interfaces. These interfaces replace the direct function calls currently crossing module boundaries (documented in the seam matrices).
+> **Note**: The original migration plan (feature 064) designed service interfaces (Koin-wired DI). During implementation (features 065-066), the architectural decision was made that module boundaries are expressed as **FBP-native data flow through CodeNode ports** — not service interfaces. The interfaces below are preserved for reference but are **superseded** by the CodeNode port signatures defined in each module's spec. See the "Guiding Principle" section above.
+
+Each target module was originally planned to expose a public API through Kotlin interfaces. These have been replaced by coarse-grained CodeNode boundaries with typed input/output ports.
 
 ### flowGraph-types API
 
@@ -542,34 +581,26 @@ Per research.md R5: extract in order of decreasing independence and decreasing r
 **Characterization tests that must pass**:
 - All existing tests: `./gradlew :graphEditor:jvmTest :kotlinCompiler:jvmTest :circuitSimulator:jvmTest`
 
-### Step 2: flowGraph-persist (8 files)
+### Step 2: flowGraph-persist (6 files) — **COMPLETED (feature 066)**
 
 **Why second**: Serialization is self-contained — clear inputs (FlowGraph) and outputs (.flow.kt text). Depends only on types (for IP type metadata during serialization) which is already extracted. No runtime or UI state management.
 
-**Files that move**: 8 files from graphEditor (serialization/, 1 model file, state/ViewSynchronizer, ui/TextualView, 2 io/.../state/ template files)
+**Files that move**: 6 files from graphEditor (3 serialization/, 1 model/, 2 io/.../state/ template files). ViewSynchronizer.kt and TextualView.kt stay in graphEditor (Compose UI).
 
-**Interfaces created**:
-- `FlowGraphPersistenceService` (serialize/deserialize)
-- `GraphNodeTemplateService` (template CRUD)
-
-**Call sites that change to delegation**:
-- `GraphEditorViewModel.kt` → calls `FlowGraphPersistenceService.deserialize()` instead of `FlowKtParser` directly
-- `ModuleSaveService.kt` → calls `FlowGraphPersistenceService.serialize()` instead of `FlowGraphSerializer` directly
-- `GraphNodePaletteSection.kt` → references `GraphNodeTemplateMeta` via persist API types
+**Module boundary**: FlowGraphPersistCodeNode with 2 inputs (flowGraphModel, ipTypeMetadata) and 3 outputs (serializedOutput, loadedFlowGraph, graphNodeTemplates). FBP-native data flow, no service interfaces.
 
 **Characterization tests that must pass**:
 - `SerializationRoundTripCharacterizationTest` (graphEditor)
 - `FlowKtGeneratorCharacterizationTest` (kotlinCompiler — FlowKtGenerator also produces .flow.kt but lives in generate, not persist)
 - All existing tests: `./gradlew :graphEditor:jvmTest :kotlinCompiler:jvmTest :circuitSimulator:jvmTest`
 
-### Step 3: flowGraph-inspect (13 files)
+### Step 3: flowGraph-inspect (7 files)
 
-**Why third**: Node discovery logic is read-only with respect to graph state. No longer depends on persist or generate (those dependencies moved to types). Inspect provides `NodeRegistryService` consumed by compose, execute, and generate.
+**Why third**: Node discovery logic is read-only with respect to graph state. No longer depends on persist or generate (those dependencies moved to types). Inspect provides node discovery consumed by compose, execute, and generate.
 
-**Files that move**: 13 files from graphEditor (7 ui/, 3 viewmodel/, 1 model/, 1 io/.../state/)
+**Files that move**: 7 non-UI files from graphEditor (1 io/.../state/, 4 viewmodel/, 2 ui/ discovery files). 5 Compose UI composables (CodeEditor, ColorEditor, IPPalette, NodePalette, SyntaxHighlighter) stay in graphEditor. PlacementLevel.kt already in fbpDsl.
 
-**Interfaces created**:
-- `NodeRegistryService` (node discovery — consumed by compose, execute, generate, root)
+**Module boundary**: FlowGraphInspectCodeNode with 2 inputs (filesystemPaths, classpathEntries) and 1 output (nodeDescriptors). FBP-native data flow, no service interfaces.
 
 **Call sites that change to delegation**:
 - `DragAndDropHandler.kt` → uses `NodeRegistryService` for node definitions
@@ -581,11 +612,11 @@ Per research.md R5: extract in order of decreasing independence and decreasing r
 - `ViewModelCharacterizationTest` (graphEditor — palette and registry state)
 - All existing tests across all modules
 
-### Step 4: flowGraph-execute (7 files)
+### Step 4: flowGraph-execute (6 files)
 
 **Why fourth**: Runtime pipeline has clear boundaries (FlowGraph in, execution state out). Depends on inspect (ModuleSessionFactory→NodeDefinitionRegistry) which is already extracted. The animation state integration with UI requires the `ConnectionAnimationProvider` interface.
 
-**Files that move**: 5 files from circuitSimulator (entire module) + 2 files from graphEditor (ModuleSessionFactory, RuntimePreviewPanel)
+**Files that move**: 5 files from circuitSimulator (entire module) + 1 file from graphEditor (ModuleSessionFactory). RuntimePreviewPanel.kt stays in graphEditor (Compose UI).
 
 **Interfaces created**:
 - `RuntimeExecutionService` (lifecycle control)
@@ -601,11 +632,11 @@ Per research.md R5: extract in order of decreasing independence and decreasing r
 - `RuntimeExecutionCharacterizationTest` (graphEditor)
 - All existing tests across all modules
 
-### Step 5: flowGraph-generate (46 files)
+### Step 5: flowGraph-generate (44 files)
 
-**Why fifth**: Code generation depends on types (IP type metadata), persist (serialized output), and inspect (node definitions). All three are already extracted and stable. This is the largest extraction (46 files) but the simplest structurally — kotlinCompiler moves wholesale, plus 8 graphEditor generate-bucket files.
+**Why fifth**: Code generation depends on types (IP type metadata), persist (serialized output), and inspect (node definitions). All three are already extracted and stable. This is the largest extraction (44 files) but the simplest structurally — kotlinCompiler moves wholesale, plus 6 graphEditor generate-bucket files.
 
-**Files that move**: 38 files from kotlinCompiler (entire module) + 8 files from graphEditor (2 ui/, 2 viewmodel/, 3 compilation/, 1 save/)
+**Files that move**: 38 files from kotlinCompiler (entire module) + 6 files from graphEditor (2 viewmodel/, 3 compilation/, 1 save/). IPGeneratorPanel.kt and NodeGeneratorPanel.kt stay in graphEditor (Compose UI).
 
 **Interfaces created**:
 - `CodeGenerationService` (module generation)
@@ -618,11 +649,11 @@ Per research.md R5: extract in order of decreasing independence and decreasing r
 - `FlowKtGeneratorCharacterizationTest` (kotlinCompiler)
 - All existing tests across all modules
 
-### Step 6: flowGraph-compose (10 files)
+### Step 6: flowGraph-compose (4 files)
 
-**Why last**: Graph composition is the most tightly coupled to the UI — GraphState alone has 8 inbound seams from root. All other slices are stable, so compose extraction only needs to create interfaces consumed by root (the composition shell).
+**Why last**: Graph composition logic that doesn't require Compose. All other slices are stable, so compose extraction only needs to create interfaces consumed by root (the composition shell).
 
-**Files that move**: 10 files from graphEditor (3 state/, 3 ui/, 2 viewmodel/, 2 io/.../state/)
+**Files that move**: 4 non-UI files from graphEditor (2 viewmodel/, 2 io/.../state/). 6 Compose UI files (GraphState, PropertyChangeTracker, UndoRedoManager, ConnectionContextMenu, ConnectionHandler, DragAndDropHandler) stay in graphEditor.
 
 **Interfaces created**:
 - `GraphCompositionService` (graph mutations)
@@ -668,7 +699,7 @@ Step 6: flowGraph-compose ──────────────────
             │
             │ all slices extracted
             ▼
-        graphEditor = composition root only (27 files)
+        graphEditor = composition root + Compose UI (43 files)
 ```
 
 ### Extraction Order Dependency Validation
@@ -694,31 +725,33 @@ Step 6: flowGraph-compose ──────────────────
 2. Create a new branch per extraction step (e.g., `065-extract-persist`, `066-extract-inspect`, etc.)
 3. Each step follows the Strangler Fig pattern: define interface → copy implementation → delegate → delete duplicate
 
-### Per-step template
+### Per-step template (Strangler Fig + CodeNode)
 
 For each extraction step N:
 
 1. **Create module**: Add `flowGraph-{name}/build.gradle.kts` and update `settings.gradle.kts`
-2. **Define interfaces**: Create Kotlin interfaces in the new module's public API package
-3. **Copy implementation**: Copy files listed in the Module Boundaries section to the new module
-4. **Add dependency**: `graphEditor/build.gradle.kts` adds `implementation(project(":flowGraph-{name}"))`
-5. **Delegate**: Change call sites in graphEditor to use the interface (backed by the new module's implementation)
-6. **Run tests**: `./gradlew :graphEditor:jvmTest :flowGraph-{name}:jvmTest` — all characterization tests must pass
-7. **Delete duplicates**: Remove the copied files from graphEditor
-8. **Run tests again**: Full test suite must remain green
-9. **Write new unit tests**: TDD tests for the new module's API contract (these replace characterization tests over time)
+2. **Copy non-UI files**: Copy files listed in the Module Boundaries section (excluding @Composable files) to the new module with updated packages
+3. **TDD tests**: Write tests for the CodeNode port signatures and data flow — tests must compile and fail
+4. **Implement CodeNode**: Create coarse-grained CodeNode wrapping the module behind FBP-native input/output ports
+5. **Add dependency**: `graphEditor/build.gradle.kts` adds `implementation(project(":flowGraph-{name}"))`
+6. **Migrate call sites**: Change graphEditor imports to use the new module's packages
+7. **Run tests**: `./gradlew :graphEditor:jvmTest :flowGraph-{name}:jvmTest` — all tests must pass
+8. **Delete originals**: Remove the copied files from graphEditor
+9. **Wire architecture**: Populate the GraphNode in architecture.flow.kt with the child CodeNode and port mappings
+10. **Verify**: Full test suite green, no circular dependencies, Strangler Fig commit sequence visible in git history
 
 ### Post-extraction state
 
 After all six extractions:
-- `graphEditor/` contains only 27 files: Compose composables, orchestration ViewModels, renderers, DI wiring, Main.kt
-- `flowGraph-types/` contains 9 files with `IPTypeRegistryService`, `IPTypeGenerationService`, `IPTypeRepositoryService` interfaces
-- `flowGraph-compose/` contains 10 files with `GraphCompositionService` and `UndoRedoService` interfaces
-- `flowGraph-persist/` contains 8 files with `FlowGraphPersistenceService` and `GraphNodeTemplateService` interfaces
-- `flowGraph-execute/` contains 7 files with `RuntimeExecutionService`, `ConnectionAnimationProvider`, `DebugSnapshotProvider` interfaces
-- `flowGraph-generate/` contains 46 files with `CodeGenerationService` interface
-- `flowGraph-inspect/` contains 13 files with `NodeRegistryService` interface
+- `graphEditor/` contains 43 files: Compose composables, orchestration ViewModels, renderers, DI wiring, Main.kt, and all @Composable presentation files retained per the "Compose stays in graphEditor" principle
+- `flowGraph-types/` contains 9 files — IP type lifecycle (FBP-native CodeNode boundary)
+- `flowGraph-compose/` contains 4 files — non-UI graph mutation logic (FBP-native CodeNode boundary)
+- `flowGraph-persist/` contains 6 files — serialization/persistence (FBP-native CodeNode boundary) — **EXTRACTED (feature 066)**
+- `flowGraph-execute/` contains 6 files — runtime execution (FBP-native CodeNode boundary)
+- `flowGraph-generate/` contains 44 files — code generation (FBP-native CodeNode boundary)
+- `flowGraph-inspect/` contains 7 files — node discovery/inspection (FBP-native CodeNode boundary)
 - `kotlinCompiler/` module is **removed** (absorbed into flowGraph-generate)
 - `circuitSimulator/` module is **removed** (absorbed into flowGraph-execute)
 - All modules depend on `fbpDsl` for shared vocabulary (FlowGraph, Node, Port, Connection, etc.)
+- Each extracted module exposes its boundary as a coarse-grained CodeNode with FBP-native data flow ports — no Koin/DI service interfaces
 - The module dependency graph is a **DAG** — no circular dependencies
