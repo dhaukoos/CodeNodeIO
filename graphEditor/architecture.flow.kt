@@ -73,11 +73,23 @@ val graph = flowGraph("Target Architecture", version = "4.0.0", description = "V
     }
 
     val inspect = graphNode("flowGraph-inspect") {
-        description = "Understanding available components: node palette, filesystem node scanning, CodeNode text editor. 13 files."
+        description = "Node discovery and inspection: NodeDefinitionRegistry, palette ViewModels, filesystem/classpath scanning. 7 files."
         position(100.0, 400.0)
         exposeInput("filesystemPaths", String::class)
         exposeInput("classpathEntries", String::class)
         exposeOutput("nodeDescriptors", String::class)
+
+        // Child CodeNode — FlowGraphInspectCodeNode (In2AnyOut1Runtime, anyInput)
+        val flowGraphInspect = codeNode("FlowGraphInspect", nodeType = "TRANSFORMER") {
+            input("filesystemPaths", String::class)
+            input("classpathEntries", String::class)
+            output("nodeDescriptors", String::class)
+        }
+
+        // Port mappings — wire exposed GraphNode ports to child CodeNode ports
+        portMapping("filesystemPaths", "flowGraphInspect", "filesystemPaths")
+        portMapping("classpathEntries", "flowGraphInspect", "classpathEntries")
+        portMapping("nodeDescriptors", "flowGraphInspect", "nodeDescriptors")
     }
 
     val rootSource = graphNode("graphEditor-source") {

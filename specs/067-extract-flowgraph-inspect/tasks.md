@@ -136,10 +136,10 @@
 
 **Independent Test**: `./gradlew :graphEditor:jvmTest --tests "characterization.ArchitectureFlowKtsTest"` — all tests pass
 
-- [ ] T040 [US5] Update description of the `flowGraph-inspect` graphNode in `graphEditor/architecture.flow.kt` to reflect corrected 7-file scope
-- [ ] T041 [US5] Add `FlowGraphInspect` child codeNode inside the `flowGraph-inspect` graphNode in `graphEditor/architecture.flow.kt` with 2 inputs (filesystemPaths, classpathEntries) and 1 output (nodeDescriptors), nodeType = "TRANSFORMER"
-- [ ] T042 [US5] Add portMapping declarations wiring all 3 exposed ports to the child codeNode ports in `graphEditor/architecture.flow.kt`
-- [ ] T043 [US5] Run `./gradlew :graphEditor:jvmTest --tests "characterization.ArchitectureFlowKtsTest"` to verify all architecture tests pass
+- [X] T040 [US5] Update description of the `flowGraph-inspect` graphNode in `graphEditor/architecture.flow.kt` to reflect corrected 7-file scope
+- [X] T041 [US5] Add `FlowGraphInspect` child codeNode inside the `flowGraph-inspect` graphNode in `graphEditor/architecture.flow.kt` with 2 inputs (filesystemPaths, classpathEntries) and 1 output (nodeDescriptors), nodeType = "TRANSFORMER"
+- [X] T042 [US5] Add portMapping declarations wiring all 3 exposed ports to the child codeNode ports in `graphEditor/architecture.flow.kt`
+- [X] T043 [US5] Run `./gradlew :graphEditor:jvmTest --tests "characterization.ArchitectureFlowKtsTest"` to verify all architecture tests pass
 
 **Checkpoint**: architecture.flow.kt updated. flowGraph-inspect node contains FlowGraphInspect CodeNode with port mappings. All architecture tests pass.
 
@@ -149,11 +149,11 @@
 
 **Purpose**: Verify dependency direction, no cycles, Strangler Fig compliance, full test suite
 
-- [ ] T044 [US6] Verify no dependency on `:graphEditor` in `flowGraph-inspect/build.gradle.kts` — dependency direction is graphEditor → flowGraph-inspect → {flowGraph-types, flowGraph-persist} → fbpDsl
-- [ ] T045 [US6] Verify no circular dependency exists by running `./gradlew :flowGraph-inspect:dependencies` and confirming only fbpDsl, flowGraph-types, and flowGraph-persist appear
-- [ ] T046 [US6] Verify Strangler Fig sequence in git history: module creation → file copy → TDD tests → CodeNode implementation → call site migration → original removal → architecture wiring
-- [ ] T047 Run full test suite: `./gradlew :graphEditor:jvmTest :kotlinCompiler:jvmTest :circuitSimulator:jvmTest :flowGraph-types:jvmTest :flowGraph-persist:jvmTest :flowGraph-inspect:jvmTest` to verify zero regressions
-- [ ] T048 Run quickstart.md validation scenarios (Scenarios 1-14)
+- [X] T044 [US6] Verify no dependency on `:graphEditor` in `flowGraph-inspect/build.gradle.kts` — dependency direction is graphEditor → flowGraph-inspect → {flowGraph-types, flowGraph-persist} → fbpDsl
+- [X] T045 [US6] Verify no circular dependency exists by running `./gradlew :flowGraph-inspect:dependencies` and confirming only fbpDsl, flowGraph-types, and flowGraph-persist appear
+- [X] T046 [US6] Verify Strangler Fig sequence in git history: module creation → file copy → TDD tests → CodeNode implementation → call site migration → original removal → architecture wiring
+- [X] T047 Run full test suite: `./gradlew :graphEditor:jvmTest :kotlinCompiler:jvmTest :circuitSimulator:jvmTest :flowGraph-types:jvmTest :flowGraph-persist:jvmTest :flowGraph-inspect:jvmTest` to verify zero regressions
+- [X] T048 Run quickstart.md validation scenarios (Scenarios 1-14)
 
 **Checkpoint**: All verification complete. No cycles. Strangler Fig pattern followed. Zero regressions.
 
