@@ -2,7 +2,7 @@
 
 **Visual Flow-based Programming for Full-Stack Development**
 
-CodeNodeIO is a graph editing tool that enables developers to create full-stack applications using Flow-based Programming (FBP) principles through a visual CAD-like interface. Design flow graphs visually, generate production-ready Kotlin Multiplatform (Android, iOS, Web) and Go (backend) code automatically.
+CodeNodeIO is a graph editing tool that enables developers to create full-stack applications using Flow-based Programming (FBP) principles through a visual CAD-like interface. Design 'flowGraphs' visually, generate production-ready Kotlin Multiplatform (Android, iOS, Web) and Go (backend) code automatically.
 
 ![Status](https://img.shields.io/badge/status-in%20development-yellow)
 ![License](https://img.shields.io/badge/license-Apache%202.0-blue)
