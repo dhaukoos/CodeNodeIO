@@ -161,13 +161,39 @@ val graph = flowGraph("Target Architecture", version = "4.0.0", description = "V
     }
 
     val generate = graphNode("flowGraph-generate") {
-        description = "Producing deployable code: all generators, templates, validators, module save. 46 files. Absorbs kotlinCompiler (38 files)."
+        description = "Code generation: generators, templates, validators, compilation, module save. Two-node sub-graph: GenerateContextAggregator aggregates flowGraphModel + serializedOutput into generationContext, FlowGraphGenerate combines generationContext + nodeDescriptors + ipTypeMetadata into generatedOutput."
         position(700.0, 400.0)
         exposeInput("flowGraphModel", String::class)
         exposeInput("serializedOutput", String::class)
         exposeInput("nodeDescriptors", String::class)
         exposeInput("ipTypeMetadata", String::class)
         exposeOutput("generatedOutput", String::class)
+
+        // Child CodeNodes
+        val generateContextAggregator = codeNode("GenerateContextAggregator", nodeType = "TRANSFORMER") {
+            position(50.0, 50.0)
+            input("flowGraphModel", String::class)
+            input("serializedOutput", String::class)
+            output("generationContext", String::class)
+        }
+
+        val flowGraphGenerate = codeNode("FlowGraphGenerate", nodeType = "TRANSFORMER") {
+            position(350.0, 50.0)
+            input("generationContext", String::class)
+            input("nodeDescriptors", String::class)
+            input("ipTypeMetadata", String::class)
+            output("generatedOutput", String::class)
+        }
+
+        // Port mappings — wire exposed GraphNode ports to child CodeNode ports
+        portMapping("flowGraphModel", "GenerateContextAggregator", "flowGraphModel")
+        portMapping("serializedOutput", "GenerateContextAggregator", "serializedOutput")
+        portMapping("nodeDescriptors", "FlowGraphGenerate", "nodeDescriptors")
+        portMapping("ipTypeMetadata", "FlowGraphGenerate", "ipTypeMetadata")
+        portMapping("generatedOutput", "FlowGraphGenerate", "generatedOutput")
+
+        // Internal connection — aggregator output feeds into generate node
+        generateContextAggregator.output("generationContext") connect flowGraphGenerate.input("generationContext")
     }
 
     val rootSink = graphNode("graphEditor-sink") {

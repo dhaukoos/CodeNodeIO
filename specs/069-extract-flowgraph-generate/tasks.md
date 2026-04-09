@@ -134,11 +134,11 @@
 
 **Goal**: Update architecture.flow.kt with two-node sub-graph for flowGraph-generate
 
-- [ ] T033 [US3] Update the generate graphNode in `graphEditor/architecture.flow.kt` — add child codeNode "GenerateContextAggregator" (TRANSFORMER) with inputs flowGraphModel, serializedOutput and output generationContext
-- [ ] T034 [US3] Add child codeNode "FlowGraphGenerate" (TRANSFORMER) with inputs generationContext, nodeDescriptors, ipTypeMetadata and output generatedOutput to the generate graphNode in `graphEditor/architecture.flow.kt`
-- [ ] T035 [US3] Add port mappings to generate graphNode in `graphEditor/architecture.flow.kt` — map 4 exposed inputs to correct child codeNode ports, map exposed output to FlowGraphGenerate's generatedOutput
-- [ ] T036 [US3] Add internal connection in generate graphNode: GenerateContextAggregator output "generationContext" → FlowGraphGenerate input "generationContext"
-- [ ] T037 [US3] Update generate graphNode description to reflect actual file count and two-node sub-graph structure
+- [X] T033 [US3] Update the generate graphNode in `graphEditor/architecture.flow.kt` — add child codeNode "GenerateContextAggregator" (TRANSFORMER) with inputs flowGraphModel, serializedOutput and output generationContext
+- [X] T034 [US3] Add child codeNode "FlowGraphGenerate" (TRANSFORMER) with inputs generationContext, nodeDescriptors, ipTypeMetadata and output generatedOutput to the generate graphNode in `graphEditor/architecture.flow.kt`
+- [X] T035 [US3] Add port mappings to generate graphNode in `graphEditor/architecture.flow.kt` — map 4 exposed inputs to correct child codeNode ports, map exposed output to FlowGraphGenerate's generatedOutput
+- [X] T036 [US3] Add internal connection in generate graphNode: GenerateContextAggregator output "generationContext" → FlowGraphGenerate input "generationContext"
+- [X] T037 [US3] Update generate graphNode description to reflect actual file count and two-node sub-graph structure
 
 **Checkpoint**: architecture.flow.kt parses successfully with all 20 external connections intact
 
@@ -148,13 +148,13 @@
 
 **Purpose**: Final validation across the entire project
 
-- [ ] T038 Run full project compilation: `./gradlew compileKotlinJvm` (all modules)
-- [ ] T039 Run full test suite: `./gradlew check` — all existing tests must pass
-- [ ] T040 Run characterization tests specifically: `./gradlew :flowGraph-generate:jvmTest --tests "io.codenode.flowgraphgenerate.characterization.*"`
-- [ ] T041 Run architecture validation: `./gradlew :graphEditor:jvmTest --tests "*ArchitectureFlowKtsTest*"` (if exists)
-- [ ] T042 Verify SC-004: grep entire codebase for `io.codenode.kotlincompiler` — must return zero results outside flowGraph-generate
-- [ ] T043 Verify SC-005: confirm `kotlinCompiler/` directory does not exist
-- [ ] T044 Verify SC-008: confirm IPGeneratorPanel.kt and NodeGeneratorPanel.kt in graphEditor compile with flowGraph-generate imports
+- [X] T038 Run full project compilation: `./gradlew compileKotlinJvm` (all modules)
+- [X] T039 Run full test suite: `./gradlew check` — all existing tests must pass
+- [X] T040 Run characterization tests specifically: `./gradlew :flowGraph-generate:jvmTest --tests "io.codenode.flowgraphgenerate.characterization.*"`
+- [X] T041 Run architecture validation: `./gradlew :graphEditor:jvmTest --tests "*ArchitectureFlowKtsTest*"` (if exists)
+- [X] T042 Verify SC-004: grep entire codebase for `io.codenode.kotlincompiler` — must return zero results outside flowGraph-generate
+- [X] T043 Verify SC-005: confirm `kotlinCompiler/` directory does not exist
+- [X] T044 Verify SC-008: confirm IPGeneratorPanel.kt and NodeGeneratorPanel.kt in graphEditor compile with flowGraph-generate imports
 
 ---
 
