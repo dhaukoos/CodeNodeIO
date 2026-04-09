@@ -24,7 +24,7 @@ kotlin {
                 implementation(project(":flowGraph-persist"))
                 implementation(project(":flowGraph-inspect"))
                 implementation(project(":preview-api"))
-                implementation(project(":circuitSimulator"))
+                implementation(project(":flowGraph-execute"))
                 // Koin DI
                 implementation("io.insert-koin:koin-core:4.0.0")
                 // Compose Multiplatform dependencies (using compose DSL)

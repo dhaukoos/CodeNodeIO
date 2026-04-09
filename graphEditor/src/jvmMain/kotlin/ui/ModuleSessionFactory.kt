@@ -5,7 +5,7 @@
 
 package io.codenode.grapheditor.ui
 
-import io.codenode.circuitsimulator.RuntimeSession
+import io.codenode.flowgraphexecute.RuntimeSession
 import io.codenode.fbpdsl.model.FlowGraph
 import io.codenode.fbpdsl.runtime.DynamicPipelineBuilder
 import io.codenode.fbpdsl.runtime.DynamicPipelineController

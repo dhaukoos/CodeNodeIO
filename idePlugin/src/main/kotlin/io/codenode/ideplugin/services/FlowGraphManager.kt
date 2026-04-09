@@ -15,9 +15,9 @@ import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.openapi.vfs.newvfs.BulkFileListener
 import com.intellij.openapi.vfs.newvfs.events.VFileEvent
 import io.codenode.fbpdsl.model.FlowGraph
-import io.codenode.grapheditor.serialization.FlowGraphSerializer
-import io.codenode.grapheditor.serialization.FlowKtParser
-import io.codenode.grapheditor.serialization.ParseResult
+import io.codenode.flowgraphpersist.serialization.FlowGraphSerializer
+import io.codenode.flowgraphpersist.serialization.FlowKtParser
+import io.codenode.flowgraphpersist.serialization.ParseResult
 import java.io.File
 import java.util.concurrent.ConcurrentHashMap
 

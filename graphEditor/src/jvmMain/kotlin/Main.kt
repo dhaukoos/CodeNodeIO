@@ -59,10 +59,10 @@ import io.codenode.grapheditor.ui.CompactPropertiesPanelWithViewModel
 import io.codenode.grapheditor.ui.UnsavedChangesDialog
 import io.codenode.grapheditor.ui.PanelSide
 import io.codenode.flowgraphinspect.discovery.DynamicPreviewDiscovery
-import io.codenode.grapheditor.ui.ModuleSessionFactory
+import io.codenode.flowgraphexecute.ModuleSessionFactory
 import io.codenode.grapheditor.ui.RuntimePreviewPanel
-import io.codenode.circuitsimulator.ConnectionAnimation
-import io.codenode.circuitsimulator.RuntimeSession
+import io.codenode.flowgraphexecute.ConnectionAnimation
+import io.codenode.flowgraphexecute.RuntimeSession
 import io.codenode.grapheditor.ui.PropertiesPanelState
 import io.codenode.flowgraphtypes.repository.FileIPTypeRepository
 import io.codenode.flowgraphtypes.repository.IPTypeMigration

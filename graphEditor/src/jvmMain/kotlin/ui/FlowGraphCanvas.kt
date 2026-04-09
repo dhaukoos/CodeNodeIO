@@ -22,7 +22,7 @@ import androidx.compose.ui.input.pointer.*
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.geometry.Rect
-import io.codenode.circuitsimulator.ConnectionAnimation
+import io.codenode.flowgraphexecute.ConnectionAnimation
 import io.codenode.fbpdsl.model.FlowGraph
 import io.codenode.fbpdsl.model.Node
 import io.codenode.fbpdsl.model.GraphNode

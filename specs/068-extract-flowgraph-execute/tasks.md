@@ -89,14 +89,14 @@
 
 **Independent Test**: `./gradlew :graphEditor:jvmTest :circuitSimulator:jvmTest` — all tests pass
 
-- [ ] T019 [US3] Update `graphEditor/build.gradle.kts` — add `implementation(project(":flowGraph-execute"))` and remove `implementation(project(":circuitSimulator"))` dependency
-- [ ] T020 [US3] Update `graphEditor/src/jvmMain/kotlin/Main.kt` — change imports of `io.codenode.circuitsimulator.ConnectionAnimation` and `io.codenode.circuitsimulator.RuntimeSession` to `io.codenode.flowgraphexecute.ConnectionAnimation` and `io.codenode.flowgraphexecute.RuntimeSession`; change import of ModuleSessionFactory to `io.codenode.flowgraphexecute.ModuleSessionFactory`
-- [ ] T021 [P] [US3] Update `graphEditor/src/jvmMain/kotlin/ui/FlowGraphCanvas.kt` — change import of `io.codenode.circuitsimulator.ConnectionAnimation` to `io.codenode.flowgraphexecute.ConnectionAnimation`
-- [ ] T022 [P] [US3] Update `graphEditor/src/jvmMain/kotlin/ui/RuntimePreviewPanel.kt` — change import of `io.codenode.circuitsimulator.RuntimeSession` to `io.codenode.flowgraphexecute.RuntimeSession`
-- [ ] T023 [US3] Update `idePlugin/build.gradle.kts` — replace `implementation(project(":circuitSimulator"))` with `implementation(project(":flowGraph-execute"))`
-- [ ] T024 [US3] Search all graphEditor source files for any remaining `io.codenode.circuitsimulator` imports and update them to `io.codenode.flowgraphexecute`; also search for any remaining `io.codenode.grapheditor.ui.ModuleSessionFactory` imports
-- [ ] T025 [US3] Run `./gradlew :graphEditor:compileKotlinJvm :idePlugin:compileKotlinJvm` to verify all call site migrations compile
-- [ ] T026 [US3] Run `./gradlew :graphEditor:jvmTest` to verify no regressions after call site migration
+- [X] T019 [US3] Update `graphEditor/build.gradle.kts` — add `implementation(project(":flowGraph-execute"))` and remove `implementation(project(":circuitSimulator"))` dependency
+- [X] T020 [US3] Update `graphEditor/src/jvmMain/kotlin/Main.kt` — change imports of `io.codenode.circuitsimulator.ConnectionAnimation` and `io.codenode.circuitsimulator.RuntimeSession` to `io.codenode.flowgraphexecute.ConnectionAnimation` and `io.codenode.flowgraphexecute.RuntimeSession`; change import of ModuleSessionFactory to `io.codenode.flowgraphexecute.ModuleSessionFactory`
+- [X] T021 [P] [US3] Update `graphEditor/src/jvmMain/kotlin/ui/FlowGraphCanvas.kt` — change import of `io.codenode.circuitsimulator.ConnectionAnimation` to `io.codenode.flowgraphexecute.ConnectionAnimation`
+- [X] T022 [P] [US3] Update `graphEditor/src/jvmMain/kotlin/ui/RuntimePreviewPanel.kt` — change import of `io.codenode.circuitsimulator.RuntimeSession` to `io.codenode.flowgraphexecute.RuntimeSession`
+- [X] T023 [US3] Update `idePlugin/build.gradle.kts` — replace `implementation(project(":circuitSimulator"))` with `implementation(project(":flowGraph-execute"))`
+- [X] T024 [US3] Search all graphEditor source files for any remaining `io.codenode.circuitsimulator` imports and update them to `io.codenode.flowgraphexecute`; also search for any remaining `io.codenode.grapheditor.ui.ModuleSessionFactory` imports
+- [X] T025 [US3] Run `./gradlew :graphEditor:compileKotlinJvm :idePlugin:compileKotlinJvm` to verify all call site migrations compile
+- [X] T026 [US3] Run `./gradlew :graphEditor:jvmTest` to verify no regressions after call site migration
 
 **Checkpoint**: All call sites migrated. Old files are dead code. All tests pass.
 

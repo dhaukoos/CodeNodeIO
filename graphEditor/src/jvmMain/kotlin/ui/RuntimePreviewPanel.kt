@@ -27,7 +27,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import io.codenode.circuitsimulator.RuntimeSession
+import io.codenode.flowgraphexecute.RuntimeSession
 import io.codenode.fbpdsl.model.ExecutionState
 import java.io.File
 

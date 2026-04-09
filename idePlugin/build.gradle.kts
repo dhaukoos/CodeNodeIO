@@ -50,7 +50,8 @@ dependencies {
     // Dependencies on all project modules
     implementation(project(":fbpDsl"))
     implementation(project(":graphEditor"))
-    implementation(project(":circuitSimulator"))
+    implementation(project(":flowGraph-execute"))
+    implementation(project(":flowGraph-persist"))
     implementation(project(":kotlinCompiler"))
     implementation(project(":goCompiler"))
 

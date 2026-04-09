@@ -972,7 +972,7 @@ fun ConnectionPropertiesPanel(
     flowGraph: FlowGraph,
     ipTypeRegistry: IPTypeRegistry? = null,
     onIPTypeChanged: ((String, String) -> Unit)? = null,
-    debugger: io.codenode.circuitsimulator.DataFlowDebugger? = null,
+    debugger: io.codenode.flowgraphexecute.DataFlowDebugger? = null,
     isPaused: Boolean = false,
     isAnimateDataFlow: Boolean = false,
     modifier: Modifier = Modifier
@@ -1808,7 +1808,7 @@ fun CompactPropertiesPanelWithViewModel(
     checkPromotionCandidates: ((PlacementLevel) -> List<PromotionCandidate>)? = null,
     onPromoteAndSave: ((List<PromotionCandidate>, PlacementLevel) -> Unit)? = null,
     checkDuplicateName: ((String, PlacementLevel) -> Boolean)? = null,
-    debugger: io.codenode.circuitsimulator.DataFlowDebugger? = null,
+    debugger: io.codenode.flowgraphexecute.DataFlowDebugger? = null,
     isPaused: Boolean = false,
     isAnimateDataFlow: Boolean = false,
     showEditButton: Boolean = false,

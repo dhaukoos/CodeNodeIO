@@ -22,7 +22,7 @@ import com.intellij.ui.dsl.builder.bindText
 import com.intellij.ui.dsl.builder.panel
 import com.intellij.ui.dsl.builder.text
 import io.codenode.fbpdsl.dsl.flowGraph
-import io.codenode.grapheditor.serialization.FlowGraphSerializer
+import io.codenode.flowgraphpersist.serialization.FlowGraphSerializer
 import io.codenode.ideplugin.services.FlowGraphManager
 import java.io.File
 import javax.swing.JComponent
