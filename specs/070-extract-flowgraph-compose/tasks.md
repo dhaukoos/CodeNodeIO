@@ -19,9 +19,9 @@
 
 **Purpose**: Create flowGraph-compose KMP module structure and build configuration
 
-- [ ] T001 Create flowGraph-compose module directory structure: `flowGraph-compose/src/{jvmMain,jvmTest}/kotlin/io/codenode/flowgraphcompose/`
-- [ ] T002 Create `flowGraph-compose/build.gradle.kts` with KMP configuration — dependencies: `:fbpDsl` (commonMain), compose-desktop + lifecycle-viewmodel-compose 2.8.0 + kotlinx-coroutines 1.8.0 (jvmMain), kotlin-test + junit5 (test). Follow the pattern from `flowGraph-inspect/build.gradle.kts` for compose-desktop dependency setup
-- [ ] T003 Update `settings.gradle.kts` — add `include(":flowGraph-compose")`
+- [X] T001 Create flowGraph-compose module directory structure: `flowGraph-compose/src/{jvmMain,jvmTest}/kotlin/io/codenode/flowgraphcompose/`
+- [X] T002 Create `flowGraph-compose/build.gradle.kts` with KMP configuration — dependencies: `:fbpDsl` (commonMain), compose-desktop + lifecycle-viewmodel-compose 2.8.0 + kotlinx-coroutines 1.8.0 (jvmMain), kotlin-test + junit5 (test). Follow the pattern from `flowGraph-inspect/build.gradle.kts` for compose-desktop dependency setup
+- [X] T003 Update `settings.gradle.kts` — add `include(":flowGraph-compose")`
 
 **Checkpoint**: Empty module compiles — `./gradlew :flowGraph-compose:compileKotlinJvm`
 
@@ -33,13 +33,13 @@
 
 ### viewmodel files (2 files)
 
-- [ ] T004 [P] [US1] Copy `CanvasInteractionViewModel.kt` from `graphEditor/src/jvmMain/kotlin/viewmodel/` to `flowGraph-compose/src/jvmMain/kotlin/io/codenode/flowgraphcompose/viewmodel/` — update package to `io.codenode.flowgraphcompose.viewmodel`, update all internal `io.codenode.grapheditor` imports. If file references `GraphState` from graphEditor, refactor to depend on fbpDsl model types (FlowGraph, Node, Connection) or extract an interface
-- [ ] T005 [P] [US1] Copy `PropertiesPanelViewModel.kt` from `graphEditor/src/jvmMain/kotlin/viewmodel/` to `flowGraph-compose/src/jvmMain/kotlin/io/codenode/flowgraphcompose/viewmodel/` — update package and imports similarly
+- [X] T004 [P] [US1] Copy `CanvasInteractionViewModel.kt` from `graphEditor/src/jvmMain/kotlin/viewmodel/` to `flowGraph-compose/src/jvmMain/kotlin/io/codenode/flowgraphcompose/viewmodel/` — update package to `io.codenode.flowgraphcompose.viewmodel`, update all internal `io.codenode.grapheditor` imports. If file references `GraphState` from graphEditor, refactor to depend on fbpDsl model types (FlowGraph, Node, Connection) or extract an interface
+- [X] T005 [P] [US1] Copy `PropertiesPanelViewModel.kt` from `graphEditor/src/jvmMain/kotlin/viewmodel/` to `flowGraph-compose/src/jvmMain/kotlin/io/codenode/flowgraphcompose/viewmodel/` — update package and imports similarly
 
 ### state files (2 files)
 
-- [ ] T006 [P] [US1] Copy `NodeGeneratorState.kt` from `graphEditor/src/jvmMain/kotlin/state/` to `flowGraph-compose/src/jvmMain/kotlin/io/codenode/flowgraphcompose/state/` — update package to `io.codenode.flowgraphcompose.state`
-- [ ] T007 [P] [US1] Copy `ViewSynchronizer.kt` from `graphEditor/src/jvmMain/kotlin/state/` to `flowGraph-compose/src/jvmMain/kotlin/io/codenode/flowgraphcompose/state/` — update package and imports. If file references `GraphState` from graphEditor, refactor to depend on fbpDsl model types instead
+- [X] T006 [P] [US1] Copy `NodeGeneratorState.kt` from `graphEditor/src/jvmMain/kotlin/state/` to `flowGraph-compose/src/jvmMain/kotlin/io/codenode/flowgraphcompose/state/` — update package to `io.codenode.flowgraphcompose.state`
+- [X] T007 [P] [US1] Copy `ViewSynchronizer.kt` from `graphEditor/src/jvmMain/kotlin/state/` to `flowGraph-compose/src/jvmMain/kotlin/io/codenode/flowgraphcompose/state/` — update package and imports. If file references `GraphState` from graphEditor, refactor to depend on fbpDsl model types instead
 
 **Checkpoint**: New module compiles alongside originals — `./gradlew :flowGraph-compose:compileKotlinJvm`
 
