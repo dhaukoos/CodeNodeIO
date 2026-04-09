@@ -11,6 +11,9 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 import kotlin.test.assertFailsWith
+import kotlinx.datetime.Clock
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.measureTime
 
 /**
  * Tests for RootControlNode - the master controller for FlowGraph execution.
@@ -27,6 +30,8 @@ import kotlin.test.assertFailsWith
  * 6. setNodeState() - targets specific node by ID
  */
 class RootControlNodeTest {
+
+    private var flowGraphCounter = 0
 
     // ========== Helper Functions ==========
 
@@ -84,7 +89,7 @@ class RootControlNodeTest {
         name: String = "TestFlow"
     ): FlowGraph {
         return FlowGraph(
-            id = "test-flow-${System.currentTimeMillis()}",
+            id = "test-flow-${flowGraphCounter++}",
             name = name,
             version = "1.0.0",
             rootNodes = rootNodes
@@ -137,11 +142,11 @@ class RootControlNodeTest {
     fun `T032 - createFor sets createdAt timestamp`() {
         // Given: A FlowGraph
         val flowGraph = createFlowGraph(listOf(createCodeNode("node-1")))
-        val beforeCreate = System.currentTimeMillis()
+        val beforeCreate = Clock.System.now().toEpochMilliseconds()
 
         // When: Creating controller
         val controller = RootControlNode.createFor(flowGraph)
-        val afterCreate = System.currentTimeMillis()
+        val afterCreate = Clock.System.now().toEpochMilliseconds()
 
         // Then: createdAt should be within the time range
         assertTrue(controller.createdAt >= beforeCreate)
@@ -563,19 +568,19 @@ class RootControlNodeTest {
         val controller = RootControlNode.createFor(largeGraph)
 
         // When: Measuring time to get status
-        val startTime = System.currentTimeMillis()
-        val status = controller.getStatus()
-        val endTime = System.currentTimeMillis()
-        val duration = endTime - startTime
+        var status: FlowExecutionStatus? = null
+        val duration = measureTime {
+            status = controller.getStatus()
+        }
 
         // Then: Should complete in under 10ms
-        assertTrue(duration < 10,
-            "getStatus for 100+ nodes should complete in under 10ms, took ${duration}ms")
+        assertTrue(duration < 10.milliseconds,
+            "getStatus for 100+ nodes should complete in under 10ms, took $duration")
 
         // Verify status is accurate
-        assertTrue(status.totalNodes >= 100,
-            "Should have at least 100 nodes, had ${status.totalNodes}")
-        assertEquals(status.totalNodes, status.idleCount,
+        assertTrue(status!!.totalNodes >= 100,
+            "Should have at least 100 nodes, had ${status!!.totalNodes}")
+        assertEquals(status!!.totalNodes, status!!.idleCount,
             "All nodes should be IDLE initially")
     }
 
@@ -590,17 +595,17 @@ class RootControlNodeTest {
         controller = RootControlNode.createFor(runningGraph)
 
         // When: Measuring time to get status
-        val startTime = System.currentTimeMillis()
-        val status = controller.getStatus()
-        val endTime = System.currentTimeMillis()
-        val duration = endTime - startTime
+        var status: FlowExecutionStatus? = null
+        val duration = measureTime {
+            status = controller.getStatus()
+        }
 
         // Then: Should complete in under 10ms
-        assertTrue(duration < 10,
-            "getStatus for 100+ nodes should complete in under 10ms, took ${duration}ms")
+        assertTrue(duration < 10.milliseconds,
+            "getStatus for 100+ nodes should complete in under 10ms, took $duration")
 
         // Verify status reflects RUNNING state
-        assertEquals(ExecutionState.RUNNING, status.overallState)
+        assertEquals(ExecutionState.RUNNING, status!!.overallState)
     }
 
     @Test
@@ -610,17 +615,17 @@ class RootControlNodeTest {
         val controller = RootControlNode.createFor(largeGraph)
 
         // When: Measuring time to start all
-        val startTime = System.currentTimeMillis()
-        val updatedGraph = controller.startAll()
-        val endTime = System.currentTimeMillis()
-        val duration = endTime - startTime
+        var updatedGraph: FlowGraph? = null
+        val duration = measureTime {
+            updatedGraph = controller.startAll()
+        }
 
         // Then: Should complete in under 50ms
-        assertTrue(duration < 50,
-            "startAll for 100+ nodes should complete in under 50ms, took ${duration}ms")
+        assertTrue(duration < 50.milliseconds,
+            "startAll for 100+ nodes should complete in under 50ms, took $duration")
 
         // Verify all nodes are RUNNING
-        val newController = RootControlNode.createFor(updatedGraph)
+        val newController = RootControlNode.createFor(updatedGraph!!)
         val status = newController.getStatus()
         assertEquals(status.totalNodes, status.runningCount)
     }

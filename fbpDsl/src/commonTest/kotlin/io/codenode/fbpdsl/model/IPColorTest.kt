@@ -33,7 +33,7 @@ class IPColorTest {
     }
 
     @Test
-    fun `should create IPColor with default values (black)`() {
+    fun `should create IPColor with default values - black`() {
         // Given default constructor
         val color = IPColor()
 
@@ -152,12 +152,12 @@ class IPColorTest {
     // ============================================
 
     @Test
-    fun `BLACK constant should be (0, 0, 0)`() {
+    fun `BLACK constant should be 0 0 0`() {
         assertEquals(IPColor(0, 0, 0), IPColor.BLACK)
     }
 
     @Test
-    fun `WHITE constant should be (255, 255, 255)`() {
+    fun `WHITE constant should be 255 255 255`() {
         assertEquals(IPColor(255, 255, 255), IPColor.WHITE)
     }
 

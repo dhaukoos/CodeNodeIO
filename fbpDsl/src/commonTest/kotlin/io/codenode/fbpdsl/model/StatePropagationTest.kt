@@ -10,6 +10,8 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
 import kotlin.test.assertTrue
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.measureTime
 
 /**
  * Tests for hierarchical execution state propagation.
@@ -913,18 +915,18 @@ class StatePropagationTest {
         val largeHierarchy = createLargeHierarchy(10, 9)
 
         // When: Measuring time to propagate state change
-        val startTime = System.currentTimeMillis()
-        val updatedHierarchy = largeHierarchy.withExecutionState(ExecutionState.RUNNING, propagate = true)
-        val endTime = System.currentTimeMillis()
-        val duration = endTime - startTime
+        var updatedHierarchy: GraphNode? = null
+        val duration = measureTime {
+            updatedHierarchy = largeHierarchy.withExecutionState(ExecutionState.RUNNING, propagate = true)
+        }
 
         // Then: Should complete in under 100ms
-        assertTrue(duration < 100,
-            "State propagation for 100 nodes should complete in under 100ms, took ${duration}ms")
+        assertTrue(duration < 100.milliseconds,
+            "State propagation for 100 nodes should complete in under 100ms, took $duration")
 
         // Verify propagation actually worked
-        assertEquals(ExecutionState.RUNNING, updatedHierarchy.executionState)
-        val totalNodes = countTotalNodes(updatedHierarchy)
+        assertEquals(ExecutionState.RUNNING, updatedHierarchy!!.executionState)
+        val totalNodes = countTotalNodes(updatedHierarchy!!)
         assertTrue(totalNodes >= 100, "Should have at least 100 nodes, had $totalNodes")
     }
 
@@ -935,17 +937,17 @@ class StatePropagationTest {
 
         // When: Measuring time to propagate config change
         val newConfig = ControlConfig(speedAttenuation = 500L)
-        val startTime = System.currentTimeMillis()
-        val updatedHierarchy = largeHierarchy.withControlConfig(newConfig, propagate = true)
-        val endTime = System.currentTimeMillis()
-        val duration = endTime - startTime
+        var updatedHierarchy: GraphNode? = null
+        val duration = measureTime {
+            updatedHierarchy = largeHierarchy.withControlConfig(newConfig, propagate = true)
+        }
 
         // Then: Should complete in under 100ms
-        assertTrue(duration < 100,
-            "Config propagation for 100 nodes should complete in under 100ms, took ${duration}ms")
+        assertTrue(duration < 100.milliseconds,
+            "Config propagation for 100 nodes should complete in under 100ms, took $duration")
 
         // Verify propagation actually worked
-        assertEquals(500L, updatedHierarchy.controlConfig.speedAttenuation)
+        assertEquals(500L, updatedHierarchy!!.controlConfig.speedAttenuation)
     }
 
     /**

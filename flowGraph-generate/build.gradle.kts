@@ -16,22 +16,7 @@ kotlin {
         }
     }
 
-    // iOS targets for multiplatform support
-    listOf(
-        iosX64(),
-        iosArm64(),
-        iosSimulatorArm64()
-    ).forEach { iosTarget ->
-        iosTarget.binaries.framework {
-            baseName = "flowGraphGenerate"
-            isStatic = true
-        }
-    }
-
-    // Use default hierarchy template for shared iOS source sets
-    applyDefaultHierarchyTemplate()
-
-    sourceSets {
+sourceSets {
         val commonMain by getting {
             dependencies {
                 implementation(project(":fbpDsl"))

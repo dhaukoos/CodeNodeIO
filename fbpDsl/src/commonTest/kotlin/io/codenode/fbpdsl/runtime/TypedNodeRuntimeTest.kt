@@ -488,7 +488,7 @@ class TypedNodeRuntimeTest {
     }
 
     @Test
-    fun `In1Out2Runtime skips sending null values (selective output)`() = runTest {
+    fun `In1Out2Runtime skips sending null values - selective output`() = runTest {
         // Given: A processor that conditionally outputs to channels
         val processor = CodeNodeFactory.createIn1Out2Processor<Int, Int, String>(
             name = "SelectiveSplitter"
