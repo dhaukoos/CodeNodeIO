@@ -4,7 +4,7 @@
  * License: Apache 2.0
  */
 
-package io.codenode.grapheditor.compilation
+package io.codenode.flowgraphgenerate.compilation
 
 import io.codenode.fbpdsl.model.*
 import java.io.File

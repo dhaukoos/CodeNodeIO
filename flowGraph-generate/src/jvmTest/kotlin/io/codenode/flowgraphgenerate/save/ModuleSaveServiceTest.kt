@@ -4,7 +4,7 @@
  * License: Apache 2.0
  */
 
-package io.codenode.grapheditor.save
+package io.codenode.flowgraphgenerate.save
 
 import io.codenode.fbpdsl.model.*
 import io.codenode.flowgraphgenerate.generator.RuntimeViewModelGenerator

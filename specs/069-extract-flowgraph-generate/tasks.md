@@ -121,10 +121,10 @@
 
 **Goal**: Delete original files and the kotlinCompiler module
 
-- [ ] T029 [US1] Remove the 6 original graphEditor generate-bucket files: `graphEditor/src/jvmMain/kotlin/viewmodel/IPGeneratorViewModel.kt`, `graphEditor/src/jvmMain/kotlin/viewmodel/NodeGeneratorViewModel.kt`, `graphEditor/src/jvmMain/kotlin/compilation/CompilationService.kt`, `graphEditor/src/jvmMain/kotlin/compilation/CompilationValidator.kt`, `graphEditor/src/jvmMain/kotlin/compilation/RequiredPropertyValidator.kt`, `graphEditor/src/jvmMain/kotlin/save/ModuleSaveService.kt`
-- [ ] T030 [US1] Delete the entire `kotlinCompiler/` directory
-- [ ] T031 [US1] Update `settings.gradle.kts` — remove `include(":kotlinCompiler")`
-- [ ] T032 [US1] Verify zero references to `io.codenode.kotlincompiler` remain outside `flowGraph-generate` — search entire codebase
+- [X] T029 [US1] Remove the 6 original graphEditor generate-bucket files: `graphEditor/src/jvmMain/kotlin/viewmodel/IPGeneratorViewModel.kt`, `graphEditor/src/jvmMain/kotlin/viewmodel/NodeGeneratorViewModel.kt`, `graphEditor/src/jvmMain/kotlin/compilation/CompilationService.kt`, `graphEditor/src/jvmMain/kotlin/compilation/CompilationValidator.kt`, `graphEditor/src/jvmMain/kotlin/compilation/RequiredPropertyValidator.kt`, `graphEditor/src/jvmMain/kotlin/save/ModuleSaveService.kt`
+- [X] T030 [US1] Delete the entire `kotlinCompiler/` directory
+- [X] T031 [US1] Update `settings.gradle.kts` — remove `include(":kotlinCompiler")`
+- [X] T032 [US1] Verify zero references to `io.codenode.kotlincompiler` remain outside `flowGraph-generate` — search entire codebase
 
 **Checkpoint**: Full project compiles and all tests pass — `./gradlew check`
 

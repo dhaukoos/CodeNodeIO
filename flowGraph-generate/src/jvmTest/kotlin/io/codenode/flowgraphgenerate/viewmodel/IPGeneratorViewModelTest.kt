@@ -4,7 +4,7 @@
  * License: Apache 2.0
  */
 
-package io.codenode.grapheditor.viewmodel
+package io.codenode.flowgraphgenerate.viewmodel
 
 import io.codenode.flowgraphtypes.model.CustomIPTypeDefinition
 import io.codenode.flowgraphtypes.model.IPProperty
