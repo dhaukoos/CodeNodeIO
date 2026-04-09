@@ -17,8 +17,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import io.codenode.grapheditor.viewmodel.NodeGeneratorViewModel
-import io.codenode.grapheditor.viewmodel.NodeGeneratorPanelState
+import io.codenode.flowgraphgenerate.viewmodel.NodeGeneratorViewModel
+import io.codenode.flowgraphgenerate.viewmodel.NodeGeneratorPanelState
 import io.codenode.fbpdsl.model.PlacementLevel
 import io.codenode.fbpdsl.model.CodeNodeType
 

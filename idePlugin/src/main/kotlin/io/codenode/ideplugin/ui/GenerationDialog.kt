@@ -14,7 +14,7 @@ import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBTextField
 import com.intellij.ui.dsl.builder.*
 import io.codenode.fbpdsl.model.FlowGraph
-import io.codenode.kotlincompiler.generator.BuildScriptGenerator
+import io.codenode.flowgraphgenerate.generator.BuildScriptGenerator
 import javax.swing.JComponent
 
 /**

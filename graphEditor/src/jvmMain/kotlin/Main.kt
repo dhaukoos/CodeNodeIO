@@ -30,7 +30,7 @@ import io.codenode.grapheditor.state.LevelCompatibilityChecker
 import io.codenode.grapheditor.state.NodePromoter
 import io.codenode.grapheditor.viewmodel.SharedStateProvider
 import io.codenode.grapheditor.viewmodel.LocalSharedState
-import io.codenode.grapheditor.viewmodel.NodeGeneratorViewModel
+import io.codenode.flowgraphgenerate.viewmodel.NodeGeneratorViewModel
 import io.codenode.flowgraphinspect.viewmodel.NodePaletteViewModel
 import io.codenode.flowgraphinspect.viewmodel.IPPaletteViewModel
 import io.codenode.grapheditor.viewmodel.PropertiesPanelViewModel
@@ -66,13 +66,13 @@ import io.codenode.flowgraphexecute.RuntimeSession
 import io.codenode.grapheditor.ui.PropertiesPanelState
 import io.codenode.flowgraphtypes.repository.FileIPTypeRepository
 import io.codenode.flowgraphtypes.repository.IPTypeMigration
-import io.codenode.grapheditor.viewmodel.IPGeneratorViewModel
+import io.codenode.flowgraphgenerate.viewmodel.IPGeneratorViewModel
 import io.codenode.grapheditor.ui.IPGeneratorPanel
 import io.codenode.grapheditor.state.rememberPropertyChangeTracker
 import io.codenode.flowgraphpersist.serialization.FlowKtParser
-import io.codenode.grapheditor.save.ModuleSaveService
-import io.codenode.kotlincompiler.generator.EntityModuleSpec
-import io.codenode.kotlincompiler.generator.EntityProperty
+import io.codenode.flowgraphgenerate.save.ModuleSaveService
+import io.codenode.flowgraphgenerate.generator.EntityModuleSpec
+import io.codenode.flowgraphgenerate.generator.EntityProperty
 import io.codenode.fbpdsl.model.NodeTypeDefinition
 import io.codenode.fbpdsl.model.PortTemplate
 import io.codenode.fbpdsl.model.Port
@@ -91,7 +91,7 @@ import org.koin.core.context.startKoin
 import org.koin.dsl.module
 import io.codenode.grapheditor.ui.FlowGraphPropertiesDialog
 import io.codenode.fbpdsl.model.FlowGraph.TargetPlatform
-import io.codenode.grapheditor.compilation.CompilationService
+import io.codenode.flowgraphgenerate.compilation.CompilationService
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.key.*
 import androidx.compose.ui.focus.FocusRequester
@@ -244,7 +244,7 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
         // Auto-detect which IP types have existing entity modules in the project
         // by checking for module directories matching pluralized type names
         ipTypeRegistry.getAllTypes().forEach { ipType ->
-            val pluralName = io.codenode.kotlincompiler.generator.pluralize(ipType.typeName)
+            val pluralName = io.codenode.flowgraphgenerate.generator.pluralize(ipType.typeName)
             val moduleDir = java.io.File(projectRoot, pluralName)
             if (moduleDir.isDirectory && java.io.File(moduleDir, "build.gradle.kts").exists()) {
                 ipTypeRegistry.setEntityModule(ipType.id, true)
@@ -1348,7 +1348,7 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                             val props = ipTypeRegistry.getCustomTypeProperties(ipTypeId)
                             if (props != null) {
                                 put(ipTypeId, props.map { prop ->
-                                    io.codenode.kotlincompiler.generator.EntityProperty(
+                                    io.codenode.flowgraphgenerate.generator.EntityProperty(
                                         name = prop.name,
                                         kotlinType = when (prop.typeId) {
                                             "ip_int" -> "Int"

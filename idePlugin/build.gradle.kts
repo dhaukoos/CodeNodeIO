@@ -52,7 +52,7 @@ dependencies {
     implementation(project(":graphEditor"))
     implementation(project(":flowGraph-execute"))
     implementation(project(":flowGraph-persist"))
-    implementation(project(":kotlinCompiler"))
+    implementation(project(":flowGraph-generate"))
     implementation(project(":goCompiler"))
 
     testImplementation(libs.junit5.all)

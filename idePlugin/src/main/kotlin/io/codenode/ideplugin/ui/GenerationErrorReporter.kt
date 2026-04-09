@@ -16,7 +16,7 @@ import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.components.JBTextArea
 import com.intellij.ui.dsl.builder.*
-import io.codenode.kotlincompiler.validator.LicenseValidator
+import io.codenode.flowgraphgenerate.validator.LicenseValidator
 import java.awt.Dimension
 import javax.swing.JComponent
 

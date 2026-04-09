@@ -7,7 +7,7 @@
 package io.codenode.grapheditor.save
 
 import io.codenode.fbpdsl.model.*
-import io.codenode.kotlincompiler.generator.RuntimeViewModelGenerator
+import io.codenode.flowgraphgenerate.generator.RuntimeViewModelGenerator
 import java.io.File
 import kotlin.test.*
 

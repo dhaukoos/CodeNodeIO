@@ -26,7 +26,7 @@ import io.codenode.fbpdsl.model.FlowGraph
 import io.codenode.ideplugin.services.CodeGenerationService
 import io.codenode.ideplugin.services.FlowGraphManager
 import io.codenode.ideplugin.services.GenerationErrorType
-import io.codenode.kotlincompiler.generator.BuildScriptGenerator
+import io.codenode.flowgraphgenerate.generator.BuildScriptGenerator
 import java.io.File
 import javax.swing.JComponent
 

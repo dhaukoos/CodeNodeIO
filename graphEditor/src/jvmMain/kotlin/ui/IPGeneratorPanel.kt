@@ -26,9 +26,9 @@ import androidx.compose.ui.unit.sp
 import io.codenode.fbpdsl.model.InformationPacketType
 import io.codenode.flowgraphtypes.model.CustomIPTypeDefinition
 import io.codenode.fbpdsl.model.PlacementLevel
-import io.codenode.grapheditor.viewmodel.IPGeneratorViewModel
-import io.codenode.grapheditor.viewmodel.IPGeneratorPanelState
-import io.codenode.grapheditor.viewmodel.IPPropertyState
+import io.codenode.flowgraphgenerate.viewmodel.IPGeneratorViewModel
+import io.codenode.flowgraphgenerate.viewmodel.IPGeneratorPanelState
+import io.codenode.flowgraphgenerate.viewmodel.IPPropertyState
 
 /**
  * IP Generator panel composable for creating custom IP types.

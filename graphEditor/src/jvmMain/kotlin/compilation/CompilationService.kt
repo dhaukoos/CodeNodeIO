@@ -7,8 +7,8 @@
 package io.codenode.grapheditor.compilation
 
 import io.codenode.fbpdsl.model.FlowGraph
-import io.codenode.kotlincompiler.generator.ModuleGenerator
-import io.codenode.kotlincompiler.generator.GeneratedModule
+import io.codenode.flowgraphgenerate.generator.ModuleGenerator
+import io.codenode.flowgraphgenerate.generator.GeneratedModule
 import java.io.File
 
 /**

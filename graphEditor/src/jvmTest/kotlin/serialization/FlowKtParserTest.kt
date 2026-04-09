@@ -9,7 +9,7 @@ package io.codenode.grapheditor.serialization
 import io.codenode.fbpdsl.model.*
 import io.codenode.flowgraphpersist.serialization.FlowKtParser
 import io.codenode.flowgraphpersist.serialization.ParseResult
-import io.codenode.kotlincompiler.generator.FlowKtGenerator
+import io.codenode.flowgraphgenerate.generator.FlowKtGenerator
 import kotlin.test.*
 
 /**

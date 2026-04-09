@@ -95,23 +95,23 @@
 
 ### Build dependency updates
 
-- [ ] T021 [US1] Update `graphEditor/build.gradle.kts` — replace `project(":kotlinCompiler")` with `project(":flowGraph-generate")`
-- [ ] T022 [US1] Update `idePlugin/build.gradle.kts` — replace `project(":kotlinCompiler")` with `project(":flowGraph-generate")`
+- [X] T021 [US1] Update `graphEditor/build.gradle.kts` — replace `project(":kotlinCompiler")` with `project(":flowGraph-generate")`
+- [X] T022 [US1] Update `idePlugin/build.gradle.kts` — replace `project(":kotlinCompiler")` with `project(":flowGraph-generate")`
 
 ### graphEditor import migrations
 
-- [ ] T023 [US1] Search all graphEditor source files for imports of `io.codenode.kotlincompiler` — update each to `io.codenode.flowgraphgenerate`. Key files: Main.kt and any files importing generator/template/validator classes
-- [ ] T024 [US1] Update `graphEditor/src/jvmMain/kotlin/ui/IPGeneratorPanel.kt` — change ViewModel import from graphEditor's viewmodel package to `io.codenode.flowgraphgenerate.viewmodel.IPGeneratorViewModel`
-- [ ] T025 [US1] Update `graphEditor/src/jvmMain/kotlin/ui/NodeGeneratorPanel.kt` — change ViewModel import from graphEditor's viewmodel package to `io.codenode.flowgraphgenerate.viewmodel.NodeGeneratorViewModel`
-- [ ] T026 [US1] Search graphEditor for imports of `compilation.CompilationService`, `compilation.CompilationValidator`, `compilation.RequiredPropertyValidator`, `save.ModuleSaveService` — update to `io.codenode.flowgraphgenerate.compilation.*` and `io.codenode.flowgraphgenerate.save.*`
+- [X] T023 [US1] Search all graphEditor source files for imports of `io.codenode.kotlincompiler` — update each to `io.codenode.flowgraphgenerate`. Key files: Main.kt and any files importing generator/template/validator classes
+- [X] T024 [US1] Update `graphEditor/src/jvmMain/kotlin/ui/IPGeneratorPanel.kt` — change ViewModel import from graphEditor's viewmodel package to `io.codenode.flowgraphgenerate.viewmodel.IPGeneratorViewModel`
+- [X] T025 [US1] Update `graphEditor/src/jvmMain/kotlin/ui/NodeGeneratorPanel.kt` — change ViewModel import from graphEditor's viewmodel package to `io.codenode.flowgraphgenerate.viewmodel.NodeGeneratorViewModel`
+- [X] T026 [US1] Search graphEditor for imports of `compilation.CompilationService`, `compilation.CompilationValidator`, `compilation.RequiredPropertyValidator`, `save.ModuleSaveService` — update to `io.codenode.flowgraphgenerate.compilation.*` and `io.codenode.flowgraphgenerate.save.*`
 
 ### idePlugin import migrations
 
-- [ ] T027 [US1] Search all idePlugin source files for imports of `io.codenode.kotlincompiler` — update each to `io.codenode.flowgraphgenerate`
+- [X] T027 [US1] Search all idePlugin source files for imports of `io.codenode.kotlincompiler` — update each to `io.codenode.flowgraphgenerate`
 
 ### Other module migrations
 
-- [ ] T028 [US1] Search entire codebase (excluding kotlinCompiler and flowGraph-generate) for any remaining references to `io.codenode.kotlincompiler` — update all found references
+- [X] T028 [US1] Search entire codebase (excluding kotlinCompiler and flowGraph-generate) for any remaining references to `io.codenode.kotlincompiler` — update all found references
 
 **Checkpoint**: Both graphEditor and idePlugin compile with new imports — `./gradlew :graphEditor:compileKotlinJvm :idePlugin:compileKotlin`
 

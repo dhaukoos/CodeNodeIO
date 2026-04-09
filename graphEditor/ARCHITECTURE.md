@@ -26,7 +26,7 @@ Each file is assigned to exactly one bucket using a multi-signal approach, evalu
 2. **Import analysis**: The set of imports reveals domain affinity:
    - `io.codenode.fbpdsl.serialization.*` → persist
    - `io.codenode.fbpdsl.runtime.*` → execute
-   - `io.codenode.kotlincompiler.*` → generate
+   - `io.codenode.flowgraphgenerate.*` → generate
    - `io.codenode.grapheditor.state.NodeDefinitionRegistry`, `IPTypeRegistry` → inspect
    - `io.codenode.fbpdsl.model.FlowGraph`, `Node`, `Connection` (mutations) → compose
 

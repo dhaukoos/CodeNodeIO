@@ -17,10 +17,10 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
 import io.codenode.fbpdsl.model.FlowGraph
-import io.codenode.kotlincompiler.generator.BuildScriptGenerator
-import io.codenode.kotlincompiler.generator.GeneratedProject
-import io.codenode.kotlincompiler.generator.KotlinCodeGenerator
-import io.codenode.kotlincompiler.validator.LicenseValidator
+import io.codenode.flowgraphgenerate.generator.BuildScriptGenerator
+import io.codenode.flowgraphgenerate.generator.GeneratedProject
+import io.codenode.flowgraphgenerate.generator.KotlinCodeGenerator
+import io.codenode.flowgraphgenerate.validator.LicenseValidator
 import java.io.File
 import java.util.concurrent.ConcurrentHashMap
 
