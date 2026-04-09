@@ -107,9 +107,9 @@
 
 **Goal**: Update architecture.flow.kt with child codeNode for flowGraph-compose
 
-- [ ] T021 [US3] Update the compose graphNode in `graphEditor/architecture.flow.kt` — add child codeNode "FlowGraphCompose" (TRANSFORMER) with inputs flowGraphModel, nodeDescriptors, ipTypeMetadata and output graphState
-- [ ] T022 [US3] Add port mappings to compose graphNode in `graphEditor/architecture.flow.kt` — map 3 exposed inputs (flowGraphModel, nodeDescriptors, ipTypeMetadata) to FlowGraphCompose's input ports, map exposed output (graphState) to FlowGraphCompose's graphState output
-- [ ] T023 [US3] Update compose graphNode description to reflect actual file count and single-node structure in `graphEditor/architecture.flow.kt`
+- [X] T021 [US3] Update the compose graphNode in `graphEditor/architecture.flow.kt` — add child codeNode "FlowGraphCompose" (TRANSFORMER) with inputs flowGraphModel, nodeDescriptors, ipTypeMetadata and output graphState
+- [X] T022 [US3] Add port mappings to compose graphNode in `graphEditor/architecture.flow.kt` — map 3 exposed inputs (flowGraphModel, nodeDescriptors, ipTypeMetadata) to FlowGraphCompose's input ports, map exposed output (graphState) to FlowGraphCompose's graphState output
+- [X] T023 [US3] Update compose graphNode description to reflect actual file count and single-node structure in `graphEditor/architecture.flow.kt`
 
 **Checkpoint**: architecture.flow.kt parses successfully with all 20 external connections intact
 
@@ -119,14 +119,14 @@
 
 **Purpose**: Final validation across the entire project
 
-- [ ] T024 Run full project compilation: `./gradlew compileKotlinJvm` (all modules)
-- [ ] T025 Run full test suite: `./gradlew check` — all existing tests must pass
-- [ ] T026 Run characterization tests specifically: `./gradlew :graphEditor:jvmTest --tests "*GraphDataOpsCharacterizationTest*"` and `./gradlew :graphEditor:jvmTest --tests "*ViewModelCharacterizationTest*"`
-- [ ] T027 Verify SC-004: grep entire codebase for old graphEditor package paths of the 4 moved files — must return zero results outside flowGraph-compose
-- [ ] T028 Verify SC-005: confirm the 4 original files do not exist in graphEditor
-- [ ] T029 Verify SC-006: confirm architecture.flow.kt contains compose graphNode with child codeNode FlowGraphCompose and correct port mappings
-- [ ] T030 Verify SC-008: confirm graphEditor Compose UI files compile with flowGraph-compose imports
-- [ ] T031 Verify all six workflow graphNodes in architecture.flow.kt have child codeNode definitions (types, inspect, persist, compose, execute, generate) — completing the Phase B vertical-slice decomposition
+- [X] T024 Run full project compilation: `./gradlew compileKotlinJvm` (all modules)
+- [X] T025 Run full test suite: `./gradlew check` — all existing tests must pass
+- [X] T026 Run characterization tests specifically: `./gradlew :graphEditor:jvmTest --tests "*GraphDataOpsCharacterizationTest*"` and `./gradlew :graphEditor:jvmTest --tests "*ViewModelCharacterizationTest*"`
+- [X] T027 Verify SC-004: grep entire codebase for old graphEditor package paths of the 4 moved files — must return zero results outside flowGraph-compose
+- [X] T028 Verify SC-005: confirm the 4 original files do not exist in graphEditor
+- [X] T029 Verify SC-006: confirm architecture.flow.kt contains compose graphNode with child codeNode FlowGraphCompose and correct port mappings
+- [X] T030 Verify SC-008: confirm graphEditor Compose UI files compile with flowGraph-compose imports
+- [X] T031 Verify all six workflow graphNodes in architecture.flow.kt have child codeNode definitions (types, inspect, persist, compose, execute, generate) — completing the Phase B vertical-slice decomposition
 
 ---
 

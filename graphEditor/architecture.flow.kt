@@ -126,12 +126,26 @@ val graph = flowGraph("Target Architecture", version = "4.0.0", description = "V
     }
 
     val compose = graphNode("flowGraph-compose") {
-        description = "Building a flow graph interactively: graph mutations, port connections, validation, undo/redo. 10 files."
+        description = "Building a flow graph interactively: canvas interaction, properties panel, node generator state, view synchronization. 4 files + 1 CodeNode."
         position(400.0, 400.0)
         exposeInput("flowGraphModel", String::class)
         exposeInput("nodeDescriptors", String::class)
         exposeInput("ipTypeMetadata", String::class)
         exposeOutput("graphState", String::class)
+
+        // Child CodeNode — FlowGraphComposeCodeNode (In3AnyOut1Runtime, anyInput)
+        val flowGraphCompose = codeNode("FlowGraphCompose", nodeType = "TRANSFORMER") {
+            input("flowGraphModel", String::class)
+            input("nodeDescriptors", String::class)
+            input("ipTypeMetadata", String::class)
+            output("graphState", String::class)
+        }
+
+        // Port mappings — wire exposed GraphNode ports to child CodeNode ports
+        portMapping("flowGraphModel", "flowGraphCompose", "flowGraphModel")
+        portMapping("nodeDescriptors", "flowGraphCompose", "nodeDescriptors")
+        portMapping("ipTypeMetadata", "flowGraphCompose", "ipTypeMetadata")
+        portMapping("graphState", "flowGraphCompose", "graphState")
     }
 
     val execute = graphNode("flowGraph-execute") {
