@@ -19,9 +19,9 @@
 
 **Purpose**: Create flowGraph-generate KMP module structure and build configuration
 
-- [ ] T001 Create flowGraph-generate module directory structure: `flowGraph-generate/src/{commonMain,commonTest,jvmMain,jvmTest}/kotlin/io/codenode/flowgraphgenerate/`
-- [ ] T002 Create `flowGraph-generate/build.gradle.kts` with KMP configuration — dependencies: `:fbpDsl`, `:flowGraph-types`, `:flowGraph-persist`, `:flowGraph-inspect`, kotlinPoet, coroutines.core, serialization.json, kotlin-compiler-embeddable (jvmMain only), kotlin-test + junit5 (test)
-- [ ] T003 Update `settings.gradle.kts` — add `include(":flowGraph-generate")` (keep `:kotlinCompiler` for now during Strangler Fig)
+- [X] T001 Create flowGraph-generate module directory structure: `flowGraph-generate/src/{commonMain,commonTest,jvmMain,jvmTest}/kotlin/io/codenode/flowgraphgenerate/`
+- [X] T002 Create `flowGraph-generate/build.gradle.kts` with KMP configuration — dependencies: `:fbpDsl`, `:flowGraph-types`, `:flowGraph-persist`, `:flowGraph-inspect`, kotlinPoet, coroutines.core, serialization.json, kotlin-compiler-embeddable (jvmMain only), kotlin-test + junit5 (test)
+- [X] T003 Update `settings.gradle.kts` — add `include(":flowGraph-generate")` (keep `:kotlinCompiler` for now during Strangler Fig)
 
 **Checkpoint**: Empty module compiles — `./gradlew :flowGraph-generate:compileKotlinJvm`
 
@@ -33,31 +33,31 @@
 
 ### kotlinCompiler commonMain (30 files)
 
-- [ ] T004 [P] Copy 27 generator files from `kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/` to `flowGraph-generate/src/commonMain/kotlin/io/codenode/flowgraphgenerate/generator/` — update package to `io.codenode.flowgraphgenerate.generator` and all internal `io.codenode.kotlincompiler` imports
-- [ ] T005 [P] Copy 8 template files from `kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/templates/` to `flowGraph-generate/src/commonMain/kotlin/io/codenode/flowgraphgenerate/templates/` — update package and imports
-- [ ] T006 [P] Copy `LicenseValidator.kt` from `kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/validator/` to `flowGraph-generate/src/commonMain/kotlin/io/codenode/flowgraphgenerate/validator/` — update package and imports
+- [X] T004 [P] Copy 27 generator files from `kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/generator/` to `flowGraph-generate/src/commonMain/kotlin/io/codenode/flowgraphgenerate/generator/` — update package to `io.codenode.flowgraphgenerate.generator` and all internal `io.codenode.kotlincompiler` imports
+- [X] T005 [P] Copy 8 template files from `kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/templates/` to `flowGraph-generate/src/commonMain/kotlin/io/codenode/flowgraphgenerate/templates/` — update package and imports
+- [X] T006 [P] Copy `LicenseValidator.kt` from `kotlinCompiler/src/commonMain/kotlin/io/codenode/kotlincompiler/validator/` to `flowGraph-generate/src/commonMain/kotlin/io/codenode/flowgraphgenerate/validator/` — update package and imports
 
 ### kotlinCompiler commonTest (23 files)
 
-- [ ] T007 [P] Copy 18 generator test files from `kotlinCompiler/src/commonTest/kotlin/io/codenode/kotlincompiler/generator/` to `flowGraph-generate/src/commonTest/kotlin/io/codenode/flowgraphgenerate/generator/` — update package and imports
-- [ ] T008 [P] Copy 3 contract test files from `kotlinCompiler/src/commonTest/kotlin/io/codenode/kotlincompiler/contract/` to `flowGraph-generate/src/commonTest/kotlin/io/codenode/flowgraphgenerate/contract/` — update package and imports
-- [ ] T009 [P] Copy `PropertyCodeGenTest.kt` from `kotlinCompiler/src/commonTest/kotlin/io/codenode/kotlincompiler/integration/` to `flowGraph-generate/src/commonTest/kotlin/io/codenode/flowgraphgenerate/integration/` — update package and imports
-- [ ] T010 [P] Copy `LicenseValidationTest.kt` from `kotlinCompiler/src/commonTest/kotlin/io/codenode/kotlincompiler/validator/` to `flowGraph-generate/src/commonTest/kotlin/io/codenode/flowgraphgenerate/validator/` — update package and imports
+- [X] T007 [P] Copy 18 generator test files from `kotlinCompiler/src/commonTest/kotlin/io/codenode/kotlincompiler/generator/` to `flowGraph-generate/src/commonTest/kotlin/io/codenode/flowgraphgenerate/generator/` — update package and imports
+- [X] T008 [P] Copy 3 contract test files from `kotlinCompiler/src/commonTest/kotlin/io/codenode/kotlincompiler/contract/` to `flowGraph-generate/src/commonTest/kotlin/io/codenode/flowgraphgenerate/contract/` — update package and imports
+- [X] T009 [P] Copy `PropertyCodeGenTest.kt` from `kotlinCompiler/src/commonTest/kotlin/io/codenode/kotlincompiler/integration/` to `flowGraph-generate/src/commonTest/kotlin/io/codenode/flowgraphgenerate/integration/` — update package and imports
+- [X] T010 [P] Copy `LicenseValidationTest.kt` from `kotlinCompiler/src/commonTest/kotlin/io/codenode/kotlincompiler/validator/` to `flowGraph-generate/src/commonTest/kotlin/io/codenode/flowgraphgenerate/validator/` — update package and imports
 
 ### kotlinCompiler jvmTest (2 characterization tests)
 
-- [ ] T011 [P] Copy `CodeGenerationCharacterizationTest.kt` and `FlowKtGeneratorCharacterizationTest.kt` from `kotlinCompiler/src/jvmTest/kotlin/characterization/` to `flowGraph-generate/src/jvmTest/kotlin/io/codenode/flowgraphgenerate/characterization/` — update package and imports
+- [X] T011 [P] Copy `CodeGenerationCharacterizationTest.kt` and `FlowKtGeneratorCharacterizationTest.kt` from `kotlinCompiler/src/jvmTest/kotlin/characterization/` to `flowGraph-generate/src/jvmTest/kotlin/io/codenode/flowgraphgenerate/characterization/` — update package and imports
 
 ### graphEditor generate-bucket files (6 files → jvmMain)
 
-- [ ] T012 [P] Copy `IPGeneratorViewModel.kt` and `NodeGeneratorViewModel.kt` from `graphEditor/src/jvmMain/kotlin/viewmodel/` to `flowGraph-generate/src/jvmMain/kotlin/io/codenode/flowgraphgenerate/viewmodel/` — update package and imports
-- [ ] T013 [P] Copy `CompilationService.kt`, `CompilationValidator.kt`, `RequiredPropertyValidator.kt` from `graphEditor/src/jvmMain/kotlin/compilation/` to `flowGraph-generate/src/jvmMain/kotlin/io/codenode/flowgraphgenerate/compilation/` — update package and imports
-- [ ] T014 [P] Copy `ModuleSaveService.kt` from `graphEditor/src/jvmMain/kotlin/save/` to `flowGraph-generate/src/jvmMain/kotlin/io/codenode/flowgraphgenerate/save/` — update package and imports
+- [X] T012 [P] Copy `IPGeneratorViewModel.kt` and `NodeGeneratorViewModel.kt` from `graphEditor/src/jvmMain/kotlin/viewmodel/` to `flowGraph-generate/src/jvmMain/kotlin/io/codenode/flowgraphgenerate/viewmodel/` — update package and imports
+- [X] T013 [P] Copy `CompilationService.kt`, `CompilationValidator.kt`, `RequiredPropertyValidator.kt` from `graphEditor/src/jvmMain/kotlin/compilation/` to `flowGraph-generate/src/jvmMain/kotlin/io/codenode/flowgraphgenerate/compilation/` — update package and imports
+- [X] T014 [P] Copy `ModuleSaveService.kt` from `graphEditor/src/jvmMain/kotlin/save/` to `flowGraph-generate/src/jvmMain/kotlin/io/codenode/flowgraphgenerate/save/` — update package and imports
 
 ### Move DemoProject tool scripts
 
-- [ ] T015 Move `RegenerateStopWatch.kt` from `kotlinCompiler/src/jvmMain/kotlin/io/codenode/kotlincompiler/tools/` to `CodeNodeIO-DemoProject/` (appropriate location TBD — e.g., a tools/ directory). Update package declaration and imports to reference `io.codenode.flowgraphgenerate` for ModuleGenerator dependency.
-- [ ] T016 Move `GenerateGeoLocationModule.kt` from `kotlinCompiler/src/jvmMain/kotlin/io/codenode/kotlincompiler/` to `CodeNodeIO-DemoProject/` (same location as T015). Update package and imports similarly.
+- [X] T015 Move `RegenerateStopWatch.kt` from `kotlinCompiler/src/jvmMain/kotlin/io/codenode/kotlincompiler/tools/` to `CodeNodeIO-DemoProject/tools/src/jvmMain/kotlin/io/codenode/demoproject/tools/` — updated package to `io.codenode.demoproject.tools`, imports to `io.codenode.flowgraphgenerate`
+- [X] T016 Move `GenerateGeoLocationModule.kt` from `kotlinCompiler/src/jvmMain/kotlin/io/codenode/kotlincompiler/` to `CodeNodeIO-DemoProject/tools/src/jvmMain/kotlin/io/codenode/demoproject/tools/` — updated package and imports similarly
 
 **Checkpoint**: New module compiles alongside originals — `./gradlew :flowGraph-generate:compileKotlinJvm :flowGraph-generate:jvmTest`
 
