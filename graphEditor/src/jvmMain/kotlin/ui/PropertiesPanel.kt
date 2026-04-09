@@ -1381,6 +1381,8 @@ fun GraphNodePropertiesPanel(
     checkPromotionCandidates: ((PlacementLevel) -> List<PromotionCandidate>)? = null,
     onPromoteAndSave: ((List<PromotionCandidate>, PlacementLevel) -> Unit)? = null,
     checkDuplicateName: ((String, PlacementLevel) -> Boolean)? = null,
+    onEditChildNode: ((String) -> Unit)? = null,
+    childNodeHasSource: (String) -> Boolean = { false },
     modifier: Modifier = Modifier
 ) {
     var nodeName by remember(graphNode.id, graphNode.name) { mutableStateOf(graphNode.name) }
@@ -1445,11 +1447,29 @@ fun GraphNodePropertiesPanel(
                     )
                 } else {
                     childNodes.forEach { childNode ->
-                        Text(
-                            text = childNode.name,
-                            fontSize = 11.sp,
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
                             modifier = Modifier.padding(vertical = 2.dp)
-                        )
+                        ) {
+                            Text(
+                                text = childNode.name,
+                                fontSize = 11.sp,
+                                modifier = Modifier.weight(1f)
+                            )
+                            if (onEditChildNode != null && childNodeHasSource(childNode.name)) {
+                                IconButton(
+                                    onClick = { onEditChildNode(childNode.name) },
+                                    modifier = Modifier.size(20.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Edit,
+                                        contentDescription = "Edit ${childNode.name} source",
+                                        tint = MaterialTheme.colors.onSurface.copy(alpha = 0.7f),
+                                        modifier = Modifier.size(14.dp)
+                                    )
+                                }
+                            }
+                        }
                     }
                 }
 
@@ -1813,6 +1833,8 @@ fun CompactPropertiesPanelWithViewModel(
     isAnimateDataFlow: Boolean = false,
     showEditButton: Boolean = false,
     onEditClick: (() -> Unit)? = null,
+    onEditChildNode: ((String) -> Unit)? = null,
+    childNodeHasSource: (String) -> Boolean = { false },
     modifier: Modifier = Modifier
 ) {
     val vmState by viewModel.state.collectAsState()
@@ -1922,6 +1944,8 @@ fun CompactPropertiesPanelWithViewModel(
             checkPromotionCandidates = checkPromotionCandidates,
             onPromoteAndSave = onPromoteAndSave,
             checkDuplicateName = checkDuplicateName,
+            onEditChildNode = onEditChildNode,
+            childNodeHasSource = childNodeHasSource,
             modifier = modifier.width(280.dp)
         )
     } else {

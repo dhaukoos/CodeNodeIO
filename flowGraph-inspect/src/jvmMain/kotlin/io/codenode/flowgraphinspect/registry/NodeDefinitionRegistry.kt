@@ -10,7 +10,7 @@ import io.codenode.fbpdsl.model.CodeNodeType
 import io.codenode.fbpdsl.model.NodeTypeDefinition
 import io.codenode.fbpdsl.runtime.CodeNodeDefinition
 import java.io.File
-import java.util.ServiceLoader
+
 
 /**
  * Metadata parsed from Universal-level node source files (not compiled).
@@ -244,17 +244,34 @@ class NodeDefinitionRegistry {
 
     /**
      * Discovers compiled CodeNodeDefinition implementations from the classpath.
-     * Uses ServiceLoader for standard JVM service discovery.
+     * Reads META-INF/codenode/node-definitions files listing Kotlin object FQCNs,
+     * then loads each via reflection (INSTANCE field access for Kotlin objects).
      */
     private fun discoverCompiledNodes() {
         compiledNodes.clear()
         try {
-            val loader = ServiceLoader.load(CodeNodeDefinition::class.java)
-            for (node in loader) {
-                compiledNodes[node.name] = node
+            val resources = Thread.currentThread().contextClassLoader
+                .getResources("META-INF/codenode/node-definitions")
+            while (resources.hasMoreElements()) {
+                val url = resources.nextElement()
+                url.openStream().bufferedReader().useLines { lines ->
+                    lines.map { it.trim() }
+                        .filter { it.isNotEmpty() && !it.startsWith("#") }
+                        .forEach { fqcn ->
+                            try {
+                                val clazz = Class.forName(fqcn)
+                                val instance = clazz.getField("INSTANCE").get(null)
+                                if (instance is CodeNodeDefinition) {
+                                    compiledNodes[instance.name] = instance
+                                }
+                            } catch (_: Exception) {
+                                // Class not on classpath or not a Kotlin object — skip
+                            }
+                        }
+                }
             }
-        } catch (e: Exception) {
-            // ServiceLoader may fail if no META-INF/services file exists -- that's OK
+        } catch (_: Exception) {
+            // No registry files found — that's OK
         }
     }
 

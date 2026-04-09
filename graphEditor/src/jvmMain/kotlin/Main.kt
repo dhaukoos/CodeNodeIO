@@ -1222,6 +1222,17 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                                     statusMessage = "Editing: ${file.name}"
                                 }
                             }
+                        },
+                        onEditChildNode = { childNodeName ->
+                            registry.getSourceFilePath(childNodeName)?.let { filePath ->
+                                val file = java.io.File(filePath)
+                                codeEditorViewModel.loadFile(file, readOnly = false)
+                                editorViewMode = ViewMode.TEXTUAL
+                                statusMessage = "Editing: ${file.name}"
+                            }
+                        },
+                        childNodeHasSource = { childNodeName ->
+                            registry.getSourceFilePath(childNodeName) != null
                         }
                     )
                     }
