@@ -101,6 +101,8 @@ Auto-generated from all feature plans. Last updated: 2026-01-13
 - Filesystem (GraphNode template .flow.kts files at three-tier locations) (066-extract-flowgraph-persist)
 - Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + fbpDsl (core FBP domain model), flowGraph-types (IPTypeRegistry for IPPaletteViewModel), flowGraph-persist (GraphNodeTemplateMeta for GraphNodePaletteViewModel), kotlinx-coroutines 1.8.0, androidx.lifecycle-viewmodel (067-extract-flowgraph-inspect)
 - Filesystem (scanning directories for .kt source files and compiled CodeNode definitions) (067-extract-flowgraph-inspect)
+- Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + fbpDsl (core FBP domain model, DynamicPipelineController, ModuleController), flowGraph-inspect (NodeDefinitionRegistry for ModuleSessionFactory), kotlinx-coroutines 1.8.0 (068-extract-flowgraph-execute)
+- N/A — in-memory runtime state (StateFlow for execution state, animations, debug snapshots) (068-extract-flowgraph-execute)
 
 - Kotlin 1.9+, Go 1.21+ (001-ide-plugin-platform)
 
@@ -120,9 +122,9 @@ tests/
 Kotlin 1.9+, Go 1.21+: Follow standard conventions
 
 ## Recent Changes
+- 068-extract-flowgraph-execute: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + fbpDsl (core FBP domain model, DynamicPipelineController, ModuleController), flowGraph-inspect (NodeDefinitionRegistry for ModuleSessionFactory), kotlinx-coroutines 1.8.0
 - 067-extract-flowgraph-inspect: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + fbpDsl (core FBP domain model), flowGraph-types (IPTypeRegistry for IPPaletteViewModel), flowGraph-persist (GraphNodeTemplateMeta for GraphNodePaletteViewModel), kotlinx-coroutines 1.8.0, androidx.lifecycle-viewmodel
 - 066-extract-flowgraph-persist: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + fbpDsl (core FBP domain model), flowGraph-types (IPTypeRegistry for template loading), kotlinx-coroutines 1.8.0, kotlinx-serialization 1.6.2
-- 065-extract-flowgraph-types: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + fbpDsl (core FBP domain model), Koin 4.0.0 (DI), kotlinx-coroutines 1.8.0, kotlinx-serialization 1.6.2
 
 
 <!-- MANUAL ADDITIONS START -->
