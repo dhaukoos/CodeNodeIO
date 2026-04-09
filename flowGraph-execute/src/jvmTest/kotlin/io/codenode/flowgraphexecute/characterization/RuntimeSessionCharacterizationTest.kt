@@ -4,11 +4,11 @@
  * License: Apache 2.0
  */
 
-package characterization
+package io.codenode.flowgraphexecute.characterization
 
-import io.codenode.circuitsimulator.DataFlowAnimationController
-import io.codenode.circuitsimulator.DataFlowDebugger
-import io.codenode.circuitsimulator.RuntimeSession
+import io.codenode.flowgraphexecute.DataFlowAnimationController
+import io.codenode.flowgraphexecute.DataFlowDebugger
+import io.codenode.flowgraphexecute.RuntimeSession
 import io.codenode.fbpdsl.model.*
 import io.codenode.fbpdsl.runtime.CodeNodeDefinition
 import io.codenode.fbpdsl.runtime.ModuleController

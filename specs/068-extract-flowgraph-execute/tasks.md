@@ -110,16 +110,16 @@
 
 **Independent Test**: `./gradlew :graphEditor:jvmTest :flowGraph-execute:jvmTest` — all tests pass
 
-- [ ] T027 [P] [US4] Remove `circuitSimulator/src/commonMain/kotlin/io/codenode/circuitsimulator/RuntimeSession.kt`
-- [ ] T028 [P] [US4] Remove `circuitSimulator/src/commonMain/kotlin/io/codenode/circuitsimulator/DataFlowAnimationController.kt`
-- [ ] T029 [P] [US4] Remove `circuitSimulator/src/commonMain/kotlin/io/codenode/circuitsimulator/DataFlowDebugger.kt`
-- [ ] T030 [P] [US4] Remove `circuitSimulator/src/commonMain/kotlin/io/codenode/circuitsimulator/ConnectionAnimation.kt`
-- [ ] T031 [P] [US4] Remove `circuitSimulator/src/commonMain/kotlin/io/codenode/circuitsimulator/CircuitSimulator.kt`
-- [ ] T032 [P] [US4] Remove `graphEditor/src/jvmMain/kotlin/ui/ModuleSessionFactory.kt`
-- [ ] T033 [US4] Migrate test: copy `circuitSimulator/src/commonTest/kotlin/characterization/RuntimeSessionCharacterizationTest.kt` to `flowGraph-execute/src/jvmTest/kotlin/io/codenode/flowgraphexecute/characterization/RuntimeSessionCharacterizationTest.kt` — update package to `io.codenode.flowgraphexecute.characterization`, update all `io.codenode.circuitsimulator` imports to `io.codenode.flowgraphexecute`
-- [ ] T034 [US4] Remove the original `circuitSimulator/src/commonTest/kotlin/characterization/RuntimeSessionCharacterizationTest.kt`
-- [ ] T035 [US4] Fix any remaining same-package reference errors by adding explicit imports to `io.codenode.flowgraphexecute.*` in source or test files that relied on same-package access
-- [ ] T036 [US4] Run `./gradlew :graphEditor:jvmTest :flowGraph-execute:jvmTest :flowGraph-inspect:jvmTest` to verify no regressions after original file removal
+- [X] T027 [P] [US4] Remove `circuitSimulator/src/commonMain/kotlin/io/codenode/circuitsimulator/RuntimeSession.kt`
+- [X] T028 [P] [US4] Remove `circuitSimulator/src/commonMain/kotlin/io/codenode/circuitsimulator/DataFlowAnimationController.kt`
+- [X] T029 [P] [US4] Remove `circuitSimulator/src/commonMain/kotlin/io/codenode/circuitsimulator/DataFlowDebugger.kt`
+- [X] T030 [P] [US4] Remove `circuitSimulator/src/commonMain/kotlin/io/codenode/circuitsimulator/ConnectionAnimation.kt`
+- [X] T031 [P] [US4] Remove `circuitSimulator/src/commonMain/kotlin/io/codenode/circuitsimulator/CircuitSimulator.kt`
+- [X] T032 [P] [US4] Remove `graphEditor/src/jvmMain/kotlin/ui/ModuleSessionFactory.kt`
+- [X] T033 [US4] Migrate test: copy `circuitSimulator/src/commonTest/kotlin/characterization/RuntimeSessionCharacterizationTest.kt` to `flowGraph-execute/src/jvmTest/kotlin/io/codenode/flowgraphexecute/characterization/RuntimeSessionCharacterizationTest.kt` — update package to `io.codenode.flowgraphexecute.characterization`, update all `io.codenode.circuitsimulator` imports to `io.codenode.flowgraphexecute`
+- [X] T034 [US4] Remove the original `circuitSimulator/src/commonTest/kotlin/characterization/RuntimeSessionCharacterizationTest.kt`
+- [X] T035 [US4] Fix any remaining same-package reference errors by adding explicit imports to `io.codenode.flowgraphexecute.*` in source or test files that relied on same-package access
+- [X] T036 [US4] Run `./gradlew :graphEditor:jvmTest :flowGraph-execute:jvmTest :flowGraph-inspect:jvmTest` to verify no regressions after original file removal
 
 **Checkpoint**: Original files removed. circuitSimulator is absorbed. graphEditor depends on flowGraph-execute. All tests pass.
 
