@@ -135,13 +135,29 @@ val graph = flowGraph("Target Architecture", version = "4.0.0", description = "V
     }
 
     val execute = graphNode("flowGraph-execute") {
-        description = "Running and observing flow graphs: runtime pipeline, execution control, animation, debugging. 7 files. Absorbs circuitSimulator (5 files)."
+        description = "Running and observing flow graphs: RuntimeSession, DataFlowAnimationController, DataFlowDebugger, ConnectionAnimation, CircuitSimulator (from circuitSimulator) + ModuleSessionFactory (from graphEditor). 7 files."
         position(400.0, 700.0)
         exposeInput("flowGraphModel", String::class)
         exposeInput("nodeDescriptors", String::class)
         exposeOutput("executionState", String::class)
         exposeOutput("animations", String::class)
         exposeOutput("debugSnapshots", String::class)
+
+        // Child CodeNode — FlowGraphExecuteCodeNode (In2AnyOut3Runtime, anyInput)
+        val flowGraphExecute = codeNode("FlowGraphExecute", nodeType = "TRANSFORMER") {
+            input("flowGraphModel", String::class)
+            input("nodeDescriptors", String::class)
+            output("executionState", String::class)
+            output("animations", String::class)
+            output("debugSnapshots", String::class)
+        }
+
+        // Port mappings — wire exposed GraphNode ports to child CodeNode ports
+        portMapping("flowGraphModel", "flowGraphExecute", "flowGraphModel")
+        portMapping("nodeDescriptors", "flowGraphExecute", "nodeDescriptors")
+        portMapping("executionState", "flowGraphExecute", "executionState")
+        portMapping("animations", "flowGraphExecute", "animations")
+        portMapping("debugSnapshots", "flowGraphExecute", "debugSnapshots")
     }
 
     val generate = graphNode("flowGraph-generate") {

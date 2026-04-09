@@ -133,10 +133,10 @@
 
 **Independent Test**: `./gradlew :graphEditor:jvmTest --tests "io.codenode.grapheditor.characterization.ArchitectureFlowKtsTest"` — all tests pass
 
-- [ ] T037 [US5] Update description of the `flowGraph-execute` graphNode in `graphEditor/architecture.flow.kt` to reflect the actual file composition (5 circuitSimulator files + ModuleSessionFactory)
-- [ ] T038 [US5] Add `FlowGraphExecute` child codeNode inside the `flowGraph-execute` graphNode in `graphEditor/architecture.flow.kt` with 2 inputs (flowGraphModel, nodeDescriptors) and 3 outputs (executionState, animations, debugSnapshots), nodeType = "TRANSFORMER"
-- [ ] T039 [US5] Add portMapping declarations wiring all 5 exposed ports to the child codeNode ports in `graphEditor/architecture.flow.kt`
-- [ ] T040 [US5] Run `./gradlew :graphEditor:jvmTest --tests "io.codenode.grapheditor.characterization.ArchitectureFlowKtsTest"` to verify all architecture tests pass
+- [X] T037 [US5] Update description of the `flowGraph-execute` graphNode in `graphEditor/architecture.flow.kt` to reflect the actual file composition (5 circuitSimulator files + ModuleSessionFactory)
+- [X] T038 [US5] Add `FlowGraphExecute` child codeNode inside the `flowGraph-execute` graphNode in `graphEditor/architecture.flow.kt` with 2 inputs (flowGraphModel, nodeDescriptors) and 3 outputs (executionState, animations, debugSnapshots), nodeType = "TRANSFORMER"
+- [X] T039 [US5] Add portMapping declarations wiring all 5 exposed ports to the child codeNode ports in `graphEditor/architecture.flow.kt`
+- [X] T040 [US5] Run `./gradlew :graphEditor:jvmTest --tests "io.codenode.grapheditor.characterization.ArchitectureFlowKtsTest"` to verify all architecture tests pass
 
 **Checkpoint**: architecture.flow.kt updated. flowGraph-execute node contains FlowGraphExecute CodeNode with port mappings. All architecture tests pass.
 
@@ -146,13 +146,13 @@
 
 **Purpose**: Verify dependency direction, no cycles, Strangler Fig compliance, full test suite
 
-- [ ] T041 [US6] Verify no dependency on `:graphEditor` or `:circuitSimulator` in `flowGraph-execute/build.gradle.kts` — dependency direction is graphEditor → flowGraph-execute → flowGraph-inspect → fbpDsl
-- [ ] T042 [US6] Verify no circular dependency exists by running `./gradlew :flowGraph-execute:dependencies` and confirming only fbpDsl and flowGraph-inspect appear
-- [ ] T043 [US6] Verify Strangler Fig sequence in git history: module creation → file copy → TDD tests → CodeNode implementation → call site migration → original removal → architecture wiring
-- [ ] T044 [US6] Verify RuntimePreviewPanel.kt remains unchanged in `graphEditor/src/jvmMain/kotlin/ui/RuntimePreviewPanel.kt`
-- [ ] T045 [US6] Verify idePlugin compiles: `./gradlew :idePlugin:compileKotlinJvm`
-- [ ] T046 Run full test suite: `./gradlew :graphEditor:jvmTest :flowGraph-types:jvmTest :flowGraph-persist:jvmTest :flowGraph-inspect:jvmTest :flowGraph-execute:jvmTest` to verify zero regressions
-- [ ] T047 Run quickstart.md validation scenarios (Scenarios 1-15)
+- [X] T041 [US6] Verify no dependency on `:graphEditor` or `:circuitSimulator` in `flowGraph-execute/build.gradle.kts` — dependency direction is graphEditor → flowGraph-execute → flowGraph-inspect → fbpDsl
+- [X] T042 [US6] Verify no circular dependency exists by running `./gradlew :flowGraph-execute:dependencies` and confirming only fbpDsl and flowGraph-inspect appear
+- [X] T043 [US6] Verify Strangler Fig sequence in git history: module creation → file copy → TDD tests → CodeNode implementation → call site migration → original removal → architecture wiring
+- [X] T044 [US6] Verify RuntimePreviewPanel.kt remains unchanged in `graphEditor/src/jvmMain/kotlin/ui/RuntimePreviewPanel.kt`
+- [X] T045 [US6] Verify idePlugin compiles: `./gradlew :idePlugin:compileKotlin`
+- [X] T046 Run full test suite: `./gradlew :graphEditor:jvmTest :flowGraph-types:jvmTest :flowGraph-persist:jvmTest :flowGraph-inspect:jvmTest :flowGraph-execute:jvmTest` to verify zero regressions
+- [X] T047 Run quickstart.md validation scenarios (Scenarios 1-15)
 
 **Checkpoint**: All verification complete. No cycles. Strangler Fig pattern followed. Zero regressions.
 
