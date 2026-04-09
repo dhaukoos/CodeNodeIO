@@ -105,6 +105,8 @@ Auto-generated from all feature plans. Last updated: 2026-01-13
 - N/A — in-memory runtime state (StateFlow for execution state, animations, debug snapshots) (068-extract-flowgraph-execute)
 - Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + fbpDsl (core FBP domain model, CodeNodeFactory, In2AnyOut1Runtime, In3AnyOut1Runtime), flowGraph-types (IPTypeRegistry), flowGraph-persist (FlowGraphSerializer, FlowKtParser), flowGraph-inspect (NodeDefinitionRegistry), KotlinPoet (code generation), kotlinx-coroutines 1.8.0, kotlinx-serialization 1.6.0, kotlin-compiler-embeddable (JVM only) (069-extract-flowgraph-generate)
 - N/A — generates source code files to filesystem (069-extract-flowgraph-generate)
+- Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + fbpDsl (core FBP domain model, CodeNodeFactory, In3AnyOut1Runtime), Compose Desktop (geometry types for jvmMain), lifecycle-viewmodel-compose 2.8.0, kotlinx-coroutines 1.8.0 (070-extract-flowgraph-compose)
+- N/A — in-memory graph state (070-extract-flowgraph-compose)
 
 - Kotlin 1.9+, Go 1.21+ (001-ide-plugin-platform)
 
@@ -124,9 +126,9 @@ tests/
 Kotlin 1.9+, Go 1.21+: Follow standard conventions
 
 ## Recent Changes
+- 070-extract-flowgraph-compose: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + fbpDsl (core FBP domain model, CodeNodeFactory, In3AnyOut1Runtime), Compose Desktop (geometry types for jvmMain), lifecycle-viewmodel-compose 2.8.0, kotlinx-coroutines 1.8.0
 - 069-extract-flowgraph-generate: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + fbpDsl (core FBP domain model, CodeNodeFactory, In2AnyOut1Runtime, In3AnyOut1Runtime), flowGraph-types (IPTypeRegistry), flowGraph-persist (FlowGraphSerializer, FlowKtParser), flowGraph-inspect (NodeDefinitionRegistry), KotlinPoet (code generation), kotlinx-coroutines 1.8.0, kotlinx-serialization 1.6.0, kotlin-compiler-embeddable (JVM only)
 - 068-extract-flowgraph-execute: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + fbpDsl (core FBP domain model, DynamicPipelineController, ModuleController), flowGraph-inspect (NodeDefinitionRegistry for ModuleSessionFactory), kotlinx-coroutines 1.8.0
-- 067-extract-flowgraph-inspect: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + fbpDsl (core FBP domain model), flowGraph-types (IPTypeRegistry for IPPaletteViewModel), flowGraph-persist (GraphNodeTemplateMeta for GraphNodePaletteViewModel), kotlinx-coroutines 1.8.0, androidx.lifecycle-viewmodel
 
 
 <!-- MANUAL ADDITIONS START -->
