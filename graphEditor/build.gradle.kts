@@ -25,6 +25,7 @@ kotlin {
                 implementation(project(":flowGraph-inspect"))
                 implementation(project(":preview-api"))
                 implementation(project(":flowGraph-execute"))
+                implementation(project(":flowGraph-compose"))
                 // Koin DI
                 implementation("io.insert-koin:koin-core:4.0.0")
                 // Compose Multiplatform dependencies (using compose DSL)

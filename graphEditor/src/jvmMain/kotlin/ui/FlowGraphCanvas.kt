@@ -32,10 +32,10 @@ import io.codenode.grapheditor.state.SelectableElement
 import io.codenode.grapheditor.ui.GraphNodeRenderer.drawGraphNode
 import io.codenode.grapheditor.rendering.PortShape
 import io.codenode.grapheditor.rendering.renderPort
-import io.codenode.grapheditor.viewmodel.CanvasInteractionViewModel
-import io.codenode.grapheditor.viewmodel.CanvasInteractionState
-import io.codenode.grapheditor.viewmodel.InteractionMode
-import io.codenode.grapheditor.viewmodel.HoveredPortInfo
+import io.codenode.flowgraphcompose.viewmodel.CanvasInteractionViewModel
+import io.codenode.flowgraphcompose.viewmodel.CanvasInteractionState
+import io.codenode.flowgraphcompose.viewmodel.InteractionMode
+import io.codenode.flowgraphcompose.viewmodel.HoveredPortInfo
 
 /**
  * Main canvas component for rendering and interacting with flow graphs

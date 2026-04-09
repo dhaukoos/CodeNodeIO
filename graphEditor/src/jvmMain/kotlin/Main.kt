@@ -33,8 +33,8 @@ import io.codenode.grapheditor.viewmodel.LocalSharedState
 import io.codenode.flowgraphgenerate.viewmodel.NodeGeneratorViewModel
 import io.codenode.flowgraphinspect.viewmodel.NodePaletteViewModel
 import io.codenode.flowgraphinspect.viewmodel.IPPaletteViewModel
-import io.codenode.grapheditor.viewmodel.PropertiesPanelViewModel
-import io.codenode.grapheditor.viewmodel.CanvasInteractionViewModel
+import io.codenode.flowgraphcompose.viewmodel.PropertiesPanelViewModel
+import io.codenode.flowgraphcompose.viewmodel.CanvasInteractionViewModel
 import io.codenode.flowgraphinspect.viewmodel.CodeEditorViewModel
 import io.codenode.flowgraphinspect.viewmodel.FileEntry
 import io.codenode.grapheditor.viewmodel.GraphEditorViewModel

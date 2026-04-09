@@ -53,7 +53,7 @@
 
 ### TDD Tests
 
-- [ ] T008 [US2] Write TDD tests for FlowGraphComposeCodeNode in `flowGraph-compose/src/jvmTest/kotlin/io/codenode/flowgraphcompose/nodes/FlowGraphComposeCodeNodeTest.kt` — test port signatures (3 inputs: flowGraphModel, nodeDescriptors, ipTypeMetadata; 1 output: graphState), anyInput=true, category=TRANSFORMER, runtime creation, basic data flow (send flowGraphModel → receive graphState), caching behavior (send nodeDescriptors then flowGraphModel → both used)
+- [X] T008 [US2] Write TDD tests for FlowGraphComposeCodeNode in `flowGraph-compose/src/jvmTest/kotlin/io/codenode/flowgraphcompose/nodes/FlowGraphComposeCodeNodeTest.kt` — test port signatures (3 inputs: flowGraphModel, nodeDescriptors, ipTypeMetadata; 1 output: graphState), anyInput=true, category=TRANSFORMER, runtime creation, basic data flow (send flowGraphModel → receive graphState), caching behavior (send nodeDescriptors then flowGraphModel → both used)
 
 **Checkpoint**: Test compiles but fails — `./gradlew :flowGraph-compose:jvmTest` shows expected failure
 
@@ -63,8 +63,8 @@
 
 **Goal**: Implement FlowGraphComposeCodeNode using In3AnyOut1Runtime
 
-- [ ] T009 [US2] Implement FlowGraphComposeCodeNode in `flowGraph-compose/src/jvmMain/kotlin/io/codenode/flowgraphcompose/nodes/FlowGraphComposeCodeNode.kt` — Kotlin object implementing CodeNodeDefinition, uses CodeNodeFactory.createIn3AnyOut1Processor, anyInput=true, takes flowGraphModel + nodeDescriptors + ipTypeMetadata → produces graphState. Include `override val sourceFilePath: String? get() = resolveSourceFilePath(this::class.java)` and import from `io.codenode.fbpdsl.runtime.resolveSourceFilePath`
-- [ ] T010 [US2] Create META-INF registry file at `flowGraph-compose/src/jvmMain/resources/META-INF/codenode/node-definitions` — single line: `io.codenode.flowgraphcompose.nodes.FlowGraphComposeCodeNode`
+- [X] T009 [US2] Implement FlowGraphComposeCodeNode in `flowGraph-compose/src/jvmMain/kotlin/io/codenode/flowgraphcompose/nodes/FlowGraphComposeCodeNode.kt` — Kotlin object implementing CodeNodeDefinition, uses CodeNodeFactory.createIn3AnyOut1Processor, anyInput=true, takes flowGraphModel + nodeDescriptors + ipTypeMetadata → produces graphState. Include `override val sourceFilePath: String? get() = resolveSourceFilePath(this::class.java)` and import from `io.codenode.fbpdsl.runtime.resolveSourceFilePath`
+- [X] T010 [US2] Create META-INF registry file at `flowGraph-compose/src/jvmMain/resources/META-INF/codenode/node-definitions` — single line: `io.codenode.flowgraphcompose.nodes.FlowGraphComposeCodeNode`
 
 **Checkpoint**: All TDD tests pass — `./gradlew :flowGraph-compose:jvmTest`
 
@@ -76,14 +76,14 @@
 
 ### Build dependency update
 
-- [ ] T011 [US1] Update `graphEditor/build.gradle.kts` — add `project(":flowGraph-compose")` dependency
+- [X] T011 [US1] Update `graphEditor/build.gradle.kts` — add `project(":flowGraph-compose")` dependency
 
 ### graphEditor import migrations
 
-- [ ] T012 [US1] Search all graphEditor source files for imports of `CanvasInteractionViewModel` from `io.codenode.grapheditor.viewmodel` — update each to `io.codenode.flowgraphcompose.viewmodel.CanvasInteractionViewModel`. Key files: Main.kt, SharedStateProvider.kt, FlowGraphCanvas.kt, any UI composable referencing canvas interactions
-- [ ] T013 [US1] Search all graphEditor source files for imports of `PropertiesPanelViewModel` from `io.codenode.grapheditor.viewmodel` — update each to `io.codenode.flowgraphcompose.viewmodel.PropertiesPanelViewModel`. Key files: Main.kt, SharedStateProvider.kt, PropertiesPanel.kt
-- [ ] T014 [US1] Search all graphEditor source files for imports of `NodeGeneratorState` from `io.codenode.grapheditor.state` — update each to `io.codenode.flowgraphcompose.state.NodeGeneratorState`. Key files: UI panels referencing node generator form state
-- [ ] T015 [US1] Search all graphEditor source files for imports of `ViewSynchronizer` from `io.codenode.grapheditor.state` — update each to `io.codenode.flowgraphcompose.state.ViewSynchronizer`. Key files: Main.kt, SharedStateProvider.kt
+- [X] T012 [US1] Search all graphEditor source files for imports of `CanvasInteractionViewModel` from `io.codenode.grapheditor.viewmodel` — update each to `io.codenode.flowgraphcompose.viewmodel.CanvasInteractionViewModel`. Key files: Main.kt, SharedStateProvider.kt, FlowGraphCanvas.kt, any UI composable referencing canvas interactions
+- [X] T013 [US1] Search all graphEditor source files for imports of `PropertiesPanelViewModel` from `io.codenode.grapheditor.viewmodel` — update each to `io.codenode.flowgraphcompose.viewmodel.PropertiesPanelViewModel`. Key files: Main.kt, SharedStateProvider.kt, PropertiesPanel.kt
+- [X] T014 [US1] Search all graphEditor source files for imports of `NodeGeneratorState` from `io.codenode.grapheditor.state` — update each to `io.codenode.flowgraphcompose.state.NodeGeneratorState`. Key files: UI panels referencing node generator form state
+- [X] T015 [US1] Search all graphEditor source files for imports of `ViewSynchronizer` from `io.codenode.grapheditor.state` — update each to `io.codenode.flowgraphcompose.state.ViewSynchronizer`. Key files: Main.kt, SharedStateProvider.kt
 
 **Checkpoint**: graphEditor compiles with new imports — `./gradlew :graphEditor:compileKotlinJvm`
 

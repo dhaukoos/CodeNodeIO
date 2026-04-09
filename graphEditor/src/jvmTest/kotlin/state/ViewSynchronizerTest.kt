@@ -8,7 +8,7 @@ package io.codenode.grapheditor.state
 
 import io.codenode.fbpdsl.dsl.flowGraph
 import io.codenode.grapheditor.state.GraphState
-import io.codenode.grapheditor.state.ViewSynchronizer
+import io.codenode.flowgraphcompose.state.ViewSynchronizer
 import kotlin.test.*
 
 class ViewSynchronizerTest {
@@ -32,7 +32,7 @@ class ViewSynchronizerTest {
         val graphState = GraphState(createTestGraph())
 
         // When creating synchronizer
-        val synchronizer = ViewSynchronizer(graphState)
+        val synchronizer = ViewSynchronizer { graphState.flowGraph }
 
         // Then DSL text should be generated
         assertFalse(synchronizer.dslText.value.isEmpty(), "DSL text should be generated")
@@ -44,7 +44,7 @@ class ViewSynchronizerTest {
     fun `should mark changes when edited text differs from generated`() {
         // Given a synchronizer
         val graphState = GraphState(createTestGraph())
-        val synchronizer = ViewSynchronizer(graphState)
+        val synchronizer = ViewSynchronizer { graphState.flowGraph }
 
         // When updating edited text
         synchronizer.updateEditedText("modified text")
@@ -57,7 +57,7 @@ class ViewSynchronizerTest {
     fun `should clear unapplied changes flag when texts match`() {
         // Given a synchronizer with unapplied changes
         val graphState = GraphState(createTestGraph())
-        val synchronizer = ViewSynchronizer(graphState)
+        val synchronizer = ViewSynchronizer { graphState.flowGraph }
         synchronizer.updateEditedText("modified text")
         assertTrue(synchronizer.hasUnappliedChanges.value, "Should have unapplied changes initially")
 
@@ -72,7 +72,7 @@ class ViewSynchronizerTest {
     fun `should discard text changes and revert to generated text`() {
         // Given a synchronizer with modified text
         val graphState = GraphState(createTestGraph())
-        val synchronizer = ViewSynchronizer(graphState)
+        val synchronizer = ViewSynchronizer { graphState.flowGraph }
         val originalText = synchronizer.dslText.value
         synchronizer.updateEditedText("completely different text")
 
@@ -88,7 +88,7 @@ class ViewSynchronizerTest {
     fun `should regenerate text when graph changes`() {
         // Given a synchronizer
         val graphState = GraphState(createTestGraph())
-        val synchronizer = ViewSynchronizer(graphState)
+        val synchronizer = ViewSynchronizer { graphState.flowGraph }
         val initialText = synchronizer.dslText.value
 
         // When graph changes (add a node)
@@ -112,7 +112,7 @@ class ViewSynchronizerTest {
     fun `should preserve edited text when graph changes if user has modifications`() {
         // Given a synchronizer with user edits
         val graphState = GraphState(createTestGraph())
-        val synchronizer = ViewSynchronizer(graphState)
+        val synchronizer = ViewSynchronizer { graphState.flowGraph }
         val userEditedText = "// User's custom text"
         synchronizer.updateEditedText(userEditedText)
 
@@ -139,7 +139,7 @@ class ViewSynchronizerTest {
     fun `should provide sync statistics`() {
         // Given a synchronizer
         val graphState = GraphState(createTestGraph())
-        val synchronizer = ViewSynchronizer(graphState)
+        val synchronizer = ViewSynchronizer { graphState.flowGraph }
 
         // When getting sync stats
         val stats = synchronizer.getSyncStats()
@@ -156,7 +156,7 @@ class ViewSynchronizerTest {
     fun `should clear sync errors`() {
         // Given a synchronizer with an error
         val graphState = GraphState(createTestGraph())
-        val synchronizer = ViewSynchronizer(graphState)
+        val synchronizer = ViewSynchronizer { graphState.flowGraph }
 
         // Trigger an error by trying to apply changes (which will fail as parsing is not implemented)
         synchronizer.applyTextChangesToGraph()
@@ -176,7 +176,7 @@ class ViewSynchronizerTest {
         val graphState = GraphState(emptyGraph)
 
         // When creating synchronizer
-        val synchronizer = ViewSynchronizer(graphState)
+        val synchronizer = ViewSynchronizer { graphState.flowGraph }
 
         // Then should handle gracefully
         assertTrue(synchronizer.dslText.value.contains("flowGraph"), "Should have flowGraph declaration")
@@ -188,7 +188,7 @@ class ViewSynchronizerTest {
     fun `should detect when texts are synchronized`() {
         // Given a synchronizer
         val graphState = GraphState(createTestGraph())
-        val synchronizer = ViewSynchronizer(graphState)
+        val synchronizer = ViewSynchronizer { graphState.flowGraph }
 
         // When texts are in sync
         // Initially they should be in sync
