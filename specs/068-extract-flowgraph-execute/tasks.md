@@ -57,9 +57,9 @@
 
 **Independent Test**: `./gradlew :flowGraph-execute:jvmTest` — tests compile but fail
 
-- [ ] T013 [US2] Create `flowGraph-execute/src/jvmTest/kotlin/io/codenode/flowgraphexecute/node/FlowGraphExecuteCodeNodeTest.kt` with TDD tests covering: port signatures (2 inputs: flowGraphModel, nodeDescriptors; 3 outputs: executionState, animations, debugSnapshots; all String type), anyInput mode, category = TRANSFORMER, createRuntime returns In2AnyOut3Runtime
-- [ ] T014 [US2] Add TDD tests for data flow: flowGraphModel input triggers execution state emission on executionState port, ProcessResult3 selective output (not every input produces all 3 outputs), empty/invalid flowGraphModel returns ProcessResult3(null, null, null)
-- [ ] T015 [US2] Add TDD tests for boundary conditions: empty input is no-op, nodeDescriptors arriving alone caches value for later use, toNodeTypeDefinition returns correct metadata
+- [X] T013 [US2] Create `flowGraph-execute/src/jvmTest/kotlin/io/codenode/flowgraphexecute/node/FlowGraphExecuteCodeNodeTest.kt` with TDD tests covering: port signatures (2 inputs: flowGraphModel, nodeDescriptors; 3 outputs: executionState, animations, debugSnapshots; all String type), anyInput mode, category = TRANSFORMER, createRuntime returns In2AnyOut3Runtime
+- [X] T014 [US2] Add TDD tests for data flow: flowGraphModel input triggers execution state emission on executionState port, ProcessResult3 selective output (not every input produces all 3 outputs), empty/invalid flowGraphModel returns ProcessResult3(null, null, null)
+- [X] T015 [US2] Add TDD tests for boundary conditions: empty input is no-op, nodeDescriptors arriving alone caches value for later use, toNodeTypeDefinition returns correct metadata
 
 **Checkpoint**: TDD tests written and failing. Ready for CodeNode implementation.
 
@@ -73,9 +73,9 @@
 
 **Independent Test**: `./gradlew :flowGraph-execute:jvmTest` — all CodeNode tests pass
 
-- [ ] T016 [US2] Create `flowGraph-execute/src/jvmMain/kotlin/io/codenode/flowgraphexecute/node/FlowGraphExecuteCodeNode.kt` implementing `CodeNodeDefinition` with `In2AnyOut3Runtime<String, String, String, String, String>` and `anyInput = true`, using `ProcessResult3` for selective output
-- [ ] T017 [US2] Implement processing logic: flowGraphModel input configures the runtime pipeline to execute; nodeDescriptors input caches node definitions for pipeline building; executionState output emits lifecycle state changes (IDLE, RUNNING, PAUSED, ERROR); animations output emits active ConnectionAnimation data when animation enabled; debugSnapshots output emits per-connection value captures
-- [ ] T018 [US2] Run `./gradlew :flowGraph-execute:jvmTest` to verify all CodeNode tests pass
+- [X] T016 [US2] Create `flowGraph-execute/src/jvmMain/kotlin/io/codenode/flowgraphexecute/node/FlowGraphExecuteCodeNode.kt` implementing `CodeNodeDefinition` with `In2AnyOut3Runtime<String, String, String, String, String>` and `anyInput = true`, using `ProcessResult3` for selective output
+- [X] T017 [US2] Implement processing logic: flowGraphModel input configures the runtime pipeline to execute; nodeDescriptors input caches node definitions for pipeline building; executionState output emits lifecycle state changes (IDLE, RUNNING, PAUSED, ERROR); animations output emits active ConnectionAnimation data when animation enabled; debugSnapshots output emits per-connection value captures
+- [X] T018 [US2] Run `./gradlew :flowGraph-execute:jvmTest` to verify all CodeNode tests pass
 
 **Checkpoint**: CodeNode implemented. All TDD tests pass. Module builds independently.
 
