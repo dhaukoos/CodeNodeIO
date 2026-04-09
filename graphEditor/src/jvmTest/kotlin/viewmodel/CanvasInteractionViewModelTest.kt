@@ -10,6 +10,9 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import io.codenode.fbpdsl.model.Connection
 import io.codenode.fbpdsl.model.Port
+import io.codenode.flowgraphcompose.viewmodel.CanvasInteractionViewModel
+import io.codenode.flowgraphcompose.viewmodel.HoveredPortInfo
+import io.codenode.flowgraphcompose.viewmodel.InteractionMode
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test

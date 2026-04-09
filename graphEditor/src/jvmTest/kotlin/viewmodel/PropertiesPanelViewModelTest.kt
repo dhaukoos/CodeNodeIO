@@ -10,6 +10,7 @@ import io.codenode.fbpdsl.model.CodeNode
 import io.codenode.fbpdsl.model.CodeNodeType
 import io.codenode.fbpdsl.model.Node
 import io.codenode.fbpdsl.model.Connection
+import io.codenode.flowgraphcompose.viewmodel.PropertiesPanelViewModel
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test

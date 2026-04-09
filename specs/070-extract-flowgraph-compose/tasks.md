@@ -93,11 +93,11 @@
 
 **Goal**: Delete the 4 original files from graphEditor
 
-- [ ] T016 [US1] Remove `graphEditor/src/jvmMain/kotlin/viewmodel/CanvasInteractionViewModel.kt`
-- [ ] T017 [US1] Remove `graphEditor/src/jvmMain/kotlin/viewmodel/PropertiesPanelViewModel.kt`
-- [ ] T018 [US1] Remove `graphEditor/src/jvmMain/kotlin/state/NodeGeneratorState.kt`
-- [ ] T019 [US1] Remove `graphEditor/src/jvmMain/kotlin/state/ViewSynchronizer.kt`
-- [ ] T020 [US1] Verify zero references to old package paths for the 4 moved files remain — grep entire codebase for `io.codenode.grapheditor.viewmodel.CanvasInteractionViewModel`, `io.codenode.grapheditor.viewmodel.PropertiesPanelViewModel`, `io.codenode.grapheditor.state.NodeGeneratorState`, `io.codenode.grapheditor.state.ViewSynchronizer`
+- [X] T016 [US1] Remove `graphEditor/src/jvmMain/kotlin/viewmodel/CanvasInteractionViewModel.kt`
+- [X] T017 [US1] Remove `graphEditor/src/jvmMain/kotlin/viewmodel/PropertiesPanelViewModel.kt`
+- [X] T018 [US1] Remove `graphEditor/src/jvmMain/kotlin/state/NodeGeneratorState.kt`
+- [X] T019 [US1] Remove `graphEditor/src/jvmMain/kotlin/state/ViewSynchronizer.kt`
+- [X] T020 [US1] Verify zero references to old package paths for the 4 moved files remain — grep entire codebase for `io.codenode.grapheditor.viewmodel.CanvasInteractionViewModel`, `io.codenode.grapheditor.viewmodel.PropertiesPanelViewModel`, `io.codenode.grapheditor.state.NodeGeneratorState`, `io.codenode.grapheditor.state.ViewSynchronizer`
 
 **Checkpoint**: Full project compiles and all tests pass — `./gradlew check`
 

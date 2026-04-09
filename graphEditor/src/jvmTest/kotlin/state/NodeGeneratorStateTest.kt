@@ -5,6 +5,7 @@
 
 package io.codenode.grapheditor.state
 
+import io.codenode.flowgraphcompose.state.NodeGeneratorState
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
