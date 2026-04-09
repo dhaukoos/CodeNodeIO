@@ -2,7 +2,7 @@
 
 **Visual Flow-based Programming for Full-Stack Development**
 
-CodeNodeIO is a JetBrains IDE plugin that enables developers to create full-stack applications using Flow-based Programming (FBP) principles through a visual CAD-like interface. Design flow graphs visually, generate production-ready Kotlin Multiplatform (Android, iOS, Web) and Go (backend) code automatically.
+CodeNodeIO is a graph editing tool that enables developers to create full-stack applications using Flow-based Programming (FBP) principles through a visual CAD-like interface. Design 'flowGraphs' visually, generate production-ready Kotlin Multiplatform (Android, iOS, Web) and Go (backend) code automatically.
 
 ![Status](https://img.shields.io/badge/status-in%20development-yellow)
 ![License](https://img.shields.io/badge/license-Apache%202.0-blue)
@@ -36,7 +36,6 @@ CodeNodeIO brings **CAD-level abstraction** to software development through Flow
   - **Go Backend**: Generate idiomatic Go code for server-side services and APIs
 - **Circuit Simulator**: Debug flows with pause/resume, speed control, and real-time IP (Information Packet) visualization
 - **Validation Engine**: Ensure graphs are correct with port type checking, cycle detection, and connection validation
-- **IDE Integration**: Seamless integration with IntelliJ IDEA, Android Studio, and GoLand
 
 ### Architecture
 
