@@ -71,8 +71,8 @@
 
 ### TDD Tests
 
-- [ ] T017 [P] [US2] Write TDD tests for GenerateContextAggregatorCodeNode in `flowGraph-generate/src/jvmTest/kotlin/io/codenode/flowgraphgenerate/node/GenerateContextAggregatorCodeNodeTest.kt` — test port signatures (2 inputs: flowGraphModel, serializedOutput; 1 output: generationContext), anyInput=true, category=TRANSFORMER, runtime creation, basic data flow
-- [ ] T018 [P] [US2] Write TDD tests for FlowGraphGenerateCodeNode in `flowGraph-generate/src/jvmTest/kotlin/io/codenode/flowgraphgenerate/node/FlowGraphGenerateCodeNodeTest.kt` — test port signatures (3 inputs: generationContext, nodeDescriptors, ipTypeMetadata; 1 output: generatedOutput), anyInput=true, category=TRANSFORMER, runtime creation, basic data flow
+- [X] T017 [P] [US2] Write TDD tests for GenerateContextAggregatorCodeNode in `flowGraph-generate/src/jvmTest/kotlin/io/codenode/flowgraphgenerate/node/GenerateContextAggregatorCodeNodeTest.kt` — test port signatures (2 inputs: flowGraphModel, serializedOutput; 1 output: generationContext), anyInput=true, category=TRANSFORMER, runtime creation, basic data flow
+- [X] T018 [P] [US2] Write TDD tests for FlowGraphGenerateCodeNode in `flowGraph-generate/src/jvmTest/kotlin/io/codenode/flowgraphgenerate/node/FlowGraphGenerateCodeNodeTest.kt` — test port signatures (3 inputs: generationContext, nodeDescriptors, ipTypeMetadata; 1 output: generatedOutput), anyInput=true, category=TRANSFORMER, runtime creation, basic data flow
 
 **Checkpoint**: Tests compile but fail — `./gradlew :flowGraph-generate:jvmTest` shows expected failures
 
@@ -82,8 +82,8 @@
 
 **Goal**: Implement both CodeNodeDefinitions using existing runtime types
 
-- [ ] T019 [P] [US2] Implement GenerateContextAggregatorCodeNode in `flowGraph-generate/src/jvmMain/kotlin/io/codenode/flowgraphgenerate/node/GenerateContextAggregatorCodeNode.kt` — object implementing CodeNodeDefinition, uses CodeNodeFactory.createIn2AnyOut1Processor, combines flowGraphModel + serializedOutput into generationContext JSON string
-- [ ] T020 [P] [US2] Implement FlowGraphGenerateCodeNode in `flowGraph-generate/src/jvmMain/kotlin/io/codenode/flowgraphgenerate/node/FlowGraphGenerateCodeNode.kt` — object implementing CodeNodeDefinition, uses CodeNodeFactory.createIn3AnyOut1Processor, takes generationContext + nodeDescriptors + ipTypeMetadata → produces generatedOutput
+- [X] T019 [P] [US2] Implement GenerateContextAggregatorCodeNode in `flowGraph-generate/src/jvmMain/kotlin/io/codenode/flowgraphgenerate/node/GenerateContextAggregatorCodeNode.kt` — object implementing CodeNodeDefinition, uses CodeNodeFactory.createIn2AnyOut1Processor, combines flowGraphModel + serializedOutput into generationContext JSON string
+- [X] T020 [P] [US2] Implement FlowGraphGenerateCodeNode in `flowGraph-generate/src/jvmMain/kotlin/io/codenode/flowgraphgenerate/node/FlowGraphGenerateCodeNode.kt` — object implementing CodeNodeDefinition, uses CodeNodeFactory.createIn3AnyOut1Processor, takes generationContext + nodeDescriptors + ipTypeMetadata → produces generatedOutput
 
 **Checkpoint**: All TDD tests pass — `./gradlew :flowGraph-generate:jvmTest`
 
