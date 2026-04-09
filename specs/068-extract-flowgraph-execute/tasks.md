@@ -19,10 +19,10 @@
 
 **Purpose**: Create flowGraph-execute module structure and Gradle configuration
 
-- [ ] T001 Add `include("flowGraph-execute")` to `settings.gradle.kts` after `:flowGraph-inspect`
-- [ ] T002 Create `flowGraph-execute/build.gradle.kts` following the flowGraph-inspect pattern: KMP module with JVM + iOS targets, depends on `:fbpDsl` and `:flowGraph-inspect`, kotlinx-coroutines, kotlinx-serialization, JUnit 5 for tests. Do NOT include Compose dependencies (R4 — unused by source files).
-- [ ] T003 Create source directory structure: `flowGraph-execute/src/commonMain/kotlin/io/codenode/flowgraphexecute/`, `flowGraph-execute/src/jvmMain/kotlin/io/codenode/flowgraphexecute/`, `flowGraph-execute/src/jvmMain/kotlin/io/codenode/flowgraphexecute/node/`, `flowGraph-execute/src/jvmTest/kotlin/io/codenode/flowgraphexecute/node/`, `flowGraph-execute/src/jvmTest/kotlin/io/codenode/flowgraphexecute/characterization/`
-- [ ] T004 Run `./gradlew :flowGraph-execute:compileKotlinJvm` to verify empty module compiles
+- [X] T001 Add `include("flowGraph-execute")` to `settings.gradle.kts` after `:flowGraph-inspect`
+- [X] T002 Create `flowGraph-execute/build.gradle.kts` following the flowGraph-inspect pattern: KMP module with JVM + iOS targets, depends on `:fbpDsl` and `:flowGraph-inspect`, kotlinx-coroutines, kotlinx-serialization, JUnit 5 for tests. Do NOT include Compose dependencies (R4 — unused by source files).
+- [X] T003 Create source directory structure: `flowGraph-execute/src/commonMain/kotlin/io/codenode/flowgraphexecute/`, `flowGraph-execute/src/jvmMain/kotlin/io/codenode/flowgraphexecute/`, `flowGraph-execute/src/jvmMain/kotlin/io/codenode/flowgraphexecute/node/`, `flowGraph-execute/src/jvmTest/kotlin/io/codenode/flowgraphexecute/node/`, `flowGraph-execute/src/jvmTest/kotlin/io/codenode/flowgraphexecute/characterization/`
+- [X] T004 Run `./gradlew :flowGraph-execute:compileKotlinJvm` to verify empty module compiles
 
 **Checkpoint**: Empty module compiles. Ready for file extraction.
 
@@ -36,14 +36,14 @@
 
 **Independent Test**: `./gradlew :flowGraph-execute:compileKotlinJvm` succeeds
 
-- [ ] T005 [P] [US1] Copy `circuitSimulator/src/commonMain/kotlin/io/codenode/circuitsimulator/RuntimeSession.kt` to `flowGraph-execute/src/commonMain/kotlin/io/codenode/flowgraphexecute/RuntimeSession.kt` — update package to `io.codenode.flowgraphexecute`, update all internal `io.codenode.circuitsimulator` imports
-- [ ] T006 [P] [US1] Copy `circuitSimulator/src/commonMain/kotlin/io/codenode/circuitsimulator/DataFlowAnimationController.kt` to `flowGraph-execute/src/commonMain/kotlin/io/codenode/flowgraphexecute/DataFlowAnimationController.kt` — update package to `io.codenode.flowgraphexecute`
-- [ ] T007 [P] [US1] Copy `circuitSimulator/src/commonMain/kotlin/io/codenode/circuitsimulator/DataFlowDebugger.kt` to `flowGraph-execute/src/commonMain/kotlin/io/codenode/flowgraphexecute/DataFlowDebugger.kt` — update package to `io.codenode.flowgraphexecute`
-- [ ] T008 [P] [US1] Copy `circuitSimulator/src/commonMain/kotlin/io/codenode/circuitsimulator/ConnectionAnimation.kt` to `flowGraph-execute/src/commonMain/kotlin/io/codenode/flowgraphexecute/ConnectionAnimation.kt` — update package to `io.codenode.flowgraphexecute`
-- [ ] T009 [P] [US1] Copy `circuitSimulator/src/commonMain/kotlin/io/codenode/circuitsimulator/CircuitSimulator.kt` to `flowGraph-execute/src/commonMain/kotlin/io/codenode/flowgraphexecute/CircuitSimulator.kt` — update package to `io.codenode.flowgraphexecute`
-- [ ] T010 [P] [US1] Copy `graphEditor/src/jvmMain/kotlin/ui/ModuleSessionFactory.kt` to `flowGraph-execute/src/jvmMain/kotlin/io/codenode/flowgraphexecute/ModuleSessionFactory.kt` — update package to `io.codenode.flowgraphexecute`, update `io.codenode.circuitsimulator.RuntimeSession` import to `io.codenode.flowgraphexecute.RuntimeSession`, keep `io.codenode.flowgraphinspect.registry.NodeDefinitionRegistry` import unchanged
-- [ ] T011 [US1] Run `./gradlew :flowGraph-execute:compileKotlinJvm` to verify all 6 copied files compile in the new module
-- [ ] T012 [US1] Verify Strangler Fig coexistence: run `./gradlew :graphEditor:compileKotlinJvm :circuitSimulator:compileKotlinJvm :flowGraph-execute:compileKotlinJvm` — all three modules compile independently
+- [X] T005 [P] [US1] Copy `circuitSimulator/src/commonMain/kotlin/io/codenode/circuitsimulator/RuntimeSession.kt` to `flowGraph-execute/src/jvmMain/kotlin/io/codenode/flowgraphexecute/RuntimeSession.kt` — update package to `io.codenode.flowgraphexecute`, update all internal `io.codenode.circuitsimulator` imports
+- [X] T006 [P] [US1] Copy `circuitSimulator/src/commonMain/kotlin/io/codenode/circuitsimulator/DataFlowAnimationController.kt` to `flowGraph-execute/src/jvmMain/kotlin/io/codenode/flowgraphexecute/DataFlowAnimationController.kt` — update package to `io.codenode.flowgraphexecute`
+- [X] T007 [P] [US1] Copy `circuitSimulator/src/commonMain/kotlin/io/codenode/circuitsimulator/DataFlowDebugger.kt` to `flowGraph-execute/src/jvmMain/kotlin/io/codenode/flowgraphexecute/DataFlowDebugger.kt` — update package to `io.codenode.flowgraphexecute`
+- [X] T008 [P] [US1] Copy `circuitSimulator/src/commonMain/kotlin/io/codenode/circuitsimulator/ConnectionAnimation.kt` to `flowGraph-execute/src/jvmMain/kotlin/io/codenode/flowgraphexecute/ConnectionAnimation.kt` — update package to `io.codenode.flowgraphexecute`
+- [X] T009 [P] [US1] Copy `circuitSimulator/src/commonMain/kotlin/io/codenode/circuitsimulator/CircuitSimulator.kt` to `flowGraph-execute/src/jvmMain/kotlin/io/codenode/flowgraphexecute/CircuitSimulator.kt` — update package to `io.codenode.flowgraphexecute`
+- [X] T010 [P] [US1] Copy `graphEditor/src/jvmMain/kotlin/ui/ModuleSessionFactory.kt` to `flowGraph-execute/src/jvmMain/kotlin/io/codenode/flowgraphexecute/ModuleSessionFactory.kt` — update package to `io.codenode.flowgraphexecute`, update `io.codenode.circuitsimulator.RuntimeSession` import to `io.codenode.flowgraphexecute.RuntimeSession`, keep `io.codenode.flowgraphinspect.registry.NodeDefinitionRegistry` import unchanged
+- [X] T011 [US1] Run `./gradlew :flowGraph-execute:compileKotlinJvm` to verify all 6 copied files compile in the new module
+- [X] T012 [US1] Verify Strangler Fig coexistence: run `./gradlew :graphEditor:compileKotlinJvm :circuitSimulator:compileKotlinJvm :flowGraph-execute:compileKotlinJvm` — all three modules compile independently
 
 **Checkpoint**: 6 files copied and compiling. All modules coexist (Strangler Fig).
 
