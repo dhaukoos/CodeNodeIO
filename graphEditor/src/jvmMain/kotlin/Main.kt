@@ -963,7 +963,7 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                                 onNodeMoved = { nodeId, newX, newY ->
                                     // Get old position before moving
                                     val node = graphState.flowGraph.findNode(nodeId)
-                                    val oldPosition = if (node is CodeNode) {
+                                    val oldPosition = if (node != null) {
                                         Offset(node.position.x.toFloat(), node.position.y.toFloat())
                                     } else {
                                         Offset.Zero

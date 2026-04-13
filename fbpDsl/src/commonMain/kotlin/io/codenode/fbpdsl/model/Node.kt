@@ -57,19 +57,14 @@ sealed class Node {
     /**
      * Position on the visual canvas
      *
-     * @property x Horizontal coordinate (pixels from left)
-     * @property y Vertical coordinate (pixels from top)
+     * @property x Horizontal coordinate (signed, infinite canvas)
+     * @property y Vertical coordinate (signed, infinite canvas)
      */
     @Serializable
     data class Position(
         val x: Double,
         val y: Double
     ) {
-        init {
-            require(x >= 0.0) { "Position x must be non-negative, got $x" }
-            require(y >= 0.0) { "Position y must be non-negative, got $y" }
-        }
-
         companion object {
             /** Default position at origin */
             val ORIGIN = Position(0.0, 0.0)

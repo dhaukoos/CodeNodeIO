@@ -17,7 +17,7 @@
 
 **Purpose**: Branch verification and existing test baseline
 
-- [ ] T001 Verify on branch `071-fix-node-positioning` and run existing tests with `./gradlew :fbpDsl:jvmTest :graphEditor:jvmTest` to establish green baseline
+- [X] T001 Verify on branch `071-fix-node-positioning` and run existing tests with `./gradlew :fbpDsl:jvmTest :graphEditor:jvmTest` to establish green baseline
 
 ---
 
@@ -31,18 +31,18 @@
 
 > **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
 
-- [ ] T002 [US1] Write test confirming `Node.Position(-10.0, -20.0)` can be constructed without error in `fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/model/NodePositionTest.kt`
-- [ ] T003 [P] [US1] Write test confirming `Node.Position(-0.5, 0.0)` and `Node.Position(0.0, -0.5)` are valid (single-axis negative) in `fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/model/NodePositionTest.kt`
-- [ ] T004 [P] [US1] Write test confirming `Node.Position(100.0, 200.0)` still works (positive values remain valid) in `fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/model/NodePositionTest.kt`
+- [X] T002 [US1] Write test confirming `Node.Position(-10.0, -20.0)` can be constructed without error in `fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/model/NodePositionTest.kt`
+- [X] T003 [P] [US1] Write test confirming `Node.Position(-0.5, 0.0)` and `Node.Position(0.0, -0.5)` are valid (single-axis negative) in `fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/model/NodePositionTest.kt`
+- [X] T004 [P] [US1] Write test confirming `Node.Position(100.0, 200.0)` still works (positive values remain valid) in `fbpDsl/src/commonTest/kotlin/io/codenode/fbpdsl/model/NodePositionTest.kt`
 
 ### Implementation for User Story 1
 
-- [ ] T005 [US1] Remove `require(x >= 0.0)` and `require(y >= 0.0)` from `Node.Position` init block in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/Node.kt` (line ~69-70)
-- [ ] T006 [US1] Run `./gradlew :fbpDsl:jvmTest` to verify all Node.Position tests pass (new and existing)
+- [X] T005 [US1] Remove `require(x >= 0.0)` and `require(y >= 0.0)` from `Node.Position` init block in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/Node.kt` (line ~69-70)
+- [X] T006 [US1] Run `./gradlew :fbpDsl:jvmTest` to verify all Node.Position tests pass (new and existing)
 
 ### Fix GraphNode Undo Position (US1 edge case)
 
-- [ ] T007 [US1] Fix old position lookup in `graphEditor/src/jvmMain/kotlin/Main.kt` (~line 966-970): change the `when` block to use `node.position` for all Node types (CodeNode and GraphNode) instead of `Offset.Zero` for non-CodeNode
+- [X] T007 [US1] Fix old position lookup in `graphEditor/src/jvmMain/kotlin/Main.kt` (~line 966-970): change the `when` block to use `node.position` for all Node types (CodeNode and GraphNode) instead of `Offset.Zero` for non-CodeNode
 
 **Checkpoint**: Node.Position accepts any signed coordinates. Dragging nodes anywhere works without crash. GraphNode undo restores correct position.
 
@@ -58,19 +58,19 @@
 
 > **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
 
-- [ ] T008 [US2] Write test: `NavigationContext.pushInto` stores a `ViewState(panOffset, scale)` alongside the graphNodeId in `graphEditor/src/jvmTest/kotlin/io/codenode/grapheditor/state/NavigationContextTest.kt`
-- [ ] T009 [P] [US2] Write test: `NavigationContext.popOut` returns the stored `ViewState` for the popped level in `graphEditor/src/jvmTest/kotlin/io/codenode/grapheditor/state/NavigationContextTest.kt`
-- [ ] T010 [P] [US2] Write test: `NavigationContext.reset` clears all stored view states in `graphEditor/src/jvmTest/kotlin/io/codenode/grapheditor/state/NavigationContextTest.kt`
-- [ ] T011 [US2] Write test: after `navigateIntoGraphNode` + `navigateOut`, `GraphState.panOffset` and scale are restored to pre-navigation values in `graphEditor/src/jvmTest/kotlin/io/codenode/grapheditor/state/NavigationContextTest.kt`
+- [X] T008 [US2] Write test: `NavigationContext.pushInto` stores a `ViewState(panOffset, scale)` alongside the graphNodeId in `graphEditor/src/jvmTest/kotlin/io/codenode/grapheditor/state/NavigationContextTest.kt`
+- [X] T009 [P] [US2] Write test: `NavigationContext.popOut` returns the stored `ViewState` for the popped level in `graphEditor/src/jvmTest/kotlin/io/codenode/grapheditor/state/NavigationContextTest.kt`
+- [X] T010 [P] [US2] Write test: `NavigationContext.reset` clears all stored view states in `graphEditor/src/jvmTest/kotlin/io/codenode/grapheditor/state/NavigationContextTest.kt`
+- [X] T011 [US2] Write test: after `navigateIntoGraphNode` + `navigateOut`, `GraphState.panOffset` and scale are restored to pre-navigation values in `graphEditor/src/jvmTest/kotlin/io/codenode/grapheditor/state/NavigationContextTest.kt`
 
 ### Implementation for User Story 2
 
-- [ ] T012 [US2] Add `ViewState` data class (holding `panOffset: Offset` and `scale: Float`) and update `NavigationContext` to store `viewStates: List<ViewState>` alongside `path` entries, updating `pushInto`/`popOut`/`reset` in `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/state/NavigationContext.kt`
-- [ ] T013 [US2] Update `GraphState.navigateIntoGraphNode()` to save current `(panOffset, scale)` via the updated `NavigationContext.pushInto` before recalculating view in `graphEditor/src/jvmMain/kotlin/state/GraphState.kt` (~line 1557)
-- [ ] T014 [US2] Update `GraphState.navigateOut()` to restore saved `(panOffset, scale)` from `NavigationContext.popOut` return value in `graphEditor/src/jvmMain/kotlin/state/GraphState.kt` (~line 1601)
-- [ ] T015 [US2] Update `GraphState.navigateToRoot()` to restore root-level view state in `graphEditor/src/jvmMain/kotlin/state/GraphState.kt` (~line 1613)
-- [ ] T016 [US2] Update `GraphState.navigateToDepth()` to restore target-depth view state in `graphEditor/src/jvmMain/kotlin/state/GraphState.kt` (~line 1647)
-- [ ] T017 [US2] Run `./gradlew :graphEditor:jvmTest` to verify all navigation tests pass (new and existing)
+- [X] T012 [US2] Add `ViewState` data class (holding `panOffset: Offset` and `scale: Float`) and update `NavigationContext` to store `viewStates: List<ViewState>` alongside `path` entries, updating `pushInto`/`popOut`/`reset` in `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/state/NavigationContext.kt`
+- [X] T013 [US2] Update `GraphState.navigateIntoGraphNode()` to save current `(panOffset, scale)` via the updated `NavigationContext.pushInto` before recalculating view in `graphEditor/src/jvmMain/kotlin/state/GraphState.kt` (~line 1557)
+- [X] T014 [US2] Update `GraphState.navigateOut()` to restore saved `(panOffset, scale)` from `NavigationContext.popOut` return value in `graphEditor/src/jvmMain/kotlin/state/GraphState.kt` (~line 1601)
+- [X] T015 [US2] Update `GraphState.navigateToRoot()` to restore root-level view state in `graphEditor/src/jvmMain/kotlin/state/GraphState.kt` (~line 1613)
+- [X] T016 [US2] Update `GraphState.navigateToDepth()` to restore target-depth view state in `graphEditor/src/jvmMain/kotlin/state/GraphState.kt` (~line 1647)
+- [X] T017 [US2] Run `./gradlew :graphEditor:jvmTest` to verify all navigation tests pass (new and existing)
 
 **Checkpoint**: Pan and zoom are preserved across hierarchy navigation. Zero drift after multiple navigate-in/out cycles.
 
@@ -80,8 +80,8 @@
 
 **Purpose**: Full test suite and manual verification
 
-- [ ] T018 Run full test suite `./gradlew :fbpDsl:jvmTest :graphEditor:jvmTest` to verify no regressions
-- [ ] T019 Run quickstart.md verification scenarios manually via Runtime Preview
+- [X] T018 Run full test suite `./gradlew :fbpDsl:jvmTest :graphEditor:jvmTest` to verify no regressions
+- [X] T019 Run quickstart.md verification scenarios manually via Runtime Preview
 
 ---
 

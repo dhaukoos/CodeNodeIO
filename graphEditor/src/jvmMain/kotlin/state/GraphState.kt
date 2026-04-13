@@ -1559,7 +1559,11 @@ class GraphState(initialGraph: FlowGraph = flowGraph(
         if (node !is GraphNode) {
             return false
         }
-        navigationContext = navigationContext.pushInto(graphNodeId)
+        // Save current view state before navigating in
+        navigationContext = navigationContext.pushInto(
+            graphNodeId,
+            ViewState(panOffset, scale)
+        )
         clearSelection()
 
         // Auto-center the view on the child nodes
@@ -1602,7 +1606,13 @@ class GraphState(initialGraph: FlowGraph = flowGraph(
         if (navigationContext.isAtRoot) {
             return false
         }
+        // Restore saved view state before popping
+        val savedViewState = navigationContext.lastViewState
         navigationContext = navigationContext.popOut()
+        if (savedViewState != null) {
+            panOffset = savedViewState.panOffset
+            scale = savedViewState.scale
+        }
         clearSelection()
         return true
     }
@@ -1611,7 +1621,13 @@ class GraphState(initialGraph: FlowGraph = flowGraph(
      * Resets navigation to the root FlowGraph level.
      */
     fun navigateToRoot() {
+        // Restore root-level view state (first saved state)
+        val rootViewState = navigationContext.viewStates.firstOrNull()
         navigationContext = navigationContext.reset()
+        if (rootViewState != null) {
+            panOffset = rootViewState.panOffset
+            scale = rootViewState.scale
+        }
         clearSelection()
     }
 
@@ -1653,9 +1669,17 @@ class GraphState(initialGraph: FlowGraph = flowGraph(
             return false  // Invalid depth
         }
 
-        // Pop out until we reach the target depth
+        // Pop out until we reach the target depth, restoring view state at target
+        var restoredViewState: ViewState? = null
         while (navigationContext.depth > targetDepth) {
+            if (navigationContext.depth == targetDepth + 1) {
+                restoredViewState = navigationContext.lastViewState
+            }
             navigationContext = navigationContext.popOut()
+        }
+        if (restoredViewState != null) {
+            panOffset = restoredViewState.panOffset
+            scale = restoredViewState.scale
         }
         clearSelection()
         return true

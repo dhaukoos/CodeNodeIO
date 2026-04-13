@@ -6,6 +6,7 @@
 
 package io.codenode.grapheditor.state
 
+import androidx.compose.ui.geometry.Offset
 import io.codenode.fbpdsl.dsl.flowGraph
 import io.codenode.fbpdsl.model.CodeNode
 import io.codenode.fbpdsl.model.CodeNodeType
@@ -855,6 +856,173 @@ class NavigationContextTest {
         val currentNode = graphState.getCurrentGraphNode()
         assertNotNull(currentNode)
         assertEquals("level2", currentNode.id)
+    }
+
+    // ============================================
+    // T008: ViewState storage in pushInto
+    // ============================================
+
+    @Test
+    fun `pushInto should accept and store ViewState`() {
+        val context = NavigationContext()
+        val viewState = ViewState(Offset(100f, 200f), 1.5f)
+        val newContext = context.pushInto("graphNode1", viewState)
+
+        assertEquals(listOf("graphNode1"), newContext.path)
+        assertEquals(1, newContext.viewStates.size)
+        assertEquals(viewState, newContext.viewStates[0])
+    }
+
+    @Test
+    fun `pushInto multiple times should accumulate ViewStates`() {
+        val vs1 = ViewState(Offset(10f, 20f), 1.0f)
+        val vs2 = ViewState(Offset(30f, 40f), 0.5f)
+        val context = NavigationContext()
+            .pushInto("graphNode1", vs1)
+            .pushInto("graphNode2", vs2)
+
+        assertEquals(2, context.viewStates.size)
+        assertEquals(vs1, context.viewStates[0])
+        assertEquals(vs2, context.viewStates[1])
+    }
+
+    // ============================================
+    // T009: ViewState retrieval from popOut
+    // ============================================
+
+    @Test
+    fun `popOut should return stored ViewState for the popped level`() {
+        val vs1 = ViewState(Offset(10f, 20f), 1.0f)
+        val context = NavigationContext()
+            .pushInto("graphNode1", vs1)
+
+        val popped = context.popOut()
+        assertEquals(0, popped.viewStates.size)
+        assertTrue(popped.isAtRoot)
+    }
+
+    @Test
+    fun `popOut should preserve earlier ViewStates`() {
+        val vs1 = ViewState(Offset(10f, 20f), 1.0f)
+        val vs2 = ViewState(Offset(30f, 40f), 0.5f)
+        val context = NavigationContext()
+            .pushInto("graphNode1", vs1)
+            .pushInto("graphNode2", vs2)
+
+        val popped = context.popOut()
+        assertEquals(1, popped.viewStates.size)
+        assertEquals(vs1, popped.viewStates[0])
+    }
+
+    @Test
+    fun `lastViewState should return the most recent ViewState`() {
+        val vs1 = ViewState(Offset(10f, 20f), 1.0f)
+        val vs2 = ViewState(Offset(30f, 40f), 0.5f)
+        val context = NavigationContext()
+            .pushInto("graphNode1", vs1)
+            .pushInto("graphNode2", vs2)
+
+        assertEquals(vs2, context.lastViewState)
+    }
+
+    @Test
+    fun `lastViewState should return null when at root`() {
+        val context = NavigationContext()
+        assertNull(context.lastViewState)
+    }
+
+    // ============================================
+    // T010: reset clears all ViewStates
+    // ============================================
+
+    @Test
+    fun `reset should clear all stored ViewStates`() {
+        val vs1 = ViewState(Offset(10f, 20f), 1.0f)
+        val vs2 = ViewState(Offset(30f, 40f), 0.5f)
+        val context = NavigationContext()
+            .pushInto("graphNode1", vs1)
+            .pushInto("graphNode2", vs2)
+            .reset()
+
+        assertTrue(context.viewStates.isEmpty())
+        assertTrue(context.isAtRoot)
+    }
+
+    // ============================================
+    // T011: GraphState view state preservation
+    // ============================================
+
+    @Test
+    fun `navigateIntoGraphNode and navigateOut should restore panOffset and scale`() {
+        val child1 = createTestCodeNode("child1", "Child1", 50.0, 50.0)
+        val graphNode = GraphNode(
+            id = "graphNode1",
+            name = "TestGroup",
+            position = Node.Position(100.0, 100.0),
+            childNodes = listOf(child1),
+            internalConnections = emptyList(),
+            inputPorts = emptyList(),
+            outputPorts = emptyList(),
+            portMappings = emptyMap()
+        )
+        val graph = flowGraph(name = "TestGraph", version = "1.0.0") {}
+            .addNode(graphNode)
+
+        val graphState = GraphState(graph)
+
+        // Set specific pan/zoom before navigating in
+        graphState.updatePanOffset(Offset(150f, 250f))
+        graphState.updateScale(1.5f)
+
+        val prePan = graphState.panOffset
+        val preScale = graphState.scale
+
+        // Navigate in (this will change panOffset)
+        graphState.navigateIntoGraphNode("graphNode1")
+        // panOffset should have changed (auto-center on children)
+        assertNotEquals(prePan, graphState.panOffset)
+
+        // Navigate back out
+        graphState.navigateOut()
+
+        // panOffset and scale should be restored
+        assertEquals(prePan.x, graphState.panOffset.x, 0.01f)
+        assertEquals(prePan.y, graphState.panOffset.y, 0.01f)
+        assertEquals(preScale, graphState.scale)
+    }
+
+    @Test
+    fun `multiple navigate cycles should produce zero drift`() {
+        val child1 = createTestCodeNode("child1", "Child1", 50.0, 50.0)
+        val graphNode = GraphNode(
+            id = "graphNode1",
+            name = "TestGroup",
+            position = Node.Position(100.0, 100.0),
+            childNodes = listOf(child1),
+            internalConnections = emptyList(),
+            inputPorts = emptyList(),
+            outputPorts = emptyList(),
+            portMappings = emptyMap()
+        )
+        val graph = flowGraph(name = "TestGraph", version = "1.0.0") {}
+            .addNode(graphNode)
+
+        val graphState = GraphState(graph)
+        graphState.updatePanOffset(Offset(150f, 250f))
+        graphState.updateScale(1.5f)
+
+        val originalPan = graphState.panOffset
+        val originalScale = graphState.scale
+
+        // 10 cycles
+        repeat(10) {
+            graphState.navigateIntoGraphNode("graphNode1")
+            graphState.navigateOut()
+        }
+
+        assertEquals(originalPan.x, graphState.panOffset.x, 0.01f)
+        assertEquals(originalPan.y, graphState.panOffset.y, 0.01f)
+        assertEquals(originalScale, graphState.scale)
     }
 
     // ============================================

@@ -6,17 +6,30 @@
 
 package io.codenode.grapheditor.state
 
+import androidx.compose.ui.geometry.Offset
+
+/**
+ * Stores the pan offset and zoom scale for a navigation level.
+ */
+data class ViewState(
+    val panOffset: Offset,
+    val scale: Float
+)
+
 /**
  * Represents the navigation context for hierarchical GraphNode traversal.
- * Maintains a path stack of GraphNode IDs representing the current view hierarchy.
+ * Maintains a path stack of GraphNode IDs representing the current view hierarchy,
+ * along with the saved view state (pan/zoom) for each level.
  *
  * When the path is empty, the view is at the root FlowGraph level.
  * Each entry in the path represents a GraphNode that has been "zoomed into".
  *
  * @property path List of GraphNode IDs from root to current view level
+ * @property viewStates Saved view states corresponding to each path entry
  */
 data class NavigationContext(
-    val path: List<String> = emptyList()
+    val path: List<String> = emptyList(),
+    val viewStates: List<ViewState> = emptyList()
 ) {
     /**
      * Whether the current view is at the root FlowGraph level
@@ -50,14 +63,24 @@ data class NavigationContext(
         get() = !isAtRoot
 
     /**
+     * The most recently saved ViewState, or null if at root.
+     */
+    val lastViewState: ViewState?
+        get() = viewStates.lastOrNull()
+
+    /**
      * Navigate into a GraphNode (zoom in).
      * Creates a new NavigationContext with the graphNodeId appended to the path.
      *
      * @param graphNodeId The ID of the GraphNode to navigate into
-     * @return New NavigationContext with updated path
+     * @param viewState The current view state to save before navigating in
+     * @return New NavigationContext with updated path and saved view state
      */
-    fun pushInto(graphNodeId: String): NavigationContext {
-        return NavigationContext(path = path + graphNodeId)
+    fun pushInto(graphNodeId: String, viewState: ViewState? = null): NavigationContext {
+        return NavigationContext(
+            path = path + graphNodeId,
+            viewStates = if (viewState != null) viewStates + viewState else viewStates
+        )
     }
 
     /**
@@ -71,7 +94,10 @@ data class NavigationContext(
         return if (path.isEmpty()) {
             this
         } else {
-            NavigationContext(path = path.dropLast(1))
+            NavigationContext(
+                path = path.dropLast(1),
+                viewStates = if (viewStates.isNotEmpty()) viewStates.dropLast(1) else viewStates
+            )
         }
     }
 
@@ -82,7 +108,7 @@ data class NavigationContext(
      * @return New NavigationContext at root level
      */
     fun reset(): NavigationContext {
-        return NavigationContext(path = emptyList())
+        return NavigationContext(path = emptyList(), viewStates = emptyList())
     }
 
     /**
