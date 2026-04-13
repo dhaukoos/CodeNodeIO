@@ -97,10 +97,10 @@
 
 **Independent Test**: `wc -l Main.kt` shows fewer than 50 lines. Application launches correctly.
 
-- [ ] T025 [US3] Move `GraphEditorApp` composable and `GraphEditorAppPreview` to `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/GraphEditorApp.kt` — Main.kt retains only `main()` function, Koin init, and window setup
-- [ ] T026 [US3] Update imports in Main.kt to reference `GraphEditorApp` from its new location. Verify compile + tests pass
-- [ ] T027 [US3] Verify Main.kt is under 50 lines with `wc -l`
-- [ ] T028 [US3] Run `./gradlew :graphEditor:jvmTest` — full test suite must pass
+- [X] T025 [US3] Move `GraphEditorApp` composable and `GraphEditorAppPreview` to `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/GraphEditorApp.kt` — Main.kt retains only `main()` function, Koin init, and window setup
+- [X] T026 [US3] Update imports in Main.kt to reference `GraphEditorApp` from its new location. Verify compile + tests pass
+- [X] T027 [US3] Verify Main.kt is under 50 lines with `wc -l`
+- [X] T028 [US3] Run `./gradlew :graphEditor:jvmTest` — full test suite must pass
 
 **Checkpoint**: Main.kt contains only `main()`. All graph editor UI logic lives in `ui/` and `util/` packages.
 
@@ -110,9 +110,9 @@
 
 **Purpose**: Full validation and file size checks
 
-- [ ] T029 Run full test suite `./gradlew :graphEditor:jvmTest` to verify no regressions
-- [ ] T030 Verify no single file exceeds 500 lines: check all new files with `wc -l`
-- [ ] T031 Run quickstart.md verification scenarios (VS1–VS6)
+- [X] T029 Run full test suite `./gradlew :graphEditor:jvmTest` to verify no regressions
+- [X] T030 Verify no single file exceeds 500 lines: check all new files with `wc -l`
+- [X] T031 Run quickstart.md verification scenarios (VS1–VS6)
 
 ---
 
