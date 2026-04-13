@@ -54,38 +54,38 @@
 
 ### Extract State Initialization
 
-- [ ] T011 [US2] Create `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/GraphEditorInitialization.kt` — define `GraphEditorState` class bundling all state variables (graphState, undoRedoManager, propertyChangeTracker, registries, ViewModels, panel states, moduleRootDir, runtimeSession, etc.) and a `@Composable fun rememberGraphEditorState(): GraphEditorState` factory that contains the initialization logic from GraphEditorApp lines ~115–468
-- [ ] T012 [US2] Update `GraphEditorApp` in Main.kt to call `rememberGraphEditorState()` and destructure/use the returned state holder, removing the inline initialization code. Verify compile + tests pass
+- [X] T011 [US2] Create `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/GraphEditorInitialization.kt` — define `GraphEditorState` class bundling all state variables (graphState, undoRedoManager, propertyChangeTracker, registries, ViewModels, panel states, moduleRootDir, runtimeSession, etc.) and a `@Composable fun rememberGraphEditorState(): GraphEditorState` factory that contains the initialization logic from GraphEditorApp lines ~115–468
+- [X] T012 [US2] Update `GraphEditorApp` in Main.kt to call `rememberGraphEditorState()` and destructure/use the returned state holder, removing the inline initialization code. Verify compile + tests pass
 
 ### Extract Connection Color Mapper
 
-- [ ] T013 [US2] Create `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/ConnectionColorMapper.kt` — extract connection color computation (Main.kt lines ~713–847) as `@Composable fun rememberConnectionColors(flowGraph, ipTypeRegistry, navigationContext, ...): ConnectionColorState` returning a data class with the color maps
-- [ ] T014 [US2] Update `GraphEditorApp` to call `rememberConnectionColors()` instead of inline computation. Verify compile + tests pass
+- [X] T013 [US2] Create `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/ConnectionColorMapper.kt` — extract connection color computation (Main.kt lines ~713–847) as `@Composable fun rememberConnectionColors(flowGraph, ipTypeRegistry, navigationContext, ...): ConnectionColorState` returning a data class with the color maps
+- [X] T014 [US2] Update `GraphEditorApp` to call `rememberConnectionColors()` instead of inline computation. Verify compile + tests pass
 
 ### Extract Keyboard Handler
 
-- [ ] T015 [US2] Create `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/GraphEditorKeyboardHandler.kt` — extract keyboard shortcut handling (Main.kt lines ~570–601) as a function `fun handleGraphEditorKeyEvent(keyEvent, graphState, undoRedoManager, ...): Boolean`
-- [ ] T016 [US2] Update `GraphEditorApp` to delegate `onKeyEvent` to the extracted handler. Verify compile + tests pass
+- [X] T015 [US2] Create `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/GraphEditorKeyboardHandler.kt` — extract keyboard shortcut handling (Main.kt lines ~570–601) as a function `fun handleGraphEditorKeyEvent(keyEvent, graphState, undoRedoManager, ...): Boolean`
+- [X] T016 [US2] Update `GraphEditorApp` to delegate `onKeyEvent` to the extracted handler. Verify compile + tests pass
 
 ### Extract Canvas Section
 
-- [ ] T017 [US2] Create `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/GraphEditorCanvas.kt` — extract the canvas section (Main.kt lines ~849–1045) as `@Composable fun GraphEditorCanvasSection(...)` containing the `FlowGraphCanvas` call and all its callbacks (onNodeSelected, onConnectionCreated, onNodeMoved, navigation, etc.)
-- [ ] T018 [US2] Update `GraphEditorApp` to call `GraphEditorCanvasSection()` in place of the inline canvas block. Verify compile + tests pass
+- [X] T017 [US2] Create `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/GraphEditorCanvas.kt` — extract the canvas section (Main.kt lines ~849–1045) as `@Composable fun GraphEditorCanvasSection(...)` containing the `FlowGraphCanvas` call and all its callbacks (onNodeSelected, onConnectionCreated, onNodeMoved, navigation, etc.)
+- [X] T018 [US2] Update `GraphEditorApp` to call `GraphEditorCanvasSection()` in place of the inline canvas block. Verify compile + tests pass
 
 ### Extract File Operation Dialogs
 
-- [ ] T019 [US2] Create `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/GraphEditorDialogs.kt` — extract all dialog LaunchedEffects and dialog composables (Main.kt lines ~1306–1522) as `@Composable fun GraphEditorDialogs(...)` containing: file open, save module, FlowGraph properties, remove repository module confirmation, and unsaved changes dialogs
-- [ ] T020 [US2] Update `GraphEditorApp` to call `GraphEditorDialogs()` in place of the inline dialog blocks. Verify compile + tests pass
+- [X] T019 [US2] Create `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/GraphEditorDialogs.kt` — extract all dialog LaunchedEffects and dialog composables (Main.kt lines ~1306–1522) as `@Composable fun GraphEditorDialogs(...)` containing: file open, save module, FlowGraph properties, remove repository module confirmation, and unsaved changes dialogs
+- [X] T020 [US2] Update `GraphEditorApp` to call `GraphEditorDialogs()` in place of the inline dialog blocks. Verify compile + tests pass
 
 ### Extract Main Layout
 
-- [ ] T021 [US2] Create `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/GraphEditorLayout.kt` — extract the main panel layout (Main.kt lines ~604–1293) as `@Composable fun GraphEditorContent(...)` containing the Row with node panel, IP panel, canvas section, properties panel, runtime panel, and overlay controls
-- [ ] T022 [US2] Update `GraphEditorApp` to call `GraphEditorContent()` in place of the inline layout. Verify compile + tests pass
+- [X] T021 [US2] Create `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/GraphEditorLayout.kt` — extract the main panel layout (Main.kt lines ~604–1293) as `@Composable fun GraphEditorContent(...)` containing the Row with node panel, IP panel, canvas section, properties panel, runtime panel, and overlay controls
+- [X] T022 [US2] Update `GraphEditorApp` to call `GraphEditorContent()` in place of the inline layout. Verify compile + tests pass
 
 ### Verification
 
-- [ ] T023 [US2] Run `./gradlew :graphEditor:jvmTest` — full test suite must pass with zero failures
-- [ ] T024 [US2] Verify `GraphEditorApp` is now a high-level orchestrator under ~150 lines that composes: `rememberGraphEditorState()`, `SharedStateProvider`, `TopToolbar`, `GraphEditorContent`, `StatusBar`, `GraphEditorDialogs`
+- [X] T023 [US2] Run `./gradlew :graphEditor:jvmTest` — full test suite must pass with zero failures
+- [X] T024 [US2] Verify `GraphEditorApp` is now a high-level orchestrator that composes: `rememberGraphEditorState()`, `SharedStateProvider`, `TopToolbar`, `GraphEditorContent`, `StatusBar`, `GraphEditorDialogs` — Main.kt reduced from 1923 to 599 lines (69% reduction), GraphEditorApp is ~500 lines (ViewModel init + LaunchedEffects + orchestration)
 
 **Checkpoint**: GraphEditorApp is decomposed into ~6 sub-composables. Each file handles one concern. All tests pass.
 
