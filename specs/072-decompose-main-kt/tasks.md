@@ -17,8 +17,8 @@
 
 **Purpose**: Branch verification and establish green baseline
 
-- [ ] T001 Verify on branch `072-decompose-main-kt` and run `./gradlew :graphEditor:jvmTest` to establish green baseline
-- [ ] T002 Record baseline line count of `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/Main.kt` (expect ~1923 lines)
+- [X] T001 Verify on branch `072-decompose-main-kt` and run `./gradlew :graphEditor:jvmTest` to establish green baseline
+- [X] T002 Record baseline line count of `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/Main.kt` (expect ~1923 lines)
 
 ---
 
@@ -30,17 +30,17 @@
 
 ### Extract Self-Contained Composables
 
-- [ ] T003 [US1] Extract `TopToolbar` composable (lines ~1530–1676) to `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/TopToolbar.kt` — move function with its imports, change visibility to `internal` if needed, verify compile + tests pass
-- [ ] T004 [US1] Extract `StatusBar` composable (lines ~1682–1735) to `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/StatusBar.kt` — move function with its imports, verify compile + tests pass
-- [ ] T005 [US1] Run `./gradlew :graphEditor:jvmTest` to confirm no regressions after composable extractions
+- [X] T003 [US1] Extract `TopToolbar` composable (lines ~1530–1676) to `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/TopToolbar.kt` — move function with its imports, change visibility to `internal` if needed, verify compile + tests pass
+- [X] T004 [US1] Extract `StatusBar` composable (lines ~1682–1735) to `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/StatusBar.kt` — move function with its imports, verify compile + tests pass
+- [X] T005 [US1] Run `./gradlew :graphEditor:jvmTest` to confirm no regressions after composable extractions
 
 ### Extract Utility Functions
 
-- [ ] T006 [P] [US1] Create `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/FileDialogUtils.kt` — move `showFileOpenDialog()`, `FileOpenResult` data class, and `showDirectoryChooser()` from Main.kt with their imports
-- [ ] T007 [P] [US1] Create `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/util/ModuleRootResolver.kt` — move `findModuleRoot()` and `resolveFlowKtFromModule()` from Main.kt
-- [ ] T008 [P] [US1] Create `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/util/ConnectionIPTypeResolver.kt` — move `resolveConnectionIPTypes()` from Main.kt
-- [ ] T009 [US1] Update imports in Main.kt to reference the new file locations for all extracted utilities, verify compile + tests pass
-- [ ] T010 [US1] Run `./gradlew :graphEditor:jvmTest` to confirm no regressions after utility extractions
+- [X] T006 [P] [US1] Create `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/FileDialogUtils.kt` — move `showFileOpenDialog()`, `FileOpenResult` data class, and `showDirectoryChooser()` from Main.kt with their imports
+- [X] T007 [P] [US1] Create `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/util/ModuleRootResolver.kt` — move `findModuleRoot()` and `resolveFlowKtFromModule()` from Main.kt
+- [X] T008 [P] [US1] Create `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/util/ConnectionIPTypeResolver.kt` — move `resolveConnectionIPTypes()` from Main.kt
+- [X] T009 [US1] Update imports in Main.kt to reference the new file locations for all extracted utilities, verify compile + tests pass
+- [X] T010 [US1] Run `./gradlew :graphEditor:jvmTest` to confirm no regressions after utility extractions
 
 **Checkpoint**: Main.kt is reduced by ~600 lines. All extracted functions are in their own files. All tests pass.
 
