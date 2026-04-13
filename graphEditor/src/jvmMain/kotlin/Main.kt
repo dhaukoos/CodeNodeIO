@@ -78,6 +78,7 @@ import io.codenode.fbpdsl.model.PortTemplate
 import io.codenode.fbpdsl.model.Port
 import io.codenode.fbpdsl.model.CodeNode
 import io.codenode.fbpdsl.model.CodeNodeType
+import io.codenode.fbpdsl.model.Connection
 import io.codenode.fbpdsl.model.GraphNode
 import io.codenode.fbpdsl.model.InformationPacketType
 import io.codenode.flowgraphtypes.discovery.IPTypeDiscovery
@@ -90,6 +91,7 @@ import io.codenode.grapheditor.ui.NavigationZoomOutButton
 import org.koin.core.context.startKoin
 import org.koin.dsl.module
 import io.codenode.grapheditor.ui.FlowGraphPropertiesDialog
+import io.codenode.fbpdsl.model.FlowGraph
 import io.codenode.fbpdsl.model.FlowGraph.TargetPlatform
 import io.codenode.flowgraphgenerate.compilation.CompilationService
 import androidx.compose.ui.geometry.Offset
@@ -1313,7 +1315,9 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                         val parseResult = parser.parseFlowKt(file.readText())
                         val loadedGraph = parseResult.graph
                         if (parseResult.isSuccess && loadedGraph != null) {
-                            graphState.setGraph(loadedGraph, markDirty = false)
+                            // Auto-resolve connection IP types from source port data types
+                            val resolvedGraph = resolveConnectionIPTypes(loadedGraph, ipTypeRegistry)
+                            graphState.setGraph(resolvedGraph, markDirty = false)
                             moduleRootDir = findModuleRoot(file.parentFile)
                             // Register save location so re-save skips the directory prompt
                             moduleRootDir?.parentFile?.let { parentDir ->
@@ -1808,6 +1812,52 @@ fun showDirectoryChooser(title: String = "Select Output Directory for KMP Module
 fun GraphEditorAppPreview() {
     MaterialTheme {
         GraphEditorApp()
+    }
+}
+
+/**
+ * Resolves connection IP types from source port data types.
+ * For each connection without an ipTypeId, looks up the source port's dataType
+ * and finds the matching InformationPacketType in the registry.
+ */
+private fun resolveConnectionIPTypes(
+    graph: FlowGraph,
+    ipTypeRegistry: IPTypeRegistry
+): FlowGraph {
+    val resolvedConnections = graph.connections.map { conn: Connection ->
+        if (conn.ipTypeId != null) return@map conn
+
+        val sourceNode = graph.findNode(conn.sourceNodeId)
+        val sourcePort = sourceNode?.outputPorts?.find { it.id == conn.sourcePortId }
+        if (sourcePort != null) {
+            val typeName = sourcePort.dataType.simpleName ?: return@map conn
+            val ipType = ipTypeRegistry.getByTypeName(typeName)
+            if (ipType != null) {
+                Connection(
+                    id = conn.id,
+                    sourceNodeId = conn.sourceNodeId,
+                    sourcePortId = conn.sourcePortId,
+                    targetNodeId = conn.targetNodeId,
+                    targetPortId = conn.targetPortId,
+                    channelCapacity = conn.channelCapacity,
+                    parentScopeId = conn.parentScopeId,
+                    ipTypeId = ipType.id
+                )
+            } else {
+                conn
+            }
+        } else {
+            conn
+        }
+    }
+
+    return if (resolvedConnections != graph.connections) {
+        var result = graph
+        graph.connections.forEach { c: Connection -> result = result.removeConnection(c.id) }
+        resolvedConnections.forEach { c: Connection -> result = result.addConnection(c) }
+        result
+    } else {
+        graph
     }
 }
 
