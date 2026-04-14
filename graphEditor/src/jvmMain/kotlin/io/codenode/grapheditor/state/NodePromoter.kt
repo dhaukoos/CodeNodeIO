@@ -158,6 +158,7 @@ object NodePromoter {
                 PlacementLevel.UNIVERSAL -> "${prefix}io.codenode.$subpackage$suffix"
                 PlacementLevel.PROJECT -> "${prefix}io.codenode.$subpackage$suffix"
                 PlacementLevel.MODULE -> content // No change needed for module-to-module
+                PlacementLevel.INTERNAL -> error("INTERNAL tier is tool-managed")
             }
         }
     }
@@ -181,6 +182,7 @@ object NodePromoter {
                 val home = System.getProperty("user.home")
                 File(home, ".codenode/nodes")
             }
+            PlacementLevel.INTERNAL -> error("INTERNAL tier is tool-managed")
         }
     }
 
@@ -203,6 +205,7 @@ object NodePromoter {
                 val home = System.getProperty("user.home")
                 File(home, ".codenode/iptypes")
             }
+            PlacementLevel.INTERNAL -> error("INTERNAL tier is tool-managed")
         }
     }
 

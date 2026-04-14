@@ -103,6 +103,7 @@ class GraphNodeTemplateRegistry {
                 val home = System.getProperty("user.home")
                 File(home, ".codenode/graphnodes/$fileName")
             }
+            PlacementLevel.INTERNAL -> error("INTERNAL tier is tool-managed and cannot be used for template output")
         }
     }
 
@@ -129,6 +130,7 @@ class GraphNodeTemplateRegistry {
                 val home = System.getProperty("user.home")
                 File(home, ".codenode/graphnodes")
             }
+            PlacementLevel.INTERNAL -> error("INTERNAL tier is tool-managed and cannot be used for template output")
         }
         dir.mkdirs()
         return dir

@@ -11,13 +11,13 @@ Replace all `String::class` port types in `graphEditor/architecture.flow.kt` wit
 
 **Language/Version**: Kotlin 2.1.21 (KMP - Kotlin Multiplatform)
 **Primary Dependencies**: fbpDsl (domain model classes), flowGraph-types (IPTypeRegistry, IPTypeDiscovery), flowGraph-persist (ParseResult, GraphNodeTemplateMeta), flowGraph-execute (ConnectionAnimation)
-**Storage**: Filesystem — `.kt` IP type files at PROJECT tier (`iptypes/src/commonMain/kotlin/io/codenode/iptypes/` and `iptypes/src/jvmMain/kotlin/io/codenode/iptypes/`)
+**Storage**: Filesystem — `.kt` IP type files at INTERNAL tier (`iptypes/src/commonMain/kotlin/io/codenode/iptypes/` and `iptypes/src/jvmMain/kotlin/io/codenode/iptypes/`), discovered via `toolRoot` at startup
 **Testing**: `./gradlew :flowGraph-types:jvmTest` (discovery tests), `./gradlew :graphEditor:jvmTest` (editor tests), `./gradlew :iptypes:compileKotlinJvm` (new module compile)
 **Target Platform**: KMP Desktop (Compose Desktop 1.7.3)
 **Project Type**: Existing KMP multi-module project
 **Performance Goals**: N/A — discovery runs once at startup
 **Constraints**: No graph editor runtime behavior changes. IPTypeDiscovery extension must be backward-compatible. No dependency from iptypes to graphEditor.
-**Scale/Scope**: 1 modified infrastructure file (IPTypeDiscovery), 1 new Gradle module (iptypes), 14 new IP type files, 1 modified flow graph file, 1 modified settings.gradle.kts
+**Scale/Scope**: 2 modified infrastructure files (IPTypeDiscovery, PlacementLevel), 1 new Gradle module (iptypes), 14 new IP type files, 1 modified flow graph file, 1 modified settings.gradle.kts, 6 files with exhaustive `when` updates for INTERNAL tier
 
 ## Constitution Check
 
@@ -50,7 +50,7 @@ specs/073-architecture-ip-types/
 ### Source Code (repository root)
 
 ```text
-iptypes/                                        # NEW Gradle module (PROJECT tier IP types)
+iptypes/                                        # NEW Gradle module (INTERNAL tier IP types)
 ├── build.gradle.kts                            # KMP module: deps on fbpDsl, flowGraph-persist, flowGraph-execute
 └── src/
     ├── commonMain/kotlin/io/codenode/iptypes/
@@ -82,7 +82,31 @@ graphEditor/
 settings.gradle.kts                             # MODIFIED — add include(":iptypes")
 ```
 
-**Structure Decision**: Separate `iptypes` module matching the demo project pattern. flowGraph-types is infrastructure (registry, discovery); iptypes is data (IP type definitions). No dependency from iptypes to graphEditor — EditorGraphState uses `data class` to avoid circular dependency.
+**Structure Decision**: Separate `iptypes` module matching the demo project pattern. flowGraph-types is infrastructure (registry, discovery); iptypes is data (IP type definitions). No dependency from iptypes to graphEditor — EditorGraphState uses `data class` to avoid circular dependency. Types are discovered via the INTERNAL tier (lowest precedence), which scans the tool's own `iptypes` module at startup using `toolRoot`.
+
+### INTERNAL Tier Infrastructure (cross-cutting)
+
+```text
+fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/
+    └── PlacementLevel.kt                           # MODIFIED — add INTERNAL enum value
+
+flowGraph-types/src/jvmMain/kotlin/io/codenode/flowgraphtypes/discovery/
+    └── IPTypeDiscovery.kt                          # MODIFIED — add toolRoot param, INTERNAL tier scanning
+
+graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/
+    ├── ui/GraphEditorApp.kt                        # MODIFIED — resolve toolRoot, pass to IPTypeDiscovery
+    ├── ui/GraphNodePaletteSection.kt               # MODIFIED — INTERNAL branch in when expressions
+    └── state/NodePromoter.kt                       # MODIFIED — INTERNAL branch in when expressions
+
+flowGraph-generate/src/jvmMain/kotlin/.../viewmodel/
+    └── NodeGeneratorViewModel.kt                   # MODIFIED — INTERNAL branch in when expressions
+
+flowGraph-persist/src/jvmMain/kotlin/.../state/
+    └── GraphNodeTemplateRegistry.kt                # MODIFIED — INTERNAL branch in when expressions
+
+flowGraph-types/src/jvmMain/kotlin/.../generator/
+    └── IPTypeFileGenerator.kt                      # MODIFIED — INTERNAL branch in when expressions
+```
 
 ## IP Type Classification
 

@@ -13,10 +13,15 @@ import io.codenode.flowgraphtypes.registry.IPTypeRegistry
  * Resolves connection IP types from source port data types.
  * For each connection without an ipTypeId, looks up the source port's dataType
  * and finds the matching InformationPacketType in the registry.
+ *
+ * @param portTypeNameHints Maps portId → original type name for ports where KClass
+ *        resolution fell back to Any::class (e.g., typealias IP types). Used as fallback
+ *        when dataType.simpleName is "Any".
  */
 fun resolveConnectionIPTypes(
     graph: FlowGraph,
-    ipTypeRegistry: IPTypeRegistry
+    ipTypeRegistry: IPTypeRegistry,
+    portTypeNameHints: Map<String, String> = emptyMap()
 ): FlowGraph {
     val resolvedConnections = graph.connections.map { conn: Connection ->
         if (conn.ipTypeId != null) return@map conn
@@ -25,7 +30,13 @@ fun resolveConnectionIPTypes(
         val sourcePort = sourceNode?.outputPorts?.find { it.id == conn.sourcePortId }
         if (sourcePort != null) {
             val typeName = sourcePort.dataType.simpleName ?: return@map conn
-            val ipType = ipTypeRegistry.getByTypeName(typeName)
+            // Use hint if dataType resolved to Any (e.g., typealias IP types)
+            val effectiveTypeName = if (typeName == "Any") {
+                portTypeNameHints[sourcePort.id] ?: return@map conn
+            } else {
+                typeName
+            }
+            val ipType = ipTypeRegistry.getByTypeName(effectiveTypeName)
             if (ipType != null) {
                 Connection(
                     id = conn.id,

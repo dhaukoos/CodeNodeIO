@@ -37,14 +37,15 @@
 
 **Expected**: 14 IP type files total (10 in commonMain, 4 in jvmMain). Each has proper `@IPType`, `@TypeName`, `@TypeId`, and `@Color` metadata.
 
-### VS4: IP Type Discovery
+### VS4: IP Type Discovery (INTERNAL Tier)
 
 **Steps**:
 1. Launch the graph editor: `./gradlew :graphEditor:run`
 2. Open the IP type palette
 3. Verify all 14 architecture IP types appear in the list
+4. Verify startup log shows `toolRoot` resolved correctly and INTERNAL-tier types discovered
 
-**Expected**: NodeDescriptors, IPTypeMetadata, FlowGraphModel, LoadedFlowGraph, GraphNodeTemplates, RuntimeExecutionState, DataFlowAnimations, DebugSnapshots, EditorGraphState, GeneratedOutput, GenerationContext, FilesystemPath, ClasspathEntry, and IPTypeCommand are all visible in the palette with distinct colors.
+**Expected**: NodeDescriptors, IPTypeMetadata, FlowGraphModel, LoadedFlowGraph, GraphNodeTemplates, RuntimeExecutionState, DataFlowAnimations, DebugSnapshots, EditorGraphState, GeneratedOutput, GenerationContext, FilesystemPath, ClasspathEntry, and IPTypeCommand are all visible in the palette with distinct colors. These are discovered from the INTERNAL tier (the tool's own `iptypes` module), not from the user's project.
 
 ### VS5: Architecture Flow Graph Types
 

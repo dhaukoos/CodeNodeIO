@@ -96,23 +96,45 @@
 
 ### Implementation
 
-- [ ] T028 [US2] Update all port declarations in `graphEditor/architecture.flow.kt` to replace `String::class` with the appropriate IP type class references per the Port-to-Type Mapping in plan.md (14 ports changed, `serializedOutput` remains `String::class`)
-- [ ] T029 [US2] Add necessary imports to `graphEditor/architecture.flow.kt` for the new IP type classes from `io.codenode.iptypes`
-- [ ] T030 [US2] Add `implementation(project(":iptypes"))` dependency to `graphEditor/build.gradle.kts` if needed for architecture.flow.kt compilation
-- [ ] T031 [US2] Verify architecture.flow.kt compiles: `./gradlew :graphEditor:compileKotlinJvm`
-- [ ] T032 [US2] Run graph editor tests: `./gradlew :graphEditor:jvmTest`
+- [X] T028 [US2] Update all port declarations in `graphEditor/architecture.flow.kt` to replace `String::class` with the appropriate IP type class references per the Port-to-Type Mapping in plan.md (14 ports changed, `serializedOutput` remains `String::class`)
+- [X] T029 [US2] Add necessary imports to `graphEditor/architecture.flow.kt` for the new IP type classes from `io.codenode.iptypes`
+- [X] T030 [US2] Add `implementation(project(":iptypes"))` dependency to `graphEditor/build.gradle.kts` if needed for architecture.flow.kt compilation
+- [X] T031 [US2] Verify architecture.flow.kt compiles: `./gradlew :graphEditor:compileKotlinJvm`
+- [X] T032 [US2] Run graph editor tests: `./gradlew :graphEditor:jvmTest`
 
 **Checkpoint**: All ports in architecture.flow.kt reference domain-specific IP types. Connections are color-coded. User Story 2 is independently testable.
 
 ---
 
-## Phase 5: Polish & Cross-Cutting Concerns
+## Phase 5: INTERNAL Tier Infrastructure (Cross-Cutting)
+
+**Purpose**: At runtime `projectRoot` points to the user's project, not CodeNodeIO. Architecture IP types in the `iptypes` module were invisible to discovery. Add a fourth placement tier (INTERNAL) to scan the tool's own source tree.
+
+- [X] T036 Add `INTERNAL("Internal")` to `PlacementLevel` enum in `fbpDsl/src/commonMain/kotlin/io/codenode/fbpdsl/model/PlacementLevel.kt`, exclude from `availableLevels()`
+- [X] T037 Add `toolRoot: File?` constructor parameter to `IPTypeDiscovery` in `flowGraph-types/src/jvmMain/kotlin/io/codenode/flowgraphtypes/discovery/IPTypeDiscovery.kt`
+- [X] T038 Add INTERNAL tier scanning in `IPTypeDiscovery.discoverAll()` — scan `toolRoot/iptypes/src/{commonMain,jvmMain}/kotlin/.../iptypes/`
+- [X] T039 Update `resolveKClass` to return `Any::class` for INTERNAL tier (typealiases erase at runtime)
+- [X] T040 Resolve `toolRoot` in `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/GraphEditorApp.kt` and pass to `IPTypeDiscovery`
+- [X] T041 [P] Add `INTERNAL -> error("INTERNAL tier is tool-managed")` to exhaustive `when` expressions in `flowGraph-types/.../generator/IPTypeFileGenerator.kt`
+- [X] T042 [P] Add `INTERNAL` branches to exhaustive `when` expressions in `flowGraph-persist/.../state/GraphNodeTemplateRegistry.kt`
+- [X] T043 [P] Add `INTERNAL` branches to exhaustive `when` expressions in `flowGraph-generate/.../viewmodel/NodeGeneratorViewModel.kt`
+- [X] T044 [P] Add `INTERNAL` branches to exhaustive `when` expressions in `graphEditor/.../state/NodePromoter.kt`
+- [X] T045 [P] Add `INTERNAL` branches (color + label) to exhaustive `when` expressions in `graphEditor/.../ui/GraphNodePaletteSection.kt`
+- [X] T046 Fix `parseExposedPorts()` in `FlowKtParser.kt` to store `portTypeNameHints` for GraphNode exposed ports (same pattern as `parseInputPorts`/`parseOutputPorts`)
+- [X] T047 Add `portTypeNames` parameter to `FlowGraphSerializer.serialize()` for save round-trip preservation of type names
+- [X] T048 Compile and run all tests: `./gradlew :fbpDsl:jvmTest :flowGraph-types:jvmTest :flowGraph-persist:jvmTest :graphEditor:jvmTest`
+
+**Checkpoint**: Architecture IP types are discovered via INTERNAL tier and appear with correct colors in the graph editor when opening architecture.flow.kt.
+
+---
+
+## Phase 6: Polish & Cross-Cutting Concerns
 
 **Purpose**: Full verification across all quickstart scenarios
 
-- [ ] T033 Run full test suite to verify no regressions: `./gradlew :flowGraph-types:jvmTest :graphEditor:jvmTest :iptypes:compileKotlinJvm`
-- [ ] T034 Validate file format: verify typealias files contain `typealias` keyword, data class files contain `data class` keyword, all files have `@IPType` header
-- [ ] T035 Run quickstart.md verification scenarios VS1–VS8
+- [X] T033 Run full test suite to verify no regressions: `./gradlew :flowGraph-types:jvmTest :graphEditor:jvmTest :iptypes:compileKotlinJvm`
+- [X] T034 Validate file format: verify typealias files contain `typealias` keyword, data class files contain `data class` keyword, all files have `@IPType` header
+- [X] T035 Run quickstart.md verification scenarios VS1–VS8
 
 ---
 

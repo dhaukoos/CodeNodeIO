@@ -15,15 +15,18 @@ package io.codenode.fbpdsl.model
 enum class PlacementLevel(val displayName: String) {
     MODULE("Module"),
     PROJECT("Project"),
-    UNIVERSAL("Universal");
+    UNIVERSAL("Universal"),
+    /** Built-in tool IP types shipped with the graph editor itself. Lowest precedence. */
+    INTERNAL("Internal");
 
     companion object {
         /**
          * Returns available placement levels based on whether a module is loaded.
          * MODULE is only available when a module is actively loaded.
+         * INTERNAL is never available for user placement (tool-managed only).
          */
         fun availableLevels(moduleLoaded: Boolean): List<PlacementLevel> =
-            if (moduleLoaded) entries.toList()
-            else entries.filter { it != MODULE }
+            if (moduleLoaded) listOf(MODULE, PROJECT, UNIVERSAL)
+            else listOf(PROJECT, UNIVERSAL)
     }
 }

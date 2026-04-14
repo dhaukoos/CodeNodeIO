@@ -52,6 +52,8 @@ kotlin {
                 implementation(compose.desktop.currentOs)
                 // Code generation module
                 implementation(project(":flowGraph-generate"))
+                // Project-tier IP type definitions (architecture.flow.kt port types)
+                implementation(project(":iptypes"))
             }
         }
 

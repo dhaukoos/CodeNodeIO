@@ -62,11 +62,23 @@ fun GraphEditorDialogs(
                 try {
                     // T062: Only support .flow.kt files (removed .flow.kts support)
                     val parser = FlowKtParser()
+                    parser.setTypeResolver { typeName ->
+                        ipTypeRegistry.getByTypeName(typeName)?.payloadType
+                    }
                     val parseResult = parser.parseFlowKt(file.readText())
                     val loadedGraph = parseResult.graph
                     if (parseResult.isSuccess && loadedGraph != null) {
                         // Auto-resolve connection IP types from source port data types
-                        val resolvedGraph = resolveConnectionIPTypes(loadedGraph, ipTypeRegistry)
+                        // Pass portTypeNameHints for typealias IP types that can't be resolved via reflection
+                        println("[DEBUG-OPEN] portTypeNameHints: ${parseResult.portTypeNameHints.size} entries")
+                        parseResult.portTypeNameHints.forEach { (k, v) -> println("[DEBUG-OPEN]   hint: $k -> $v") }
+                        println("[DEBUG-OPEN] ipTypeRegistry has ${ipTypeRegistry.getAllTypes().size} types:")
+                        ipTypeRegistry.getAllTypes().forEach { t -> println("[DEBUG-OPEN]   reg: ${t.typeName} (id=${t.id})") }
+                        val resolvedGraph = resolveConnectionIPTypes(loadedGraph, ipTypeRegistry, parseResult.portTypeNameHints)
+                        println("[DEBUG-OPEN] Resolved ${resolvedGraph.connections.size} connections:")
+                        resolvedGraph.connections.forEach { c ->
+                            println("[DEBUG-OPEN]   ${c.sourcePortId} -> ${c.targetPortId} ipTypeId=${c.ipTypeId}")
+                        }
                         graphState.setGraph(resolvedGraph, markDirty = false)
                         onModuleRootDirChanged(findModuleRoot(file.parentFile))
                         // Register save location so re-save skips the directory prompt

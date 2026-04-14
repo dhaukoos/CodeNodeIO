@@ -13,18 +13,21 @@ import java.io.File
 import kotlin.reflect.KClass
 
 /**
- * Discovers IP type definition files from the three-tier filesystem and returns parsed metadata.
+ * Discovers IP type definition files from the four-tier filesystem and returns parsed metadata.
  *
  * IP type files are Kotlin data classes with `@IPType` metadata comment headers.
- * Discovery scans Module, Project, and Universal directories, deduplicating by
- * type name with tier precedence (Module > Project > Universal).
+ * Discovery scans Module, Project, Universal, and Internal directories, deduplicating by
+ * type name with tier precedence (Module > Project > Universal > Internal).
  *
  * @param projectRoot The project root directory
  * @param modulePaths List of module root directories to scan for Module-level IP types
+ * @param toolRoot The graph editor's own source root (for INTERNAL tier IP types).
+ *        When set, scans `<toolRoot>/iptypes/src/{commonMain,jvmMain}/kotlin/.../iptypes/`.
  */
 class IPTypeDiscovery(
     private val projectRoot: File,
-    private val modulePaths: List<File> = emptyList()
+    private val modulePaths: List<File> = emptyList(),
+    private val toolRoot: File? = null
 ) {
 
     // Regex patterns for parsing IP type file metadata
@@ -38,8 +41,8 @@ class IPTypeDiscovery(
     private val propertyPattern = Regex("""val\s+(\w+)\s*:\s*([\w.<>?]+)""")
 
     /**
-     * Scans all three tiers and returns discovered IP type metadata,
-     * deduplicated by typeName with tier precedence (Module > Project > Universal).
+     * Scans all four tiers and returns discovered IP type metadata,
+     * deduplicated by typeName with tier precedence (Module > Project > Universal > Internal).
      */
     fun discoverAll(): List<IPTypeFileMeta> {
         val allTypes = mutableListOf<IPTypeFileMeta>()
@@ -70,6 +73,20 @@ class IPTypeDiscovery(
         val universalDir = File(System.getProperty("user.home"), ".codenode/iptypes")
         if (universalDir.isDirectory) {
             allTypes.addAll(scanDirectory(universalDir, PlacementLevel.UNIVERSAL))
+        }
+
+        // Scan Internal directory (lowest precedence — tool's own built-in IP types)
+        // toolRoot is the graph editor project root; its iptypes live in the "iptypes" module
+        if (toolRoot != null) {
+            val iptypesModule = File(toolRoot, "iptypes")
+            val internalCommonDir = findIpTypesDir(iptypesModule, "commonMain")
+            if (internalCommonDir != null) {
+                allTypes.addAll(scanDirectory(internalCommonDir, PlacementLevel.INTERNAL))
+            }
+            val internalJvmDir = findIpTypesDir(iptypesModule, "jvmMain")
+            if (internalJvmDir != null) {
+                allTypes.addAll(scanDirectory(internalJvmDir, PlacementLevel.INTERNAL))
+            }
         }
 
         // Deduplicate: keep the most specific tier for each typeName
@@ -165,7 +182,7 @@ class IPTypeDiscovery(
      * Returns Any::class if the class is not on the classpath (e.g., Universal templates).
      */
     fun resolveKClass(meta: IPTypeFileMeta): KClass<*> {
-        if (meta.tier == PlacementLevel.UNIVERSAL) return Any::class
+        if (meta.tier == PlacementLevel.UNIVERSAL || meta.tier == PlacementLevel.INTERNAL) return Any::class
         return try {
             Class.forName(meta.className).kotlin
         } catch (_: ClassNotFoundException) {

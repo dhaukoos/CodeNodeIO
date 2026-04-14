@@ -230,6 +230,7 @@ class NodeGeneratorViewModel(
                 val home = System.getProperty("user.home")
                 File(home, ".codenode/nodes/$fileName")
             }
+            PlacementLevel.INTERNAL -> error("INTERNAL tier is tool-managed and cannot be used for node generation")
         }
     }
 
@@ -245,6 +246,7 @@ class NodeGeneratorViewModel(
             }
             PlacementLevel.PROJECT -> "io.codenode.nodes"
             PlacementLevel.UNIVERSAL -> "io.codenode.nodes"
+            PlacementLevel.INTERNAL -> error("INTERNAL tier is tool-managed and cannot be used for node generation")
         }
     }
 

@@ -61,6 +61,7 @@ class IPTypeFileGenerator(
             PlacementLevel.UNIVERSAL -> {
                 File(System.getProperty("user.home"), ".codenode/iptypes")
             }
+            PlacementLevel.INTERNAL -> error("INTERNAL tier is tool-managed and cannot be used for file generation")
         }
         dir.mkdirs()
         return dir
@@ -85,6 +86,7 @@ class IPTypeFileGenerator(
         }
         PlacementLevel.PROJECT -> "io.codenode.iptypes"
         PlacementLevel.UNIVERSAL -> "" // No package for universal templates
+        PlacementLevel.INTERNAL -> error("INTERNAL tier is tool-managed and cannot be used for file generation")
     }
 
     private fun generateFileContent(definition: CustomIPTypeDefinition, packageName: String): String {

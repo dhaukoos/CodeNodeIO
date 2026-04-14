@@ -14,14 +14,26 @@
 - JSON configuration: Rejected — the project has migrated away from JSON-based IP type storage.
 - `data class` with placeholder properties: Rejected — contradicts the "self-documenting" goal. Typealiases reference real domain classes without duplication.
 
-## R2: Placement Tier
+## R2: Placement Tier (Revised — INTERNAL tier)
 
-**Decision**: Place architecture IP types at the PROJECT tier in `iptypes/src/commonMain/kotlin/io/codenode/iptypes/` (and `jvmMain` for types referencing JVM-only classes).
+**Decision**: Architecture IP types reside in the CodeNodeIO tool's own `iptypes` module (`iptypes/src/{commonMain,jvmMain}/kotlin/io/codenode/iptypes/`) and are discovered via a new **INTERNAL** placement tier added to `PlacementLevel`.
 
-**Rationale**: Architecture types describe cross-module data flows. PROJECT tier makes them always visible. Some domain classes (ParseResult, ConnectionAnimation, GraphState) are in `jvmMain` source sets, so their typealiases must also be in `jvmMain`.
+**Rationale**: At runtime, `projectRoot` points to the *user's* project (e.g., `CodeNodeIO-DemoProject`), not the graph editor's source tree. PROJECT-tier discovery scans `projectRoot/iptypes/...`, which doesn't contain these types. UNIVERSAL (`~/.codenode/iptypes/`) would mix tool-internal types with user-created ones. The INTERNAL tier solves this by scanning the tool's own source tree (resolved via `toolRoot`) as the lowest-precedence tier, keeping architecture types in the `iptypes` Gradle module where they compile against their domain dependencies.
+
+**Implementation**:
+- Added `INTERNAL("Internal")` to `PlacementLevel` enum (lowest ordinal = lowest precedence)
+- `PlacementLevel.availableLevels()` excludes INTERNAL — it is tool-managed only, not user-selectable
+- `IPTypeDiscovery` accepts a `toolRoot: File?` constructor parameter and scans `toolRoot/iptypes/src/{commonMain,jvmMain}/kotlin/.../iptypes/` for INTERNAL-tier types
+- `resolveKClass` returns `Any::class` for INTERNAL tier (typealiases erase at runtime; registry lookup uses `portTypeNameHints` instead)
+- `toolRoot` is resolved at startup by walking up from `user.dir` to find `settings.gradle.kts`
+- All exhaustive `when` expressions on `PlacementLevel` across 6 files were updated with `INTERNAL -> error("INTERNAL tier is tool-managed")` branches (user-facing code paths) or appropriate handling (discovery, palette display)
+
+**Tier precedence** (MODULE > PROJECT > UNIVERSAL > INTERNAL): If a user defines an IP type with the same name as an architecture type, the user's type takes precedence.
 
 **Alternatives considered**:
-- UNIVERSAL tier (`~/.codenode/iptypes/`): Rejected — project-specific types, not universal.
+- PROJECT tier: Rejected — `projectRoot` at runtime is the user's project, not CodeNodeIO. Types would not be discovered.
+- UNIVERSAL tier (`~/.codenode/iptypes/`): Rejected — mixes tool-internal types with user-created ones. Would require copying files outside the source tree.
+- Classpath/resources: Rejected — user stated "it is still important that the iptypes module within the codeNodeIO tool is where these reside."
 - MODULE tier: Rejected — spans all modules; hiding behind module loading defeats the purpose.
 
 ## R3: Typealias Approach (Revised from Clarification Session)

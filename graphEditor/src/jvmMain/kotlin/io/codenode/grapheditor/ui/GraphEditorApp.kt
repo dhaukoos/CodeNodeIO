@@ -139,7 +139,18 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
             java.io.File(file, "src/commonMain/kotlin").isDirectory
         }?.toList() ?: emptyList()
     }
-    val discovery = remember { IPTypeDiscovery(projectRoot, modulePaths) }
+    // Resolve the tool's own source root (CodeNodeIO) for INTERNAL tier IP type discovery.
+    // This may differ from projectRoot when CODENODE_PROJECT_DIR points to a user project.
+    val toolRoot = remember {
+        var dir = java.io.File(System.getProperty("user.dir"))
+        while (dir.parentFile != null && !java.io.File(dir, "settings.gradle.kts").exists()) {
+            dir = dir.parentFile
+        }
+        // Only use as toolRoot if the iptypes module exists here
+        val iptypesModule = java.io.File(dir, "iptypes/src/commonMain/kotlin")
+        if (iptypesModule.isDirectory) dir else null
+    }
+    val discovery = remember { IPTypeDiscovery(projectRoot, modulePaths, toolRoot) }
     val ipTypeFileGenerator = remember { IPTypeFileGenerator(projectRoot) }
     // Discover IP types from filesystem on startup
     LaunchedEffect(Unit) {
@@ -148,6 +159,10 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
         migration.migrateIfNeeded()
 
         val discovered = discovery.discoverAll()
+        println("[DEBUG-STARTUP] projectRoot: ${projectRoot.absolutePath}")
+        println("[DEBUG-STARTUP] toolRoot: ${toolRoot?.absolutePath ?: "null"}")
+        println("[DEBUG-STARTUP] discovered ${discovered.size} IP types:")
+        discovered.forEach { meta -> println("[DEBUG-STARTUP]   ${meta.typeId}: ${meta.typeName} (tier=${meta.tier}, file=${meta.filePath})") }
         ipTypeRegistry.registerFromFilesystem(discovered) { meta ->
             discovery.resolveKClass(meta)
         }

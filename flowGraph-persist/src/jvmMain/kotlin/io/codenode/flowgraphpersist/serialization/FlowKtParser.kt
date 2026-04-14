@@ -547,6 +547,12 @@ class FlowKtParser {
             val typeName = match.groupValues[2]
             val required = match.groupValues.getOrNull(3) == "true"
             val portId = "${nodeNamePrefix}_${portName}"
+            val resolvedType = resolveType(typeName)
+
+            // Store original type name if resolution fell back to Any (e.g., typealias IP types)
+            if (resolvedType == Any::class && typeName != "Any") {
+                portTypeNameHints[portId] = typeName
+            }
 
             @Suppress("UNCHECKED_CAST")
             ports.add(
@@ -554,7 +560,7 @@ class FlowKtParser {
                     id = portId,
                     name = portName,
                     direction = direction,
-                    dataType = resolveType(typeName) as KClass<Any>,
+                    dataType = resolvedType as KClass<Any>,
                     required = required,
                     owningNodeId = owningNodeId
                 )

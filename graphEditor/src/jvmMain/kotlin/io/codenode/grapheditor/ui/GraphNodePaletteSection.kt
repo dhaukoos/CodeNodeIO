@@ -197,11 +197,13 @@ private fun LevelIndicatorPill(level: PlacementLevel) {
         PlacementLevel.MODULE -> Color(0xFF7B1FA2)
         PlacementLevel.PROJECT -> Color(0xFF1565C0)
         PlacementLevel.UNIVERSAL -> Color(0xFF2E7D32)
+        PlacementLevel.INTERNAL -> Color(0xFF616161)
     }
     val label = when (level) {
         PlacementLevel.MODULE -> "Module"
         PlacementLevel.PROJECT -> "Project"
         PlacementLevel.UNIVERSAL -> "Universal"
+        PlacementLevel.INTERNAL -> "Internal"
     }
     Surface(
         shape = RoundedCornerShape(8.dp),

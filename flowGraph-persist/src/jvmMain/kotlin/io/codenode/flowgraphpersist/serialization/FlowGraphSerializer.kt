@@ -28,7 +28,8 @@ object FlowGraphSerializer {
     fun serialize(
         graph: FlowGraph,
         includeImports: Boolean = true,
-        indentSize: Int = 4
+        indentSize: Int = 4,
+        portTypeNames: Map<String, String> = emptyMap()
     ): String {
         val builder = StringBuilder()
         val indent = " ".repeat(indentSize)
@@ -90,8 +91,8 @@ object FlowGraphSerializer {
                 allNodes[node.id] = node
 
                 when (node) {
-                    is CodeNode -> serializeCodeNode(node, varName, builder, indent)
-                    is GraphNode -> serializeGraphNode(node, varName, builder, indent, graph.connections)
+                    is CodeNode -> serializeCodeNode(node, varName, builder, indent, portTypeNames)
+                    is GraphNode -> serializeGraphNode(node, varName, builder, indent, graph.connections, portTypeNames)
                     else -> builder.appendLine("${indent}// Unknown node type: ${node::class.simpleName}")
                 }
                 builder.appendLine()
@@ -118,7 +119,8 @@ object FlowGraphSerializer {
         node: CodeNode,
         varName: String,
         builder: StringBuilder,
-        indent: String
+        indent: String,
+        portTypeNames: Map<String, String> = emptyMap()
     ) {
         builder.append("${indent}val $varName = codeNode(\"${escapeString(node.name)}\"")
 
@@ -141,7 +143,8 @@ object FlowGraphSerializer {
 
         // Add input ports
         node.inputPorts.forEach { port ->
-            builder.append("${innerIndent}input(\"${escapeString(port.name)}\", ${port.dataType.simpleName}::class")
+            val typeName = portTypeNames[port.id] ?: port.dataType.simpleName ?: "Any"
+            builder.append("${innerIndent}input(\"${escapeString(port.name)}\", ${typeName}::class")
             if (port.required) {
                 builder.append(", required = true")
             }
@@ -150,7 +153,8 @@ object FlowGraphSerializer {
 
         // Add output ports
         node.outputPorts.forEach { port ->
-            builder.append("${innerIndent}output(\"${escapeString(port.name)}\", ${port.dataType.simpleName}::class")
+            val typeName = portTypeNames[port.id] ?: port.dataType.simpleName ?: "Any"
+            builder.append("${innerIndent}output(\"${escapeString(port.name)}\", ${typeName}::class")
             if (port.required) {
                 builder.append(", required = true")
             }
@@ -185,7 +189,8 @@ object FlowGraphSerializer {
         varName: String,
         builder: StringBuilder,
         indent: String,
-        externalConnections: List<Connection> = emptyList()
+        externalConnections: List<Connection> = emptyList(),
+        portTypeNames: Map<String, String> = emptyMap()
     ) {
         builder.appendLine("${indent}val $varName = graphNode(\"${escapeString(node.name)}\") {")
 
@@ -216,8 +221,8 @@ object FlowGraphSerializer {
                 val childVarName = childVariables[childNode.id]!!
 
                 when (childNode) {
-                    is CodeNode -> serializeCodeNode(childNode, childVarName, builder, innerIndent)
-                    is GraphNode -> serializeGraphNode(childNode, childVarName, builder, innerIndent, node.internalConnections)
+                    is CodeNode -> serializeCodeNode(childNode, childVarName, builder, innerIndent, portTypeNames)
+                    is GraphNode -> serializeGraphNode(childNode, childVarName, builder, innerIndent, node.internalConnections, portTypeNames)
                     else -> builder.appendLine("${innerIndent}// Unknown child node type: ${childNode::class.simpleName}")
                 }
                 builder.appendLine()
@@ -259,7 +264,7 @@ object FlowGraphSerializer {
             builder.appendLine()
             builder.appendLine("${innerIndent}// Exposed input ports")
             node.inputPorts.forEach { port ->
-                serializeExposedPort(port, "exposeInput", builder, innerIndent, node.portMappings, node.id, externalConnections)
+                serializeExposedPort(port, "exposeInput", builder, innerIndent, node.portMappings, node.id, externalConnections, portTypeNames)
             }
         }
 
@@ -267,7 +272,7 @@ object FlowGraphSerializer {
             builder.appendLine()
             builder.appendLine("${innerIndent}// Exposed output ports")
             node.outputPorts.forEach { port ->
-                serializeExposedPort(port, "exposeOutput", builder, innerIndent, node.portMappings, node.id, externalConnections)
+                serializeExposedPort(port, "exposeOutput", builder, innerIndent, node.portMappings, node.id, externalConnections, portTypeNames)
             }
         }
 
@@ -293,9 +298,11 @@ object FlowGraphSerializer {
         indent: String,
         portMappings: Map<String, GraphNode.PortMapping>,
         graphNodeId: String,
-        externalConnections: List<Connection>
+        externalConnections: List<Connection>,
+        portTypeNames: Map<String, String> = emptyMap()
     ) {
-        builder.append("${indent}$keyword(\"${escapeString(port.name)}\", ${port.dataType.simpleName ?: "Any"}::class")
+        val typeName = portTypeNames[port.id] ?: port.dataType.simpleName ?: "Any"
+        builder.append("${indent}$keyword(\"${escapeString(port.name)}\", ${typeName}::class")
 
         if (port.required) {
             builder.append(", required = true")

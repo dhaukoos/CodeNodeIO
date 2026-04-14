@@ -8,6 +8,9 @@
 package characterization
 
 import io.codenode.flowgraphpersist.serialization.FlowKtParser
+import io.codenode.flowgraphtypes.discovery.IPTypeDiscovery
+import io.codenode.flowgraphtypes.registry.IPTypeRegistry
+import io.codenode.grapheditor.util.resolveConnectionIPTypes
 import java.io.File
 import kotlin.test.*
 
@@ -197,6 +200,110 @@ class ArchitectureFlowKtsTest {
         val nodeIds = graph.rootNodes.map { it.id }
         val cycleFound = nodeIds.any { hasCycle(it) }
         assertFalse(cycleFound, "Connection graph should be a DAG — no cycles")
+    }
+
+    @Test
+    fun `architecture flow kt captures portTypeNameHints for typealias IP types`() {
+        val content = loadArchitectureFile()
+        val result = parser.parseFlowKt(content)
+
+        assertTrue(result.isSuccess, "Parse failed: ${result.errorMessage}")
+        val graph = result.graph!!
+        val hints = result.portTypeNameHints
+
+        // Debug: print all hints and all ports
+        println("=== portTypeNameHints (${hints.size} entries) ===")
+        hints.forEach { (portId, typeName) ->
+            println("  $portId -> $typeName")
+        }
+        println()
+
+        println("=== All nodes and their output ports ===")
+        for (node in graph.rootNodes) {
+            println("  Node: ${node.name} (id=${node.id})")
+            node.outputPorts.forEach { port ->
+                println("    output: ${port.name} (id=${port.id}) dataType=${port.dataType.simpleName}")
+            }
+            node.inputPorts.forEach { port ->
+                println("    input: ${port.name} (id=${port.id}) dataType=${port.dataType.simpleName}")
+            }
+        }
+        println()
+
+        println("=== Connections ===")
+        graph.connections.forEach { conn ->
+            println("  ${conn.sourceNodeId}:${conn.sourcePortId} -> ${conn.targetNodeId}:${conn.targetPortId} [ipTypeId=${conn.ipTypeId}]")
+        }
+
+        // Verify hints are populated for typealias types
+        assertTrue(hints.isNotEmpty(), "portTypeNameHints should not be empty — typealias IP types should produce hints")
+
+        // Check specific expected hints (typealias types resolve to Any::class → hint stored)
+        // Data class types like IPTypeCommand resolve directly → no hint needed
+        val expectedHints = mapOf(
+            "flowgraph-types_ipTypeMetadata" to "IPTypeMetadata",
+            "flowgraph-inspect_nodeDescriptors" to "NodeDescriptors",
+            "grapheditor-source_flowGraphModel" to "FlowGraphModel"
+        )
+        for ((portId, expectedTypeName) in expectedHints) {
+            assertEquals(expectedTypeName, hints[portId],
+                "Expected hint '$expectedTypeName' for port '$portId', got '${hints[portId]}'")
+        }
+    }
+
+    @Test
+    fun `resolveConnectionIPTypes sets ipTypeId on all non-String connections`() {
+        // Simulate the real graph editor flow: discover IP types → parse file → resolve connections
+        val projectRoot = findProjectRoot()
+        val discovery = IPTypeDiscovery(projectRoot)
+        val ipTypeRegistry = IPTypeRegistry()
+        val discovered = discovery.discoverAll()
+        ipTypeRegistry.registerFromFilesystem(discovered) { meta ->
+            discovery.resolveKClass(meta)
+        }
+
+        println("=== Registered IP Types (${ipTypeRegistry.getAllTypes().size}) ===")
+        ipTypeRegistry.getAllTypes().forEach { ipType ->
+            println("  ${ipType.id}: ${ipType.typeName} (payloadType=${ipType.payloadType.simpleName})")
+        }
+
+        val parser = FlowKtParser()
+        parser.setTypeResolver { typeName ->
+            ipTypeRegistry.getByTypeName(typeName)?.payloadType
+        }
+        val content = loadArchitectureFile()
+        val result = parser.parseFlowKt(content)
+        assertTrue(result.isSuccess, "Parse failed: ${result.errorMessage}")
+        val graph = result.graph!!
+
+        println("\n=== portTypeNameHints (${result.portTypeNameHints.size}) ===")
+        result.portTypeNameHints.forEach { (k, v) -> println("  $k -> $v") }
+
+        val resolved = resolveConnectionIPTypes(graph, ipTypeRegistry, result.portTypeNameHints)
+
+        println("\n=== Resolved Connections ===")
+        resolved.connections.forEach { conn ->
+            val ipTypeName = conn.ipTypeId?.let { ipTypeRegistry.getById(it)?.typeName } ?: "NONE"
+            println("  ${conn.sourcePortId} -> ${conn.targetPortId} ipTypeId=${conn.ipTypeId} (${ipTypeName})")
+        }
+
+        // 19 of 20 connections should have ipTypeId set
+        // The one exception is serializedOutput (String::class per FR-004) which has no custom IP type
+        val unresolved = resolved.connections.filter { it.ipTypeId == null }
+        assertEquals(1, unresolved.size,
+            "Only serializedOutput should be unresolved, but got: " +
+            unresolved.map { "${it.sourcePortId} -> ${it.targetPortId}" })
+        assertTrue(unresolved.single().sourcePortId.contains("serializedOutput"),
+            "Unresolved connection should be serializedOutput")
+    }
+
+    private fun findProjectRoot(): File {
+        val candidates = listOf(
+            File(System.getProperty("user.dir")),
+            File(System.getProperty("user.dir")).parentFile
+        )
+        return candidates.firstOrNull { File(it, "iptypes/src/commonMain/kotlin/io/codenode/iptypes").isDirectory }
+            ?: fail("Could not find project root with iptypes directory")
     }
 
     @Test

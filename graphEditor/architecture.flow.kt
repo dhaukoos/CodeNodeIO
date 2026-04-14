@@ -40,6 +40,20 @@
 
 import io.codenode.fbpdsl.dsl.*
 import io.codenode.fbpdsl.model.*
+import io.codenode.iptypes.ClasspathEntry
+import io.codenode.iptypes.DataFlowAnimations
+import io.codenode.iptypes.DebugSnapshots
+import io.codenode.iptypes.EditorGraphState
+import io.codenode.iptypes.FilesystemPath
+import io.codenode.iptypes.FlowGraphModel
+import io.codenode.iptypes.GeneratedOutput
+import io.codenode.iptypes.GenerationContext
+import io.codenode.iptypes.GraphNodeTemplates
+import io.codenode.iptypes.IPTypeCommand
+import io.codenode.iptypes.IPTypeMetadata
+import io.codenode.iptypes.LoadedFlowGraph
+import io.codenode.iptypes.NodeDescriptors
+import io.codenode.iptypes.RuntimeExecutionState
 
 val graph = flowGraph("Target Architecture", version = "4.0.0", description = "Vertical-slice module decomposition — six workflow modules plus source/sink composition root") {
     // Target Platforms
@@ -52,17 +66,17 @@ val graph = flowGraph("Target Architecture", version = "4.0.0", description = "V
     val types = graphNode("flowGraph-types") {
         description = "IP type lifecycle: discovery, registry, repository, file generation, migration. 9 files. Consolidates IP type concerns from inspect, persist, and generate."
         position(100.0, 100.0)
-        exposeInput("filesystemPaths", String::class)
-        exposeInput("classpathEntries", String::class)
-        exposeInput("ipTypeCommands", String::class)
-        exposeOutput("ipTypeMetadata", String::class)
+        exposeInput("filesystemPaths", FilesystemPath::class)
+        exposeInput("classpathEntries", ClasspathEntry::class)
+        exposeInput("ipTypeCommands", IPTypeCommand::class)
+        exposeOutput("ipTypeMetadata", IPTypeMetadata::class)
 
         // Child CodeNode — FlowGraphTypesCodeNode (In3AnyOut1Runtime, anyInput)
         val flowGraphTypes = codeNode("FlowGraphTypes", nodeType = "TRANSFORMER") {
-            input("filesystemPaths", String::class)
-            input("classpathEntries", String::class)
-            input("ipTypeCommands", String::class)
-            output("ipTypeMetadata", String::class)
+            input("filesystemPaths", FilesystemPath::class)
+            input("classpathEntries", ClasspathEntry::class)
+            input("ipTypeCommands", IPTypeCommand::class)
+            output("ipTypeMetadata", IPTypeMetadata::class)
         }
 
         // Port mappings — wire exposed GraphNode ports to child CodeNode ports
@@ -75,15 +89,15 @@ val graph = flowGraph("Target Architecture", version = "4.0.0", description = "V
     val inspect = graphNode("flowGraph-inspect") {
         description = "Node discovery and inspection: NodeDefinitionRegistry, palette ViewModels, filesystem/classpath scanning. 7 files."
         position(100.0, 400.0)
-        exposeInput("filesystemPaths", String::class)
-        exposeInput("classpathEntries", String::class)
-        exposeOutput("nodeDescriptors", String::class)
+        exposeInput("filesystemPaths", FilesystemPath::class)
+        exposeInput("classpathEntries", ClasspathEntry::class)
+        exposeOutput("nodeDescriptors", NodeDescriptors::class)
 
         // Child CodeNode — FlowGraphInspectCodeNode (In2AnyOut1Runtime, anyInput)
         val flowGraphInspect = codeNode("FlowGraphInspect", nodeType = "TRANSFORMER") {
-            input("filesystemPaths", String::class)
-            input("classpathEntries", String::class)
-            output("nodeDescriptors", String::class)
+            input("filesystemPaths", FilesystemPath::class)
+            input("classpathEntries", ClasspathEntry::class)
+            output("nodeDescriptors", NodeDescriptors::class)
         }
 
         // Port mappings — wire exposed GraphNode ports to child CodeNode ports
@@ -95,26 +109,26 @@ val graph = flowGraph("Target Architecture", version = "4.0.0", description = "V
     val rootSource = graphNode("graphEditor-source") {
         description = "Composition root — command side: ViewModel actions that dispatch user intent to workflow modules. Part of graphEditor (27 files shared with graphEditor-sink)."
         position(100.0, 700.0)
-        exposeOutput("flowGraphModel", String::class)
-        exposeOutput("ipTypeCommands", String::class)
+        exposeOutput("flowGraphModel", FlowGraphModel::class)
+        exposeOutput("ipTypeCommands", IPTypeCommand::class)
     }
 
     val persist = graphNode("flowGraph-persist") {
         description = "Saving and loading flow graphs: FlowGraphSerializer, FlowKtParser, template registry, file I/O. 6 files."
         position(400.0, 100.0)
-        exposeInput("flowGraphModel", String::class)
-        exposeInput("ipTypeMetadata", String::class)
+        exposeInput("flowGraphModel", FlowGraphModel::class)
+        exposeInput("ipTypeMetadata", IPTypeMetadata::class)
         exposeOutput("serializedOutput", String::class)
-        exposeOutput("loadedFlowGraph", String::class)
-        exposeOutput("graphNodeTemplates", String::class)
+        exposeOutput("loadedFlowGraph", LoadedFlowGraph::class)
+        exposeOutput("graphNodeTemplates", GraphNodeTemplates::class)
 
         // Child CodeNode — FlowGraphPersistCodeNode (In2AnyOut3Runtime, anyInput)
         val flowGraphPersist = codeNode("FlowGraphPersist", nodeType = "TRANSFORMER") {
-            input("flowGraphModel", String::class)
-            input("ipTypeMetadata", String::class)
+            input("flowGraphModel", FlowGraphModel::class)
+            input("ipTypeMetadata", IPTypeMetadata::class)
             output("serializedOutput", String::class)
-            output("loadedFlowGraph", String::class)
-            output("graphNodeTemplates", String::class)
+            output("loadedFlowGraph", LoadedFlowGraph::class)
+            output("graphNodeTemplates", GraphNodeTemplates::class)
         }
 
         // Port mappings — wire exposed GraphNode ports to child CodeNode ports
@@ -128,17 +142,17 @@ val graph = flowGraph("Target Architecture", version = "4.0.0", description = "V
     val compose = graphNode("flowGraph-compose") {
         description = "Building a flow graph interactively: canvas interaction, properties panel, node generator state, view synchronization. 4 files + 1 CodeNode."
         position(400.0, 400.0)
-        exposeInput("flowGraphModel", String::class)
-        exposeInput("nodeDescriptors", String::class)
-        exposeInput("ipTypeMetadata", String::class)
-        exposeOutput("graphState", String::class)
+        exposeInput("flowGraphModel", FlowGraphModel::class)
+        exposeInput("nodeDescriptors", NodeDescriptors::class)
+        exposeInput("ipTypeMetadata", IPTypeMetadata::class)
+        exposeOutput("graphState", EditorGraphState::class)
 
         // Child CodeNode — FlowGraphComposeCodeNode (In3AnyOut1Runtime, anyInput)
         val flowGraphCompose = codeNode("FlowGraphCompose", nodeType = "TRANSFORMER") {
-            input("flowGraphModel", String::class)
-            input("nodeDescriptors", String::class)
-            input("ipTypeMetadata", String::class)
-            output("graphState", String::class)
+            input("flowGraphModel", FlowGraphModel::class)
+            input("nodeDescriptors", NodeDescriptors::class)
+            input("ipTypeMetadata", IPTypeMetadata::class)
+            output("graphState", EditorGraphState::class)
         }
 
         // Port mappings — wire exposed GraphNode ports to child CodeNode ports
@@ -151,19 +165,19 @@ val graph = flowGraph("Target Architecture", version = "4.0.0", description = "V
     val execute = graphNode("flowGraph-execute") {
         description = "Running and observing flow graphs: RuntimeSession, DataFlowAnimationController, DataFlowDebugger, ConnectionAnimation, CircuitSimulator (from circuitSimulator) + ModuleSessionFactory (from graphEditor). 7 files."
         position(400.0, 700.0)
-        exposeInput("flowGraphModel", String::class)
-        exposeInput("nodeDescriptors", String::class)
-        exposeOutput("executionState", String::class)
-        exposeOutput("animations", String::class)
-        exposeOutput("debugSnapshots", String::class)
+        exposeInput("flowGraphModel", FlowGraphModel::class)
+        exposeInput("nodeDescriptors", NodeDescriptors::class)
+        exposeOutput("executionState", RuntimeExecutionState::class)
+        exposeOutput("animations", DataFlowAnimations::class)
+        exposeOutput("debugSnapshots", DebugSnapshots::class)
 
         // Child CodeNode — FlowGraphExecuteCodeNode (In2AnyOut3Runtime, anyInput)
         val flowGraphExecute = codeNode("FlowGraphExecute", nodeType = "TRANSFORMER") {
-            input("flowGraphModel", String::class)
-            input("nodeDescriptors", String::class)
-            output("executionState", String::class)
-            output("animations", String::class)
-            output("debugSnapshots", String::class)
+            input("flowGraphModel", FlowGraphModel::class)
+            input("nodeDescriptors", NodeDescriptors::class)
+            output("executionState", RuntimeExecutionState::class)
+            output("animations", DataFlowAnimations::class)
+            output("debugSnapshots", DebugSnapshots::class)
         }
 
         // Port mappings — wire exposed GraphNode ports to child CodeNode ports
@@ -177,26 +191,26 @@ val graph = flowGraph("Target Architecture", version = "4.0.0", description = "V
     val generate = graphNode("flowGraph-generate") {
         description = "Code generation: generators, templates, validators, compilation, module save. Two-node sub-graph: GenerateContextAggregator aggregates flowGraphModel + serializedOutput into generationContext, FlowGraphGenerate combines generationContext + nodeDescriptors + ipTypeMetadata into generatedOutput."
         position(700.0, 400.0)
-        exposeInput("flowGraphModel", String::class)
+        exposeInput("flowGraphModel", FlowGraphModel::class)
         exposeInput("serializedOutput", String::class)
-        exposeInput("nodeDescriptors", String::class)
-        exposeInput("ipTypeMetadata", String::class)
-        exposeOutput("generatedOutput", String::class)
+        exposeInput("nodeDescriptors", NodeDescriptors::class)
+        exposeInput("ipTypeMetadata", IPTypeMetadata::class)
+        exposeOutput("generatedOutput", GeneratedOutput::class)
 
         // Child CodeNodes
         val generateContextAggregator = codeNode("GenerateContextAggregator", nodeType = "TRANSFORMER") {
             position(50.0, 50.0)
-            input("flowGraphModel", String::class)
+            input("flowGraphModel", FlowGraphModel::class)
             input("serializedOutput", String::class)
-            output("generationContext", String::class)
+            output("generationContext", GenerationContext::class)
         }
 
         val flowGraphGenerate = codeNode("FlowGraphGenerate", nodeType = "TRANSFORMER") {
             position(350.0, 50.0)
-            input("generationContext", String::class)
-            input("nodeDescriptors", String::class)
-            input("ipTypeMetadata", String::class)
-            output("generatedOutput", String::class)
+            input("generationContext", GenerationContext::class)
+            input("nodeDescriptors", NodeDescriptors::class)
+            input("ipTypeMetadata", IPTypeMetadata::class)
+            output("generatedOutput", GeneratedOutput::class)
         }
 
         // Port mappings — wire exposed GraphNode ports to child CodeNode ports
@@ -213,14 +227,14 @@ val graph = flowGraph("Target Architecture", version = "4.0.0", description = "V
     val rootSink = graphNode("graphEditor-sink") {
         description = "Composition root — display side: reactive Compose UI state flowing in from workflow modules. Part of graphEditor (27 files shared with graphEditor-source)."
         position(1000.0, 400.0)
-        exposeInput("graphState", String::class)
-        exposeInput("loadedFlowGraph", String::class)
-        exposeInput("graphNodeTemplates", String::class)
-        exposeInput("executionState", String::class)
-        exposeInput("animations", String::class)
-        exposeInput("generatedOutput", String::class)
-        exposeInput("nodeDescriptors", String::class)
-        exposeInput("ipTypeMetadata", String::class)
+        exposeInput("graphState", EditorGraphState::class)
+        exposeInput("loadedFlowGraph", LoadedFlowGraph::class)
+        exposeInput("graphNodeTemplates", GraphNodeTemplates::class)
+        exposeInput("executionState", RuntimeExecutionState::class)
+        exposeInput("animations", DataFlowAnimations::class)
+        exposeInput("generatedOutput", GeneratedOutput::class)
+        exposeInput("nodeDescriptors", NodeDescriptors::class)
+        exposeInput("ipTypeMetadata", IPTypeMetadata::class)
     }
 
     // Connections: types → consumers (IP type metadata for all modules that need type info)

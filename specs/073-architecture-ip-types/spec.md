@@ -104,7 +104,7 @@ A graph designer opens architecture.flow.kt and all ports on all nodes reference
 - Architecture IP types reference actual domain classes via `typealias` declarations — no property duplication. The real domain classes remain the single source of truth.
 - The IP type discovery system must be extended to parse `typealias` declarations in addition to `data class` bodies. This is a targeted infrastructure change.
 - Color assignment follows the existing color palette conventions used by other IP types in the system
-- These IP types are global (not module-scoped) since they represent cross-module data flows in the system architecture
+- These IP types are discovered via the INTERNAL placement tier (lowest precedence), which scans the tool's own `iptypes` module. This is necessary because at runtime `projectRoot` points to the user's project, not the CodeNodeIO source tree. User-defined types at MODULE, PROJECT, or UNIVERSAL tiers take precedence over INTERNAL types.
 - The `iptypes` module is a separate Gradle module (not merged into flowGraph-types), matching the demo project pattern. flowGraph-types is infrastructure; iptypes is data.
 - The `iptypes` module depends on fbpDsl, flowGraph-persist, and flowGraph-execute for typealias resolution. It does NOT depend on graphEditor — EditorGraphState is a `data class` to avoid the circular dependency.
 - GraphState remains in graphEditor because it depends on Compose runtime. EditorGraphState describes the concept without referencing the Compose-coupled class.
