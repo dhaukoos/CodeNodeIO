@@ -111,6 +111,10 @@ Auto-generated from all feature plans. Last updated: 2026-01-13
 - N/A — in-memory state only (071-fix-node-positioning)
 - Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + Compose Desktop 1.7.3, kotlinx-coroutines 1.8.0, lifecycle-viewmodel-compose 2.8.0, Koin 4.0.0 (072-decompose-main-kt)
 - N/A (pure refactoring, no new persistence) (072-decompose-main-kt)
+- Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + fbpDsl (FlowGraph DSL model), flowGraph-types (IPTypeRegistry, IPTypeDiscovery, IPTypeFileGenerator) (073-architecture-ip-types)
+- Filesystem — `.kt` IP type files at PROJECT tier (`iptypes/src/commonMain/kotlin/io/codenode/iptypes/`) (073-architecture-ip-types)
+- Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + fbpDsl (domain model classes), flowGraph-types (IPTypeRegistry, IPTypeDiscovery), flowGraph-persist (ParseResult, GraphNodeTemplateMeta), flowGraph-execute (ConnectionAnimation), graphEditor (GraphState) (073-architecture-ip-types)
+- Filesystem — `.kt` IP type files at PROJECT tier (`iptypes/src/commonMain/kotlin/io/codenode/iptypes/` and `iptypes/src/jvmMain/kotlin/io/codenode/iptypes/`) (073-architecture-ip-types)
 
 - Kotlin 1.9+, Go 1.21+ (001-ide-plugin-platform)
 
@@ -130,9 +134,9 @@ tests/
 Kotlin 1.9+, Go 1.21+: Follow standard conventions
 
 ## Recent Changes
-- 072-decompose-main-kt: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + Compose Desktop 1.7.3, kotlinx-coroutines 1.8.0, lifecycle-viewmodel-compose 2.8.0, Koin 4.0.0
-- 071-fix-node-positioning: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + Compose Desktop 1.7.3 + fbpDsl (Node.Position model), graphEditor (GraphState, FlowGraphCanvas, UndoRedoManager, NavigationContext)
-- 070-extract-flowgraph-compose: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + fbpDsl (core FBP domain model, CodeNodeFactory, In3AnyOut1Runtime), Compose Desktop (geometry types for jvmMain), lifecycle-viewmodel-compose 2.8.0, kotlinx-coroutines 1.8.0
+- 073-architecture-ip-types: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + fbpDsl (domain model classes), flowGraph-types (IPTypeRegistry, IPTypeDiscovery), flowGraph-persist (ParseResult, GraphNodeTemplateMeta), flowGraph-execute (ConnectionAnimation)
+- 073-architecture-ip-types: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + fbpDsl (domain model classes), flowGraph-types (IPTypeRegistry, IPTypeDiscovery), flowGraph-persist (ParseResult, GraphNodeTemplateMeta), flowGraph-execute (ConnectionAnimation), graphEditor (GraphState)
+- 073-architecture-ip-types: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + fbpDsl (FlowGraph DSL model), flowGraph-types (IPTypeRegistry, IPTypeDiscovery, IPTypeFileGenerator)
 
 
 <!-- MANUAL ADDITIONS START -->
