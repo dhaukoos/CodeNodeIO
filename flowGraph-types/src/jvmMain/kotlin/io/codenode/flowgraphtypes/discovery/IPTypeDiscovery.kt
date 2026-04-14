@@ -34,6 +34,7 @@ class IPTypeDiscovery(
     private val colorPattern = Regex("""@Color\s+rgb\((\d+),\s*(\d+),\s*(\d+)\)""")
     private val packagePattern = Regex("""^package\s+([\w.]+)""", RegexOption.MULTILINE)
     private val dataClassPattern = Regex("""data\s+class\s+(\w+)\s*\(([^)]*)\)""", RegexOption.DOT_MATCHES_ALL)
+    private val typealiasPattern = Regex("""typealias\s+(\w+)\s*=\s*(.+)""")
     private val propertyPattern = Regex("""val\s+(\w+)\s*:\s*([\w.<>?]+)""")
 
     /**
@@ -43,18 +44,26 @@ class IPTypeDiscovery(
     fun discoverAll(): List<IPTypeFileMeta> {
         val allTypes = mutableListOf<IPTypeFileMeta>()
 
-        // Scan Module directories (highest precedence)
+        // Scan Module directories (highest precedence) — both commonMain and jvmMain
         for (modulePath in modulePaths) {
-            val ipTypesDir = findIpTypesDir(modulePath)
+            val ipTypesDir = findIpTypesDir(modulePath, "commonMain")
             if (ipTypesDir != null) {
                 allTypes.addAll(scanDirectory(ipTypesDir, PlacementLevel.MODULE))
             }
+            val jvmIpTypesDir = findIpTypesDir(modulePath, "jvmMain")
+            if (jvmIpTypesDir != null) {
+                allTypes.addAll(scanDirectory(jvmIpTypesDir, PlacementLevel.MODULE))
+            }
         }
 
-        // Scan Project directory
+        // Scan Project directory (commonMain and jvmMain)
         val projectIpTypesDir = File(projectRoot, "iptypes/src/commonMain/kotlin/io/codenode/iptypes")
         if (projectIpTypesDir.isDirectory) {
             allTypes.addAll(scanDirectory(projectIpTypesDir, PlacementLevel.PROJECT))
+        }
+        val projectJvmIpTypesDir = File(projectRoot, "iptypes/src/jvmMain/kotlin/io/codenode/iptypes")
+        if (projectJvmIpTypesDir.isDirectory) {
+            allTypes.addAll(scanDirectory(projectJvmIpTypesDir, PlacementLevel.PROJECT))
         }
 
         // Scan Universal directory
@@ -120,11 +129,24 @@ class IPTypeDiscovery(
         // Extract package
         val packageName = packagePattern.find(content)?.groupValues?.get(1) ?: ""
 
-        // Extract data class fields
-        val properties = parseDataClassProperties(content)
+        // Try data class first (existing behavior), then fall back to typealias
+        val dataClassMatch = dataClassPattern.find(content)
+        val properties = if (dataClassMatch != null) {
+            parseDataClassProperties(content)
+        } else {
+            // Typealias or other declaration — no own properties
+            emptyList()
+        }
+
+        // Resolve class name: use typealias name if present and no data class
+        val resolvedTypeName = if (dataClassMatch != null) {
+            dataClassMatch.groupValues[1]
+        } else {
+            typealiasPattern.find(content)?.groupValues?.get(1) ?: typeName
+        }
 
         // Build fully qualified class name
-        val className = if (packageName.isNotEmpty()) "$packageName.$typeName" else typeName
+        val className = if (packageName.isNotEmpty()) "$packageName.$resolvedTypeName" else resolvedTypeName
 
         return IPTypeFileMeta(
             typeName = typeName,
@@ -189,12 +211,12 @@ class IPTypeDiscovery(
     /**
      * Finds the iptypes directory within a module by scanning the source tree.
      */
-    private fun findIpTypesDir(modulePath: File): File? {
-        val commonMainKotlin = File(modulePath, "src/commonMain/kotlin")
-        if (!commonMainKotlin.isDirectory) return null
+    private fun findIpTypesDir(modulePath: File, sourceSet: String = "commonMain"): File? {
+        val sourceSetKotlin = File(modulePath, "src/$sourceSet/kotlin")
+        if (!sourceSetKotlin.isDirectory) return null
 
         // Walk directory tree looking for an "iptypes" directory
-        return commonMainKotlin.walkTopDown()
+        return sourceSetKotlin.walkTopDown()
             .filter { it.isDirectory && it.name == "iptypes" }
             .firstOrNull()
     }

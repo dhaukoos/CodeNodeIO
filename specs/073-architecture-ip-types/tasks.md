@@ -17,10 +17,10 @@
 
 **Purpose**: Create the `iptypes` Gradle module and register it in the build system
 
-- [ ] T001 Create `iptypes/build.gradle.kts` with KMP configuration and dependencies on `:fbpDsl`, `:flowGraph-persist` (commonMain), `:flowGraph-persist`, `:flowGraph-execute` (jvmMain)
-- [ ] T002 Add `include(":iptypes")` to `settings.gradle.kts`
-- [ ] T003 Create source directories: `iptypes/src/commonMain/kotlin/io/codenode/iptypes/` and `iptypes/src/jvmMain/kotlin/io/codenode/iptypes/`
-- [ ] T004 Verify module compiles: `./gradlew :iptypes:compileKotlinJvm`
+- [X] T001 Create `iptypes/build.gradle.kts` with KMP configuration and dependencies on `:fbpDsl`, `:flowGraph-persist` (commonMain), `:flowGraph-persist`, `:flowGraph-execute` (jvmMain)
+- [X] T002 Add `include(":iptypes")` to `settings.gradle.kts`
+- [X] T003 Create source directories: `iptypes/src/commonMain/kotlin/io/codenode/iptypes/` and `iptypes/src/jvmMain/kotlin/io/codenode/iptypes/`
+- [X] T004 Verify module compiles: `./gradlew :iptypes:compileKotlinJvm`
 
 ---
 
@@ -32,15 +32,15 @@
 
 ### Tests
 
-- [ ] T005 Add test: parse typealias IP type file returns correct IPTypeFileMeta (typeName, typeId, color, empty properties, className) in `flowGraph-types/src/jvmTest/kotlin/.../discovery/IPTypeDiscoveryTest.kt`
-- [ ] T006 Add test: parse data class IP type file returns unchanged behavior (backward compatibility) in `flowGraph-types/src/jvmTest/kotlin/.../discovery/IPTypeDiscoveryTest.kt`
-- [ ] T007 Add test: parse file with `@IPType` but no data class or typealias skips gracefully in `flowGraph-types/src/jvmTest/kotlin/.../discovery/IPTypeDiscoveryTest.kt`
+- [X] T005 Add test: parse typealias IP type file returns correct IPTypeFileMeta (typeName, typeId, color, empty properties, className) in `flowGraph-types/src/jvmTest/kotlin/.../discovery/IPTypeDiscoveryTest.kt`
+- [X] T006 Add test: parse data class IP type file returns unchanged behavior (backward compatibility) in `flowGraph-types/src/jvmTest/kotlin/.../discovery/IPTypeDiscoveryTest.kt`
+- [X] T007 Add test: parse file with `@IPType` but no data class or typealias skips gracefully in `flowGraph-types/src/jvmTest/kotlin/.../discovery/IPTypeDiscoveryTest.kt`
 
 ### Implementation
 
-- [ ] T008 Add `typealiasPattern` regex (`typealias\s+(\w+)\s*=\s*(.+)`) to `flowGraph-types/src/jvmMain/kotlin/io/codenode/flowgraphtypes/discovery/IPTypeDiscovery.kt`
-- [ ] T009 Extend parsing logic in IPTypeDiscovery to try `dataClassPattern` first, then fall back to `typealiasPattern`, creating `IPTypeFileMeta` with empty properties for typealias matches in `flowGraph-types/src/jvmMain/kotlin/io/codenode/flowgraphtypes/discovery/IPTypeDiscovery.kt`
-- [ ] T010 Run `./gradlew :flowGraph-types:jvmTest` to verify all discovery tests pass (new + existing)
+- [X] T008 Add `typealiasPattern` regex (`typealias\s+(\w+)\s*=\s*(.+)`) to `flowGraph-types/src/jvmMain/kotlin/io/codenode/flowgraphtypes/discovery/IPTypeDiscovery.kt`
+- [X] T009 Extend parsing logic in IPTypeDiscovery to try `dataClassPattern` first, then fall back to `typealiasPattern`, creating `IPTypeFileMeta` with empty properties for typealias matches in `flowGraph-types/src/jvmMain/kotlin/io/codenode/flowgraphtypes/discovery/IPTypeDiscovery.kt`
+- [X] T010 Run `./gradlew :flowGraph-types:jvmTest` to verify all discovery tests pass (new + existing)
 
 **Checkpoint**: IPTypeDiscovery can now parse both `data class` and `typealias` IP type files
 
