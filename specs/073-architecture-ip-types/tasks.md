@@ -54,35 +54,35 @@
 
 ### commonMain Typealias Types (5 files)
 
-- [ ] T011 [P] [US1] Create `iptypes/src/commonMain/kotlin/io/codenode/iptypes/NodeDescriptors.kt` — typealias `NodeDescriptors = List<NodeTypeDefinition>`, @TypeId ip_nodedescriptors, @Color rgb(233, 30, 99)
-- [ ] T012 [P] [US1] Create `iptypes/src/commonMain/kotlin/io/codenode/iptypes/IPTypeMetadata.kt` — typealias `IPTypeMetadata = List<InformationPacketType>`, @TypeId ip_iptypemetadata, @Color rgb(0, 188, 212)
-- [ ] T013 [P] [US1] Create `iptypes/src/commonMain/kotlin/io/codenode/iptypes/FlowGraphModel.kt` — typealias `FlowGraphModel = FlowGraph`, @TypeId ip_flowgraphmodel, @Color rgb(121, 85, 72)
-- [ ] T014 [P] [US1] Create `iptypes/src/commonMain/kotlin/io/codenode/iptypes/GraphNodeTemplates.kt` — typealias `GraphNodeTemplates = List<GraphNodeTemplateMeta>`, @TypeId ip_graphnodetemplates, @Color rgb(63, 81, 181)
-- [ ] T015 [P] [US1] Create `iptypes/src/commonMain/kotlin/io/codenode/iptypes/RuntimeExecutionState.kt` — typealias `RuntimeExecutionState = ExecutionState`, @TypeId ip_runtimeexecutionstate, @Color rgb(0, 150, 136)
+- [X] T011 [P] [US1] Create `iptypes/src/commonMain/kotlin/io/codenode/iptypes/NodeDescriptors.kt` — typealias `NodeDescriptors = List<NodeTypeDefinition>`, @TypeId ip_nodedescriptors, @Color rgb(233, 30, 99)
+- [X] T012 [P] [US1] Create `iptypes/src/commonMain/kotlin/io/codenode/iptypes/IPTypeMetadata.kt` — typealias `IPTypeMetadata = List<InformationPacketType>`, @TypeId ip_iptypemetadata, @Color rgb(0, 188, 212)
+- [X] T013 [P] [US1] Create `iptypes/src/commonMain/kotlin/io/codenode/iptypes/FlowGraphModel.kt` — typealias `FlowGraphModel = FlowGraph`, @TypeId ip_flowgraphmodel, @Color rgb(121, 85, 72)
+- [X] T014 [P] [US1] Create `iptypes/src/commonMain/kotlin/io/codenode/iptypes/GraphNodeTemplates.kt` — typealias `GraphNodeTemplates = List<GraphNodeTemplateMeta>`, @TypeId ip_graphnodetemplates, @Color rgb(63, 81, 181)
+- [X] T015 [P] [US1] Create `iptypes/src/commonMain/kotlin/io/codenode/iptypes/RuntimeExecutionState.kt` — typealias `RuntimeExecutionState = ExecutionState`, @TypeId ip_runtimeexecutionstate, @Color rgb(0, 150, 136)
 
 ### commonMain Data Class Types (5 files)
 
-- [ ] T016 [P] [US1] Create `iptypes/src/commonMain/kotlin/io/codenode/iptypes/FilesystemPath.kt` — data class with `val path: String`, @TypeId ip_filesystempath, @Color rgb(96, 125, 139)
-- [ ] T017 [P] [US1] Create `iptypes/src/commonMain/kotlin/io/codenode/iptypes/ClasspathEntry.kt` — data class with `val entry: String`, @TypeId ip_classpathentry, @Color rgb(139, 195, 74)
-- [ ] T018 [P] [US1] Create `iptypes/src/commonMain/kotlin/io/codenode/iptypes/IPTypeCommand.kt` — data class with `val command: String, val targetTypeId: String, val payload: String`, @TypeId ip_iptypecommand, @Color rgb(244, 67, 54)
-- [ ] T019 [P] [US1] Create `iptypes/src/commonMain/kotlin/io/codenode/iptypes/GeneratedOutput.kt` — data class with `val files: String, val status: String, val errorMessage: String?`, @TypeId ip_generatedoutput, @Color rgb(255, 193, 7)
-- [ ] T020 [P] [US1] Create `iptypes/src/commonMain/kotlin/io/codenode/iptypes/GenerationContext.kt` — data class with `val flowGraphModel: String, val serializedOutput: String`, @TypeId ip_generationcontext, @Color rgb(3, 169, 244)
+- [X] T016 [P] [US1] Create `iptypes/src/commonMain/kotlin/io/codenode/iptypes/FilesystemPath.kt` — data class with `val path: String`, @TypeId ip_filesystempath, @Color rgb(96, 125, 139)
+- [X] T017 [P] [US1] Create `iptypes/src/commonMain/kotlin/io/codenode/iptypes/ClasspathEntry.kt` — data class with `val entry: String`, @TypeId ip_classpathentry, @Color rgb(139, 195, 74)
+- [X] T018 [P] [US1] Create `iptypes/src/commonMain/kotlin/io/codenode/iptypes/IPTypeCommand.kt` — data class with `val command: String, val targetTypeId: String, val payload: String`, @TypeId ip_iptypecommand, @Color rgb(244, 67, 54)
+- [X] T019 [P] [US1] Create `iptypes/src/commonMain/kotlin/io/codenode/iptypes/GeneratedOutput.kt` — data class with `val files: String, val status: String, val errorMessage: String?`, @TypeId ip_generatedoutput, @Color rgb(255, 193, 7)
+- [X] T020 [P] [US1] Create `iptypes/src/commonMain/kotlin/io/codenode/iptypes/GenerationContext.kt` — data class with `val flowGraphModel: String, val serializedOutput: String`, @TypeId ip_generationcontext, @Color rgb(3, 169, 244)
 
 ### jvmMain Typealias Types (2 files)
 
-- [ ] T021 [P] [US1] Create `iptypes/src/jvmMain/kotlin/io/codenode/iptypes/LoadedFlowGraph.kt` — typealias `LoadedFlowGraph = ParseResult`, @TypeId ip_loadedflowgraph, @Color rgb(255, 87, 34)
-- [ ] T022 [P] [US1] Create `iptypes/src/jvmMain/kotlin/io/codenode/iptypes/DataFlowAnimations.kt` — typealias `DataFlowAnimations = List<ConnectionAnimation>`, @TypeId ip_dataflowanimations, @Color rgb(205, 220, 57)
+- [X] T021 [P] [US1] Create `iptypes/src/jvmMain/kotlin/io/codenode/iptypes/LoadedFlowGraph.kt` — typealias `LoadedFlowGraph = ParseResult`, @TypeId ip_loadedflowgraph, @Color rgb(255, 87, 34)
+- [X] T022 [P] [US1] Create `iptypes/src/jvmMain/kotlin/io/codenode/iptypes/DataFlowAnimations.kt` — typealias `DataFlowAnimations = List<ConnectionAnimation>`, @TypeId ip_dataflowanimations, @Color rgb(205, 220, 57)
 
 ### jvmMain Data Class Types (2 files)
 
-- [ ] T023 [P] [US1] Create `iptypes/src/jvmMain/kotlin/io/codenode/iptypes/DebugSnapshots.kt` — data class with `val connectionId: String, val timestamp: String, val value: String`, @TypeId ip_debugsnapshots, @Color rgb(158, 158, 158)
-- [ ] T024 [P] [US1] Create `iptypes/src/jvmMain/kotlin/io/codenode/iptypes/EditorGraphState.kt` — data class with `val flowGraph: String, val selection: String, val panOffset: String, val scale: String, val isDirty: Boolean`, @TypeId ip_editorgraphstate, @Color rgb(103, 58, 183)
+- [X] T023 [P] [US1] Create `iptypes/src/jvmMain/kotlin/io/codenode/iptypes/DebugSnapshots.kt` — data class with `val connectionId: String, val timestamp: String, val value: String`, @TypeId ip_debugsnapshots, @Color rgb(158, 158, 158)
+- [X] T024 [P] [US1] Create `iptypes/src/jvmMain/kotlin/io/codenode/iptypes/EditorGraphState.kt` — data class with `val flowGraph: String, val selection: String, val panOffset: String, val scale: String, val isDirty: Boolean`, @TypeId ip_editorgraphstate, @Color rgb(103, 58, 183)
 
 ### Verification
 
-- [ ] T025 [US1] Compile iptypes module: `./gradlew :iptypes:compileKotlinJvm`
-- [ ] T026 [US1] Validate no duplicate TypeId values across all IP type files in `iptypes/src/`
-- [ ] T027 [US1] Run existing test suites to verify no regressions: `./gradlew :flowGraph-types:jvmTest :graphEditor:jvmTest`
+- [X] T025 [US1] Compile iptypes module: `./gradlew :iptypes:compileKotlinJvm`
+- [X] T026 [US1] Validate no duplicate TypeId values across all IP type files in `iptypes/src/`
+- [X] T027 [US1] Run existing test suites to verify no regressions: `./gradlew :flowGraph-types:jvmTest :graphEditor:jvmTest`
 
 **Checkpoint**: All 14 IP types are discoverable and visible in the palette. User Story 1 is independently testable.
 
