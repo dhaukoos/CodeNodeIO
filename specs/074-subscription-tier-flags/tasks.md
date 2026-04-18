@@ -42,11 +42,11 @@
 
 ### Implementation
 
-- [ ] T006 [US1] Extract `saveFlowKtOnly(flowGraph, outputDir, portTypeNames)` method from `ModuleSaveService.saveModule()` that writes only the `.flow.kt` file using `FlowGraphSerializer.serialize()` in `flowGraph-generate/src/jvmMain/kotlin/io/codenode/flowgraphgenerate/save/ModuleSaveService.kt`
-- [ ] T007 [US1] Modify Save action in `GraphEditorDialogs.kt` to call `saveFlowKtOnly()` instead of `saveModule()` — Save now writes only the `.flow.kt` file in `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/GraphEditorDialogs.kt`
-- [ ] T008 [US1] Add "Generate Module" button to the toolbar next to Save in `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/TopToolbar.kt`
-- [ ] T009 [US1] Wire "Generate Module" action in `GraphEditorApp.kt` — on click, call `ModuleSaveService.saveModule()` using `lastSaveDir` as default output (prompt if not set) in `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/GraphEditorApp.kt`
-- [ ] T010 [US1] Compile and run tests: `./gradlew :flowGraph-generate:compileKotlinJvm :graphEditor:compileKotlinJvm :graphEditor:jvmTest`
+- [X] T006 [US1] Extract `saveFlowKtOnly(flowGraph, outputDir, portTypeNames)` method from `ModuleSaveService.saveModule()` that writes only the `.flow.kt` file using `FlowGraphSerializer.serialize()` in `flowGraph-generate/src/jvmMain/kotlin/io/codenode/flowgraphgenerate/save/ModuleSaveService.kt`
+- [X] T007 [US1] Modify Save action in `GraphEditorDialogs.kt` to call `saveFlowKtOnly()` instead of `saveModule()` — Save now writes only the `.flow.kt` file in `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/GraphEditorDialogs.kt`
+- [X] T008 [US1] Add "Generate Module" button to the toolbar next to Save in `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/TopToolbar.kt`
+- [X] T009 [US1] Wire "Generate Module" action in `GraphEditorApp.kt` — on click, call `ModuleSaveService.saveModule()` using `lastSaveDir` as default output (prompt if not set) in `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/GraphEditorApp.kt`
+- [X] T010 [US1] Compile and run tests: `./gradlew :flowGraph-generate:compileKotlinJvm :graphEditor:compileKotlinJvm :graphEditor:jvmTest`
 
 **Checkpoint**: Save and Generate are independent actions. Save writes only `.flow.kt`. Generate produces full module. User Story 1 is independently testable.
 
@@ -60,10 +60,10 @@
 
 ### Implementation
 
-- [ ] T011 [US2] Instantiate `LocalFeatureGate` in `GraphEditorApp.kt` and pass it as a parameter to child composables (TopToolbar, RuntimePreviewPanel, NodePalette) in `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/GraphEditorApp.kt`
-- [ ] T012 [US2] Gate "Generate Module" button in `TopToolbar.kt` — disabled with tooltip "Upgrade to Pro to generate modules" when `featureGate.canGenerate()` is false in `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/TopToolbar.kt`
-- [ ] T013 [US2] Show upgrade prompt in `GraphEditorDialogs.kt` when a Free-tier user attempts to trigger code generation (guard the Generate action callback) in `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/GraphEditorDialogs.kt`
-- [ ] T014 [US2] Compile and run tests: `./gradlew :graphEditor:compileKotlinJvm :graphEditor:jvmTest`
+- [X] T011 [US2] Instantiate `LocalFeatureGate` in `GraphEditorApp.kt` and pass it as a parameter to child composables (TopToolbar, RuntimePreviewPanel, NodePalette) in `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/GraphEditorApp.kt`
+- [X] T012 [US2] Gate "Generate Module" button in `TopToolbar.kt` — disabled with tooltip "Upgrade to Pro to generate modules" when `featureGate.canGenerate()` is false in `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/TopToolbar.kt`
+- [X] T013 [US2] Show upgrade prompt in `GraphEditorDialogs.kt` when a Free-tier user attempts to trigger code generation (guard the Generate action callback) in `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/GraphEditorDialogs.kt`
+- [X] T014 [US2] Compile and run tests: `./gradlew :graphEditor:compileKotlinJvm :graphEditor:jvmTest`
 
 **Checkpoint**: Feature flag infrastructure is wired. Code generation is gated behind Pro tier. Free-tier users see clear upgrade messages.
 
@@ -77,9 +77,9 @@
 
 ### Implementation
 
-- [ ] T015 [US3] Accept `featureGate` parameter in `RuntimePreviewPanel` composable in `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/RuntimePreviewPanel.kt`
-- [ ] T016 [US3] When `featureGate.canSimulate()` is false, replace panel content with an upgrade prompt (e.g., "Circuit simulation requires the Sim tier. Upgrade to unlock Runtime Preview.") while keeping the `CollapsiblePanel` wrapper functional in `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/RuntimePreviewPanel.kt`
-- [ ] T017 [US3] Compile and run tests: `./gradlew :graphEditor:compileKotlinJvm :graphEditor:jvmTest`
+- [X] T015 [US3] Accept `featureGate` parameter in `RuntimePreviewPanel` composable in `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/RuntimePreviewPanel.kt`
+- [X] T016 [US3] When `featureGate.canSimulate()` is false, replace panel content with an upgrade prompt (e.g., "Circuit simulation requires the Sim tier. Upgrade to unlock Runtime Preview.") while keeping the `CollapsiblePanel` wrapper functional in `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/RuntimePreviewPanel.kt`
+- [X] T017 [US3] Compile and run tests: `./gradlew :graphEditor:compileKotlinJvm :graphEditor:jvmTest`
 
 **Checkpoint**: Runtime Preview is gated behind Sim tier. Free and Pro users see upgrade prompt. Sim users have full simulation.
 
@@ -93,10 +93,10 @@
 
 ### Implementation
 
-- [ ] T018 [US4] Accept `featureGate` parameter in the node palette composable in `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/NodePalette.kt`
-- [ ] T019 [US4] Filter out nodes with category "Repository" (or future Pro-only categories) when `featureGate.canUseRepositoryNodes()` is false in the node palette display logic in `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/NodePalette.kt`
+- [X] T018 [US4] Accept `featureGate` parameter in the node palette composable — filtering applied at `GraphEditorLayout.kt` call site before passing `nodeTypes` to `NodePalette`
+- [X] T019 [US4] Filter out nodes with category `DATABASE` when `featureGate.canUseRepositoryNodes()` is false in `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/GraphEditorLayout.kt`
 - [ ] T020 [US4] When a graph containing entity/repository nodes is opened on Free tier, mark those nodes visually as restricted (e.g., dimmed with lock icon or border) and prevent editing/connecting in `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/GraphEditorApp.kt`
-- [ ] T021 [US4] Compile and run tests: `./gradlew :graphEditor:compileKotlinJvm :graphEditor:jvmTest`
+- [X] T021 [US4] Compile and run tests: `./gradlew :graphEditor:compileKotlinJvm :graphEditor:jvmTest`
 
 **Checkpoint**: Entity/repository nodes are gated behind Pro. All other nodes and IP types available at all tiers.
 

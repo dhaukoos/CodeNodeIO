@@ -75,6 +75,73 @@ class ModuleSaveService {
     private val repositoryCodeGenerator = RepositoryCodeGenerator()
 
     /**
+     * Saves only the .flow.kt file without generating any module scaffolding.
+     *
+     * If an existing module directory is found (has build.gradle.kts), writes the .flow.kt
+     * into the module's source set. Otherwise, writes a flat .flow.kt file directly
+     * into the output directory. No directories, gradle files, runtime controllers,
+     * ViewModels, UI stubs, or persistence files are created.
+     *
+     * @param flowGraph The flow graph to save
+     * @param outputDir Parent directory where the module directory lives
+     * @param moduleName Module name (default: derived from FlowGraph name)
+     * @param ipTypeNames Map of IP type id → display name for port type resolution
+     * @param codeNodeClassLookup Function to resolve CodeNode class names from node names
+     * @return ModuleSaveResult with success status and the single .flow.kt file tracked
+     */
+    fun saveFlowKtOnly(
+        flowGraph: FlowGraph,
+        outputDir: File,
+        moduleName: String? = null,
+        ipTypeNames: Map<String, String> = emptyMap(),
+        codeNodeClassLookup: (String) -> String? = { null }
+    ): ModuleSaveResult {
+        return try {
+            val enrichedFlowGraph = enrichWithCodeNodeMetadata(flowGraph, codeNodeClassLookup)
+            val effectiveModuleName = moduleName ?: deriveModuleName(enrichedFlowGraph.name)
+            val basePackage = "$DEFAULT_PACKAGE_PREFIX.${effectiveModuleName.lowercase()}"
+
+            val filesCreated = mutableListOf<String>()
+            val filesOverwritten = mutableListOf<String>()
+
+            val moduleDir = File(outputDir, effectiveModuleName)
+            val existingModule = moduleDir.exists() && File(moduleDir, "build.gradle.kts").exists()
+
+            val flowKtContent = flowKtGenerator.generateFlowKt(
+                enrichedFlowGraph, basePackage, null, ipTypeNames
+            )
+
+            val targetFile: File
+            val relativePath: String
+            if (existingModule) {
+                val basePackagePath = basePackage.replace(".", "/")
+                val flowKtFileName = "${effectiveModuleName}.flow.kt"
+                relativePath = "src/commonMain/kotlin/$basePackagePath/$flowKtFileName"
+                targetFile = File(moduleDir, relativePath)
+            } else {
+                val flowKtFileName = "${effectiveModuleName}.flow.kt"
+                relativePath = flowKtFileName
+                targetFile = File(outputDir, flowKtFileName)
+            }
+
+            writeFileAlways(targetFile, flowKtContent, relativePath, filesCreated, filesOverwritten)
+
+            ModuleSaveResult(
+                success = true,
+                moduleDir = if (existingModule) moduleDir else null,
+                filesCreated = filesCreated,
+                filesOverwritten = filesOverwritten,
+                filesDeleted = emptyList()
+            )
+        } catch (e: Exception) {
+            ModuleSaveResult(
+                success = false,
+                errorMessage = "Failed to save .flow.kt: ${e.message}"
+            )
+        }
+    }
+
+    /**
      * Saves a FlowGraph as a complete KMP module.
      *
      * Creates the full module in a single call: module directory, gradle files,

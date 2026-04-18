@@ -25,10 +25,10 @@ class LocalFeatureGateTest {
     }
 
     @Test
-    fun `defaults to FREE when config file does not exist`() {
+    fun `defaults to SIM when config file does not exist`() {
         val configFile = File(System.getProperty("java.io.tmpdir"), "nonexistent-${System.nanoTime()}.properties")
         val gate = LocalFeatureGate(configFile)
-        assertEquals(SubscriptionTier.FREE, gate.currentTier.value)
+        assertEquals(SubscriptionTier.SIM, gate.currentTier.value)
     }
 
     @Test
@@ -48,10 +48,10 @@ class LocalFeatureGateTest {
     }
 
     @Test
-    fun `defaults to FREE for invalid tier value`() {
+    fun `defaults to SIM for invalid tier value`() {
         val configFile = createTempConfig("subscription.tier=INVALID")
         val gate = LocalFeatureGate(configFile)
-        assertEquals(SubscriptionTier.FREE, gate.currentTier.value)
+        assertEquals(SubscriptionTier.SIM, gate.currentTier.value)
         configFile.parentFile.deleteRecursively()
     }
 
@@ -65,7 +65,7 @@ class LocalFeatureGateTest {
 
     @Test
     fun `setTier updates StateFlow immediately`() {
-        val configFile = createTempConfig()
+        val configFile = createTempConfig("subscription.tier=FREE")
         val gate = LocalFeatureGate(configFile)
         assertEquals(SubscriptionTier.FREE, gate.currentTier.value)
 
@@ -90,7 +90,7 @@ class LocalFeatureGateTest {
 
     @Test
     fun `canGenerate returns correct results per tier`() {
-        val configFile = createTempConfig()
+        val configFile = createTempConfig("subscription.tier=FREE")
         val gate = LocalFeatureGate(configFile)
 
         gate.setTier(SubscriptionTier.FREE)
@@ -106,7 +106,7 @@ class LocalFeatureGateTest {
 
     @Test
     fun `canSimulate returns correct results per tier`() {
-        val configFile = createTempConfig()
+        val configFile = createTempConfig("subscription.tier=FREE")
         val gate = LocalFeatureGate(configFile)
 
         gate.setTier(SubscriptionTier.FREE)
@@ -122,7 +122,7 @@ class LocalFeatureGateTest {
 
     @Test
     fun `canUseRepositoryNodes returns correct results per tier`() {
-        val configFile = createTempConfig()
+        val configFile = createTempConfig("subscription.tier=FREE")
         val gate = LocalFeatureGate(configFile)
 
         gate.setTier(SubscriptionTier.FREE)

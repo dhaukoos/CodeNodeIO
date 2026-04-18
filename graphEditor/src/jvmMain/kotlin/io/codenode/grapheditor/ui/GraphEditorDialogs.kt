@@ -32,6 +32,8 @@ fun GraphEditorDialogs(
     onShowOpenDialogChanged: (Boolean) -> Unit,
     showModuleSaveDialog: Boolean,
     onShowModuleSaveDialogChanged: (Boolean) -> Unit,
+    showGenerateDialog: Boolean = false,
+    onShowGenerateDialogChanged: (Boolean) -> Unit = {},
     showFlowGraphPropertiesDialog: Boolean,
     onShowFlowGraphPropertiesDialogChanged: (Boolean) -> Unit,
     showRemoveConfirmDialog: Boolean,
@@ -99,7 +101,7 @@ fun GraphEditorDialogs(
         }
     }
 
-    // Unified Save handler: registry lookup → directory chooser if needed → saveModule()
+    // Save handler: writes only the .flow.kt file (no code generation)
     if (showModuleSaveDialog) {
         LaunchedEffect(Unit) {
             val flowGraphName = graphState.flowGraph.name
@@ -107,19 +109,58 @@ fun GraphEditorDialogs(
 
             // Determine output directory: use registry or prompt user
             val outputDir = if (savedDir != null && savedDir.exists()) {
-                // Re-save to known location (no directory prompt)
                 savedDir
             } else {
-                // Remove stale entry if directory no longer exists
                 if (savedDir != null) {
                     saveLocationRegistry.remove(flowGraphName)
                 }
-                // First save or directory gone: prompt for directory
-                showDirectoryChooser("Save Module To")
+                showDirectoryChooser("Save Flow Graph To")
             }
 
             if (outputDir != null) {
-                // Build IP type properties map for repository code generation
+                val ipTypeNamesMap = buildMap {
+                    for (ipType in ipTypeRegistry.getAllTypes()) {
+                        put(ipType.id, ipType.typeName)
+                    }
+                }
+                val result = moduleSaveService.saveFlowKtOnly(
+                    flowGraph = graphState.flowGraph,
+                    outputDir = outputDir,
+                    ipTypeNames = ipTypeNamesMap,
+                    codeNodeClassLookup = { nodeName ->
+                        registry.getByName(nodeName)?.let {
+                            it::class.qualifiedName
+                        }
+                    }
+                )
+                if (result.success) {
+                    saveLocationRegistry[flowGraphName] = outputDir
+                    onModuleRootDirChanged(result.moduleDir)
+                    onStatusMessage("Saved ${graphState.flowGraph.name}.flow.kt")
+                } else {
+                    onStatusMessage("Save error: ${result.errorMessage}")
+                }
+            }
+            onShowModuleSaveDialogChanged(false)
+        }
+    }
+
+    // Generate Module handler: full module code generation
+    if (showGenerateDialog) {
+        LaunchedEffect(Unit) {
+            val flowGraphName = graphState.flowGraph.name
+            val savedDir = saveLocationRegistry[flowGraphName]
+
+            val outputDir = if (savedDir != null && savedDir.exists()) {
+                savedDir
+            } else {
+                if (savedDir != null) {
+                    saveLocationRegistry.remove(flowGraphName)
+                }
+                showDirectoryChooser("Generate Module To")
+            }
+
+            if (outputDir != null) {
                 val ipTypePropertiesMap = buildMap {
                     for (ipTypeId in ipTypeRegistry.getEntityModuleIPTypeIds()) {
                         val props = ipTypeRegistry.getCustomTypeProperties(ipTypeId)
@@ -132,7 +173,7 @@ fun GraphEditorDialogs(
                                         "ip_double" -> "Double"
                                         "ip_boolean" -> "Boolean"
                                         "ip_string" -> "String"
-                                        else -> "String" // ip_any and custom types → String
+                                        else -> "String"
                                     },
                                     isRequired = prop.isRequired
                                 )
@@ -140,7 +181,6 @@ fun GraphEditorDialogs(
                         }
                     }
                 }
-                // Build IP type id→name map for .flow.kt port type resolution
                 val ipTypeNamesMap = buildMap {
                     for (ipType in ipTypeRegistry.getAllTypes()) {
                         put(ipType.id, ipType.typeName)
@@ -163,12 +203,12 @@ fun GraphEditorDialogs(
                     val created = result.filesCreated.size
                     val overwritten = result.filesOverwritten.size
                     val deleted = result.filesDeleted.size
-                    onStatusMessage("Saved to ${result.moduleDir?.name}: $created created, $overwritten overwritten, $deleted deleted")
+                    onStatusMessage("Generated ${result.moduleDir?.name}: $created created, $overwritten overwritten, $deleted deleted")
                 } else {
-                    onStatusMessage("Save error: ${result.errorMessage}")
+                    onStatusMessage("Generate error: ${result.errorMessage}")
                 }
             }
-            onShowModuleSaveDialogChanged(false)
+            onShowGenerateDialogChanged(false)
         }
     }
 

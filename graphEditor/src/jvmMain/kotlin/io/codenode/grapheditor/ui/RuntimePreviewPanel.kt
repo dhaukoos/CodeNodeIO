@@ -5,6 +5,7 @@
 
 package io.codenode.grapheditor.ui
 
+import io.codenode.fbpdsl.model.FeatureGate
 import io.codenode.flowgraphinspect.discovery.discoverComposables
 import io.codenode.previewapi.PreviewRegistry
 import androidx.compose.foundation.background
@@ -53,12 +54,52 @@ fun RuntimePreviewPanel(
     runtimeSession: RuntimeSession?,
     isExpanded: Boolean,
     onToggle: () -> Unit,
+    featureGate: FeatureGate? = null,
     moduleRootDir: File? = null,
     flowGraphName: String = "",
     animateDataFlow: Boolean = false,
     onAnimateDataFlowChanged: (Boolean) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
+    // Gate: show upgrade prompt if simulation is not available at the current tier
+    if (featureGate?.canSimulate() == false) {
+        CollapsiblePanel(
+            isExpanded = isExpanded,
+            onToggle = onToggle,
+            side = PanelSide.RIGHT,
+            modifier = modifier
+        ) {
+            Column(
+                modifier = Modifier
+                    .width(360.dp)
+                    .fillMaxHeight()
+                    .background(MaterialTheme.colors.surface)
+                    .padding(16.dp),
+                horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Text(
+                    "Runtime Preview",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 14.sp
+                )
+                Divider()
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    "Circuit simulation requires the Sim tier.",
+                    style = MaterialTheme.typography.body1,
+                    color = MaterialTheme.colors.onSurface.copy(alpha = 0.7f)
+                )
+                Text(
+                    "Upgrade to unlock Runtime Preview with Start/Stop, Pause/Resume, attenuation, and data flow animation controls.",
+                    style = MaterialTheme.typography.body2,
+                    color = MaterialTheme.colors.onSurface.copy(alpha = 0.5f)
+                )
+            }
+        }
+        return
+    }
+
     val executionState = runtimeSession?.executionState?.collectAsState()?.value ?: ExecutionState.IDLE
     val attenuationMs = runtimeSession?.attenuationDelayMs?.collectAsState()?.value ?: 0L
     val validationError = runtimeSession?.validationError?.collectAsState()?.value

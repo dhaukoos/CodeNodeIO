@@ -26,14 +26,16 @@ class LocalFeatureGate(
     }
 
     private fun loadTier(): SubscriptionTier {
-        if (!configFile.exists()) return SubscriptionTier.FREE
+        // Default to SIM (all features) until subscription purchase flow is implemented.
+        // Change to FREE when remote validation is ready.
+        if (!configFile.exists()) return SubscriptionTier.SIM
         return try {
             val props = Properties()
             configFile.inputStream().use { props.load(it) }
-            val tierName = props.getProperty("subscription.tier", "FREE").uppercase()
+            val tierName = props.getProperty("subscription.tier", "SIM").uppercase()
             SubscriptionTier.valueOf(tierName)
         } catch (_: Exception) {
-            SubscriptionTier.FREE
+            SubscriptionTier.SIM
         }
     }
 

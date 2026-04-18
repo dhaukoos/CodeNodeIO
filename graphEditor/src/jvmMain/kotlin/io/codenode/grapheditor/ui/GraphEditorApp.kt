@@ -26,6 +26,8 @@ import io.codenode.flowgraphinspect.viewmodel.IPPaletteViewModel
 import io.codenode.flowgraphinspect.viewmodel.NodePaletteViewModel
 import io.codenode.flowgraphtypes.discovery.IPTypeDiscovery
 import io.codenode.flowgraphtypes.generator.IPTypeFileGenerator
+import io.codenode.fbpdsl.model.FeatureGate
+import io.codenode.fbpdsl.subscription.LocalFeatureGate
 import io.codenode.flowgraphtypes.repository.FileIPTypeRepository
 import io.codenode.flowgraphtypes.repository.IPTypeMigration
 import io.codenode.grapheditor.state.GroupNodesCommand
@@ -203,6 +205,7 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
     var selectedIPType by remember { mutableStateOf<InformationPacketType?>(null) }
     var showOpenDialog by remember { mutableStateOf(false) }
     var showModuleSaveDialog by remember { mutableStateOf(false) }
+    var showGenerateDialog by remember { mutableStateOf(false) }
     var showFlowGraphPropertiesDialog by remember { mutableStateOf(false) }
     val saveLocationRegistry = remember { mutableMapOf<String, File>() }
     var showRemoveConfirmDialog by remember { mutableStateOf(false) }
@@ -275,6 +278,7 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
 
     val compilationService = remember { CompilationService() }
     val moduleSaveService = remember { ModuleSaveService() }
+    val featureGate: FeatureGate = remember { LocalFeatureGate() }
 
     // PropertiesPanelViewModel for the Properties Panel
     val propertiesPanelViewModel = remember {
@@ -414,6 +418,7 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
             // Top toolbar
             TopToolbar(
                 undoRedoManager = undoRedoManager,
+                featureGate = featureGate,
                 canGroup = canGroup,
                 canUngroup = canUngroup,
                 isInsideGraphNode = isInsideGraphNode,
@@ -432,6 +437,13 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                 },
                 onOpen = { showOpenDialog = true },
                 onSave = { showModuleSaveDialog = true },
+                onGenerate = {
+                    if (featureGate.canGenerate()) {
+                        showGenerateDialog = true
+                    } else {
+                        statusMessage = "Code generation requires Pro tier. Upgrade to unlock."
+                    }
+                },
                 onUndo = {
                     if (undoRedoManager.undo(graphState)) {
                         statusMessage = "Undo: ${undoRedoManager.getRedoDescription() ?: "action"}"
@@ -516,6 +528,7 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                 onPropertiesPanelExpandedChanged = { isPropertiesPanelExpanded = it },
                 isRuntimePanelExpanded = isRuntimePanelExpanded,
                 onRuntimePanelExpandedChanged = { isRuntimePanelExpanded = it },
+                featureGate = featureGate,
             )
 
             Divider()
@@ -534,6 +547,8 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
             onShowOpenDialogChanged = { showOpenDialog = it },
             showModuleSaveDialog = showModuleSaveDialog,
             onShowModuleSaveDialogChanged = { showModuleSaveDialog = it },
+            showGenerateDialog = showGenerateDialog,
+            onShowGenerateDialogChanged = { showGenerateDialog = it },
             showFlowGraphPropertiesDialog = showFlowGraphPropertiesDialog,
             onShowFlowGraphPropertiesDialogChanged = { showFlowGraphPropertiesDialog = it },
             showRemoveConfirmDialog = showRemoveConfirmDialog,

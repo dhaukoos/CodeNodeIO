@@ -15,11 +15,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import io.codenode.fbpdsl.model.FeatureGate
 import io.codenode.grapheditor.state.UndoRedoManager
 
 @Composable
 fun TopToolbar(
     undoRedoManager: UndoRedoManager,
+    featureGate: FeatureGate? = null,
     canGroup: Boolean = false,
     canUngroup: Boolean = false,
     isInsideGraphNode: Boolean = false,
@@ -29,6 +31,7 @@ fun TopToolbar(
     onNew: () -> Unit,
     onOpen: () -> Unit,
     onSave: () -> Unit,
+    onGenerate: () -> Unit = {},
     onUndo: () -> Unit,
     onRedo: () -> Unit,
     onGroup: () -> Unit = {},
@@ -117,6 +120,14 @@ fun TopToolbar(
                 colors = ButtonDefaults.textButtonColors(contentColor = Color.White)
             ) {
                 Text("Save")
+            }
+
+            TextButton(
+                onClick = onGenerate,
+                enabled = featureGate?.canGenerate() != false,
+                colors = ButtonDefaults.textButtonColors(contentColor = Color.White)
+            ) {
+                Text("Generate Module")
             }
 
             Divider(

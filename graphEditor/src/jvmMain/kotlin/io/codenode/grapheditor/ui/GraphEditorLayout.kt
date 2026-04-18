@@ -105,6 +105,7 @@ fun ColumnScope.GraphEditorContent(
     onPropertiesPanelExpandedChanged: (Boolean) -> Unit,
     isRuntimePanelExpanded: Boolean,
     onRuntimePanelExpandedChanged: (Boolean) -> Unit,
+    featureGate: io.codenode.fbpdsl.model.FeatureGate? = null,
 ) {
     // Navigation breadcrumb bar (only visible when inside a GraphNode)
     NavigationBreadcrumbBar(
@@ -168,9 +169,14 @@ fun ColumnScope.GraphEditorContent(
                 )
 
                 // Node Palette
+                val filteredNodeTypes = if (featureGate?.canUseRepositoryNodes() == false) {
+                    nodeTypes.filter { it.category != io.codenode.fbpdsl.model.CodeNodeType.DATABASE }
+                } else {
+                    nodeTypes
+                }
                 NodePalette(
                     viewModel = nodePaletteViewModel,
-                    nodeTypes = nodeTypes,
+                    nodeTypes = filteredNodeTypes,
                     graphNodeTemplates = graphNodeTemplateRegistry.getAll(),
                     onGraphNodeTemplateSelected = { template ->
                         io.codenode.flowgraphpersist.state.GraphNodeTemplateInstantiator.instantiate(
@@ -544,6 +550,7 @@ fun ColumnScope.GraphEditorContent(
                 runtimeSession = runtimeSession,
                 isExpanded = isRuntimePanelExpanded,
                 onToggle = { onRuntimePanelExpandedChanged(!isRuntimePanelExpanded) },
+                featureGate = featureGate,
                 moduleRootDir = moduleRootDir,
                 flowGraphName = graphState.flowGraph.name,
                 animateDataFlow = animateDataFlow,
