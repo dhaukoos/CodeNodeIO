@@ -106,10 +106,10 @@
 
 **Purpose**: Full verification across all quickstart scenarios and cross-tier edge cases
 
-- [ ] T022 Run full test suite: `./gradlew :fbpDsl:jvmTest :flowGraph-generate:jvmTest :graphEditor:jvmTest`
-- [ ] T023 Run quickstart.md verification scenarios VS1–VS11
-- [ ] T024 Verify cross-tier graph opening: save a graph with entity/repository nodes on Pro tier, open on Free tier, confirm nodes are visible but restricted
-- [ ] T025 Verify tier change without restart: change `subscription.tier` in `~/.codenode/config.properties` and confirm the UI updates reactively
+- [X] T022 Run full test suite: `./gradlew :fbpDsl:jvmTest :flowGraph-generate:jvmTest :graphEditor:jvmTest`
+- [X] T023 Run quickstart.md verification scenarios VS1–VS11
+- [X] T024 Verify cross-tier graph opening: save a graph with entity/repository nodes on Pro tier, open on Free tier, confirm nodes are visible but restricted
+- [X] T025 Verify tier change without restart: change `subscription.tier` in `~/.codenode/config.properties` and confirm the UI updates reactively
 
 ---
 
