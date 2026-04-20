@@ -70,10 +70,10 @@
 
 ### Implementation
 
-- [ ] T018 [US2] Add integration test: parse the actual DemoUI.kt file content from TestModule and verify UIFBPSpec has moduleName="DemoUI", viewModelTypeName="DemoUIViewModel", sourceOutputs=[numA:Double, numB:Double], sinkInputs=[results:CalculationResults] in `flowGraph-generate/src/commonTest/kotlin/io/codenode/flowgraphgenerate/parser/UIComposableParserTest.kt`
-- [ ] T019 [US2] Add integration test: generate all four files from DemoUI-derived UIFBPSpec and verify each file contains expected class/object names, port declarations, and imports in `flowGraph-generate/src/commonTest/kotlin/io/codenode/flowgraphgenerate/generator/UIFBPGeneratorTest.kt`
-- [ ] T020 [US2] Handle IP type resolution in UIComposableParser — when the parser finds a type like `CalculationResults`, resolve it by scanning the module's `/iptypes` directory for a matching `@TypeName` or class name in `flowGraph-generate/src/commonMain/kotlin/io/codenode/flowgraphgenerate/parser/UIComposableParser.kt`
-- [ ] T021 [US2] Run full test suite: `./gradlew :flowGraph-generate:jvmTest`
+- [X] T018 [US2] Add integration test: parse the actual DemoUI.kt file content from TestModule and verify UIFBPSpec has moduleName="DemoUI", viewModelTypeName="DemoUIViewModel", sourceOutputs=[numA:Double, numB:Double], sinkInputs=[results:CalculationResults] in `flowGraph-generate/src/commonTest/kotlin/io/codenode/flowgraphgenerate/parser/UIComposableParserTest.kt`
+- [X] T019 [US2] Add integration test: generate all four files from DemoUI-derived UIFBPSpec and verify each file contains expected class/object names, port declarations, and imports in `flowGraph-generate/src/commonTest/kotlin/io/codenode/flowgraphgenerate/generator/UIFBPGeneratorTest.kt`
+- [X] T020 [US2] Handle IP type resolution in UIComposableParser — when the parser finds a type like `CalculationResults`, resolve it by scanning the module's `/iptypes` directory for a matching `@TypeName` or class name in `flowGraph-generate/src/commonMain/kotlin/io/codenode/flowgraphgenerate/parser/UIComposableParser.kt`
+- [X] T021 [US2] Run full test suite: `./gradlew :flowGraph-generate:jvmTest`
 
 **Checkpoint**: Parser handles real UI files with IP type references. End-to-end parsing + generation produces correct output for DemoUI prototype.
 
@@ -87,10 +87,10 @@
 
 ### Implementation
 
-- [ ] T022 [US3] Add `onGenerateUIFBP: () -> Unit` callback parameter to `TopToolbar` and add "Generate UI-FBP" button between "Generate Module" and the divider in `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/TopToolbar.kt`
-- [ ] T023 [US3] Add `showGenerateUIFBPDialog` state variable and wire `onGenerateUIFBP` callback in `GraphEditorApp.kt` to set it to true in `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/GraphEditorApp.kt`
-- [ ] T024 [US3] Add Generate UI-FBP handler in `GraphEditorDialogs.kt` — when `showGenerateUIFBPDialog` is true, show a file chooser for `.kt` files, parse the selected file with `UIComposableParser`, run `UIFBPInterfaceGenerator.generateAll()`, and show status message with results in `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/GraphEditorDialogs.kt`
-- [ ] T025 [US3] Compile and run tests: `./gradlew :graphEditor:compileKotlinJvm :graphEditor:jvmTest`
+- [X] T022 [US3] Add `onGenerateUIFBP: () -> Unit` callback parameter to `TopToolbar` and add "Generate UI-FBP" button between "Generate Module" and the divider in `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/TopToolbar.kt`
+- [X] T023 [US3] Add `showGenerateUIFBPDialog` state variable and wire `onGenerateUIFBP` callback in `GraphEditorApp.kt` to set it to true in `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/GraphEditorApp.kt`
+- [X] T024 [US3] Add Generate UI-FBP handler in `GraphEditorDialogs.kt` — when `showGenerateUIFBPDialog` is true, show a file chooser for `.kt` files, parse the selected file with `UIComposableParser`, run `UIFBPInterfaceGenerator.generateAll()`, and show status message with results in `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/GraphEditorDialogs.kt`
+- [X] T025 [US3] Compile and run tests: `./gradlew :graphEditor:compileKotlinJvm :graphEditor:jvmTest`
 
 **Checkpoint**: "Generate UI-FBP" button works end-to-end. Generated CodeNodes are discoverable by the palette via existing NodeDefinitionRegistry scanning.
 
@@ -100,9 +100,9 @@
 
 **Purpose**: Full verification across all quickstart scenarios
 
-- [ ] T026 Run full test suite: `./gradlew :flowGraph-generate:jvmTest :graphEditor:jvmTest`
-- [ ] T027 Run quickstart.md verification scenarios VS1–VS9
-- [ ] T028 Validate generated files against DemoUI hand-written prototypes: compare `DemoUIViewModel.kt`, `DemoUIState.kt` structure with generated output
+- [X] T026 Run full test suite: `./gradlew :flowGraph-generate:jvmTest :graphEditor:jvmTest`
+- [X] T027 Run quickstart.md verification scenarios VS1–VS9
+- [X] T028 Validate generated files against DemoUI hand-written prototypes: compare `DemoUIViewModel.kt`, `DemoUIState.kt` structure with generated output
 
 ---
 

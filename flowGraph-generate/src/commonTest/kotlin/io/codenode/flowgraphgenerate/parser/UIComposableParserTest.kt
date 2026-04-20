@@ -190,4 +190,96 @@ class UIComposableParserTest {
         assertEquals(1, spec.sourceOutputs.size)
         assertEquals("42.0", spec.sourceOutputs[0].name)
     }
+
+    // T018: Integration test with actual DemoUI.kt content
+    @Test
+    fun `parses real DemoUI file with full content`() {
+        val realDemoUI = """
+package io.codenode.demo.userInterface
+
+import androidx.compose.foundation.layout.*
+import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Warning
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import io.codenode.demo.DemoUIViewModel
+import io.codenode.demo.iptypes.CalculationResults
+
+@Composable
+fun DemoUI(
+    viewModel: DemoUIViewModel,
+    modifier: Modifier = Modifier
+) {
+    var textA by remember { mutableStateOf("") }
+    var textB by remember { mutableStateOf("") }
+    var errorA by remember { mutableStateOf(false) }
+    var errorB by remember { mutableStateOf(false) }
+    val results by viewModel.results.collectAsState()
+
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .padding(24.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        InputSection(
+            textA = textA,
+            textB = textB,
+            errorA = errorA,
+            errorB = errorB,
+            onTextAChanged = { textA = it; errorA = false },
+            onTextBChanged = { textB = it; errorB = false },
+            onEmit = {
+                val a = textA.toDoubleOrNull()
+                val b = textB.toDoubleOrNull()
+                errorA = a == null
+                errorB = b == null
+                if (a != null && b != null) {
+                    viewModel.emit(a, b)
+                }
+            }
+        )
+
+        Divider()
+
+        ResultsSection(results = results)
+    }
+}
+
+@Composable
+private fun ResultsSection(results: CalculationResults?) {
+    if (results == null) {
+        Text("Enter values and press Emit")
+    } else {
+        Text("Sum: ${'$'}{results.sum}")
+    }
+}
+        """.trimIndent()
+
+        val result = parser.parse(realDemoUI)
+        assertTrue(result.isSuccess, "Parse should succeed: ${result.errorMessage}")
+        val spec = result.spec!!
+
+        assertEquals("DemoUI", spec.moduleName)
+        assertEquals("DemoUIViewModel", spec.viewModelTypeName)
+        assertEquals("io.codenode.demo", spec.packageName)
+
+        assertEquals(2, spec.sourceOutputs.size, "Should have 2 source outputs from emit(a, b)")
+        assertEquals("a", spec.sourceOutputs[0].name)
+        assertEquals("Double", spec.sourceOutputs[0].typeName)
+        assertEquals("b", spec.sourceOutputs[1].name)
+        assertEquals("Double", spec.sourceOutputs[1].typeName)
+
+        assertEquals(1, spec.sinkInputs.size, "Should have 1 sink input from results.collectAsState()")
+        assertEquals("results", spec.sinkInputs[0].name)
+        assertTrue(spec.sinkInputs[0].isNullable, "results should be nullable (CalculationResults?)")
+
+        assertTrue(spec.ipTypeImports.contains("io.codenode.demo.iptypes.CalculationResults"))
+    }
 }

@@ -81,6 +81,15 @@ class UIComposableParser {
             return cleanTypeName(typedMatch.groupValues[1])
         }
 
+        val paramTypePattern = Regex("""$propName\s*:\s*(\w+)\??""")
+        val paramMatch = paramTypePattern.find(fileContent)
+        if (paramMatch != null) {
+            val candidate = paramMatch.groupValues[1]
+            if (candidate[0].isUpperCase() && candidate != "Modifier" && candidate != "Unit") {
+                return candidate
+            }
+        }
+
         val importForType = findImportForUsage(fileContent, propName)
         if (importForType != null) {
             return importForType.substringAfterLast(".")

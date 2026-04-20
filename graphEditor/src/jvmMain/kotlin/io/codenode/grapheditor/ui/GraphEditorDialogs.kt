@@ -10,6 +10,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import io.codenode.fbpdsl.model.InformationPacketType
 import io.codenode.flowgraphgenerate.generator.EntityModuleSpec
+import io.codenode.flowgraphgenerate.generator.UIFBPInterfaceGenerator
+import io.codenode.flowgraphgenerate.parser.UIComposableParser
 import io.codenode.flowgraphgenerate.save.ModuleSaveService
 import io.codenode.flowgraphinspect.registry.NodeDefinitionRegistry
 import io.codenode.flowgraphinspect.viewmodel.CodeEditorViewModel
@@ -34,6 +36,8 @@ fun GraphEditorDialogs(
     onShowModuleSaveDialogChanged: (Boolean) -> Unit,
     showGenerateDialog: Boolean = false,
     onShowGenerateDialogChanged: (Boolean) -> Unit = {},
+    showGenerateUIFBPDialog: Boolean = false,
+    onShowGenerateUIFBPDialogChanged: (Boolean) -> Unit = {},
     showFlowGraphPropertiesDialog: Boolean,
     onShowFlowGraphPropertiesDialogChanged: (Boolean) -> Unit,
     showRemoveConfirmDialog: Boolean,
@@ -209,6 +213,45 @@ fun GraphEditorDialogs(
                 }
             }
             onShowGenerateDialogChanged(false)
+        }
+    }
+
+    // Generate UI-FBP handler: parse UI file → generate ViewModel, State, Source, Sink
+    if (showGenerateUIFBPDialog) {
+        LaunchedEffect(Unit) {
+            val fileResult = showFileOpenDialog()
+            val file = fileResult.file
+            if (file != null) {
+                try {
+                    val parser = UIComposableParser()
+                    val parseResult = parser.parse(file.readText())
+                    val spec = parseResult.spec
+                    if (parseResult.isSuccess && spec != null) {
+                        val generator = UIFBPInterfaceGenerator()
+                        val genResult = generator.generateAll(spec)
+                        if (genResult.success) {
+                            val moduleDir = file.parentFile?.parentFile?.parentFile?.parentFile?.parentFile?.parentFile
+                            if (moduleDir != null) {
+                                for (genFile in genResult.filesGenerated) {
+                                    val targetFile = File(moduleDir, genFile.relativePath)
+                                    targetFile.parentFile?.mkdirs()
+                                    targetFile.writeText(genFile.content)
+                                }
+                                onStatusMessage("Generated UI-FBP: ${genResult.filesGenerated.size} files for ${spec.moduleName}")
+                            } else {
+                                onStatusMessage("Could not determine module root directory")
+                            }
+                        } else {
+                            onStatusMessage("Generation error: ${genResult.errorMessage}")
+                        }
+                    } else {
+                        onStatusMessage("Parse error: ${parseResult.errorMessage}")
+                    }
+                } catch (e: Exception) {
+                    onStatusMessage("Error: ${e.message}")
+                }
+            }
+            onShowGenerateUIFBPDialogChanged(false)
         }
     }
 

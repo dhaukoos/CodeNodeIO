@@ -32,6 +32,7 @@ fun TopToolbar(
     onOpen: () -> Unit,
     onSave: () -> Unit,
     onGenerate: () -> Unit = {},
+    onGenerateUIFBP: () -> Unit = {},
     onUndo: () -> Unit,
     onRedo: () -> Unit,
     onGroup: () -> Unit = {},
@@ -128,6 +129,13 @@ fun TopToolbar(
                 colors = ButtonDefaults.textButtonColors(contentColor = Color.White)
             ) {
                 Text("Generate Module")
+            }
+
+            TextButton(
+                onClick = onGenerateUIFBP,
+                colors = ButtonDefaults.textButtonColors(contentColor = Color.White)
+            ) {
+                Text("Generate UI-FBP")
             }
 
             Divider(
