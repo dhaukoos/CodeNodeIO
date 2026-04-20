@@ -21,16 +21,16 @@
 
 ### Tests
 
-- [ ] T001 [P] Add test: UIComposableParser extracts module name and ViewModel type from `@Composable fun DemoUI(viewModel: DemoUIViewModel, ...)` in `flowGraph-generate/src/commonTest/kotlin/io/codenode/flowgraphgenerate/parser/UIComposableParserTest.kt`
-- [ ] T002 [P] Add test: UIComposableParser extracts Source outputs from `viewModel.emit(a, b)` call — identifies method name "emit" and parameter names/types `[numA: Double, numB: Double]` in `flowGraph-generate/src/commonTest/kotlin/io/codenode/flowgraphgenerate/parser/UIComposableParserTest.kt`
-- [ ] T003 [P] Add test: UIComposableParser extracts Sink inputs from `viewModel.results.collectAsState()` — identifies property name "results" and type `CalculationResults` in `flowGraph-generate/src/commonTest/kotlin/io/codenode/flowgraphgenerate/parser/UIComposableParserTest.kt`
-- [ ] T004 [P] Add test: UIComposableParser returns error when UI file has no ViewModel parameter in `flowGraph-generate/src/commonTest/kotlin/io/codenode/flowgraphgenerate/parser/UIComposableParserTest.kt`
+- [X] T001 [P] Add test: UIComposableParser extracts module name and ViewModel type from `@Composable fun DemoUI(viewModel: DemoUIViewModel, ...)` in `flowGraph-generate/src/commonTest/kotlin/io/codenode/flowgraphgenerate/parser/UIComposableParserTest.kt`
+- [X] T002 [P] Add test: UIComposableParser extracts Source outputs from `viewModel.emit(a, b)` call — identifies method name "emit" and parameter names/types `[numA: Double, numB: Double]` in `flowGraph-generate/src/commonTest/kotlin/io/codenode/flowgraphgenerate/parser/UIComposableParserTest.kt`
+- [X] T003 [P] Add test: UIComposableParser extracts Sink inputs from `viewModel.results.collectAsState()` — identifies property name "results" and type `CalculationResults` in `flowGraph-generate/src/commonTest/kotlin/io/codenode/flowgraphgenerate/parser/UIComposableParserTest.kt`
+- [X] T004 [P] Add test: UIComposableParser returns error when UI file has no ViewModel parameter in `flowGraph-generate/src/commonTest/kotlin/io/codenode/flowgraphgenerate/parser/UIComposableParserTest.kt`
 
 ### Implementation
 
-- [ ] T005 Create `UIFBPSpec` and `PortInfo` data classes in `flowGraph-generate/src/commonMain/kotlin/io/codenode/flowgraphgenerate/parser/UIFBPSpec.kt`
-- [ ] T006 Create `UIComposableParser` class with `parse(fileContent: String): UIFBPParseResult` method that uses regex to extract module name, ViewModel type, Source outputs (from emit-style method calls), and Sink inputs (from collectAsState property accesses) in `flowGraph-generate/src/commonMain/kotlin/io/codenode/flowgraphgenerate/parser/UIComposableParser.kt`
-- [ ] T007 Run tests: `./gradlew :flowGraph-generate:jvmTest --tests "*UIComposableParser*"` to verify parser against DemoUI.kt content
+- [X] T005 Create `UIFBPSpec` and `PortInfo` data classes in `flowGraph-generate/src/commonMain/kotlin/io/codenode/flowgraphgenerate/parser/UIFBPSpec.kt`
+- [X] T006 Create `UIComposableParser` class with `parse(fileContent: String): UIFBPParseResult` method that uses regex to extract module name, ViewModel type, Source outputs (from emit-style method calls), and Sink inputs (from collectAsState property accesses) in `flowGraph-generate/src/commonMain/kotlin/io/codenode/flowgraphgenerate/parser/UIComposableParser.kt`
+- [X] T007 Run tests: `./gradlew :flowGraph-generate:jvmTest --tests "*UIComposableParser*"` to verify parser against DemoUI.kt content
 
 **Checkpoint**: Parser correctly extracts ViewModel interface from UI file usage patterns. Generators can now proceed.
 
