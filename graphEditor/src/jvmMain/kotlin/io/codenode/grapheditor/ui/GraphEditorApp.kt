@@ -206,6 +206,7 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
     var showOpenDialog by remember { mutableStateOf(false) }
     var showModuleSaveDialog by remember { mutableStateOf(false) }
     var showGenerateDialog by remember { mutableStateOf(false) }
+    var showGenerateUIFBPDialog by remember { mutableStateOf(false) }
     var showFlowGraphPropertiesDialog by remember { mutableStateOf(false) }
     val saveLocationRegistry = remember { mutableMapOf<String, File>() }
     var showRemoveConfirmDialog by remember { mutableStateOf(false) }
@@ -444,6 +445,7 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                         statusMessage = "Code generation requires Pro tier. Upgrade to unlock."
                     }
                 },
+                onGenerateUIFBP = { showGenerateUIFBPDialog = true },
                 onUndo = {
                     if (undoRedoManager.undo(graphState)) {
                         statusMessage = "Undo: ${undoRedoManager.getRedoDescription() ?: "action"}"
@@ -549,6 +551,8 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
             onShowModuleSaveDialogChanged = { showModuleSaveDialog = it },
             showGenerateDialog = showGenerateDialog,
             onShowGenerateDialogChanged = { showGenerateDialog = it },
+            showGenerateUIFBPDialog = showGenerateUIFBPDialog,
+            onShowGenerateUIFBPDialogChanged = { showGenerateUIFBPDialog = it },
             showFlowGraphPropertiesDialog = showFlowGraphPropertiesDialog,
             onShowFlowGraphPropertiesDialogChanged = { showFlowGraphPropertiesDialog = it },
             showRemoveConfirmDialog = showRemoveConfirmDialog,
@@ -568,6 +572,7 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
             onPendingEditorActionChanged = { pendingEditorAction = it },
             onModuleRootDirChanged = { moduleRootDir = it },
             onStatusMessage = { statusMessage = it },
+            onRegistryVersionIncrement = { registryVersion++ },
             onIpTypesVersionIncrement = { ipTypesVersion++ },
         )
         }
