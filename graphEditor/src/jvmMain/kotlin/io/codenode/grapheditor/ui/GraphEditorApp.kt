@@ -572,6 +572,7 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
             onPendingEditorActionChanged = { pendingEditorAction = it },
             onModuleRootDirChanged = { moduleRootDir = it },
             onStatusMessage = { statusMessage = it },
+            onRegistryVersionIncrement = { registryVersion++ },
             onIpTypesVersionIncrement = { ipTypesVersion++ },
         )
         }

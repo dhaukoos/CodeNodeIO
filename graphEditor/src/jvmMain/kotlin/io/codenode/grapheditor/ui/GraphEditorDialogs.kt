@@ -57,6 +57,7 @@ fun GraphEditorDialogs(
     onPendingEditorActionChanged: ((() -> Unit)?) -> Unit,
     onModuleRootDirChanged: (File?) -> Unit,
     onStatusMessage: (String) -> Unit,
+    onRegistryVersionIncrement: () -> Unit = {},
     onIpTypesVersionIncrement: () -> Unit,
 ) {
     // File open dialog
@@ -227,15 +228,29 @@ fun GraphEditorDialogs(
                     val parseResult = parser.parse(file.readText())
                     val spec = parseResult.spec
                     if (parseResult.isSuccess && spec != null) {
+                        var moduleRoot: File? = file.parentFile
+                        while (moduleRoot != null && !File(moduleRoot, "build.gradle.kts").exists()) {
+                            moduleRoot = moduleRoot.parentFile
+                        }
+                        val needsFlowKt = if (moduleRoot != null) {
+                            moduleRoot.walkTopDown().none { it.name.endsWith(".flow.kt") }
+                        } else false
                         val generator = UIFBPInterfaceGenerator()
-                        val genResult = generator.generateAll(spec)
+                        val genResult = generator.generateAll(spec, includeFlowKt = needsFlowKt)
                         if (genResult.success) {
-                            val moduleDir = file.parentFile?.parentFile?.parentFile?.parentFile?.parentFile?.parentFile
-                            if (moduleDir != null) {
+                            if (moduleRoot != null) {
                                 for (genFile in genResult.filesGenerated) {
-                                    val targetFile = File(moduleDir, genFile.relativePath)
+                                    val targetFile = File(moduleRoot, genFile.relativePath)
                                     targetFile.parentFile?.mkdirs()
                                     targetFile.writeText(genFile.content)
+                                }
+                                ensureFbpDslDependency(File(moduleRoot, "build.gradle.kts"))
+                                val nodesDir = genResult.filesGenerated
+                                    .firstOrNull { it.relativePath.contains("/nodes/") }
+                                    ?.let { File(moduleRoot, it.relativePath).parentFile }
+                                if (nodesDir != null && nodesDir.isDirectory) {
+                                    registry.scanDirectory(nodesDir)
+                                    onRegistryVersionIncrement()
                                 }
                                 onStatusMessage("Generated UI-FBP: ${genResult.filesGenerated.size} files for ${spec.moduleName}")
                             } else {
@@ -364,4 +379,20 @@ fun GraphEditorDialogs(
             }
         )
     }
+}
+
+private fun ensureFbpDslDependency(buildFile: File) {
+    if (!buildFile.exists()) return
+    val content = buildFile.readText()
+    if (content.contains("io.codenode:fbpDsl") || content.contains("\":fbpDsl\"")) return
+
+    val marker = "commonMain.dependencies {"
+    val insertionPoint = content.indexOf(marker)
+    if (insertionPoint == -1) return
+
+    val afterMarker = insertionPoint + marker.length
+    val updated = content.substring(0, afterMarker) +
+        "\n            implementation(\"io.codenode:fbpDsl\")" +
+        content.substring(afterMarker)
+    buildFile.writeText(updated)
 }

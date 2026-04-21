@@ -25,7 +25,10 @@ class UIFBPInterfaceGenerator {
     private val sourceGenerator = UIFBPSourceCodeNodeGenerator()
     private val sinkGenerator = UIFBPSinkCodeNodeGenerator()
 
-    fun generateAll(spec: UIFBPSpec): UIFBPGenerateResult {
+    /**
+     * @param includeFlowKt When true, generates a bootstrap .flow.kt file with Source and Sink nodes
+     */
+    fun generateAll(spec: UIFBPSpec, includeFlowKt: Boolean = false): UIFBPGenerateResult {
         return try {
             val files = mutableListOf<UIFBPGeneratedFile>()
             val basePath = spec.packageName.replace(".", "/")
@@ -56,9 +59,53 @@ class UIFBPInterfaceGenerator {
                 ))
             }
 
+            if (includeFlowKt) {
+                files.add(UIFBPGeneratedFile(
+                    relativePath = "src/commonMain/kotlin/$basePath/${spec.moduleName}.flow.kt",
+                    content = generateBootstrapFlowKt(spec)
+                ))
+            }
+
             UIFBPGenerateResult(success = true, filesGenerated = files)
         } catch (e: Exception) {
             UIFBPGenerateResult(success = false, errorMessage = "Generation failed: ${e.message}")
         }
+    }
+
+    private fun generateBootstrapFlowKt(spec: UIFBPSpec): String {
+        val sb = StringBuilder()
+        val graphVarName = spec.moduleName.replaceFirstChar { it.lowercase() } + "FlowGraph"
+
+        sb.appendLine("package ${spec.packageName}")
+        sb.appendLine()
+        sb.appendLine("import io.codenode.fbpdsl.dsl.*")
+        sb.appendLine("import io.codenode.fbpdsl.model.*")
+        sb.appendLine()
+        sb.appendLine("val $graphVarName = flowGraph(\"${spec.moduleName}\", version = \"1.0.0\") {")
+
+        if (spec.sourceOutputs.isNotEmpty()) {
+            val sourceName = "${spec.moduleName}Source"
+            sb.appendLine("    val source = codeNode(\"$sourceName\", nodeType = \"SOURCE\") {")
+            sb.appendLine("        position(100.0, 300.0)")
+            for (port in spec.sourceOutputs) {
+                sb.appendLine("        output(\"${port.name}\", Any::class)")
+            }
+            sb.appendLine("    }")
+        }
+
+        if (spec.sinkInputs.isNotEmpty()) {
+            sb.appendLine()
+            val sinkName = "${spec.moduleName}Sink"
+            sb.appendLine("    val sink = codeNode(\"$sinkName\", nodeType = \"SINK\") {")
+            sb.appendLine("        position(600.0, 300.0)")
+            for (port in spec.sinkInputs) {
+                sb.appendLine("        input(\"${port.name}\", Any::class)")
+            }
+            sb.appendLine("    }")
+        }
+
+        sb.appendLine("}")
+
+        return sb.toString()
     }
 }
