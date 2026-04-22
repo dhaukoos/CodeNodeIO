@@ -40,7 +40,7 @@ fun CodeGeneratorPanel(
 
     Column(
         modifier = modifier
-            .width(220.dp)
+            .width(250.dp)
             .background(Color(0xFFF5F5F5))
             .border(1.dp, Color(0xFFE0E0E0))
             .padding(12.dp),
@@ -74,7 +74,8 @@ fun CodeGeneratorPanel(
             FileTreeView(
                 folders = state.fileTree.folders,
                 onFolderToggle = { viewModel.toggleFolder(it) },
-                onFileToggle = { folder, file -> viewModel.toggleFile(folder, file) }
+                onFileToggle = { folder, file -> viewModel.toggleFile(folder, file) },
+                modifier = Modifier.weight(1f)
             )
 
             if (state.selectedPath == GenerationPath.REPOSITORY && state.selectedIPTypeId != null) {
@@ -87,7 +88,7 @@ fun CodeGeneratorPanel(
                 )
             }
 
-            Spacer(modifier = Modifier.height(4.dp))
+            Divider()
             Button(
                 onClick = { },
                 enabled = false,
@@ -211,12 +212,12 @@ private fun InputSelector(
 private fun FileTreeView(
     folders: List<FolderNode>,
     onFolderToggle: (String) -> Unit,
-    onFileToggle: (String, String) -> Unit
+    onFileToggle: (String, String) -> Unit,
+    modifier: Modifier = Modifier
 ) {
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
-            .heightIn(max = 300.dp)
             .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(2.dp)
     ) {
