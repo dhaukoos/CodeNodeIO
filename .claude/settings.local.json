@@ -22,7 +22,11 @@
       "Bash(git mv:*)",
       "Bash(git fetch:*)",
       "Bash(grep -E 'refs/heads/[0-9]+-extract-flowgraph-types$')",
-      "Bash(grep -E '^[* ]*[0-9]+-extract-flowgraph-types$')"
+      "Bash(grep -E '^[* ]*[0-9]+-extract-flowgraph-types$')",
+      "Bash(find EdgeArtFilter/src -name '*.kt' -exec sed -i '' -e 's/import io.codenode.edgeartfilter.viewmodel.EdgeArtFilterState/import io.codenode.edgeartfilter.EdgeArtFilterState/g' '{}' ';')",
+      "Bash(find WeatherForecast/src -name '*.kt' -exec sed -i '' -e 's/import io.codenode.weatherforecast.viewmodel.WeatherForecastState/import io.codenode.weatherforecast.WeatherForecastState/g' '{}' ';')",
+      "Bash(find UserProfiles/src -name '*.kt' -exec sed -i '' -e 's/import io.codenode.userprofiles.UserProfilesPersistence/import io.codenode.userprofiles.persistence.UserProfilesPersistence/g' '{}' ';')",
+      "Bash(find Addresses/src -name '*.kt' -exec sed -i '' -e 's/import io.codenode.addresses.AddressesPersistence/import io.codenode.addresses.persistence.AddressesPersistence/g' '{}' ';')"
     ]
   }
 }
