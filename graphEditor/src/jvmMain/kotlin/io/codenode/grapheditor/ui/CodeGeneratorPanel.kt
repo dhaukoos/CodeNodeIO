@@ -70,14 +70,12 @@ fun CodeGeneratorPanel(
 
             InputSelector(state = state, viewModel = viewModel, ipTypes = ipTypes)
 
-            if (state.fileTree.folders.isNotEmpty()) {
-                Divider()
-                FileTreeView(
-                    folders = state.fileTree.folders,
-                    onFolderToggle = { viewModel.toggleFolder(it) },
-                    onFileToggle = { folder, file -> viewModel.toggleFile(folder, file) }
-                )
-            }
+            Divider()
+            FileTreeView(
+                folders = state.fileTree.folders,
+                onFolderToggle = { viewModel.toggleFolder(it) },
+                onFileToggle = { folder, file -> viewModel.toggleFile(folder, file) }
+            )
 
             if (state.selectedPath == GenerationPath.REPOSITORY && state.selectedIPTypeId != null) {
                 Divider()
@@ -125,6 +123,8 @@ private fun PathSelector(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(pathLabels[selectedPath] ?: "", fontSize = 12.sp)
+                Spacer(Modifier.weight(1f))
+                Text("\u25BC", fontSize = 10.sp)
             }
             DropdownMenu(
                 expanded = isExpanded,
@@ -162,6 +162,8 @@ private fun InputSelector(
                     ) {
                         val selectedName = customTypes.firstOrNull { it.id == state.selectedIPTypeId }?.typeName ?: "Select..."
                         Text(selectedName, fontSize = 12.sp)
+                        Spacer(Modifier.weight(1f))
+                        Text("\u25BC", fontSize = 10.sp)
                     }
                     DropdownMenu(
                         expanded = state.ipTypeDropdownExpanded,
@@ -218,13 +220,19 @@ private fun FileTreeView(
             .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(2.dp)
     ) {
-        Text("Files to Generate", fontSize = 11.sp, color = Color.Gray)
-        folders.forEach { folder ->
-            FolderRow(
-                folder = folder,
-                onFolderToggle = { onFolderToggle(folder.name) },
-                onFileToggle = { fileName -> onFileToggle(folder.name, fileName) }
-            )
+        Text("Files to Generate", fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+        Spacer(modifier = Modifier.height(4.dp))
+        if (folders.isEmpty()) {
+            Text("Select a generation path to see available files.",
+                fontSize = 11.sp, color = Color.Gray)
+        } else {
+            folders.forEach { folder ->
+                FolderRow(
+                    folder = folder,
+                    onFolderToggle = { onFolderToggle(folder.name) },
+                    onFileToggle = { fileName -> onFileToggle(folder.name, fileName) }
+                )
+            }
         }
     }
 }

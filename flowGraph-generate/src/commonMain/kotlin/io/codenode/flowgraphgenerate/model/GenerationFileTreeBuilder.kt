@@ -10,6 +10,14 @@ object GenerationFileTreeBuilder {
     fun buildForGenerateModule(moduleName: String, hasPersistence: Boolean = false): GenerationFileTree {
         val folders = mutableListOf(
             FolderNode(
+                name = "scaffolding",
+                files = listOf(
+                    FileNode("build.gradle.kts", generatorId = "ModuleGenerator"),
+                    FileNode("settings.gradle.kts", generatorId = "ModuleGenerator")
+                ),
+                selectionState = TriState.ALL
+            ),
+            FolderNode(
                 name = "flow",
                 files = listOf(
                     FileNode("$moduleName.flow.kt", generatorId = "FlowKtGenerator"),
@@ -61,6 +69,14 @@ object GenerationFileTreeBuilder {
         return GenerationFileTree(
             folders = listOf(
                 FolderNode(
+                    name = "scaffolding",
+                    files = listOf(
+                        FileNode("build.gradle.kts", generatorId = "ModuleGenerator"),
+                        FileNode("settings.gradle.kts", generatorId = "ModuleGenerator")
+                    ),
+                    selectionState = TriState.ALL
+                ),
+                FolderNode(
                     name = "flow",
                     files = listOf(
                         FileNode("$pluralName.flow.kt", generatorId = "FlowKtGenerator"),
@@ -98,7 +114,8 @@ object GenerationFileTreeBuilder {
                     files = listOf(
                         FileNode("$pluralName.kt", generatorId = "EntityUIGenerator"),
                         FileNode("AddUpdate$entityName.kt", generatorId = "EntityUIGenerator"),
-                        FileNode("${entityName}Row.kt", generatorId = "EntityUIGenerator")
+                        FileNode("${entityName}Row.kt", generatorId = "EntityUIGenerator"),
+                        FileNode("${pluralName}PreviewProvider.kt", generatorId = "PreviewProviderGenerator")
                     ),
                     selectionState = TriState.ALL
                 ),
@@ -106,7 +123,10 @@ object GenerationFileTreeBuilder {
                     name = "persistence",
                     files = listOf(
                         FileNode("${pluralName}Persistence.kt", generatorId = "EntityPersistenceGenerator"),
-                        FileNode("${entityName}Converters.kt", generatorId = "EntityConverterGenerator")
+                        FileNode("${entityName}Converters.kt", generatorId = "EntityConverterGenerator"),
+                        FileNode("${entityName}Entity.kt", generatorId = "RepositoryCodeGenerator"),
+                        FileNode("${entityName}Dao.kt", generatorId = "RepositoryCodeGenerator"),
+                        FileNode("${entityName}Repository.kt", generatorId = "RepositoryCodeGenerator")
                     ),
                     selectionState = TriState.ALL
                 )
@@ -117,6 +137,13 @@ object GenerationFileTreeBuilder {
     fun buildForUIFBP(moduleName: String): GenerationFileTree {
         return GenerationFileTree(
             folders = listOf(
+                FolderNode(
+                    name = "scaffolding",
+                    files = listOf(
+                        FileNode("build.gradle.kts", generatorId = "ModuleGenerator")
+                    ),
+                    selectionState = TriState.ALL
+                ),
                 FolderNode(
                     name = "flow",
                     files = listOf(

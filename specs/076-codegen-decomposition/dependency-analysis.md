@@ -286,3 +286,86 @@ These orchestrate multiple generators and could be represented as GraphNodes con
 | Component | Type | Notes |
 |-----------|------|-------|
 | Module Scaffolding | **Special CodeNode** | Must run first. Creates directory structure + gradle files. All other CodeNodes depend on it. |
+
+## 7. Complete File Lists by Generation Path
+
+### Generate Module Path
+
+Input: FlowGraph + Module name
+
+```
+scaffolding/
+    build.gradle.kts
+    settings.gradle.kts
+flow/
+    {Name}.flow.kt
+    {Name}Flow.kt
+controller/
+    {Name}Controller.kt
+    {Name}ControllerInterface.kt
+    {Name}ControllerAdapter.kt
+viewmodel/
+    {Name}ViewModel.kt
+userInterface/
+    {Name}.kt                          (UI stub, write-once)
+persistence/                            (conditional — only if repo nodes present)
+    {Entity}Entity.kt
+    {Entity}Dao.kt
+    {Entity}Repository.kt
+```
+
+### Repository Path
+
+Input: Custom IP Type (entity name + properties)
+
+```
+scaffolding/
+    build.gradle.kts
+    settings.gradle.kts
+flow/
+    {Plural}.flow.kt
+    {Plural}Flow.kt
+controller/
+    {Plural}Controller.kt
+    {Plural}ControllerInterface.kt
+    {Plural}ControllerAdapter.kt
+viewmodel/
+    {Plural}ViewModel.kt
+nodes/
+    {Entity}CUDCodeNode.kt
+    {Entity}RepositoryCodeNode.kt
+    {Plural}DisplayCodeNode.kt
+userInterface/
+    {Plural}.kt                         (list view)
+    AddUpdate{Entity}.kt                (form view)
+    {Entity}Row.kt                      (row view)
+    {Plural}PreviewProvider.kt           (jvmMain — runtime preview discovery)
+persistence/
+    {Plural}Persistence.kt              (Koin DI module)
+    {Entity}Converters.kt               (IP type ↔ Entity converters)
+    {Entity}Entity.kt                   (shared persistence module)
+    {Entity}Dao.kt                      (shared persistence module)
+    {Entity}Repository.kt               (shared persistence module)
+```
+
+### UI-FBP Path
+
+Input: Compose UI file with ViewModel parameter
+
+```
+scaffolding/
+    build.gradle.kts                    (if not already present)
+flow/
+    {Name}.flow.kt                      (bootstrap with Source + Sink nodes)
+    {Name}Flow.kt
+controller/
+    {Name}Controller.kt
+    {Name}ControllerInterface.kt
+    {Name}ControllerAdapter.kt
+viewmodel/
+    {Name}ViewModel.kt
+    {Name}State.kt
+nodes/
+    {Name}SourceCodeNode.kt
+    {Name}SinkCodeNode.kt
+```

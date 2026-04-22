@@ -70,9 +70,9 @@ class CodeGeneratorViewModel {
     }
 
     fun updateFlowGraphName(name: String) {
-        val changed = _state.value.flowGraphName != name
+        val needsRebuild = _state.value.flowGraphName != name || _state.value.fileTree.folders.isEmpty()
         _state.value = _state.value.copy(flowGraphName = name)
-        if (changed && _state.value.selectedPath == GenerationPath.GENERATE_MODULE) {
+        if (needsRebuild && _state.value.selectedPath == GenerationPath.GENERATE_MODULE) {
             rebuildFileTree()
         }
     }
