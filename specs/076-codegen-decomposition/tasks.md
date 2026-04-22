@@ -56,14 +56,14 @@
 
 ### Implementation
 
-- [ ] T012 [P] [US2] Create `CodeGeneratorViewModel` with `MutableStateFlow<CodeGeneratorPanelState>`, path selection, IP Type selection, UI file selection, and file tree population methods in `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/viewmodel/CodeGeneratorViewModel.kt`
-- [ ] T013 [P] [US2] Create `CodeGeneratorPanel` composable following NodeGeneratorPanel pattern — CollapsiblePanel LEFT, 220.dp width, path dropdown, input-specific section (FlowGraph name label / IP Type dropdown / file chooser), scrollable file-tree with tri-state checkboxes, action buttons in `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/CodeGeneratorPanel.kt`
-- [ ] T014 [US2] Add `isCodeGeneratorExpanded` state and `CodeGeneratorViewModel` instantiation in `GraphEditorApp.kt`, pass featureGate for Pro tier gating in `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/GraphEditorApp.kt`
-- [ ] T015 [US2] Add CodeGeneratorPanel to the left column in `GraphEditorLayout.kt` alongside NodeGeneratorPanel and IPGeneratorPanel, passing featureGate to conditionally show/hide based on Pro tier in `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/GraphEditorLayout.kt`
-- [ ] T016 [US2] Remove "Create Repository Module" and "Remove Repository Module" buttons from `PropertiesPanel.kt` (IPTypePropertiesPanel section) in `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/PropertiesPanel.kt`
-- [ ] T017 [US2] Add "Create Repository Module" and "Remove Repository Module" buttons to `CodeGeneratorPanel.kt`, shown only when path = REPOSITORY and an IP Type is selected, wired through existing callbacks in `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/CodeGeneratorPanel.kt`
-- [ ] T018 [US2] Wire file tree population in `CodeGeneratorViewModel` — when path or input changes, call the appropriate `GenerationFileTreeBuilder` method to populate the file tree in `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/viewmodel/CodeGeneratorViewModel.kt`
-- [ ] T019 [US2] Compile and run tests: `./gradlew :graphEditor:compileKotlinJvm :graphEditor:jvmTest`
+- [X] T012 [P] [US2] Create `CodeGeneratorViewModel` with `MutableStateFlow<CodeGeneratorPanelState>`, path selection, IP Type selection, UI file selection, and file tree population methods in `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/viewmodel/CodeGeneratorViewModel.kt`
+- [X] T013 [P] [US2] Create `CodeGeneratorPanel` composable following NodeGeneratorPanel pattern — CollapsiblePanel LEFT, 220.dp width, path dropdown, input-specific section (FlowGraph name label / IP Type dropdown / file chooser), scrollable file-tree with tri-state checkboxes, action buttons in `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/CodeGeneratorPanel.kt`
+- [X] T014 [US2] Add `isCodeGeneratorExpanded` state and `CodeGeneratorViewModel` instantiation in `GraphEditorApp.kt`, pass featureGate for Pro tier gating in `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/GraphEditorApp.kt`
+- [X] T015 [US2] Add CodeGeneratorPanel to the left column in `GraphEditorLayout.kt` alongside NodeGeneratorPanel and IPGeneratorPanel, passing featureGate to conditionally show/hide based on Pro tier in `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/GraphEditorLayout.kt`
+- [X] T016 [US2] Remove "Create Repository Module" and "Remove Repository Module" buttons from `PropertiesPanel.kt` (IPTypePropertiesPanel section) in `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/PropertiesPanel.kt`
+- [X] T017 [US2] Add "Create Repository Module" and "Remove Repository Module" buttons to `CodeGeneratorPanel.kt`, shown only when path = REPOSITORY and an IP Type is selected, wired through existing callbacks in `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/CodeGeneratorPanel.kt`
+- [X] T018 [US2] Wire file tree population in `CodeGeneratorViewModel` — when path or input changes, call the appropriate `GenerationFileTreeBuilder` method to populate the file tree in `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/viewmodel/CodeGeneratorViewModel.kt`
+- [X] T019 [US2] Compile and run tests: `./gradlew :graphEditor:compileKotlinJvm :graphEditor:jvmTest`
 
 **Checkpoint**: Code Generator panel is fully interactive. Path selection populates file tree. Checkboxes toggle correctly. Repository buttons relocated.
 

@@ -1325,37 +1325,7 @@ fun IPTypePropertiesPanel(
                     }
                 }
 
-                // Create/Remove Repository Module button (visible only for custom types with properties)
-                if (onCreateRepositoryModule != null) {
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    if (moduleExists && onRemoveRepositoryModule != null) {
-                        Button(
-                            onClick = { onRemoveRepositoryModule() },
-                            colors = ButtonDefaults.buttonColors(
-                                backgroundColor = MaterialTheme.colors.error
-                            ),
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Text(
-                                text = "Remove Repository Module",
-                                fontSize = 12.sp,
-                                color = MaterialTheme.colors.onError
-                            )
-                        }
-                    } else {
-                        Button(
-                            onClick = { onCreateRepositoryModule() },
-                            enabled = !moduleExists,
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Text(
-                                text = "Create Repository Module",
-                                fontSize = 12.sp
-                            )
-                        }
-                    }
-                }
+                // Repository module buttons relocated to Code Generator panel (feature 076)
             }
         }
     }

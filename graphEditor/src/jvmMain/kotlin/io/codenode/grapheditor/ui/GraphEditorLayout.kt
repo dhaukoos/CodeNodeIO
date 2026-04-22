@@ -106,6 +106,9 @@ fun ColumnScope.GraphEditorContent(
     isRuntimePanelExpanded: Boolean,
     onRuntimePanelExpandedChanged: (Boolean) -> Unit,
     featureGate: io.codenode.fbpdsl.model.FeatureGate? = null,
+    codeGeneratorViewModel: io.codenode.grapheditor.viewmodel.CodeGeneratorViewModel? = null,
+    isCodeGeneratorPanelExpanded: Boolean = false,
+    onCodeGeneratorPanelExpandedChanged: (Boolean) -> Unit = {},
 ) {
     // Navigation breadcrumb bar (only visible when inside a GraphNode)
     NavigationBreadcrumbBar(
@@ -262,6 +265,23 @@ fun ColumnScope.GraphEditorContent(
                     ipTypes = ipTypes
                 )
             }
+            }
+
+            // Code Generator panel (Pro tier only)
+            if (codeGeneratorViewModel != null && featureGate?.canGenerate() != false) {
+                codeGeneratorViewModel.updateFlowGraphName(graphState.flowGraph.name)
+                CollapsiblePanel(
+                    isExpanded = isCodeGeneratorPanelExpanded,
+                    onToggle = { onCodeGeneratorPanelExpandedChanged(!isCodeGeneratorPanelExpanded) },
+                    side = PanelSide.LEFT,
+                    modifier = Modifier.fillMaxHeight()
+                ) {
+                    CodeGeneratorPanel(
+                        viewModel = codeGeneratorViewModel,
+                        ipTypes = ipTypes,
+                        modifier = Modifier.fillMaxHeight()
+                    )
+                }
             }
 
             // Compute connection colors based on IP types

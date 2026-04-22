@@ -74,6 +74,7 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
 
     // Runtime preview session and panel state
     var isRuntimePanelExpanded by remember { mutableStateOf(false) }
+    var isCodeGeneratorPanelExpanded by remember { mutableStateOf(false) }
 
     // NodeGeneratorViewModel for the Node Generator Panel
     val nodeGeneratorViewModel = remember {
@@ -90,6 +91,9 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
 
     // NodePaletteViewModel for the Node Palette
     val nodePaletteViewModel = remember { NodePaletteViewModel() }
+
+    // CodeGeneratorViewModel for the Code Generator panel
+    val codeGeneratorViewModel = remember { io.codenode.grapheditor.viewmodel.CodeGeneratorViewModel() }
 
     // CodeEditorViewModel for the code editor
     val codeEditorViewModel = remember { CodeEditorViewModel() }
@@ -531,6 +535,9 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                 isRuntimePanelExpanded = isRuntimePanelExpanded,
                 onRuntimePanelExpandedChanged = { isRuntimePanelExpanded = it },
                 featureGate = featureGate,
+                codeGeneratorViewModel = codeGeneratorViewModel,
+                isCodeGeneratorPanelExpanded = isCodeGeneratorPanelExpanded,
+                onCodeGeneratorPanelExpandedChanged = { isCodeGeneratorPanelExpanded = it },
             )
 
             Divider()
