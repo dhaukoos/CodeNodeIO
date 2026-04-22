@@ -118,6 +118,8 @@ Auto-generated from all feature plans. Last updated: 2026-01-13
 - Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + Compose Desktop 1.7.3, kotlinx-coroutines 1.8.0, lifecycle-viewmodel-compose 2.8.0 + fbpDsl (domain model + new tier model), flowGraph-generate (ModuleSaveService, generators), flowGraph-execute (RuntimeSession, ModuleSessionFactory), flowGraph-persist (FlowGraphSerializer), graphEditor (UI) (074-subscription-tier-flags)
 - `~/.codenode/config.properties` for tier configuration (new); filesystem for `.flow.kt` files (existing) (074-subscription-tier-flags)
 - Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + flowGraph-generate (code generation infrastructure, CodeNodeFactory), fbpDsl (CodeNodeDefinition, CodeNodeType, PortSpec), graphEditor (toolbar UI integration) (075-generate-ui-fbp-interface)
+- Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + Compose Desktop 1.7.3, kotlinx-coroutines 1.8.0 + graphEditor (UI panel), flowGraph-generate (generator analysis), fbpDsl (FeatureGate for tier gating) (076-codegen-decomposition)
+- N/A — documentation artifacts + UI panel code (076-codegen-decomposition)
 
 - Kotlin 1.9+, Go 1.21+ (001-ide-plugin-platform)
 
@@ -137,9 +139,9 @@ tests/
 Kotlin 1.9+, Go 1.21+: Follow standard conventions
 
 ## Recent Changes
+- 076-codegen-decomposition: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + Compose Desktop 1.7.3, kotlinx-coroutines 1.8.0 + graphEditor (UI panel), flowGraph-generate (generator analysis), fbpDsl (FeatureGate for tier gating)
 - 075-generate-ui-fbp-interface: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + flowGraph-generate (code generation infrastructure, CodeNodeFactory), fbpDsl (CodeNodeDefinition, CodeNodeType, PortSpec), graphEditor (toolbar UI integration)
 - 074-subscription-tier-flags: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + Compose Desktop 1.7.3, kotlinx-coroutines 1.8.0, lifecycle-viewmodel-compose 2.8.0 + fbpDsl (domain model + new tier model), flowGraph-generate (ModuleSaveService, generators), flowGraph-execute (RuntimeSession, ModuleSessionFactory), flowGraph-persist (FlowGraphSerializer), graphEditor (UI)
-- 073-architecture-ip-types: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + fbpDsl (domain model classes), flowGraph-types (IPTypeRegistry, IPTypeDiscovery), flowGraph-persist (ParseResult, GraphNodeTemplateMeta), flowGraph-execute (ConnectionAnimation)
 
 
 <!-- MANUAL ADDITIONS START -->
