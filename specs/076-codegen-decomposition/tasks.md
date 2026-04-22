@@ -77,12 +77,12 @@
 
 ### Implementation
 
-- [ ] T020 [US3] Write migration plan step 1: Folder Hierarchy Migration — describe moving generated files to the new subdirectory structure in `specs/076-codegen-decomposition/migration-plan.md`
-- [ ] T021 [US3] Write migration plan step 2: Module Scaffolding Extraction — describe extracting directory/gradle creation as a standalone component in `specs/076-codegen-decomposition/migration-plan.md`
-- [ ] T022 [US3] Write migration plan step 3: Generator CodeNode Wrappers — describe wrapping individual generators as CodeNodes with typed ports in `specs/076-codegen-decomposition/migration-plan.md`
-- [ ] T023 [US3] Write migration plan step 4: Code Generation FlowGraph — describe creating a flow graph that orchestrates code generation using the wrapped CodeNodes in `specs/076-codegen-decomposition/migration-plan.md`
-- [ ] T024 [US3] Write migration plan step 5: Wire Code Generator Panel — describe connecting the panel file-tree selections to the generation flow graph in `specs/076-codegen-decomposition/migration-plan.md`
-- [ ] T025 [US3] Add prerequisites and dependency arrows between migration steps, ensuring each step is independently spec-able and implementable in `specs/076-codegen-decomposition/migration-plan.md`
+- [X] T020 [US3] Write migration plan step 1: Folder Hierarchy Migration — describe moving generated files to the new subdirectory structure in `specs/076-codegen-decomposition/migration-plan.md`
+- [X] T021 [US3] Write migration plan step 2: Module Scaffolding Extraction — describe extracting directory/gradle creation as a standalone component in `specs/076-codegen-decomposition/migration-plan.md`
+- [X] T022 [US3] Write migration plan step 3: Generator CodeNode Wrappers — describe wrapping individual generators as CodeNodes with typed ports in `specs/076-codegen-decomposition/migration-plan.md`
+- [X] T023 [US3] Write migration plan step 4: Code Generation FlowGraph — describe creating a flow graph that orchestrates code generation using the wrapped CodeNodes in `specs/076-codegen-decomposition/migration-plan.md`
+- [X] T024 [US3] Write migration plan step 5: Wire Code Generator Panel — describe connecting the panel file-tree selections to the generation flow graph in `specs/076-codegen-decomposition/migration-plan.md`
+- [X] T025 [US3] Add prerequisites and dependency arrows between migration steps, ensuring each step is independently spec-able and implementable in `specs/076-codegen-decomposition/migration-plan.md`
 
 **Checkpoint**: Migration plan document is complete with 5+ ordered steps, each with clear scope, prerequisites, and deliverables.
 
@@ -92,10 +92,10 @@
 
 **Purpose**: Full verification across all quickstart scenarios
 
-- [ ] T026 Run full test suite: `./gradlew :flowGraph-generate:jvmTest :graphEditor:jvmTest`
-- [ ] T027 Run quickstart.md verification scenarios VS1–VS11
-- [ ] T028 Verify dependency analysis covers all 22+ generators with no gaps
-- [ ] T029 Verify Code Generator panel is hidden on Free tier, visible on Pro/Sim tier
+- [X] T026 Run full test suite: `./gradlew :flowGraph-generate:jvmTest :graphEditor:jvmTest`
+- [X] T027 Run quickstart.md verification scenarios VS1–VS11
+- [X] T028 Verify dependency analysis covers all 22+ generators with no gaps
+- [X] T029 Verify Code Generator panel is hidden on Free tier, visible on Pro/Sim tier
 
 ---
 
