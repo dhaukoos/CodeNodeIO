@@ -215,7 +215,7 @@ class ModuleSaveServiceTest {
         val result = saveService.saveModule(flowGraph, tempDir, packageName)
 
         assertTrue(result.success)
-        val generatedDir = File(result.moduleDir, "src/commonMain/kotlin/io/codenode/testmodule/generated")
+        val generatedDir = File(result.moduleDir, "src/commonMain/kotlin/io/codenode/testmodule/controller")
         assertTrue(generatedDir.exists(), "Generated package directory should exist")
     }
 
@@ -325,7 +325,7 @@ class ModuleSaveServiceTest {
         val result = saveService.saveModule(flowGraph, tempDir)
 
         assertTrue(result.success)
-        val expectedPackageDir = File(result.moduleDir, "src/commonMain/kotlin/io/codenode/stopwatch/generated")
+        val expectedPackageDir = File(result.moduleDir, "src/commonMain/kotlin/io/codenode/stopwatch/controller")
         assertTrue(expectedPackageDir.exists(),
             "Default generated package directory should be created based on module name")
     }
@@ -341,7 +341,7 @@ class ModuleSaveServiceTest {
         val result = saveService.saveModule(flowGraph, tempDir)
 
         assertTrue(result.success)
-        val flowKtFile = File(result.moduleDir, "src/commonMain/kotlin/io/codenode/updateflow/UpdateFlow.flow.kt")
+        val flowKtFile = File(result.moduleDir, "src/commonMain/kotlin/io/codenode/updateflow/flow/UpdateFlow.flow.kt")
         assertTrue(flowKtFile.exists(), ".flow.kt should be in source set")
         val content = flowKtFile.readText()
         assertTrue(content.contains("Original"),
@@ -358,7 +358,7 @@ class ModuleSaveServiceTest {
         val result1 = saveService.saveModule(flowGraph1, tempDir)
         assertTrue(result1.success)
 
-        val flowKtFile = File(result1.moduleDir, "src/commonMain/kotlin/io/codenode/updateflow/UpdateFlow.flow.kt")
+        val flowKtFile = File(result1.moduleDir, "src/commonMain/kotlin/io/codenode/updateflow/flow/UpdateFlow.flow.kt")
         assertTrue(flowKtFile.exists(), "First save should create .flow.kt in source set")
         assertTrue(flowKtFile.readText().contains("Original"))
 
@@ -392,7 +392,7 @@ class ModuleSaveServiceTest {
         val result2 = saveService.saveModule(flowGraph2, tempDir)
 
         assertTrue(result2.success)
-        val flowKtFile = File(result2.moduleDir, "src/commonMain/kotlin/io/codenode/positiontest/PositionTest.flow.kt")
+        val flowKtFile = File(result2.moduleDir, "src/commonMain/kotlin/io/codenode/positiontest/flow/PositionTest.flow.kt")
         val content = flowKtFile.readText()
         assertTrue(content.contains("500.0") && content.contains("600.0"),
             "flow.kt should reflect new node position")
@@ -426,7 +426,7 @@ class ModuleSaveServiceTest {
         val result2 = saveService.saveModule(flowGraph2, tempDir)
 
         assertTrue(result2.success)
-        val flowKtFile = File(result2.moduleDir, "src/commonMain/kotlin/io/codenode/connecttest/ConnectTest.flow.kt")
+        val flowKtFile = File(result2.moduleDir, "src/commonMain/kotlin/io/codenode/connecttest/flow/ConnectTest.flow.kt")
         val content = flowKtFile.readText()
         assertTrue(content.contains("connect"),
             "flow.kt should contain the new connection")
@@ -435,32 +435,25 @@ class ModuleSaveServiceTest {
     // ========== Unified saveModule generates runtime files ==========
 
     @Test
-    fun `saveModule generates all 4 runtime files in generated and ViewModel in base package`() {
+    fun `saveModule generates runtime files in flow and controller dirs and ViewModel in viewmodel dir`() {
         val flowGraph = createTestFlowGraph("FullSave")
         val saveService = ModuleSaveService()
 
         val result = saveService.saveModule(flowGraph, tempDir)
 
         assertTrue(result.success)
-        val generatedDir = File(result.moduleDir, "src/commonMain/kotlin/io/codenode/fullsave/generated")
-        val expectedRuntimeFiles = listOf(
-            "FullSaveFlow.kt",
-            "FullSaveController.kt",
-            "FullSaveControllerInterface.kt",
-            "FullSaveControllerAdapter.kt"
-        )
-        for (fileName in expectedRuntimeFiles) {
-            val file = File(generatedDir, fileName)
-            assertTrue(file.exists(), "$fileName should exist in generated directory")
-            assertTrue(file.readText().isNotBlank(), "$fileName should not be empty")
-        }
+        val controllerDir = File(result.moduleDir, "src/commonMain/kotlin/io/codenode/fullsave/controller")
+        val flowDir = File(result.moduleDir, "src/commonMain/kotlin/io/codenode/fullsave/flow")
+        val viewModelDir = File(result.moduleDir, "src/commonMain/kotlin/io/codenode/fullsave/viewmodel")
 
-        // ViewModel stub in base package (not generated/)
-        val viewModelFile = File(result.moduleDir, "src/commonMain/kotlin/io/codenode/fullsave/FullSaveViewModel.kt")
-        assertTrue(viewModelFile.exists(), "FullSaveViewModel.kt should exist in base package")
+        assertTrue(File(flowDir, "FullSaveFlow.kt").exists(), "FullSaveFlow.kt should exist in flow/")
+        assertTrue(File(controllerDir, "FullSaveController.kt").exists(), "FullSaveController.kt should exist in controller/")
+        assertTrue(File(controllerDir, "FullSaveControllerInterface.kt").exists(), "FullSaveControllerInterface.kt should exist in controller/")
+        assertTrue(File(controllerDir, "FullSaveControllerAdapter.kt").exists(), "FullSaveControllerAdapter.kt should exist in controller/")
+
+        val viewModelFile = File(viewModelDir, "FullSaveViewModel.kt")
+        assertTrue(viewModelFile.exists(), "FullSaveViewModel.kt should exist in viewmodel/")
         assertTrue(viewModelFile.readText().isNotBlank(), "FullSaveViewModel.kt should not be empty")
-        assertFalse(File(generatedDir, "FullSaveViewModel.kt").exists(),
-            "FullSaveViewModel.kt should NOT exist in generated directory")
     }
 
     // ========== ViewModel Stub Generation ==========
@@ -473,7 +466,7 @@ class ModuleSaveServiceTest {
         val result = saveService.saveModule(flowGraph, tempDir)
 
         assertTrue(result.success)
-        val viewModelFile = File(result.moduleDir, "src/commonMain/kotlin/io/codenode/stopwatch4/StopWatch4ViewModel.kt")
+        val viewModelFile = File(result.moduleDir, "src/commonMain/kotlin/io/codenode/stopwatch4/viewmodel/StopWatch4ViewModel.kt")
         assertTrue(viewModelFile.exists(), "ViewModel stub should be in base package")
         val content = viewModelFile.readText()
         assertTrue(content.contains(RuntimeViewModelGenerator.MODULE_PROPERTIES_START),
@@ -490,7 +483,7 @@ class ModuleSaveServiceTest {
         val result = saveService.saveModule(flowGraph, tempDir)
 
         assertTrue(result.success)
-        val viewModelFile = File(result.moduleDir, "src/commonMain/kotlin/io/codenode/stopwatch4/StopWatch4ViewModel.kt")
+        val viewModelFile = File(result.moduleDir, "src/commonMain/kotlin/io/codenode/stopwatch4/viewmodel/StopWatch4ViewModel.kt")
         val content = viewModelFile.readText()
         assertTrue(content.contains("object StopWatch4State"),
             "ViewModel stub should contain State object")
@@ -533,7 +526,7 @@ class ModuleSaveServiceTest {
         val result1 = saveService.saveModule(flowGraph1, tempDir)
         assertTrue(result1.success)
 
-        val viewModelFile = File(result1.moduleDir, "src/commonMain/kotlin/io/codenode/vmregentest/VmRegenTestViewModel.kt")
+        val viewModelFile = File(result1.moduleDir, "src/commonMain/kotlin/io/codenode/vmregentest/viewmodel/VmRegenTestViewModel.kt")
         assertTrue(viewModelFile.readText().contains("_seconds"),
             "First save should have 'seconds' property")
 
@@ -566,7 +559,7 @@ class ModuleSaveServiceTest {
         val result1 = saveService.saveModule(flowGraph, tempDir)
         assertTrue(result1.success)
 
-        val viewModelFile = File(result1.moduleDir, "src/commonMain/kotlin/io/codenode/stopwatch4/StopWatch4ViewModel.kt")
+        val viewModelFile = File(result1.moduleDir, "src/commonMain/kotlin/io/codenode/stopwatch4/viewmodel/StopWatch4ViewModel.kt")
         val originalContent = viewModelFile.readText()
 
         // Simulate user adding code after MODULE PROPERTIES END marker
@@ -600,7 +593,7 @@ class ModuleSaveServiceTest {
         assertTrue(result1.success)
 
         // Remove markers from ViewModel file
-        val viewModelFile = File(result1.moduleDir, "src/commonMain/kotlin/io/codenode/stopwatch4/StopWatch4ViewModel.kt")
+        val viewModelFile = File(result1.moduleDir, "src/commonMain/kotlin/io/codenode/stopwatch4/viewmodel/StopWatch4ViewModel.kt")
         viewModelFile.writeText("// Corrupted file with no markers\nclass StopWatch4ViewModel\n")
 
         // Re-save
@@ -654,25 +647,17 @@ class ModuleSaveServiceTest {
         val result = saveService.saveModule(flowGraph, tempDir)
 
         assertTrue(result.success)
-        val generatedDir = File(result.moduleDir, "src/commonMain/kotlin/io/codenode/runtimetest/generated")
+        val controllerDir = File(result.moduleDir, "src/commonMain/kotlin/io/codenode/runtimetest/controller")
+        val flowDir = File(result.moduleDir, "src/commonMain/kotlin/io/codenode/runtimetest/flow")
 
-        val expectedRuntimeFiles = listOf(
-            "RuntimeTestFlow.kt",
-            "RuntimeTestController.kt",
-            "RuntimeTestControllerInterface.kt",
-            "RuntimeTestControllerAdapter.kt"
-        )
-        for (fileName in expectedRuntimeFiles) {
-            val file = File(generatedDir, fileName)
-            assertTrue(file.exists(), "$fileName should exist in generated directory")
-            assertTrue(file.readText().isNotBlank(), "$fileName should not be empty")
-        }
+        assertTrue(File(flowDir, "RuntimeTestFlow.kt").exists(), "RuntimeTestFlow.kt should exist in flow/")
+        assertTrue(File(controllerDir, "RuntimeTestController.kt").exists(), "RuntimeTestController.kt should exist in controller/")
+        assertTrue(File(controllerDir, "RuntimeTestControllerInterface.kt").exists(), "RuntimeTestControllerInterface.kt should exist in controller/")
+        assertTrue(File(controllerDir, "RuntimeTestControllerAdapter.kt").exists(), "RuntimeTestControllerAdapter.kt should exist in controller/")
 
-        // ViewModel in base package
-        val viewModelFile = File(result.moduleDir, "src/commonMain/kotlin/io/codenode/runtimetest/RuntimeTestViewModel.kt")
-        assertTrue(viewModelFile.exists(), "RuntimeTestViewModel.kt should exist in base package")
-        assertFalse(File(generatedDir, "RuntimeTestViewModel.kt").exists(),
-            "ViewModel should NOT be in generated/")
+        val viewModelDir = File(result.moduleDir, "src/commonMain/kotlin/io/codenode/runtimetest/viewmodel")
+        val viewModelFile = File(viewModelDir, "RuntimeTestViewModel.kt")
+        assertTrue(viewModelFile.exists(), "RuntimeTestViewModel.kt should exist in viewmodel/")
     }
 
     @Test
@@ -698,8 +683,8 @@ class ModuleSaveServiceTest {
         val result1 = saveService.saveModule(flowGraph1, tempDir)
         assertTrue(result1.success)
 
-        val generatedDir = File(result1.moduleDir, "src/commonMain/kotlin/io/codenode/overwritetest/generated")
-        val flowFile = File(generatedDir, "OverwriteTestFlow.kt")
+        val flowDir = File(result1.moduleDir, "src/commonMain/kotlin/io/codenode/overwritetest/flow")
+        val flowFile = File(flowDir, "OverwriteTestFlow.kt")
         val originalContent = flowFile.readText()
         assertTrue(originalContent.contains("Source"), "First save should reference Source node")
 
@@ -808,11 +793,13 @@ class ModuleSaveServiceTest {
         assertTrue(result.success, "Save should succeed")
 
         val baseDir = File(result.moduleDir, "src/commonMain/kotlin/io/codenode/stopwatch4")
-        val generatedDir = File(baseDir, "generated")
+        val flowDir = File(baseDir, "flow")
+        val controllerDir = File(baseDir, "controller")
+        val viewModelDir = File(baseDir, "viewmodel")
 
-        // Verify ViewModel stub in base package with State object
-        val viewModelFile = File(baseDir, "StopWatch4ViewModel.kt")
-        assertTrue(viewModelFile.exists(), "ViewModel stub should exist in base package")
+        // Verify ViewModel stub in viewmodel/ with State object
+        val viewModelFile = File(viewModelDir, "StopWatch4ViewModel.kt")
+        assertTrue(viewModelFile.exists(), "ViewModel stub should exist in viewmodel/")
         val viewModelContent = viewModelFile.readText()
         assertTrue(viewModelContent.contains("object StopWatch4State"),
             "ViewModel should contain State object")
@@ -826,7 +813,7 @@ class ModuleSaveServiceTest {
             "State object should have minutes StateFlow accessor")
 
         // Verify Flow class delegates from State object
-        val flowFile = File(generatedDir, "StopWatch4Flow.kt")
+        val flowFile = File(flowDir, "StopWatch4Flow.kt")
         assertTrue(flowFile.exists(), "StopWatch4Flow.kt should exist")
         val flowContent = flowFile.readText()
         assertTrue(flowContent.contains("val secondsFlow: StateFlow<Int> = StopWatch4State.secondsFlow"),
@@ -942,20 +929,20 @@ class ModuleSaveServiceTest {
         // 1. Module directory structure
         assertTrue(File(moduleDir, "build.gradle.kts").exists(), "build.gradle.kts should exist")
         assertTrue(File(moduleDir, "settings.gradle.kts").exists(), "settings.gradle.kts should exist")
-        assertTrue(File(moduleDir, "$basePackagePath/StopWatch3.flow.kt").exists(), ".flow.kt should be in source set")
+        assertTrue(File(moduleDir, "$basePackagePath/flow/StopWatch3.flow.kt").exists(), ".flow.kt should be in flow/")
 
         // 2. All 4 runtime files in generated/
-        val generatedDir = File(moduleDir, "$basePackagePath/generated")
-        assertTrue(File(generatedDir, "StopWatch3Flow.kt").exists(), "StopWatch3Flow.kt should exist")
-        assertTrue(File(generatedDir, "StopWatch3Controller.kt").exists(), "StopWatch3Controller.kt should exist")
-        assertTrue(File(generatedDir, "StopWatch3ControllerInterface.kt").exists(), "StopWatch3ControllerInterface.kt should exist")
-        assertTrue(File(generatedDir, "StopWatch3ControllerAdapter.kt").exists(), "StopWatch3ControllerAdapter.kt should exist")
+        val controllerDir = File(moduleDir, "$basePackagePath/controller")
+        val flowDir = File(moduleDir, "$basePackagePath/flow")
+        val viewModelDir = File(moduleDir, "$basePackagePath/viewmodel")
+        assertTrue(File(flowDir, "StopWatch3Flow.kt").exists(), "StopWatch3Flow.kt should exist")
+        assertTrue(File(controllerDir, "StopWatch3Controller.kt").exists(), "StopWatch3Controller.kt should exist")
+        assertTrue(File(controllerDir, "StopWatch3ControllerInterface.kt").exists(), "StopWatch3ControllerInterface.kt should exist")
+        assertTrue(File(controllerDir, "StopWatch3ControllerAdapter.kt").exists(), "StopWatch3ControllerAdapter.kt should exist")
 
-        // 3. ViewModel stub in base package (not generated/)
-        val viewModelFile = File(moduleDir, "$basePackagePath/StopWatch3ViewModel.kt")
-        assertTrue(viewModelFile.exists(), "StopWatch3ViewModel.kt should exist in base package")
-        assertFalse(File(generatedDir, "StopWatch3ViewModel.kt").exists(),
-            "StopWatch3ViewModel.kt should NOT be in generated/")
+        // 3. ViewModel stub in viewmodel/
+        val viewModelFile = File(viewModelDir, "StopWatch3ViewModel.kt")
+        assertTrue(viewModelFile.exists(), "StopWatch3ViewModel.kt should exist in viewmodel/")
 
         // 4. filesCreated includes all 9 files
         assertEquals(9, result.filesCreated.size,
@@ -1012,7 +999,7 @@ class ModuleSaveServiceTest {
         val result2 = saveService.saveModule(flowGraph2, tempDir)
 
         assertTrue(result2.success)
-        val flowKtFile = File(result2.moduleDir, "src/commonMain/kotlin/io/codenode/resavetest/ReSaveTest.flow.kt")
+        val flowKtFile = File(result2.moduleDir, "src/commonMain/kotlin/io/codenode/resavetest/flow/ReSaveTest.flow.kt")
         val content = flowKtFile.readText()
         assertTrue(content.contains("Logger"), ".flow.kt should contain the new Logger node after re-save")
         assertTrue(content.contains("TimerEmitter"), ".flow.kt should still contain TimerEmitter")
@@ -1164,11 +1151,11 @@ class ModuleSaveServiceTest {
         assertTrue(alphaDir.exists(), "Alpha module directory should exist")
 
         // Record Alpha's files for later comparison
-        val alphaFlowKt = File(alphaDir, "src/commonMain/kotlin/io/codenode/alpha/Alpha.flow.kt")
+        val alphaFlowKt = File(alphaDir, "src/commonMain/kotlin/io/codenode/alpha/flow/Alpha.flow.kt")
         assertTrue(alphaFlowKt.exists(), "Alpha .flow.kt should exist")
         val alphaFlowKtContent = alphaFlowKt.readText()
-        val alphaGeneratedDir = File(alphaDir, "src/commonMain/kotlin/io/codenode/alpha/generated")
-        assertTrue(alphaGeneratedDir.exists(), "Alpha generated dir should exist")
+        val alphaFlowDir = File(alphaDir, "src/commonMain/kotlin/io/codenode/alpha/flow")
+        assertTrue(alphaFlowDir.exists(), "Alpha flow dir should exist")
 
         // Rename to "Beta" and save to same output dir
         val betaFlow = FlowGraph(
@@ -1187,12 +1174,12 @@ class ModuleSaveServiceTest {
         assertTrue(betaDir.exists(), "Beta module directory should exist")
         assertNotEquals(alphaDir.absolutePath, betaDir.absolutePath,
             "Beta module should be in a different directory than Alpha")
-        assertTrue(File(betaDir, "src/commonMain/kotlin/io/codenode/beta/Beta.flow.kt").exists(), "Beta .flow.kt should exist")
+        assertTrue(File(betaDir, "src/commonMain/kotlin/io/codenode/beta/flow/Beta.flow.kt").exists(), "Beta .flow.kt should exist")
         assertTrue(File(betaDir, "build.gradle.kts").exists(), "Beta build.gradle.kts should exist")
         assertTrue(File(betaDir, "settings.gradle.kts").exists(), "Beta settings.gradle.kts should exist")
-        assertTrue(File(betaDir, "src/commonMain/kotlin/io/codenode/beta/generated/BetaFlow.kt").exists(),
+        assertTrue(File(betaDir, "src/commonMain/kotlin/io/codenode/beta/flow/BetaFlow.kt").exists(),
             "Beta runtime files should exist")
-        assertTrue(File(betaDir, "src/commonMain/kotlin/io/codenode/beta/BetaViewModel.kt").exists(),
+        assertTrue(File(betaDir, "src/commonMain/kotlin/io/codenode/beta/viewmodel/BetaViewModel.kt").exists(),
             "Beta ViewModel stub should exist in base package")
 
         // Alpha module is untouched
@@ -1200,6 +1187,6 @@ class ModuleSaveServiceTest {
         assertTrue(alphaFlowKt.exists(), "Alpha .flow.kt should still exist")
         assertEquals(alphaFlowKtContent, alphaFlowKt.readText(),
             "Alpha .flow.kt content should be unchanged")
-        assertTrue(alphaGeneratedDir.exists(), "Alpha generated dir should still exist")
+        assertTrue(alphaFlowDir.exists(), "Alpha flow dir should still exist")
     }
 }

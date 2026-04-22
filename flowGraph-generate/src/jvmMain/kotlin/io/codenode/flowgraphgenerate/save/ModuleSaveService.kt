@@ -59,7 +59,9 @@ class ModuleSaveService {
 
     companion object {
         const val DEFAULT_PACKAGE_PREFIX = "io.codenode"
-        const val GENERATED_SUBPACKAGE = "generated"
+        const val FLOW_SUBPACKAGE = "flow"
+        const val CONTROLLER_SUBPACKAGE = "controller"
+        const val VIEWMODEL_SUBPACKAGE = "viewmodel"
         const val PERSISTENCE_SUBPACKAGE = "persistence"
         const val USER_INTERFACE_SUBPACKAGE = "userInterface"
     }
@@ -107,16 +109,17 @@ class ModuleSaveService {
             val moduleDir = File(outputDir, effectiveModuleName)
             val existingModule = moduleDir.exists() && File(moduleDir, "build.gradle.kts").exists()
 
+            val flowPackage = "$basePackage.$FLOW_SUBPACKAGE"
             val flowKtContent = flowKtGenerator.generateFlowKt(
-                enrichedFlowGraph, basePackage, null, ipTypeNames
+                enrichedFlowGraph, flowPackage, null, ipTypeNames
             )
 
             val targetFile: File
             val relativePath: String
             if (existingModule) {
-                val basePackagePath = basePackage.replace(".", "/")
+                val flowPackagePath = flowPackage.replace(".", "/")
                 val flowKtFileName = "${effectiveModuleName}.flow.kt"
-                relativePath = "src/commonMain/kotlin/$basePackagePath/$flowKtFileName"
+                relativePath = "src/commonMain/kotlin/$flowPackagePath/$flowKtFileName"
                 targetFile = File(moduleDir, relativePath)
             } else {
                 val flowKtFileName = "${effectiveModuleName}.flow.kt"
@@ -170,7 +173,9 @@ class ModuleSaveService {
             val effectiveModuleName = moduleName ?: deriveModuleName(enrichedFlowGraph.name)
 
             val basePackage = packageName ?: "$DEFAULT_PACKAGE_PREFIX.${effectiveModuleName.lowercase()}"
-            val generatedPackage = "$basePackage.$GENERATED_SUBPACKAGE"
+            val flowPackage = "$basePackage.$FLOW_SUBPACKAGE"
+            val controllerPackage = "$basePackage.$CONTROLLER_SUBPACKAGE"
+            val viewModelPackage = "$basePackage.$VIEWMODEL_SUBPACKAGE"
             val userInterfacePackage = "$basePackage.$USER_INTERFACE_SUBPACKAGE"
 
             // Create module directory
@@ -185,7 +190,9 @@ class ModuleSaveService {
 
             // Create source directory structure
             createDirectoryStructure(moduleDir, basePackage, enrichedFlowGraph)
-            createDirectoryStructure(moduleDir, generatedPackage, enrichedFlowGraph)
+            createDirectoryStructure(moduleDir, flowPackage, enrichedFlowGraph)
+            createDirectoryStructure(moduleDir, controllerPackage, enrichedFlowGraph)
+            createDirectoryStructure(moduleDir, viewModelPackage, enrichedFlowGraph)
             createDirectoryStructure(moduleDir, userInterfacePackage, enrichedFlowGraph)
 
             // Write gradle files (only if they don't exist)
@@ -202,33 +209,33 @@ class ModuleSaveService {
                 filesCreated
             )
 
-            // Write .flow.kt in source set (always overwrite)
-            val basePackagePath = basePackage.replace(".", "/")
+            // Write .flow.kt in flow/ subdirectory (always overwrite)
+            val flowPackagePath = flowPackage.replace(".", "/")
             val flowKtFileName = "${effectiveModuleName}.flow.kt"
-            val flowKtRelativePath = "src/commonMain/kotlin/$basePackagePath/$flowKtFileName"
+            val flowKtRelativePath = "src/commonMain/kotlin/$flowPackagePath/$flowKtFileName"
             writeFileAlways(
                 File(moduleDir, flowKtRelativePath),
-                flowKtGenerator.generateFlowKt(enrichedFlowGraph, basePackage, null, ipTypeNames),
+                flowKtGenerator.generateFlowKt(enrichedFlowGraph, flowPackage, null, ipTypeNames),
                 flowKtRelativePath,
                 filesCreated,
                 filesOverwritten
             )
 
-            // Generate 4 runtime files in generated/ (always overwrite)
+            // Generate runtime files: Flow.kt in flow/, Controller*.kt in controller/
             generateRuntimeFilesTracked(
-                enrichedFlowGraph, moduleDir, basePackage, generatedPackage,
+                enrichedFlowGraph, moduleDir, basePackage, flowPackage, controllerPackage, viewModelPackage,
                 effectiveModuleName, filesCreated, filesOverwritten
             )
 
-            // Generate ViewModel stub in base package (selective regeneration)
+            // Generate ViewModel stub in viewmodel/ (selective regeneration)
             generateViewModelStub(
-                enrichedFlowGraph, moduleDir, basePackage, generatedPackage,
+                enrichedFlowGraph, moduleDir, basePackage, viewModelPackage, controllerPackage,
                 effectiveModuleName, filesCreated, filesOverwritten
             )
 
             // Generate user interface stub (write-once, preserves existing UI code)
             generateUserInterfaceStub(
-                enrichedFlowGraph, moduleDir, userInterfacePackage, generatedPackage,
+                enrichedFlowGraph, moduleDir, userInterfacePackage, viewModelPackage,
                 filesCreated
             )
 
@@ -315,7 +322,9 @@ class ModuleSaveService {
 
             // Create module directory structure
             createDirectoryStructure(moduleDir, spec.basePackage, output.flowGraph)
-            createDirectoryStructure(moduleDir, "${spec.basePackage}.$GENERATED_SUBPACKAGE", output.flowGraph)
+            createDirectoryStructure(moduleDir, "${spec.basePackage}.$FLOW_SUBPACKAGE", output.flowGraph)
+            createDirectoryStructure(moduleDir, "${spec.basePackage}.$CONTROLLER_SUBPACKAGE", output.flowGraph)
+            createDirectoryStructure(moduleDir, "${spec.basePackage}.$VIEWMODEL_SUBPACKAGE", output.flowGraph)
             createDirectoryStructure(moduleDir, "${spec.basePackage}.$USER_INTERFACE_SUBPACKAGE", output.flowGraph)
 
             // Write build.gradle.kts (only if new)
@@ -987,19 +996,20 @@ class ModuleSaveService {
         flowGraph: FlowGraph,
         moduleDir: File,
         basePackage: String,
-        generatedPackage: String,
+        viewModelPackage: String,
+        controllerPackage: String,
         effectiveModuleName: String,
         filesCreated: MutableList<String>,
         filesOverwritten: MutableList<String>
     ) {
-        val basePackagePath = basePackage.replace(".", "/")
+        val viewModelPath = viewModelPackage.replace(".", "/")
         val viewModelFileName = "${effectiveModuleName}ViewModel.kt"
-        val viewModelFile = File(moduleDir, "src/commonMain/kotlin/$basePackagePath/$viewModelFileName")
-        val relativePath = "src/commonMain/kotlin/$basePackagePath/$viewModelFileName"
+        val viewModelFile = File(moduleDir, "src/commonMain/kotlin/$viewModelPath/$viewModelFileName")
+        val relativePath = "src/commonMain/kotlin/$viewModelPath/$viewModelFileName"
 
         if (!viewModelFile.exists()) {
             // First save: generate full ViewModel stub
-            val content = runtimeViewModelGenerator.generate(flowGraph, basePackage, generatedPackage)
+            val content = runtimeViewModelGenerator.generate(flowGraph, viewModelPackage, controllerPackage)
             viewModelFile.writeText(content)
             filesCreated.add(relativePath)
         } else {
@@ -1025,7 +1035,7 @@ class ModuleSaveService {
                 filesOverwritten.add(relativePath)
             } else {
                 // Markers missing: treat as fresh generation
-                val content = runtimeViewModelGenerator.generate(flowGraph, basePackage, generatedPackage)
+                val content = runtimeViewModelGenerator.generate(flowGraph, viewModelPackage, controllerPackage)
                 viewModelFile.writeText(content)
                 filesOverwritten.add(relativePath)
             }
@@ -1048,7 +1058,7 @@ class ModuleSaveService {
         flowGraph: FlowGraph,
         moduleDir: File,
         userInterfacePackage: String,
-        generatedPackage: String,
+        viewModelPackage: String,
         filesCreated: MutableList<String>
     ) {
         val uiPackagePath = userInterfacePackage.replace(".", "/")
@@ -1057,7 +1067,7 @@ class ModuleSaveService {
         val relativePath = "src/commonMain/kotlin/$uiPackagePath/$stubFileName"
 
         if (!stubFile.exists()) {
-            val content = userInterfaceStubGenerator.generate(flowGraph, userInterfacePackage, generatedPackage)
+            val content = userInterfaceStubGenerator.generate(flowGraph, userInterfacePackage, viewModelPackage)
             stubFile.writeText(content)
             filesCreated.add(relativePath)
         }
@@ -1103,24 +1113,30 @@ class ModuleSaveService {
         flowGraph: FlowGraph,
         moduleDir: File,
         basePackage: String,
-        generatedPackage: String,
+        flowPackage: String,
+        controllerPackage: String,
+        viewModelPackage: String,
         effectiveModuleName: String,
         filesCreated: MutableList<String>,
         filesOverwritten: MutableList<String>
     ) {
-        val generatedPath = generatedPackage.replace(".", "/")
-        val generatedDir = File(moduleDir, "src/commonMain/kotlin/$generatedPath")
+        val flowPath = flowPackage.replace(".", "/")
+        val controllerPath = controllerPackage.replace(".", "/")
+        val flowDir = File(moduleDir, "src/commonMain/kotlin/$flowPath")
+        val controllerDir = File(moduleDir, "src/commonMain/kotlin/$controllerPath")
 
-        val runtimeFiles = listOf(
-            "${effectiveModuleName}Flow.kt" to runtimeFlowGenerator.generate(flowGraph, generatedPackage, basePackage),
-            "${effectiveModuleName}Controller.kt" to runtimeControllerGenerator.generate(flowGraph, generatedPackage, basePackage),
-            "${effectiveModuleName}ControllerInterface.kt" to runtimeControllerInterfaceGenerator.generate(flowGraph, generatedPackage),
-            "${effectiveModuleName}ControllerAdapter.kt" to runtimeControllerAdapterGenerator.generate(flowGraph, generatedPackage)
+        val flowFile = "${effectiveModuleName}Flow.kt" to runtimeFlowGenerator.generate(flowGraph, flowPackage, viewModelPackage)
+        writeFileAlways(File(flowDir, flowFile.first), flowFile.second, "src/commonMain/kotlin/$flowPath/${flowFile.first}", filesCreated, filesOverwritten)
+
+        val controllerFiles = listOf(
+            "${effectiveModuleName}Controller.kt" to runtimeControllerGenerator.generate(flowGraph, controllerPackage, viewModelPackage),
+            "${effectiveModuleName}ControllerInterface.kt" to runtimeControllerInterfaceGenerator.generate(flowGraph, controllerPackage),
+            "${effectiveModuleName}ControllerAdapter.kt" to runtimeControllerAdapterGenerator.generate(flowGraph, controllerPackage)
         )
 
-        for ((fileName, content) in runtimeFiles) {
-            val file = File(generatedDir, fileName)
-            val relativePath = "src/commonMain/kotlin/$generatedPath/$fileName"
+        for ((fileName, content) in controllerFiles) {
+            val file = File(controllerDir, fileName)
+            val relativePath = "src/commonMain/kotlin/$controllerPath/$fileName"
             writeFileAlways(file, content, relativePath, filesCreated, filesOverwritten)
         }
     }

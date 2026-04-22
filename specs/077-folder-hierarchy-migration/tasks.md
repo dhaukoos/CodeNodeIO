@@ -19,10 +19,10 @@
 
 **⚠️ CRITICAL**: Generator path changes depend on the new subpackage constants.
 
-- [ ] T001 Replace `GENERATED_SUBPACKAGE = "generated"` with `FLOW_SUBPACKAGE = "flow"`, `CONTROLLER_SUBPACKAGE = "controller"`, and `VIEWMODEL_SUBPACKAGE = "viewmodel"` in `flowGraph-generate/src/jvmMain/kotlin/io/codenode/flowgraphgenerate/save/ModuleSaveService.kt`
-- [ ] T002 Update `saveModule()` path construction to write .flow.kt and Flow.kt to `flow/` subpackage, Controller*.kt to `controller/` subpackage, and ViewModel.kt to `viewmodel/` subpackage in `flowGraph-generate/src/jvmMain/kotlin/io/codenode/flowgraphgenerate/save/ModuleSaveService.kt`
-- [ ] T003 Update `saveFlowKtOnly()` to write .flow.kt to `flow/` subpackage instead of base package in `flowGraph-generate/src/jvmMain/kotlin/io/codenode/flowgraphgenerate/save/ModuleSaveService.kt`
-- [ ] T004 Compile: `./gradlew :flowGraph-generate:compileKotlinJvm`
+- [X] T001 Replace `GENERATED_SUBPACKAGE = "generated"` with `FLOW_SUBPACKAGE = "flow"`, `CONTROLLER_SUBPACKAGE = "controller"`, and `VIEWMODEL_SUBPACKAGE = "viewmodel"` in `flowGraph-generate/src/jvmMain/kotlin/io/codenode/flowgraphgenerate/save/ModuleSaveService.kt`
+- [X] T002 Update `saveModule()` path construction to write .flow.kt and Flow.kt to `flow/` subpackage, Controller*.kt to `controller/` subpackage, and ViewModel.kt to `viewmodel/` subpackage in `flowGraph-generate/src/jvmMain/kotlin/io/codenode/flowgraphgenerate/save/ModuleSaveService.kt`
+- [X] T003 Update `saveFlowKtOnly()` to write .flow.kt to `flow/` subpackage instead of base package in `flowGraph-generate/src/jvmMain/kotlin/io/codenode/flowgraphgenerate/save/ModuleSaveService.kt`
+- [X] T004 Compile: `./gradlew :flowGraph-generate:compileKotlinJvm`
 
 **Checkpoint**: ModuleSaveService writes to new paths. Individual generators can now be updated.
 
@@ -36,16 +36,16 @@
 
 ### Implementation
 
-- [ ] T005 [P] [US1] Update `RuntimeFlowGenerator.generate()` — change package declaration from `generatedPackage` to flow subpackage, update any internal imports in `flowGraph-generate/src/commonMain/kotlin/io/codenode/flowgraphgenerate/generator/RuntimeFlowGenerator.kt`
-- [ ] T006 [P] [US1] Update `RuntimeControllerGenerator.generate()` — change package to controller subpackage, update import of Flow.kt to `{basePackage}.flow.{Name}Flow` in `flowGraph-generate/src/commonMain/kotlin/io/codenode/flowgraphgenerate/generator/RuntimeControllerGenerator.kt`
-- [ ] T007 [P] [US1] Update `RuntimeControllerInterfaceGenerator.generate()` — change package to controller subpackage in `flowGraph-generate/src/commonMain/kotlin/io/codenode/flowgraphgenerate/generator/RuntimeControllerInterfaceGenerator.kt`
-- [ ] T008 [P] [US1] Update `RuntimeControllerAdapterGenerator.generate()` — change package to controller subpackage, update import of ControllerInterface to `{basePackage}.controller` in `flowGraph-generate/src/commonMain/kotlin/io/codenode/flowgraphgenerate/generator/RuntimeControllerAdapterGenerator.kt`
-- [ ] T009 [US1] Update `RuntimeViewModelGenerator.generate()` — change package from base to viewmodel subpackage, update imports of ControllerInterface and ControllerAdapter to `{basePackage}.controller` in `flowGraph-generate/src/commonMain/kotlin/io/codenode/flowgraphgenerate/generator/RuntimeViewModelGenerator.kt`
-- [ ] T010 [US1] Update `UserInterfaceStubGenerator.generate()` — update import of ViewModel to `{basePackage}.viewmodel.{Name}ViewModel` in `flowGraph-generate/src/commonMain/kotlin/io/codenode/flowgraphgenerate/generator/UserInterfaceStubGenerator.kt`
-- [ ] T011 [US1] Update `EntityModuleGenerator.generateModule()` — change output paths for converters (to persistence/), .flow.kt (to flow/), runtime files (to flow/ and controller/), ViewModel (to viewmodel/) in `flowGraph-generate/src/commonMain/kotlin/io/codenode/flowgraphgenerate/generator/EntityModuleGenerator.kt`
-- [ ] T012 [US1] Update `EntityConverterGenerator` — verify or update package declaration to persistence subpackage in `flowGraph-generate/src/commonMain/kotlin/io/codenode/flowgraphgenerate/generator/EntityModuleGenerator.kt`
-- [ ] T013 [US1] Update `EntityPersistenceGenerator` — verify package declaration uses persistence subpackage in `flowGraph-generate/src/commonMain/kotlin/io/codenode/flowgraphgenerate/generator/EntityPersistenceGenerator.kt`
-- [ ] T014 [US1] Compile and run existing tests: `./gradlew :flowGraph-generate:jvmTest`
+- [X] T005 [P] [US1] Update `RuntimeFlowGenerator.generate()` — package uses caller-provided flowPackage (no generator-internal change needed, caller passes correct value)
+- [X] T006 [P] [US1] Update `RuntimeControllerGenerator.generate()` — package uses caller-provided controllerPackage, imports State from viewModelPackage
+- [X] T007 [P] [US1] Update `RuntimeControllerInterfaceGenerator.generate()` — package uses caller-provided controllerPackage
+- [X] T008 [P] [US1] Update `RuntimeControllerAdapterGenerator.generate()` — package uses caller-provided controllerPackage
+- [X] T009 [US1] Update `RuntimeViewModelGenerator.generate()` — called with viewModelPackage and controllerPackage from ModuleSaveService
+- [X] T010 [US1] Update `UserInterfaceStubGenerator.generate()` — called with viewModelPackage from ModuleSaveService
+- [X] T011 [US1] Update `EntityModuleGenerator` — saveEntityModule() directory structure uses new subpackages
+- [X] T012 [US1] Update `EntityConverterGenerator` — verified via ModuleSaveService entity module paths
+- [X] T013 [US1] Update `EntityPersistenceGenerator` — verified package uses persistence subpackage
+- [X] T014 [US1] Compile and run existing tests: `./gradlew :flowGraph-generate:jvmTest` — all pass
 
 **Checkpoint**: All generators produce files with correct new packages and imports. New modules use the new layout exclusively.
 
