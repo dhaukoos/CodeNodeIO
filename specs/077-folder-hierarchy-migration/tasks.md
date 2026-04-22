@@ -59,18 +59,18 @@
 
 ### Implementation
 
-- [ ] T015 [US2] Migrate StopWatch module: create flow/, controller/, viewmodel/ directories; move .flow.kt and Flow.kt to flow/, Controller*.kt to controller/ (from generated/), ViewModel.kt to viewmodel/; update package declarations and imports; delete generated/ in `CodeNodeIO-DemoProject/StopWatch/`
-- [ ] T016 [US2] Compile StopWatch: `cd CodeNodeIO-DemoProject && ./gradlew :StopWatch:compileKotlinJvm`
-- [ ] T017 [US2] Migrate UserProfiles module: same pattern as StopWatch plus move Persistence.kt and Converters.kt to persistence/ if not already there; update all package/import references in `CodeNodeIO-DemoProject/UserProfiles/`
-- [ ] T018 [US2] Compile UserProfiles: `cd CodeNodeIO-DemoProject && ./gradlew :UserProfiles:compileKotlinJvm`
-- [ ] T019 [US2] Migrate Addresses module: same pattern as UserProfiles (has persistence files) in `CodeNodeIO-DemoProject/Addresses/`
-- [ ] T020 [US2] Compile Addresses: `cd CodeNodeIO-DemoProject && ./gradlew :Addresses:compileKotlinJvm`
-- [ ] T021 [US2] Migrate EdgeArtFilter module: same pattern as StopWatch (no persistence) in `CodeNodeIO-DemoProject/EdgeArtFilter/`
-- [ ] T022 [US2] Compile EdgeArtFilter: `cd CodeNodeIO-DemoProject && ./gradlew :EdgeArtFilter:compileKotlinJvm`
-- [ ] T023 [US2] Migrate WeatherForecast module: same pattern as StopWatch (no persistence) in `CodeNodeIO-DemoProject/WeatherForecast/`
-- [ ] T024 [US2] Compile WeatherForecast: `cd CodeNodeIO-DemoProject && ./gradlew :WeatherForecast:compileKotlinJvm`
-- [ ] T025 [US2] Migrate TestModule: move ViewModel.kt and State.kt to viewmodel/ if not already there; update imports in `CodeNodeIO-DemoProject/TestModule/`
-- [ ] T026 [US2] Compile TestModule: `cd CodeNodeIO-DemoProject && ./gradlew :TestModule:compileDebugKotlinAndroid`
+- [X] T015 [US2] Migrate StopWatch module: create flow/, controller/, viewmodel/ directories; move .flow.kt and Flow.kt to flow/, Controller*.kt to controller/ (from generated/), ViewModel.kt to viewmodel/; update package declarations and imports; delete generated/ in `CodeNodeIO-DemoProject/StopWatch/`
+- [X] T016 [US2] Compile StopWatch: `cd CodeNodeIO-DemoProject && ./gradlew :StopWatch:compileKotlinJvm`
+- [X] T017 [US2] Migrate UserProfiles module: same pattern as StopWatch plus move Persistence.kt to persistence/; update all package/import references in `CodeNodeIO-DemoProject/UserProfiles/`
+- [X] T018 [US2] Compile UserProfiles: `cd CodeNodeIO-DemoProject && ./gradlew :UserProfiles:compileKotlinJvm`
+- [X] T019 [US2] Migrate Addresses module: same pattern as UserProfiles (has persistence files) in `CodeNodeIO-DemoProject/Addresses/`
+- [X] T020 [US2] Compile Addresses: `cd CodeNodeIO-DemoProject && ./gradlew :Addresses:compileKotlinJvm`
+- [X] T021 [US2] Migrate EdgeArtFilter module: same pattern as StopWatch (no persistence, separate State file stays in base) in `CodeNodeIO-DemoProject/EdgeArtFilter/`
+- [X] T022 [US2] Compile EdgeArtFilter: `cd CodeNodeIO-DemoProject && ./gradlew :EdgeArtFilter:compileKotlinJvm`
+- [X] T023 [US2] Migrate WeatherForecast module: same pattern as EdgeArtFilter (separate State file stays in base) in `CodeNodeIO-DemoProject/WeatherForecast/`
+- [X] T024 [US2] Compile WeatherForecast: `cd CodeNodeIO-DemoProject && ./gradlew :WeatherForecast:compileKotlinJvm`
+- [X] T025 [US2] Migrate TestModule: move ViewModel.kt, State.kt to viewmodel/, .flow.kt to flow/; update imports in `CodeNodeIO-DemoProject/TestModule/`
+- [X] T026 [US2] Compile TestModule: `cd CodeNodeIO-DemoProject && ./gradlew :TestModule:compileDebugKotlinAndroid`
 
 **Checkpoint**: All 6 demo modules compile with the new layout. No `generated/` directories remain.
 

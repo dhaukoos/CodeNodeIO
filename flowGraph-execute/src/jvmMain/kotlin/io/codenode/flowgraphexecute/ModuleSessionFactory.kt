@@ -83,16 +83,18 @@ object ModuleSessionFactory {
     ): Any? {
         val modulePackage = "io.codenode.${moduleName.lowercase()}"
 
-        // Find the ControllerInterface class
-        val interfaceClass = tryLoadClass("${modulePackage}.generated.${moduleName}ControllerInterface")
+        // Find the ControllerInterface class (new layout: controller/, fallback: generated/)
+        val interfaceClass = tryLoadClass("${modulePackage}.controller.${moduleName}ControllerInterface")
+            ?: tryLoadClass("${modulePackage}.generated.${moduleName}ControllerInterface")
             ?: return null
 
         // Create a dynamic proxy for the ControllerInterface
         val stateObject = tryGetStateObject(modulePackage, moduleName)
         val proxy = createControllerProxy(interfaceClass, controller, flowGraphProvider, stateObject)
 
-        // Find the ViewModel class and instantiate it
-        val viewModelClass = tryLoadClass("${modulePackage}.${moduleName}ViewModel")
+        // Find the ViewModel class (new layout: viewmodel/, fallback: base package)
+        val viewModelClass = tryLoadClass("${modulePackage}.viewmodel.${moduleName}ViewModel")
+            ?: tryLoadClass("${modulePackage}.${moduleName}ViewModel")
             ?: return null
 
         return tryCreateViewModel(viewModelClass, interfaceClass, proxy)
@@ -199,7 +201,9 @@ object ModuleSessionFactory {
     }
 
     private fun tryGetStateObject(modulePackage: String, moduleName: String): Any? {
-        val stateClass = tryLoadClass("${modulePackage}.${moduleName}State") ?: return null
+        val stateClass = tryLoadClass("${modulePackage}.viewmodel.${moduleName}State")
+            ?: tryLoadClass("${modulePackage}.${moduleName}State")
+            ?: return null
         return try {
             stateClass.getField("INSTANCE").get(null)
         } catch (_: Exception) {
