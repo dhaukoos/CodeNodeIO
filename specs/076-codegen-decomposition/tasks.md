@@ -19,10 +19,10 @@
 
 **⚠️ CRITICAL**: The file tree model is shared infrastructure for US1 (documents reference it) and US2 (panel renders it).
 
-- [ ] T001 Create `GenerationPath` enum (GENERATE_MODULE, REPOSITORY, UI_FBP), `GenerationFileTree`, `FolderNode`, `FileNode`, and `TriState` data model in `flowGraph-generate/src/commonMain/kotlin/io/codenode/flowgraphgenerate/model/GenerationFileTree.kt`
-- [ ] T002 Add `toggleFolder(folderName)` and `toggleFile(folderName, fileName)` methods to `GenerationFileTree` that correctly update folder TriState (ALL/NONE/PARTIAL) when children change in `flowGraph-generate/src/commonMain/kotlin/io/codenode/flowgraphgenerate/model/GenerationFileTree.kt`
-- [ ] T003 Add unit tests for GenerationFileTree: folder toggle selects/deselects all children, individual file toggle updates parent to PARTIAL, empty tree handling in `flowGraph-generate/src/commonTest/kotlin/io/codenode/flowgraphgenerate/model/GenerationFileTreeTest.kt`
-- [ ] T004 Compile and run tests: `./gradlew :flowGraph-generate:jvmTest`
+- [X] T001 Create `GenerationPath` enum (GENERATE_MODULE, REPOSITORY, UI_FBP), `GenerationFileTree`, `FolderNode`, `FileNode`, and `TriState` data model in `flowGraph-generate/src/commonMain/kotlin/io/codenode/flowgraphgenerate/model/GenerationFileTree.kt`
+- [X] T002 Add `toggleFolder(folderName)` and `toggleFile(folderName, fileName)` methods to `GenerationFileTree` that correctly update folder TriState (ALL/NONE/PARTIAL) when children change in `flowGraph-generate/src/commonMain/kotlin/io/codenode/flowgraphgenerate/model/GenerationFileTree.kt`
+- [X] T003 Add unit tests for GenerationFileTree: folder toggle selects/deselects all children, individual file toggle updates parent to PARTIAL, empty tree handling in `flowGraph-generate/src/commonTest/kotlin/io/codenode/flowgraphgenerate/model/GenerationFileTreeTest.kt`
+- [X] T004 Compile and run tests: `./gradlew :flowGraph-generate:jvmTest`
 
 **Checkpoint**: GenerationFileTree model is ready. US1 and US2 can proceed.
 
@@ -36,13 +36,13 @@
 
 ### Implementation
 
-- [ ] T005 [US1] Catalogue all generator classes in `flowGraph-generate/src/commonMain/kotlin/io/codenode/flowgraphgenerate/generator/` — list each class name, file path, inputs, outputs (generated files), and dependencies in `specs/076-codegen-decomposition/dependency-analysis.md`
-- [ ] T006 [US1] Catalogue the orchestrator classes (`ModuleSaveService.saveModule()`, `saveEntityModule()`, `UIFBPInterfaceGenerator.generateAll()`) with their generator call sequences in `specs/076-codegen-decomposition/dependency-analysis.md`
-- [ ] T007 [US1] Draw a dependency graph (Mermaid or ASCII) showing directed edges from prerequisite generators to dependent generators, with Module Scaffolding as the root node in `specs/076-codegen-decomposition/dependency-analysis.md`
-- [ ] T008 [US1] Identify module scaffolding as a distinct prerequisite component (Module name from top bar → directory structure + gradle files) and document its extraction boundary in `specs/076-codegen-decomposition/dependency-analysis.md`
-- [ ] T009 [US1] Propose refined folder hierarchy: map every file from the existing Addresses module into the new structure (flow/, controller/, viewmodel/, nodes/, userInterface/, persistence/) in `specs/076-codegen-decomposition/dependency-analysis.md`
-- [ ] T010 [US1] Identify which generators could become independent CodeNodes vs GraphNodes in a future code-generation flow graph in `specs/076-codegen-decomposition/dependency-analysis.md`
-- [ ] T011 [US1] Create file tree builders for each generation path — static methods that produce `GenerationFileTree` for Generate Module, Repository, and UI-FBP paths given appropriate inputs in `flowGraph-generate/src/commonMain/kotlin/io/codenode/flowgraphgenerate/model/GenerationFileTreeBuilder.kt`
+- [X] T005 [US1] Catalogue all generator classes in `flowGraph-generate/src/commonMain/kotlin/io/codenode/flowgraphgenerate/generator/` — list each class name, file path, inputs, outputs (generated files), and dependencies in `specs/076-codegen-decomposition/dependency-analysis.md`
+- [X] T006 [US1] Catalogue the orchestrator classes (`ModuleSaveService.saveModule()`, `saveEntityModule()`, `UIFBPInterfaceGenerator.generateAll()`) with their generator call sequences in `specs/076-codegen-decomposition/dependency-analysis.md`
+- [X] T007 [US1] Draw a dependency graph (Mermaid or ASCII) showing directed edges from prerequisite generators to dependent generators, with Module Scaffolding as the root node in `specs/076-codegen-decomposition/dependency-analysis.md`
+- [X] T008 [US1] Identify module scaffolding as a distinct prerequisite component (Module name from top bar → directory structure + gradle files) and document its extraction boundary in `specs/076-codegen-decomposition/dependency-analysis.md`
+- [X] T009 [US1] Propose refined folder hierarchy: map every file from the existing Addresses module into the new structure (flow/, controller/, viewmodel/, nodes/, userInterface/, persistence/) in `specs/076-codegen-decomposition/dependency-analysis.md`
+- [X] T010 [US1] Identify which generators could become independent CodeNodes vs GraphNodes in a future code-generation flow graph in `specs/076-codegen-decomposition/dependency-analysis.md`
+- [X] T011 [US1] Create file tree builders for each generation path — static methods that produce `GenerationFileTree` for Generate Module, Repository, and UI-FBP paths given appropriate inputs in `flowGraph-generate/src/commonMain/kotlin/io/codenode/flowgraphgenerate/model/GenerationFileTreeBuilder.kt`
 
 **Checkpoint**: Dependency analysis document is complete. Every generator is catalogued, dependencies mapped, folder hierarchy proposed.
 
