@@ -84,11 +84,11 @@
 
 ### Implementation
 
-- [ ] T027 [US3] Update `ModuleSessionFactory` class loading to try `{modulePackage}.controller.{Name}ControllerInterface` first, falling back to `{modulePackage}.generated.{Name}ControllerInterface` for backward compatibility in `flowGraph-execute/src/jvmMain/kotlin/io/codenode/flowgraphexecute/ModuleSessionFactory.kt`
-- [ ] T028 [US3] Update `ModuleSessionFactory` ViewModel resolution to try `{modulePackage}.viewmodel.{Name}ViewModel` first, falling back to `{modulePackage}.{Name}ViewModel` in `flowGraph-execute/src/jvmMain/kotlin/io/codenode/flowgraphexecute/ModuleSessionFactory.kt`
-- [ ] T029 [US3] Verify `GraphEditorApp.kt` scanning for `nodes/` and `userInterface/` directories uses name-based matching that works with the new layout (no changes expected) in `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/GraphEditorApp.kt`
-- [ ] T030 [US3] Verify `DynamicPreviewDiscovery` continues to find preview providers in `userInterface/` (no changes expected) in `flowGraph-inspect/src/jvmMain/kotlin/io/codenode/flowgraphinspect/discovery/DynamicPreviewDiscovery.kt`
-- [ ] T031 [US3] Compile and run all tests: `./gradlew :flowGraph-execute:compileKotlinJvm :graphEditor:compileKotlinJvm :graphEditor:jvmTest`
+- [X] T027 [US3] Update `ModuleSessionFactory` class loading to try `{modulePackage}.controller.{Name}ControllerInterface` first, falling back to `{modulePackage}.generated.{Name}ControllerInterface` for backward compatibility in `flowGraph-execute/src/jvmMain/kotlin/io/codenode/flowgraphexecute/ModuleSessionFactory.kt`
+- [X] T028 [US3] Update `ModuleSessionFactory` ViewModel and State resolution with dual-layout fallback (viewmodel/ first, then base package) in `flowGraph-execute/src/jvmMain/kotlin/io/codenode/flowgraphexecute/ModuleSessionFactory.kt`
+- [X] T029 [US3] Verified `GraphEditorApp.kt` scanning uses name-based matching (`it.name == "nodes"`, `it.name == "userInterface"`) — works with new layout, no changes needed
+- [X] T030 [US3] Verified `DynamicPreviewDiscovery` scans `userInterface/` for `*PreviewProvider.kt` — path unchanged, no changes needed
+- [X] T031 [US3] Compile and run all tests: `./gradlew :flowGraph-execute:compileKotlinJvm :graphEditor:compileKotlinJvm :graphEditor:jvmTest` — BUILD SUCCESSFUL
 
 **Checkpoint**: Runtime class resolution works with both old and new layouts. Graph editor discovers all nodes and previews.
 
@@ -98,10 +98,10 @@
 
 **Purpose**: Full verification across all quickstart scenarios
 
-- [ ] T032 Run full test suite: `./gradlew :flowGraph-generate:jvmTest :graphEditor:jvmTest`
-- [ ] T033 Run quickstart.md verification scenarios VS1–VS11
-- [ ] T034 Verify no `generated/` directories remain in migrated demo modules: `find CodeNodeIO-DemoProject -name "generated" -type d`
-- [ ] T035 Verify user-authored files are unchanged: compare UI composable files before and after migration
+- [X] T032 Run full test suite: `./gradlew :flowGraph-generate:jvmTest :graphEditor:jvmTest` — BUILD SUCCESSFUL
+- [X] T033 Run quickstart.md verification scenarios VS1–VS11
+- [X] T034 Verify no `generated/` directories remain — zero found
+- [X] T035 Verify user-authored files unchanged — UI composables (StopWatchScreen.kt, etc.) not moved, only imports updated
 
 ---
 
