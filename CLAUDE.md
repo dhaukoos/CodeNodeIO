@@ -124,6 +124,8 @@ Auto-generated from all feature plans. Last updated: 2026-01-13
 - Filesystem — generated .kt source files in KMP module structures (077-folder-hierarchy-migration)
 - Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + flowGraph-generate (ModuleSaveService, ModuleGenerator) (078-extract-module-scaffolding)
 - Filesystem — generated KMP module directories (078-extract-module-scaffolding)
+- Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + fbpDsl (CodeNodeDefinition, CodeNodeType, PortSpec, NodeRuntime), flowGraph-generate (existing generators) (079-generator-codenode-wrappers)
+- N/A — pure code, no persistence (079-generator-codenode-wrappers)
 
 - Kotlin 1.9+, Go 1.21+ (001-ide-plugin-platform)
 
@@ -143,9 +145,9 @@ tests/
 Kotlin 1.9+, Go 1.21+: Follow standard conventions
 
 ## Recent Changes
+- 079-generator-codenode-wrappers: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + fbpDsl (CodeNodeDefinition, CodeNodeType, PortSpec, NodeRuntime), flowGraph-generate (existing generators)
 - 078-extract-module-scaffolding: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + flowGraph-generate (ModuleSaveService, ModuleGenerator)
 - 077-folder-hierarchy-migration: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + Compose Desktop 1.7.3 + flowGraph-generate (generators, ModuleSaveService, EntityModuleGenerator), flowGraph-inspect (NodeDefinitionRegistry), flowGraph-execute (ModuleSessionFactory), graphEditor (scanning, DynamicPreviewDiscovery)
-- 076-codegen-decomposition: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + Compose Desktop 1.7.3, kotlinx-coroutines 1.8.0 + graphEditor (UI panel), flowGraph-generate (generator analysis), fbpDsl (FeatureGate for tier gating)
 
 
 <!-- MANUAL ADDITIONS START -->
