@@ -1,2 +1,17 @@
 io.codenode.flowgraphgenerate.nodes.GenerateContextAggregatorCodeNode
 io.codenode.flowgraphgenerate.nodes.FlowGraphGenerateCodeNode
+io.codenode.flowgraphgenerate.nodes.FlowKtGeneratorNode
+io.codenode.flowgraphgenerate.nodes.RuntimeFlowGeneratorNode
+io.codenode.flowgraphgenerate.nodes.RuntimeControllerGeneratorNode
+io.codenode.flowgraphgenerate.nodes.RuntimeControllerInterfaceGeneratorNode
+io.codenode.flowgraphgenerate.nodes.RuntimeControllerAdapterGeneratorNode
+io.codenode.flowgraphgenerate.nodes.RuntimeViewModelGeneratorNode
+io.codenode.flowgraphgenerate.nodes.UserInterfaceStubGeneratorNode
+io.codenode.flowgraphgenerate.nodes.EntityCUDGeneratorNode
+io.codenode.flowgraphgenerate.nodes.EntityRepositoryGeneratorNode
+io.codenode.flowgraphgenerate.nodes.EntityDisplayGeneratorNode
+io.codenode.flowgraphgenerate.nodes.EntityPersistenceGeneratorNode
+io.codenode.flowgraphgenerate.nodes.UIFBPStateGeneratorNode
+io.codenode.flowgraphgenerate.nodes.UIFBPViewModelGeneratorNode
+io.codenode.flowgraphgenerate.nodes.UIFBPSourceGeneratorNode
+io.codenode.flowgraphgenerate.nodes.UIFBPSinkGeneratorNode

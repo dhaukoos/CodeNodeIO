@@ -59,16 +59,16 @@
 
 ### Implementation
 
-- [ ] T013 [P] [US3] Create `EntityCUDGeneratorNode` — delegates to `EntityCUDCodeNodeGenerator().generate()`, input "entitySpec" (Any::class) in `flowGraph-generate/src/commonMain/kotlin/io/codenode/flowgraphgenerate/nodes/EntityCUDGeneratorNode.kt`
-- [ ] T014 [P] [US3] Create `EntityRepositoryGeneratorNode` — delegates to `EntityRepositoryCodeNodeGenerator().generate()` in `flowGraph-generate/src/commonMain/kotlin/io/codenode/flowgraphgenerate/nodes/EntityRepositoryGeneratorNode.kt`
-- [ ] T015 [P] [US3] Create `EntityDisplayGeneratorNode` — delegates to `EntityDisplayCodeNodeGenerator().generate()` in `flowGraph-generate/src/commonMain/kotlin/io/codenode/flowgraphgenerate/nodes/EntityDisplayGeneratorNode.kt`
-- [ ] T016 [P] [US3] Create `EntityPersistenceGeneratorNode` — delegates to `EntityPersistenceGenerator().generate()` in `flowGraph-generate/src/commonMain/kotlin/io/codenode/flowgraphgenerate/nodes/EntityPersistenceGeneratorNode.kt`
-- [ ] T017 [P] [US3] Create `UIFBPStateGeneratorNode` — delegates to `UIFBPStateGenerator().generate()`, input "uiFBPSpec" (Any::class) in `flowGraph-generate/src/commonMain/kotlin/io/codenode/flowgraphgenerate/nodes/UIFBPStateGeneratorNode.kt`
-- [ ] T018 [P] [US3] Create `UIFBPViewModelGeneratorNode` — delegates to `UIFBPViewModelGenerator().generate()` in `flowGraph-generate/src/commonMain/kotlin/io/codenode/flowgraphgenerate/nodes/UIFBPViewModelGeneratorNode.kt`
-- [ ] T019 [P] [US3] Create `UIFBPSourceGeneratorNode` — delegates to `UIFBPSourceCodeNodeGenerator().generate()` in `flowGraph-generate/src/commonMain/kotlin/io/codenode/flowgraphgenerate/nodes/UIFBPSourceGeneratorNode.kt`
-- [ ] T020 [P] [US3] Create `UIFBPSinkGeneratorNode` — delegates to `UIFBPSinkCodeNodeGenerator().generate()` in `flowGraph-generate/src/commonMain/kotlin/io/codenode/flowgraphgenerate/nodes/UIFBPSinkGeneratorNode.kt`
-- [ ] T021 [US3] Add unit tests for all 8 entity/UI-FBP wrappers — each produces non-empty output for appropriate spec input in `flowGraph-generate/src/commonTest/kotlin/io/codenode/flowgraphgenerate/nodes/GeneratorCodeNodeTest.kt`
-- [ ] T022 [US3] Compile and run all tests: `./gradlew :flowGraph-generate:jvmTest`
+- [X] T013 [P] [US3] Create `EntityCUDGeneratorNode` in `flowGraph-generate/src/commonMain/kotlin/io/codenode/flowgraphgenerate/nodes/EntityCUDGeneratorNode.kt`
+- [X] T014 [P] [US3] Create `EntityRepositoryGeneratorNode` in `flowGraph-generate/src/commonMain/kotlin/io/codenode/flowgraphgenerate/nodes/EntityRepositoryGeneratorNode.kt`
+- [X] T015 [P] [US3] Create `EntityDisplayGeneratorNode` in `flowGraph-generate/src/commonMain/kotlin/io/codenode/flowgraphgenerate/nodes/EntityDisplayGeneratorNode.kt`
+- [X] T016 [P] [US3] Create `EntityPersistenceGeneratorNode` in `flowGraph-generate/src/commonMain/kotlin/io/codenode/flowgraphgenerate/nodes/EntityPersistenceGeneratorNode.kt`
+- [X] T017 [P] [US3] Create `UIFBPStateGeneratorNode` in `flowGraph-generate/src/commonMain/kotlin/io/codenode/flowgraphgenerate/nodes/UIFBPStateGeneratorNode.kt`
+- [X] T018 [P] [US3] Create `UIFBPViewModelGeneratorNode` in `flowGraph-generate/src/commonMain/kotlin/io/codenode/flowgraphgenerate/nodes/UIFBPViewModelGeneratorNode.kt`
+- [X] T019 [P] [US3] Create `UIFBPSourceGeneratorNode` in `flowGraph-generate/src/commonMain/kotlin/io/codenode/flowgraphgenerate/nodes/UIFBPSourceGeneratorNode.kt`
+- [X] T020 [P] [US3] Create `UIFBPSinkGeneratorNode` in `flowGraph-generate/src/commonMain/kotlin/io/codenode/flowgraphgenerate/nodes/UIFBPSinkGeneratorNode.kt`
+- [X] T021 [US3] Add unit tests for all 8 entity/UI-FBP wrappers in `flowGraph-generate/src/commonTest/kotlin/io/codenode/flowgraphgenerate/nodes/GeneratorCodeNodeTest.kt`
+- [X] T022 [US3] Compile and run all tests: `./gradlew :flowGraph-generate:jvmTest` — all pass
 
 **Checkpoint**: All 15 generator CodeNodes work, tested, and ready for palette discovery.
 
@@ -78,9 +78,9 @@
 
 **Purpose**: Full verification and palette discovery
 
-- [ ] T023 Run full test suite: `./gradlew :flowGraph-generate:jvmTest :graphEditor:jvmTest`
-- [ ] T024 Verify all 15 generator CodeNodes are discoverable by node palette (launch graph editor, search for "Generator")
-- [ ] T025 Verify existing generators are unchanged: `git diff` shows zero modifications to files in `generator/` directory
+- [X] T023 Run full test suite: `./gradlew :flowGraph-generate:jvmTest :graphEditor:jvmTest` — BUILD SUCCESSFUL
+- [X] T024 Verify all 15 generator CodeNodes are discoverable by node palette
+- [X] T025 Verify existing generators unchanged: zero modifications to `generator/` directory
 
 ---
 

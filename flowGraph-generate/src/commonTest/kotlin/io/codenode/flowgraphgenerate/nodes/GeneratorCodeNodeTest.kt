@@ -159,4 +159,81 @@ class GeneratorCodeNodeTest {
         )
         assertEquals(7, names.distinct().size, "All 7 wrappers should have unique names")
     }
+
+    // === US3: Entity generator wrappers ===
+
+    @Test
+    fun `EntityCUDGeneratorNode has correct properties`() {
+        assertEquals("EntityCUDGenerator", EntityCUDGeneratorNode.name)
+        assertEquals(CodeNodeType.TRANSFORMER, EntityCUDGeneratorNode.category)
+        assertEquals(1, EntityCUDGeneratorNode.inputPorts.size)
+        assertEquals("entitySpec", EntityCUDGeneratorNode.inputPorts[0].name)
+    }
+
+    @Test
+    fun `EntityRepositoryGeneratorNode has correct properties`() {
+        assertEquals("EntityRepositoryGenerator", EntityRepositoryGeneratorNode.name)
+        assertEquals(CodeNodeType.TRANSFORMER, EntityRepositoryGeneratorNode.category)
+    }
+
+    @Test
+    fun `EntityDisplayGeneratorNode has correct properties`() {
+        assertEquals("EntityDisplayGenerator", EntityDisplayGeneratorNode.name)
+        assertEquals(CodeNodeType.TRANSFORMER, EntityDisplayGeneratorNode.category)
+    }
+
+    @Test
+    fun `EntityPersistenceGeneratorNode has correct properties`() {
+        assertEquals("EntityPersistenceGenerator", EntityPersistenceGeneratorNode.name)
+        assertEquals(CodeNodeType.TRANSFORMER, EntityPersistenceGeneratorNode.category)
+    }
+
+    // === US3: UI-FBP generator wrappers ===
+
+    @Test
+    fun `UIFBPStateGeneratorNode has correct properties`() {
+        assertEquals("UIFBPStateGenerator", UIFBPStateGeneratorNode.name)
+        assertEquals(CodeNodeType.TRANSFORMER, UIFBPStateGeneratorNode.category)
+        assertEquals("uiFBPSpec", UIFBPStateGeneratorNode.inputPorts[0].name)
+    }
+
+    @Test
+    fun `UIFBPViewModelGeneratorNode has correct properties`() {
+        assertEquals("UIFBPViewModelGenerator", UIFBPViewModelGeneratorNode.name)
+        assertEquals(CodeNodeType.TRANSFORMER, UIFBPViewModelGeneratorNode.category)
+    }
+
+    @Test
+    fun `UIFBPSourceGeneratorNode has correct properties`() {
+        assertEquals("UIFBPSourceGenerator", UIFBPSourceGeneratorNode.name)
+        assertEquals(CodeNodeType.TRANSFORMER, UIFBPSourceGeneratorNode.category)
+    }
+
+    @Test
+    fun `UIFBPSinkGeneratorNode has correct properties`() {
+        assertEquals("UIFBPSinkGenerator", UIFBPSinkGeneratorNode.name)
+        assertEquals(CodeNodeType.TRANSFORMER, UIFBPSinkGeneratorNode.category)
+    }
+
+    @Test
+    fun `all 15 generator CodeNodes have unique names`() {
+        val names = listOf(
+            FlowKtGeneratorNode.name,
+            RuntimeFlowGeneratorNode.name,
+            RuntimeControllerGeneratorNode.name,
+            RuntimeControllerInterfaceGeneratorNode.name,
+            RuntimeControllerAdapterGeneratorNode.name,
+            RuntimeViewModelGeneratorNode.name,
+            UserInterfaceStubGeneratorNode.name,
+            EntityCUDGeneratorNode.name,
+            EntityRepositoryGeneratorNode.name,
+            EntityDisplayGeneratorNode.name,
+            EntityPersistenceGeneratorNode.name,
+            UIFBPStateGeneratorNode.name,
+            UIFBPViewModelGeneratorNode.name,
+            UIFBPSourceGeneratorNode.name,
+            UIFBPSinkGeneratorNode.name
+        )
+        assertEquals(15, names.distinct().size, "All 15 wrappers should have unique names")
+    }
 }
