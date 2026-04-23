@@ -47,20 +47,8 @@ fun CodeGeneratorPanel(
             .padding(12.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth().clickable { viewModel.toggleExpanded() },
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = if (state.isExpanded) "\u25BC" else "\u25B6",
-                fontSize = 12.sp,
-                modifier = Modifier.padding(end = 8.dp)
-            )
-            Text("Code Generator", fontWeight = FontWeight.Bold, fontSize = 14.sp)
-        }
-
-        if (state.isExpanded) {
-            Divider()
+        Text("Code Generator", fontWeight = FontWeight.Bold, fontSize = 14.sp)
+        Divider()
 
             PathSelector(
                 selectedPath = state.selectedPath,
@@ -102,7 +90,6 @@ fun CodeGeneratorPanel(
             ) {
                 Text("Generate", fontSize = 12.sp)
             }
-        }
     }
 }
 
