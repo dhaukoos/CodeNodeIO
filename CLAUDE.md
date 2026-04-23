@@ -128,6 +128,7 @@ Auto-generated from all feature plans. Last updated: 2026-01-13
 - N/A — pure code, no persistence (079-generator-codenode-wrappers)
 - Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + flowGraph-generate (Generator CodeNode wrappers, GenerationConfig), fbpDsl (FlowGraph DSL for .flow.kt files) (080-codegen-flow-graphs)
 - N/A — in-memory content production (080-codegen-flow-graphs)
+- Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + Compose Desktop 1.7.3 + graphEditor (CodeGeneratorPanel, TopToolbar, GraphEditorApp), flowGraph-generate (CodeGenerationRunner, ModuleScaffoldingGenerator, SelectionFilter) (081-wire-codegen-panel)
 
 - Kotlin 1.9+, Go 1.21+ (001-ide-plugin-platform)
 
@@ -147,9 +148,9 @@ tests/
 Kotlin 1.9+, Go 1.21+: Follow standard conventions
 
 ## Recent Changes
+- 081-wire-codegen-panel: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + Compose Desktop 1.7.3 + graphEditor (CodeGeneratorPanel, TopToolbar, GraphEditorApp), flowGraph-generate (CodeGenerationRunner, ModuleScaffoldingGenerator, SelectionFilter)
 - 080-codegen-flow-graphs: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + flowGraph-generate (Generator CodeNode wrappers, GenerationConfig), fbpDsl (FlowGraph DSL for .flow.kt files)
 - 079-generator-codenode-wrappers: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + fbpDsl (CodeNodeDefinition, CodeNodeType, PortSpec, NodeRuntime), flowGraph-generate (existing generators)
-- 078-extract-module-scaffolding: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + flowGraph-generate (ModuleSaveService, ModuleGenerator)
 
 
 <!-- MANUAL ADDITIONS START -->
