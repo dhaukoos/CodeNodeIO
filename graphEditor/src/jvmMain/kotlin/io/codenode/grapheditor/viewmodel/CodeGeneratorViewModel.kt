@@ -5,12 +5,20 @@
 
 package io.codenode.grapheditor.viewmodel
 
+import io.codenode.fbpdsl.model.FlowGraph
 import io.codenode.flowgraphgenerate.model.GenerationFileTree
 import io.codenode.flowgraphgenerate.model.GenerationFileTreeBuilder
 import io.codenode.flowgraphgenerate.model.GenerationPath
+import io.codenode.flowgraphgenerate.nodes.GenerationConfig
+import io.codenode.flowgraphgenerate.runner.CodeGenerationRunner
+import io.codenode.flowgraphgenerate.runner.GenerationFileWriter
+import io.codenode.flowgraphgenerate.runner.GenerationResult
+import io.codenode.flowgraphgenerate.runner.SelectionFilter
+import io.codenode.flowgraphgenerate.save.ModuleScaffoldingGenerator
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import java.io.File
 
 data class CodeGeneratorPanelState(
     val isExpanded: Boolean = false,
@@ -87,6 +95,42 @@ class CodeGeneratorViewModel {
         _state.value = _state.value.copy(
             fileTree = _state.value.fileTree.toggleFile(folderName, fileName)
         )
+    }
+
+    private val runner = CodeGenerationRunner()
+    private val scaffoldingGenerator = ModuleScaffoldingGenerator()
+    private val fileWriter = GenerationFileWriter()
+
+    suspend fun generate(
+        outputDir: File,
+        flowGraph: FlowGraph,
+        targetPlatforms: List<FlowGraph.TargetPlatform> = emptyList()
+    ): GenerationResult {
+        val s = _state.value
+        val moduleName = s.flowGraphName
+
+        val scaffold = scaffoldingGenerator.generate(
+            moduleName = moduleName,
+            outputDir = outputDir,
+            targetPlatforms = targetPlatforms
+        )
+
+        val config = GenerationConfig(
+            flowGraph = flowGraph,
+            basePackage = scaffold.basePackage,
+            flowPackage = scaffold.flowPackage,
+            controllerPackage = scaffold.controllerPackage,
+            viewModelPackage = scaffold.viewModelPackage,
+            userInterfacePackage = scaffold.userInterfacePackage,
+            moduleName = moduleName
+        )
+
+        val filter = SelectionFilter.fromFileTree(s.fileTree)
+        val result = runner.execute(s.selectedPath, config, filter)
+
+        fileWriter.write(result, scaffold.moduleDir, scaffold.basePackage, moduleName)
+
+        return result
     }
 
     private fun rebuildFileTree() {

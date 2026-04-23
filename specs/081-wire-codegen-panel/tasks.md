@@ -17,9 +17,9 @@
 
 **Purpose**: Create the GenerationFileWriter utility that maps GenerationResult to disk writes.
 
-- [ ] T001 Create `GenerationFileWriter` class with `write(result: GenerationResult, moduleDir: File, basePackage: String): List<String>` that maps generatorId → subdirectory/filename and writes content to the correct paths in `flowGraph-generate/src/jvmMain/kotlin/io/codenode/flowgraphgenerate/runner/GenerationFileWriter.kt`
-- [ ] T002 Add unit test: GenerationFileWriter writes FlowKtGenerator content to `flow/{Name}.flow.kt` and RuntimeControllerGenerator content to `controller/{Name}Controller.kt` in `flowGraph-generate/src/jvmTest/kotlin/io/codenode/flowgraphgenerate/runner/GenerationFileWriterTest.kt`
-- [ ] T003 Compile and run: `./gradlew :flowGraph-generate:jvmTest`
+- [X] T001 Create `GenerationFileWriter` with generatorId → path mapping and file writing in `flowGraph-generate/src/jvmMain/kotlin/io/codenode/flowgraphgenerate/runner/GenerationFileWriter.kt`
+- [X] T002 Add 5 unit tests for GenerationFileWriter in `flowGraph-generate/src/jvmTest/kotlin/io/codenode/flowgraphgenerate/runner/GenerationFileWriterTest.kt`
+- [X] T003 Compile and run: `./gradlew :flowGraph-generate:jvmTest` — all pass
 
 **Checkpoint**: File writer maps generator output to correct disk locations.
 
@@ -33,11 +33,11 @@
 
 ### Implementation
 
-- [ ] T004 [US1] Enable the "Generate" button conditionally: always for GENERATE_MODULE, requires IP Type for REPOSITORY, requires UI file for UI_FBP in `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/CodeGeneratorPanel.kt`
-- [ ] T005 [US1] Add `generate(outputDir: File)` suspend method to `CodeGeneratorViewModel` that builds GenerationConfig from panel state, creates SelectionFilter from file tree, calls ModuleScaffoldingGenerator, calls CodeGenerationRunner.execute(), calls GenerationFileWriter.write(), and returns GenerationResult in `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/viewmodel/CodeGeneratorViewModel.kt`
-- [ ] T006 [US1] Wire the "Generate" button onClick to call `viewModel.generate()` with the output directory, show a directory chooser if needed, and display the GenerationResult as a status message in `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/CodeGeneratorPanel.kt`
-- [ ] T007 [US1] Pass `onStatusMessage` callback and output directory context to `CodeGeneratorPanel` from `GraphEditorLayout.kt` and `GraphEditorApp.kt` in `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/GraphEditorLayout.kt`
-- [ ] T008 [US1] Compile and run: `./gradlew :graphEditor:compileKotlinJvm :graphEditor:jvmTest`
+- [X] T004 [US1] Enable Generate button conditionally per generation path in `CodeGeneratorPanel.kt`
+- [X] T005 [US1] Add `generate()` suspend method to `CodeGeneratorViewModel` — scaffolding → runner → file writer pipeline
+- [X] T006 [US1] Wire Generate button onClick with directory chooser and status message in `CodeGeneratorPanel.kt`
+- [X] T007 [US1] Wire onGenerate callback from `GraphEditorLayout.kt` with coroutine launch and status message
+- [X] T008 [US1] Compile and run: `./gradlew :graphEditor:compileKotlinJvm :graphEditor:jvmTest` — BUILD SUCCESSFUL
 
 **Checkpoint**: Generate button works end-to-end. Files written to disk. Status message shown.
 

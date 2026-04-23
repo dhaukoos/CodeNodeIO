@@ -31,6 +31,7 @@ import io.codenode.grapheditor.viewmodel.CodeGeneratorViewModel
 fun CodeGeneratorPanel(
     viewModel: CodeGeneratorViewModel,
     ipTypes: List<InformationPacketType> = emptyList(),
+    onGenerate: () -> Unit = {},
     onCreateRepositoryModule: ((String) -> Unit)? = null,
     onRemoveRepositoryModule: ((String) -> Unit)? = null,
     moduleExists: (String) -> Boolean = { false },
@@ -89,13 +90,15 @@ fun CodeGeneratorPanel(
             }
 
             Divider()
+            val generateEnabled = when (state.selectedPath) {
+                GenerationPath.GENERATE_MODULE -> true
+                GenerationPath.REPOSITORY -> state.selectedIPTypeId != null
+                GenerationPath.UI_FBP -> state.selectedUIFilePath != null
+            }
             Button(
-                onClick = { },
-                enabled = false,
-                modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(
-                    disabledBackgroundColor = Color(0xFFE0E0E0)
-                )
+                onClick = onGenerate,
+                enabled = generateEnabled,
+                modifier = Modifier.fillMaxWidth()
             ) {
                 Text("Generate", fontSize = 12.sp)
             }

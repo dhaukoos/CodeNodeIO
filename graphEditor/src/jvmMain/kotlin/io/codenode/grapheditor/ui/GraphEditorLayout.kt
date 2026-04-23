@@ -5,6 +5,7 @@
 
 package io.codenode.grapheditor.ui
 
+import kotlinx.coroutines.launch
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.Divider
@@ -279,6 +280,24 @@ fun ColumnScope.GraphEditorContent(
                     CodeGeneratorPanel(
                         viewModel = codeGeneratorViewModel,
                         ipTypes = ipTypes,
+                        onGenerate = {
+                            kotlinx.coroutines.MainScope().launch {
+                                val dir = showDirectoryChooser("Generate Module To")
+                                if (dir != null) {
+                                    val result = codeGeneratorViewModel.generate(
+                                        outputDir = dir,
+                                        flowGraph = graphState.flowGraph,
+                                        targetPlatforms = graphState.flowGraph.targetPlatforms
+                                    )
+                                    val msg = if (result.isSuccess) {
+                                        "Generated ${result.totalGenerated} files for ${graphState.flowGraph.name}"
+                                    } else {
+                                        "Generated ${result.totalGenerated} files, ${result.totalErrors} errors"
+                                    }
+                                    onStatusMessage(msg)
+                                }
+                            }
+                        },
                         modifier = Modifier.fillMaxHeight()
                     )
                 }
