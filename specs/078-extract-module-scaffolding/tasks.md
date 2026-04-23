@@ -21,19 +21,19 @@
 
 ### Tests
 
-- [ ] T001 [P] [US1] Add test: `generate()` creates module directory with correct name in `flowGraph-generate/src/jvmTest/kotlin/io/codenode/flowgraphgenerate/save/ModuleScaffoldingGeneratorTest.kt`
-- [ ] T002 [P] [US1] Add test: `generate()` creates commonMain, jvmMain, commonTest source set directories with correct package paths in `flowGraph-generate/src/jvmTest/kotlin/io/codenode/flowgraphgenerate/save/ModuleScaffoldingGeneratorTest.kt`
-- [ ] T003 [P] [US1] Add test: `generate()` creates all subdirectories (flow/, controller/, viewmodel/, userInterface/, nodes/, iptypes/) in `flowGraph-generate/src/jvmTest/kotlin/io/codenode/flowgraphgenerate/save/ModuleScaffoldingGeneratorTest.kt`
-- [ ] T004 [P] [US1] Add test: `generate()` creates platform-specific source sets (androidMain, iosMain) based on target platforms in `flowGraph-generate/src/jvmTest/kotlin/io/codenode/flowgraphgenerate/save/ModuleScaffoldingGeneratorTest.kt`
-- [ ] T005 [P] [US1] Add test: `generate()` writes build.gradle.kts and settings.gradle.kts with write-once semantics (skip if exist) in `flowGraph-generate/src/jvmTest/kotlin/io/codenode/flowgraphgenerate/save/ModuleScaffoldingGeneratorTest.kt`
-- [ ] T006 [P] [US1] Add test: `generate()` returns ScaffoldingResult with correct basePackage, subpackage paths, and filesCreated list in `flowGraph-generate/src/jvmTest/kotlin/io/codenode/flowgraphgenerate/save/ModuleScaffoldingGeneratorTest.kt`
+- [X] T001 [P] [US1] Add test: `generate()` creates module directory with correct name in `flowGraph-generate/src/jvmTest/kotlin/io/codenode/flowgraphgenerate/save/ModuleScaffoldingGeneratorTest.kt`
+- [X] T002 [P] [US1] Add test: `generate()` creates commonMain, jvmMain, commonTest source set directories with correct package paths in `flowGraph-generate/src/jvmTest/kotlin/io/codenode/flowgraphgenerate/save/ModuleScaffoldingGeneratorTest.kt`
+- [X] T003 [P] [US1] Add test: `generate()` creates all subdirectories (flow/, controller/, viewmodel/, userInterface/, nodes/, iptypes/) in `flowGraph-generate/src/jvmTest/kotlin/io/codenode/flowgraphgenerate/save/ModuleScaffoldingGeneratorTest.kt`
+- [X] T004 [P] [US1] Add test: `generate()` creates platform-specific source sets (androidMain, iosMain) based on target platforms in `flowGraph-generate/src/jvmTest/kotlin/io/codenode/flowgraphgenerate/save/ModuleScaffoldingGeneratorTest.kt`
+- [X] T005 [P] [US1] Add test: `generate()` writes build.gradle.kts and settings.gradle.kts with write-once semantics (skip if exist) in `flowGraph-generate/src/jvmTest/kotlin/io/codenode/flowgraphgenerate/save/ModuleScaffoldingGeneratorTest.kt`
+- [X] T006 [P] [US1] Add test: `generate()` returns ScaffoldingResult with correct basePackage, subpackage paths, and filesCreated list in `flowGraph-generate/src/jvmTest/kotlin/io/codenode/flowgraphgenerate/save/ModuleScaffoldingGeneratorTest.kt`
 
 ### Implementation
 
-- [ ] T007 [US1] Create `ScaffoldingResult` data class with moduleDir, basePackage, flowPackage, controllerPackage, viewModelPackage, userInterfacePackage, and filesCreated in `flowGraph-generate/src/jvmMain/kotlin/io/codenode/flowgraphgenerate/save/ModuleScaffoldingGenerator.kt`
-- [ ] T008 [US1] Create `ModuleScaffoldingGenerator` class with `generate(moduleName, outputDir, targetPlatforms, packagePrefix, isEntityModule)` that creates module directory, all source set directories (commonMain, jvmMain, commonTest, platform-specific), all subdirectories (flow/, controller/, viewmodel/, userInterface/, nodes/, iptypes/), and writes Gradle files in `flowGraph-generate/src/jvmMain/kotlin/io/codenode/flowgraphgenerate/save/ModuleScaffoldingGenerator.kt`
-- [ ] T009 [US1] Move `generateSettingsGradle()` from `ModuleSaveService` to `ModuleScaffoldingGenerator` in `flowGraph-generate/src/jvmMain/kotlin/io/codenode/flowgraphgenerate/save/ModuleScaffoldingGenerator.kt`
-- [ ] T010 [US1] Run scaffolding tests: `./gradlew :flowGraph-generate:jvmTest --tests "*ModuleScaffoldingGenerator*"`
+- [X] T007 [US1] Create `ScaffoldingResult` data class with moduleDir, basePackage, flowPackage, controllerPackage, viewModelPackage, userInterfacePackage, and filesCreated in `flowGraph-generate/src/jvmMain/kotlin/io/codenode/flowgraphgenerate/save/ModuleScaffoldingGenerator.kt`
+- [X] T008 [US1] Create `ModuleScaffoldingGenerator` class with `generate(moduleName, outputDir, targetPlatforms, packagePrefix, isEntityModule)` that creates module directory, all source set directories (commonMain, jvmMain, commonTest, platform-specific), all subdirectories (flow/, controller/, viewmodel/, userInterface/, nodes/, iptypes/), and writes Gradle files in `flowGraph-generate/src/jvmMain/kotlin/io/codenode/flowgraphgenerate/save/ModuleScaffoldingGenerator.kt`
+- [X] T009 [US1] Move `generateSettingsGradle()` from `ModuleSaveService` to `ModuleScaffoldingGenerator` in `flowGraph-generate/src/jvmMain/kotlin/io/codenode/flowgraphgenerate/save/ModuleScaffoldingGenerator.kt`
+- [X] T010 [US1] Run scaffolding tests: `./gradlew :flowGraph-generate:jvmTest --tests "*ModuleScaffoldingGenerator*"`
 
 **Checkpoint**: ModuleScaffoldingGenerator creates complete module structure in isolation. All unit tests pass.
 
