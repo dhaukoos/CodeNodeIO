@@ -21,10 +21,10 @@
 
 ### Implementation
 
-- [ ] T001 [US1] Create `nodes/` directory in `flowGraph-generate/src/commonMain/kotlin/io/codenode/flowgraphgenerate/nodes/`
-- [ ] T002 [US1] Create a reference wrapper `FlowKtGeneratorNode` as the first implementation — `object : CodeNodeDefinition` with TRANSFORMER category, input port "flowGraph" (Any::class), output port "content" (String::class), delegates to `FlowKtGenerator().generateFlowKt()` in `flowGraph-generate/src/commonMain/kotlin/io/codenode/flowgraphgenerate/nodes/FlowKtGeneratorNode.kt`
-- [ ] T003 [US1] Add unit test: `FlowKtGeneratorNode` produces non-empty output matching `FlowKtGenerator().generateFlowKt()` for the same FlowGraph input in `flowGraph-generate/src/commonTest/kotlin/io/codenode/flowgraphgenerate/nodes/GeneratorCodeNodeTest.kt`
-- [ ] T004 [US1] Compile and run: `./gradlew :flowGraph-generate:jvmTest --tests "*GeneratorCodeNode*"`
+- [X] T001 [US1] Create `nodes/` directory in `flowGraph-generate/src/commonMain/kotlin/io/codenode/flowgraphgenerate/nodes/`
+- [X] T002 [US1] Create a reference wrapper `FlowKtGeneratorNode` + `GenerationConfig` data class in `flowGraph-generate/src/commonMain/kotlin/io/codenode/flowgraphgenerate/nodes/`
+- [X] T003 [US1] Add unit test: `FlowKtGeneratorNode` properties and output verified in `flowGraph-generate/src/commonTest/kotlin/io/codenode/flowgraphgenerate/nodes/GeneratorCodeNodeTest.kt`
+- [X] T004 [US1] Compile and run: `./gradlew :flowGraph-generate:jvmTest --tests "*GeneratorCodeNode*"`
 
 **Checkpoint**: Reference wrapper works. Pattern established for remaining 14 wrappers.
 
@@ -38,14 +38,14 @@
 
 ### Implementation
 
-- [ ] T005 [P] [US2] Create `RuntimeFlowGeneratorNode` — delegates to `RuntimeFlowGenerator().generate()`, input "flowGraph" (Any::class), output "content" (String::class) in `flowGraph-generate/src/commonMain/kotlin/io/codenode/flowgraphgenerate/nodes/RuntimeFlowGeneratorNode.kt`
-- [ ] T006 [P] [US2] Create `RuntimeControllerGeneratorNode` — delegates to `RuntimeControllerGenerator().generate()` in `flowGraph-generate/src/commonMain/kotlin/io/codenode/flowgraphgenerate/nodes/RuntimeControllerGeneratorNode.kt`
-- [ ] T007 [P] [US2] Create `RuntimeControllerInterfaceGeneratorNode` — delegates to `RuntimeControllerInterfaceGenerator().generate()` in `flowGraph-generate/src/commonMain/kotlin/io/codenode/flowgraphgenerate/nodes/RuntimeControllerInterfaceGeneratorNode.kt`
-- [ ] T008 [P] [US2] Create `RuntimeControllerAdapterGeneratorNode` — delegates to `RuntimeControllerAdapterGenerator().generate()` in `flowGraph-generate/src/commonMain/kotlin/io/codenode/flowgraphgenerate/nodes/RuntimeControllerAdapterGeneratorNode.kt`
-- [ ] T009 [P] [US2] Create `RuntimeViewModelGeneratorNode` — delegates to `RuntimeViewModelGenerator().generate()` in `flowGraph-generate/src/commonMain/kotlin/io/codenode/flowgraphgenerate/nodes/RuntimeViewModelGeneratorNode.kt`
-- [ ] T010 [P] [US2] Create `UserInterfaceStubGeneratorNode` — delegates to `UserInterfaceStubGenerator().generate()` in `flowGraph-generate/src/commonMain/kotlin/io/codenode/flowgraphgenerate/nodes/UserInterfaceStubGeneratorNode.kt`
-- [ ] T011 [US2] Add unit tests for all 6 new module-level wrappers — each produces non-empty output for a test FlowGraph in `flowGraph-generate/src/commonTest/kotlin/io/codenode/flowgraphgenerate/nodes/GeneratorCodeNodeTest.kt`
-- [ ] T012 [US2] Compile and run: `./gradlew :flowGraph-generate:jvmTest --tests "*GeneratorCodeNode*"`
+- [X] T005 [P] [US2] Create `RuntimeFlowGeneratorNode` in `flowGraph-generate/src/commonMain/kotlin/io/codenode/flowgraphgenerate/nodes/RuntimeFlowGeneratorNode.kt`
+- [X] T006 [P] [US2] Create `RuntimeControllerGeneratorNode` in `flowGraph-generate/src/commonMain/kotlin/io/codenode/flowgraphgenerate/nodes/RuntimeControllerGeneratorNode.kt`
+- [X] T007 [P] [US2] Create `RuntimeControllerInterfaceGeneratorNode` in `flowGraph-generate/src/commonMain/kotlin/io/codenode/flowgraphgenerate/nodes/RuntimeControllerInterfaceGeneratorNode.kt`
+- [X] T008 [P] [US2] Create `RuntimeControllerAdapterGeneratorNode` in `flowGraph-generate/src/commonMain/kotlin/io/codenode/flowgraphgenerate/nodes/RuntimeControllerAdapterGeneratorNode.kt`
+- [X] T009 [P] [US2] Create `RuntimeViewModelGeneratorNode` in `flowGraph-generate/src/commonMain/kotlin/io/codenode/flowgraphgenerate/nodes/RuntimeViewModelGeneratorNode.kt`
+- [X] T010 [P] [US2] Create `UserInterfaceStubGeneratorNode` in `flowGraph-generate/src/commonMain/kotlin/io/codenode/flowgraphgenerate/nodes/UserInterfaceStubGeneratorNode.kt`
+- [X] T011 [US2] Add unit tests for all 7 module-level wrappers in `flowGraph-generate/src/commonTest/kotlin/io/codenode/flowgraphgenerate/nodes/GeneratorCodeNodeTest.kt`
+- [X] T012 [US2] Compile and run: `./gradlew :flowGraph-generate:jvmTest` — all pass
 
 **Checkpoint**: All 7 module-level generator CodeNodes work and tested.
 
