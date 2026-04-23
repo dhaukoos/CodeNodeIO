@@ -10,8 +10,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import io.codenode.fbpdsl.model.InformationPacketType
 import io.codenode.flowgraphgenerate.generator.EntityModuleSpec
-import io.codenode.flowgraphgenerate.generator.UIFBPInterfaceGenerator
-import io.codenode.flowgraphgenerate.parser.UIComposableParser
 import io.codenode.flowgraphgenerate.save.ModuleSaveService
 import io.codenode.flowgraphinspect.registry.NodeDefinitionRegistry
 import io.codenode.flowgraphinspect.viewmodel.CodeEditorViewModel
@@ -34,10 +32,6 @@ fun GraphEditorDialogs(
     onShowOpenDialogChanged: (Boolean) -> Unit,
     showModuleSaveDialog: Boolean,
     onShowModuleSaveDialogChanged: (Boolean) -> Unit,
-    showGenerateDialog: Boolean = false,
-    onShowGenerateDialogChanged: (Boolean) -> Unit = {},
-    showGenerateUIFBPDialog: Boolean = false,
-    onShowGenerateUIFBPDialogChanged: (Boolean) -> Unit = {},
     showFlowGraphPropertiesDialog: Boolean,
     onShowFlowGraphPropertiesDialogChanged: (Boolean) -> Unit,
     showRemoveConfirmDialog: Boolean,
@@ -147,126 +141,6 @@ fun GraphEditorDialogs(
                 }
             }
             onShowModuleSaveDialogChanged(false)
-        }
-    }
-
-    // Generate Module handler: full module code generation
-    if (showGenerateDialog) {
-        LaunchedEffect(Unit) {
-            val flowGraphName = graphState.flowGraph.name
-            val savedDir = saveLocationRegistry[flowGraphName]
-
-            val outputDir = if (savedDir != null && savedDir.exists()) {
-                savedDir
-            } else {
-                if (savedDir != null) {
-                    saveLocationRegistry.remove(flowGraphName)
-                }
-                showDirectoryChooser("Generate Module To")
-            }
-
-            if (outputDir != null) {
-                val ipTypePropertiesMap = buildMap {
-                    for (ipTypeId in ipTypeRegistry.getEntityModuleIPTypeIds()) {
-                        val props = ipTypeRegistry.getCustomTypeProperties(ipTypeId)
-                        if (props != null) {
-                            put(ipTypeId, props.map { prop ->
-                                io.codenode.flowgraphgenerate.generator.EntityProperty(
-                                    name = prop.name,
-                                    kotlinType = when (prop.typeId) {
-                                        "ip_int" -> "Int"
-                                        "ip_double" -> "Double"
-                                        "ip_boolean" -> "Boolean"
-                                        "ip_string" -> "String"
-                                        else -> "String"
-                                    },
-                                    isRequired = prop.isRequired
-                                )
-                            })
-                        }
-                    }
-                }
-                val ipTypeNamesMap = buildMap {
-                    for (ipType in ipTypeRegistry.getAllTypes()) {
-                        put(ipType.id, ipType.typeName)
-                    }
-                }
-                val result = moduleSaveService.saveModule(
-                    flowGraph = graphState.flowGraph,
-                    outputDir = outputDir,
-                    ipTypeProperties = ipTypePropertiesMap,
-                    ipTypeNames = ipTypeNamesMap,
-                    codeNodeClassLookup = { nodeName ->
-                        registry.getByName(nodeName)?.let {
-                            it::class.qualifiedName
-                        }
-                    }
-                )
-                if (result.success) {
-                    saveLocationRegistry[flowGraphName] = outputDir
-                    onModuleRootDirChanged(result.moduleDir)
-                    val created = result.filesCreated.size
-                    val overwritten = result.filesOverwritten.size
-                    val deleted = result.filesDeleted.size
-                    onStatusMessage("Generated ${result.moduleDir?.name}: $created created, $overwritten overwritten, $deleted deleted")
-                } else {
-                    onStatusMessage("Generate error: ${result.errorMessage}")
-                }
-            }
-            onShowGenerateDialogChanged(false)
-        }
-    }
-
-    // Generate UI-FBP handler: parse UI file → generate ViewModel, State, Source, Sink
-    if (showGenerateUIFBPDialog) {
-        LaunchedEffect(Unit) {
-            val fileResult = showFileOpenDialog()
-            val file = fileResult.file
-            if (file != null) {
-                try {
-                    val parser = UIComposableParser()
-                    val parseResult = parser.parse(file.readText())
-                    val spec = parseResult.spec
-                    if (parseResult.isSuccess && spec != null) {
-                        var moduleRoot: File? = file.parentFile
-                        while (moduleRoot != null && !File(moduleRoot, "build.gradle.kts").exists()) {
-                            moduleRoot = moduleRoot.parentFile
-                        }
-                        val needsFlowKt = if (moduleRoot != null) {
-                            moduleRoot.walkTopDown().none { it.name.endsWith(".flow.kt") }
-                        } else false
-                        val generator = UIFBPInterfaceGenerator()
-                        val genResult = generator.generateAll(spec, includeFlowKt = needsFlowKt)
-                        if (genResult.success) {
-                            if (moduleRoot != null) {
-                                for (genFile in genResult.filesGenerated) {
-                                    val targetFile = File(moduleRoot, genFile.relativePath)
-                                    targetFile.parentFile?.mkdirs()
-                                    targetFile.writeText(genFile.content)
-                                }
-                                ensureFbpDslDependency(File(moduleRoot, "build.gradle.kts"))
-                                val nodesDir = genResult.filesGenerated
-                                    .firstOrNull { it.relativePath.contains("/nodes/") }
-                                    ?.let { File(moduleRoot, it.relativePath).parentFile }
-                                if (nodesDir != null && nodesDir.isDirectory) {
-                                    registry.scanDirectory(nodesDir)
-                                    onRegistryVersionIncrement()
-                                }
-                                onStatusMessage("Generated UI-FBP: ${genResult.filesGenerated.size} files for ${spec.moduleName}")
-                            } else {
-                                onStatusMessage("Could not determine module root directory")
-                            }
-                        } else {
-                            onStatusMessage("Generation error: ${genResult.errorMessage}")
-                        }
-                    } else {
-                        onStatusMessage("Parse error: ${parseResult.errorMessage}")
-                    }
-                } catch (e: Exception) {
-                    onStatusMessage("Error: ${e.message}")
-                }
-            }
-            onShowGenerateUIFBPDialogChanged(false)
         }
     }
 

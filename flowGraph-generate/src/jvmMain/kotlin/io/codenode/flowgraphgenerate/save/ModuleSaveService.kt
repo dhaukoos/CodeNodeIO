@@ -160,6 +160,7 @@ class ModuleSaveService {
      * @param moduleName Module name (default: derived from FlowGraph name)
      * @return ModuleSaveResult with success status, module directory, and file tracking
      */
+    @Deprecated("Use CodeGenerationRunner.execute() via the Code Generator panel instead", level = DeprecationLevel.WARNING)
     fun saveModule(
         flowGraph: FlowGraph,
         outputDir: File,
@@ -284,6 +285,7 @@ class ModuleSaveService {
      * @param persistenceDir The persistence module source directory
      * @return ModuleSaveResult with success status and file tracking
      */
+    @Deprecated("Use CodeGenerationRunner.execute() via the Code Generator panel instead", level = DeprecationLevel.WARNING)
     fun saveEntityModule(
         spec: EntityModuleSpec,
         moduleOutputDir: File,

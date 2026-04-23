@@ -21,7 +21,6 @@ import io.codenode.grapheditor.state.UndoRedoManager
 @Composable
 fun TopToolbar(
     undoRedoManager: UndoRedoManager,
-    featureGate: FeatureGate? = null,
     canGroup: Boolean = false,
     canUngroup: Boolean = false,
     isInsideGraphNode: Boolean = false,
@@ -31,8 +30,6 @@ fun TopToolbar(
     onNew: () -> Unit,
     onOpen: () -> Unit,
     onSave: () -> Unit,
-    onGenerate: () -> Unit = {},
-    onGenerateUIFBP: () -> Unit = {},
     onUndo: () -> Unit,
     onRedo: () -> Unit,
     onGroup: () -> Unit = {},
@@ -121,21 +118,6 @@ fun TopToolbar(
                 colors = ButtonDefaults.textButtonColors(contentColor = Color.White)
             ) {
                 Text("Save")
-            }
-
-            TextButton(
-                onClick = onGenerate,
-                enabled = featureGate?.canGenerate() != false,
-                colors = ButtonDefaults.textButtonColors(contentColor = Color.White)
-            ) {
-                Text("Generate Module")
-            }
-
-            TextButton(
-                onClick = onGenerateUIFBP,
-                colors = ButtonDefaults.textButtonColors(contentColor = Color.White)
-            ) {
-                Text("Generate UI-FBP")
             }
 
             Divider(

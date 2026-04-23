@@ -209,8 +209,6 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
     var selectedIPType by remember { mutableStateOf<InformationPacketType?>(null) }
     var showOpenDialog by remember { mutableStateOf(false) }
     var showModuleSaveDialog by remember { mutableStateOf(false) }
-    var showGenerateDialog by remember { mutableStateOf(false) }
-    var showGenerateUIFBPDialog by remember { mutableStateOf(false) }
     var showFlowGraphPropertiesDialog by remember { mutableStateOf(false) }
     val saveLocationRegistry = remember { mutableMapOf<String, File>() }
     var showRemoveConfirmDialog by remember { mutableStateOf(false) }
@@ -423,7 +421,6 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
             // Top toolbar
             TopToolbar(
                 undoRedoManager = undoRedoManager,
-                featureGate = featureGate,
                 canGroup = canGroup,
                 canUngroup = canUngroup,
                 isInsideGraphNode = isInsideGraphNode,
@@ -442,14 +439,6 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                 },
                 onOpen = { showOpenDialog = true },
                 onSave = { showModuleSaveDialog = true },
-                onGenerate = {
-                    if (featureGate.canGenerate()) {
-                        showGenerateDialog = true
-                    } else {
-                        statusMessage = "Code generation requires Pro tier. Upgrade to unlock."
-                    }
-                },
-                onGenerateUIFBP = { showGenerateUIFBPDialog = true },
                 onUndo = {
                     if (undoRedoManager.undo(graphState)) {
                         statusMessage = "Undo: ${undoRedoManager.getRedoDescription() ?: "action"}"
@@ -556,10 +545,6 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
             onShowOpenDialogChanged = { showOpenDialog = it },
             showModuleSaveDialog = showModuleSaveDialog,
             onShowModuleSaveDialogChanged = { showModuleSaveDialog = it },
-            showGenerateDialog = showGenerateDialog,
-            onShowGenerateDialogChanged = { showGenerateDialog = it },
-            showGenerateUIFBPDialog = showGenerateUIFBPDialog,
-            onShowGenerateUIFBPDialogChanged = { showGenerateUIFBPDialog = it },
             showFlowGraphPropertiesDialog = showFlowGraphPropertiesDialog,
             onShowFlowGraphPropertiesDialogChanged = { showFlowGraphPropertiesDialog = it },
             showRemoveConfirmDialog = showRemoveConfirmDialog,
