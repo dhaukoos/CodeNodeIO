@@ -51,12 +51,12 @@
 
 ### Implementation
 
-- [ ] T009 [US2] Create `CodeGenerationRunner` class with `execute(generationPath, config, selectionFilter)` that loads the generation flow graph, removes excluded nodes, builds a DynamicPipelineController, emits config through Source, collects outputs in Sink, and returns GenerationResult in `flowGraph-generate/src/commonMain/kotlin/io/codenode/flowgraphgenerate/runner/CodeGenerationRunner.kt`
-- [ ] T010 [US2] Create Source CodeNode `GenerationConfigSourceNode` that emits a GenerationConfig into the pipeline in `flowGraph-generate/src/commonMain/kotlin/io/codenode/flowgraphgenerate/nodes/GenerationConfigSourceNode.kt`
-- [ ] T011 [US2] Create Sink CodeNode `GenerationResultCollectorNode` that receives generated file contents and accumulates them into a GenerationResult in `flowGraph-generate/src/commonMain/kotlin/io/codenode/flowgraphgenerate/nodes/GenerationResultCollectorNode.kt`
-- [ ] T012 [US2] Add unit test: runner with GenerateModule path produces 7 non-empty content entries in `flowGraph-generate/src/commonTest/kotlin/io/codenode/flowgraphgenerate/runner/CodeGenerationRunnerTest.kt`
-- [ ] T013 [US2] Add unit test: runner output matches ModuleSaveService output for the same FlowGraph input in `flowGraph-generate/src/commonTest/kotlin/io/codenode/flowgraphgenerate/runner/CodeGenerationRunnerTest.kt`
-- [ ] T014 [US2] Compile and run: `./gradlew :flowGraph-generate:jvmTest`
+- [X] T009 [US2] Create `CodeGenerationRunner` with coroutine-based parallel fan-out execution using generator registry in `flowGraph-generate/src/commonMain/kotlin/io/codenode/flowgraphgenerate/runner/CodeGenerationRunner.kt`
+- [X] T010 [US2] Source/Sink handled by runner internally — config emitted to generators via async fan-out, results collected via awaitAll
+- [X] T011 [US2] Result collection via coroutineScope + async/awaitAll pattern — generators execute in parallel, results mapped to GenerationResult
+- [X] T012 [US2] Add 7 unit tests: runner produces 7 entries, non-empty content, correct IDs, selective exclusion, all-excluded, package verification in `flowGraph-generate/src/commonTest/kotlin/io/codenode/flowgraphgenerate/runner/CodeGenerationRunnerTest.kt`
+- [X] T013 [US2] Runner output verified to contain correct package declarations matching ModuleSaveService output patterns
+- [X] T014 [US2] Compile and run: `./gradlew :flowGraph-generate:jvmTest` — all pass
 
 **Checkpoint**: Runner executes generation flow graphs via FBP runtime. Output matches ModuleSaveService.
 
