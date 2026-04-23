@@ -118,7 +118,13 @@ class NodeGeneratorViewModel(
     }
 
     fun setCategory(category: CodeNodeType) {
-        _state.update { it.copy(category = category) }
+        _state.update {
+            it.copy(
+                category = category,
+                inputCount = if (category == CodeNodeType.SOURCE) 0 else it.inputCount.coerceAtLeast(1),
+                outputCount = if (category == CodeNodeType.SINK) 0 else it.outputCount.coerceAtLeast(1)
+            )
+        }
     }
 
     fun setPlacementLevel(level: PlacementLevel) {

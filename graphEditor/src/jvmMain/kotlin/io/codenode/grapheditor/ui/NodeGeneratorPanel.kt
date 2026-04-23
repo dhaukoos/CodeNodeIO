@@ -206,7 +206,8 @@ private fun NodeGeneratorPanelContent(
                 }
             }
 
-            // Input count dropdown
+            // Input count dropdown (hidden for SOURCE nodes — sources have no inputs)
+            if (state.category != CodeNodeType.SOURCE) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
@@ -243,8 +244,10 @@ private fun NodeGeneratorPanelContent(
                     }
                 }
             }
+            }
 
-            // Output count dropdown
+            // Output count dropdown (hidden for SINK nodes — sinks have no outputs)
+            if (state.category != CodeNodeType.SINK) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
@@ -280,6 +283,7 @@ private fun NodeGeneratorPanelContent(
                         }
                     }
                 }
+            }
             }
 
             // Any Input toggle (visible only with 2+ inputs)
