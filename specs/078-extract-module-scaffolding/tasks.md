@@ -47,11 +47,11 @@
 
 ### Implementation
 
-- [ ] T011 [US2] Add `ModuleScaffoldingGenerator` as a field in `ModuleSaveService` in `flowGraph-generate/src/jvmMain/kotlin/io/codenode/flowgraphgenerate/save/ModuleSaveService.kt`
-- [ ] T012 [US2] Refactor `saveModule()` to call `scaffoldingGenerator.generate()` first, then use the returned ScaffoldingResult for package paths and module directory — remove inline directory creation and Gradle file writing in `flowGraph-generate/src/jvmMain/kotlin/io/codenode/flowgraphgenerate/save/ModuleSaveService.kt`
-- [ ] T013 [US2] Refactor `saveEntityModule()` to call `scaffoldingGenerator.generate()` similarly — remove inline directory creation and Gradle file writing in `flowGraph-generate/src/jvmMain/kotlin/io/codenode/flowgraphgenerate/save/ModuleSaveService.kt`
-- [ ] T014 [US2] Remove `createDirectoryStructure()` and `generateSettingsGradle()` private methods from `ModuleSaveService` (now in scaffolding generator) in `flowGraph-generate/src/jvmMain/kotlin/io/codenode/flowgraphgenerate/save/ModuleSaveService.kt`
-- [ ] T015 [US2] Run full existing test suite: `./gradlew :flowGraph-generate:jvmTest` — verify 100% pass, zero regressions
+- [X] T011 [US2] Add `ModuleScaffoldingGenerator` as a field in `ModuleSaveService` in `flowGraph-generate/src/jvmMain/kotlin/io/codenode/flowgraphgenerate/save/ModuleSaveService.kt`
+- [X] T012 [US2] Refactor `saveModule()` to call `scaffoldingGenerator.generate()` first, then use the returned ScaffoldingResult for package paths and module directory — remove inline directory creation and Gradle file writing in `flowGraph-generate/src/jvmMain/kotlin/io/codenode/flowgraphgenerate/save/ModuleSaveService.kt`
+- [X] T013 [US2] Refactor `saveEntityModule()` to call `scaffoldingGenerator.generate()` similarly — remove inline directory creation and Gradle file writing in `flowGraph-generate/src/jvmMain/kotlin/io/codenode/flowgraphgenerate/save/ModuleSaveService.kt`
+- [X] T014 [US2] Remove `createDirectoryStructure()` and `generateSettingsGradle()` private methods from `ModuleSaveService` (now in scaffolding generator) in `flowGraph-generate/src/jvmMain/kotlin/io/codenode/flowgraphgenerate/save/ModuleSaveService.kt`
+- [X] T015 [US2] Run full existing test suite: `./gradlew :flowGraph-generate:jvmTest` — verify 100% pass, zero regressions
 
 **Checkpoint**: ModuleSaveService delegates scaffolding. All existing tests pass. Behavior identical.
 
@@ -61,8 +61,8 @@
 
 **Purpose**: Full verification
 
-- [ ] T016 Run full test suite: `./gradlew :flowGraph-generate:jvmTest :graphEditor:jvmTest`
-- [ ] T017 Run quickstart.md verification scenarios VS1–VS5
+- [X] T016 Run full test suite: `./gradlew :flowGraph-generate:jvmTest :graphEditor:jvmTest` — BUILD SUCCESSFUL
+- [X] T017 Run quickstart.md verification scenarios VS1–VS5
 
 ---
 

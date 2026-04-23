@@ -66,6 +66,7 @@ class ModuleSaveService {
         const val USER_INTERFACE_SUBPACKAGE = "userInterface"
     }
 
+    private val scaffoldingGenerator = ModuleScaffoldingGenerator()
     private val moduleGenerator = ModuleGenerator()
     private val flowKtGenerator = FlowKtGenerator()
     private val runtimeFlowGenerator = RuntimeFlowGenerator()
@@ -172,42 +173,23 @@ class ModuleSaveService {
             val enrichedFlowGraph = enrichWithCodeNodeMetadata(flowGraph, codeNodeClassLookup)
             val effectiveModuleName = moduleName ?: deriveModuleName(enrichedFlowGraph.name)
 
-            val basePackage = packageName ?: "$DEFAULT_PACKAGE_PREFIX.${effectiveModuleName.lowercase()}"
-            val flowPackage = "$basePackage.$FLOW_SUBPACKAGE"
-            val controllerPackage = "$basePackage.$CONTROLLER_SUBPACKAGE"
-            val viewModelPackage = "$basePackage.$VIEWMODEL_SUBPACKAGE"
-            val userInterfacePackage = "$basePackage.$USER_INTERFACE_SUBPACKAGE"
+            // Delegate scaffolding (directory + Gradle creation)
+            val scaffold = scaffoldingGenerator.generate(
+                moduleName = effectiveModuleName,
+                outputDir = outputDir,
+                targetPlatforms = enrichedFlowGraph.targetPlatforms,
+                packagePrefix = packageName?.substringBeforeLast(".") ?: DEFAULT_PACKAGE_PREFIX
+            )
+            val moduleDir = scaffold.moduleDir
+            val basePackage = scaffold.basePackage
+            val flowPackage = scaffold.flowPackage
+            val controllerPackage = scaffold.controllerPackage
+            val viewModelPackage = scaffold.viewModelPackage
+            val userInterfacePackage = scaffold.userInterfacePackage
 
-            // Create module directory
-            val moduleDir = File(outputDir, effectiveModuleName)
-            if (!moduleDir.exists()) {
-                moduleDir.mkdirs()
-            }
-
-            val filesCreated = mutableListOf<String>()
+            val filesCreated = scaffold.filesCreated.toMutableList()
             val filesOverwritten = mutableListOf<String>()
             val filesDeleted = mutableListOf<String>()
-
-            // Create source directory structure
-            createDirectoryStructure(moduleDir, basePackage, enrichedFlowGraph)
-            createDirectoryStructure(moduleDir, flowPackage, enrichedFlowGraph)
-            createDirectoryStructure(moduleDir, controllerPackage, enrichedFlowGraph)
-            createDirectoryStructure(moduleDir, viewModelPackage, enrichedFlowGraph)
-            createDirectoryStructure(moduleDir, userInterfacePackage, enrichedFlowGraph)
-
-            // Write gradle files (only if they don't exist)
-            writeFileIfNew(
-                File(moduleDir, "build.gradle.kts"),
-                moduleGenerator.generateBuildGradle(enrichedFlowGraph, effectiveModuleName),
-                "build.gradle.kts",
-                filesCreated
-            )
-            writeFileIfNew(
-                File(moduleDir, "settings.gradle.kts"),
-                generateSettingsGradle(effectiveModuleName),
-                "settings.gradle.kts",
-                filesCreated
-            )
 
             // Write .flow.kt in flow/ subdirectory (always overwrite)
             val flowPackagePath = flowPackage.replace(".", "/")
@@ -315,25 +297,18 @@ class ModuleSaveService {
             addIdFieldToIPType(moduleOutputDir, spec)
 
             val output = entityModuleGenerator.generateModule(spec)
-            val moduleDir = File(moduleOutputDir, spec.pluralName)
 
-            val filesCreated = mutableListOf<String>()
-            val filesOverwritten = mutableListOf<String>()
-
-            // Create module directory structure
-            createDirectoryStructure(moduleDir, spec.basePackage, output.flowGraph)
-            createDirectoryStructure(moduleDir, "${spec.basePackage}.$FLOW_SUBPACKAGE", output.flowGraph)
-            createDirectoryStructure(moduleDir, "${spec.basePackage}.$CONTROLLER_SUBPACKAGE", output.flowGraph)
-            createDirectoryStructure(moduleDir, "${spec.basePackage}.$VIEWMODEL_SUBPACKAGE", output.flowGraph)
-            createDirectoryStructure(moduleDir, "${spec.basePackage}.$USER_INTERFACE_SUBPACKAGE", output.flowGraph)
-
-            // Write build.gradle.kts (only if new)
-            writeFileIfNew(
-                File(moduleDir, "build.gradle.kts"),
-                moduleGenerator.generateBuildGradle(output.flowGraph, spec.pluralName, isEntityModule = true),
-                "build.gradle.kts",
-                filesCreated
+            // Delegate scaffolding (directory + Gradle creation)
+            val scaffold = scaffoldingGenerator.generate(
+                moduleName = spec.pluralName,
+                outputDir = moduleOutputDir,
+                targetPlatforms = output.flowGraph.targetPlatforms,
+                isEntityModule = true
             )
+            val moduleDir = scaffold.moduleDir
+
+            val filesCreated = scaffold.filesCreated.toMutableList()
+            val filesOverwritten = mutableListOf<String>()
 
             // Write all module files
             for ((relativePath, content) in output.moduleFiles) {
@@ -939,42 +914,6 @@ class ModuleSaveService {
      * @param packageName The package name (e.g., io.codenode.stopwatch.generated)
      * @param flowGraph The flow graph (for determining target platforms)
      */
-    private fun createDirectoryStructure(
-        moduleDir: File,
-        packageName: String,
-        flowGraph: FlowGraph
-    ) {
-        val packagePath = packageName.replace(".", "/")
-
-        // Common source sets (always created)
-        File(moduleDir, "src/commonMain/kotlin/$packagePath").mkdirs()
-        File(moduleDir, "src/commonTest/kotlin/$packagePath").mkdirs()
-
-        // JVM source sets (always included)
-        File(moduleDir, "src/jvmMain/kotlin/$packagePath").mkdirs()
-        File(moduleDir, "src/jvmTest/kotlin").mkdirs()
-
-        // Platform-specific source sets
-        if (flowGraph.targetsPlatform(FlowGraph.TargetPlatform.KMP_ANDROID)) {
-            File(moduleDir, "src/androidMain/kotlin/$packagePath").mkdirs()
-            File(moduleDir, "src/androidTest/kotlin").mkdirs()
-        }
-
-        if (flowGraph.targetsPlatform(FlowGraph.TargetPlatform.KMP_IOS)) {
-            File(moduleDir, "src/iosMain/kotlin/$packagePath").mkdirs()
-            File(moduleDir, "src/iosTest/kotlin").mkdirs()
-        }
-
-        if (flowGraph.targetsPlatform(FlowGraph.TargetPlatform.KMP_WEB)) {
-            File(moduleDir, "src/jsMain/kotlin/$packagePath").mkdirs()
-            File(moduleDir, "src/jsTest/kotlin").mkdirs()
-        }
-
-        if (flowGraph.targetsPlatform(FlowGraph.TargetPlatform.KMP_WASM)) {
-            File(moduleDir, "src/wasmJsMain/kotlin/$packagePath").mkdirs()
-        }
-    }
-
     /**
      * Generates the ViewModel stub file in the base package.
      *
@@ -1277,30 +1216,4 @@ class ModuleSaveService {
      * @param moduleName The module name
      * @return Generated settings.gradle.kts content
      */
-    private fun generateSettingsGradle(moduleName: String): String {
-        return buildString {
-            appendLine("/*")
-            appendLine(" * Settings for $moduleName")
-            appendLine(" * Generated by CodeNodeIO ModuleSaveService")
-            appendLine(" * License: Apache 2.0")
-            appendLine(" */")
-            appendLine()
-            appendLine("pluginManagement {")
-            appendLine("    repositories {")
-            appendLine("        google()")
-            appendLine("        mavenCentral()")
-            appendLine("        gradlePluginPortal()")
-            appendLine("    }")
-            appendLine("}")
-            appendLine()
-            appendLine("dependencyResolutionManagement {")
-            appendLine("    repositories {")
-            appendLine("        google()")
-            appendLine("        mavenCentral()")
-            appendLine("    }")
-            appendLine("}")
-            appendLine()
-            appendLine("rootProject.name = \"$moduleName\"")
-        }
-    }
 }
