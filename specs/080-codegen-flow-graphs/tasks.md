@@ -17,10 +17,10 @@
 
 **Purpose**: Create the GenerationResult and SelectionFilter data models used by all user stories.
 
-- [ ] T001 Create `GenerationResult` data class with `generatedFiles: Map<String, String>`, `errors: Map<String, String>`, and `skipped: Set<String>` in `flowGraph-generate/src/commonMain/kotlin/io/codenode/flowgraphgenerate/runner/GenerationResult.kt`
-- [ ] T002 Create `SelectionFilter` data class with `excludedGeneratorIds: Set<String>`, `isIncluded(generatorId)` method, and `fromFileTree(GenerationFileTree)` companion factory in `flowGraph-generate/src/commonMain/kotlin/io/codenode/flowgraphgenerate/runner/SelectionFilter.kt`
-- [ ] T003 Add unit tests for SelectionFilter: `fromFileTree` correctly extracts excluded generators from deselected files/folders in `flowGraph-generate/src/commonTest/kotlin/io/codenode/flowgraphgenerate/runner/SelectionFilterTest.kt`
-- [ ] T004 Compile and run: `./gradlew :flowGraph-generate:jvmTest`
+- [X] T001 Create `GenerationResult` data class in `flowGraph-generate/src/commonMain/kotlin/io/codenode/flowgraphgenerate/runner/GenerationResult.kt`
+- [X] T002 Create `SelectionFilter` data class with `fromFileTree()` factory in `flowGraph-generate/src/commonMain/kotlin/io/codenode/flowgraphgenerate/runner/SelectionFilter.kt`
+- [X] T003 Add 6 unit tests for SelectionFilter in `flowGraph-generate/src/commonTest/kotlin/io/codenode/flowgraphgenerate/runner/SelectionFilterTest.kt`
+- [X] T004 Compile and run: `./gradlew :flowGraph-generate:jvmTest` — all pass
 
 **Checkpoint**: Data models ready. Flow graphs and runner can proceed.
 
@@ -34,10 +34,10 @@
 
 ### Implementation
 
-- [ ] T005 [P] [US1] Create `GenerateModule.flow.kt` with Source node (GenerationConfig), 7 Generator CodeNodes (FlowKt, RuntimeFlow, Controller, ControllerInterface, ControllerAdapter, ViewModel, UIStub) fan-out connected, and Sink node (ResultCollector) in `flowGraph-generate/src/commonMain/kotlin/io/codenode/flowgraphgenerate/flow/GenerateModule.flow.kt`
-- [ ] T006 [P] [US1] Create `GenerateRepository.flow.kt` with Source node (EntityModuleSpec), module-level generators + 4 entity generators (CUD, Repository, Display, Persistence) fan-out connected, and Sink node in `flowGraph-generate/src/commonMain/kotlin/io/codenode/flowgraphgenerate/flow/GenerateRepository.flow.kt`
-- [ ] T007 [P] [US1] Create `GenerateUIFBP.flow.kt` with Source node (UIFBPSpec), shared generators (Flow, Controller) + 4 UI-FBP generators (State, ViewModel, Source, Sink) fan-out connected, and Sink node in `flowGraph-generate/src/commonMain/kotlin/io/codenode/flowgraphgenerate/flow/GenerateUIFBP.flow.kt`
-- [ ] T008 [US1] Compile: `./gradlew :flowGraph-generate:compileKotlinJvm`
+- [X] T005 [P] [US1] Create `GenerateModule.flow.kt` — 7 generators fan-out from ConfigSource to ResultCollector in `flowGraph-generate/src/commonMain/kotlin/io/codenode/flowgraphgenerate/flow/GenerateModule.flow.kt`
+- [X] T006 [P] [US1] Create `GenerateRepository.flow.kt` — 11 generators (7 module + 4 entity) fan-out in `flowGraph-generate/src/commonMain/kotlin/io/codenode/flowgraphgenerate/flow/GenerateRepository.flow.kt`
+- [X] T007 [P] [US1] Create `GenerateUIFBP.flow.kt` — 9 generators (5 shared + 4 UI-FBP) fan-out in `flowGraph-generate/src/commonMain/kotlin/io/codenode/flowgraphgenerate/flow/GenerateUIFBP.flow.kt`
+- [X] T008 [US1] Compile: `./gradlew :flowGraph-generate:compileKotlinJvm` — BUILD SUCCESSFUL
 
 **Checkpoint**: All 3 flow graphs compile and are loadable in the graph editor.
 
