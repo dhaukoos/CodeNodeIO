@@ -70,10 +70,10 @@
 
 ### Implementation
 
-- [ ] T015 [US3] Wire `SelectionFilter.fromFileTree()` into `CodeGenerationRunner.execute()` — excluded generators are removed from the flow graph before building the pipeline in `flowGraph-generate/src/commonMain/kotlin/io/codenode/flowgraphgenerate/runner/CodeGenerationRunner.kt`
-- [ ] T016 [US3] Add unit test: excluding "RuntimeControllerGenerator" via SelectionFilter produces 6 entries with Controller absent and listed in skipped in `flowGraph-generate/src/commonTest/kotlin/io/codenode/flowgraphgenerate/runner/CodeGenerationRunnerTest.kt`
-- [ ] T017 [US3] Add unit test: excluding all generators produces empty GenerationResult with all listed in skipped in `flowGraph-generate/src/commonTest/kotlin/io/codenode/flowgraphgenerate/runner/CodeGenerationRunnerTest.kt`
-- [ ] T018 [US3] Compile and run: `./gradlew :flowGraph-generate:jvmTest`
+- [X] T015 [US3] SelectionFilter already wired into `CodeGenerationRunner.execute()` — filters generators into included/skipped sets (implemented in T009)
+- [X] T016 [US3] Test already exists: excluding "RuntimeControllerGenerator" produces 6 entries with Controller absent and listed in skipped (implemented in T012)
+- [X] T017 [US3] Test already exists: excluding all generators produces empty GenerationResult with all listed in skipped (implemented in T012)
+- [X] T018 [US3] Compile and run: `./gradlew :flowGraph-generate:jvmTest` — all pass
 
 **Checkpoint**: Selective execution works. Checkbox deselections map to generator exclusion.
 
@@ -83,9 +83,9 @@
 
 **Purpose**: Full verification
 
-- [ ] T019 Run full test suite: `./gradlew :flowGraph-generate:jvmTest :graphEditor:jvmTest`
-- [ ] T020 Run quickstart.md verification scenarios VS1–VS6
-- [ ] T021 Verify existing generators and ModuleSaveService are unchanged
+- [X] T019 Run full test suite: `./gradlew :flowGraph-generate:jvmTest :graphEditor:jvmTest` — BUILD SUCCESSFUL
+- [X] T020 Run quickstart.md verification scenarios VS1–VS6
+- [X] T021 Verify existing generators and ModuleSaveService unchanged — zero modifications to `generator/` directory
 
 ---
 
