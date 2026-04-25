@@ -176,7 +176,7 @@ In all variations, Module Properties serves dual purposes:
 **Layout mockup**:
 ```
 ╔══════════════════════════════════════════════════╗
-║  CodeNodeIO — StopWatch                          ║  ← Window title (passive context)
+║  CodeNodeIO — MainFlow                           ║  ← Window title (active flowGraph name)
 ╠══════════════════════════════════════════════════╣
 │ ⚙ StopWatch │ [New] [Open] [Save] │ [Undo] ... │  ← Toolbar (⚙ clickable → Module Properties)
 ├──────────────────────────────────────────────────┤
@@ -224,7 +224,7 @@ In all variations, Module Properties serves dual purposes:
 **Layout mockup**:
 ```
 ╔══════════════════════════════════════════════════════╗
-║  CodeNodeIO — StopWatch                              ║  ← Window title (passive context)
+║  CodeNodeIO — MainFlow                               ║  ← Window title (active flowGraph name)
 ╠══════════════════════════════════════════════════════╣
 │ [StopWatch ▼] │ [New] [Open] [Save] │ [Undo] [Redo] │  ← Toolbar (dropdown = workspace selector)
 ├──────────────────────────────────────────────────────┤
