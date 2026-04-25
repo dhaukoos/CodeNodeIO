@@ -18,10 +18,10 @@
 
 **Purpose**: Create the WorkspaceViewModel that manages module context, active flowGraph, and MRU list. All UI changes depend on this.
 
-- [ ] T001 Create `WorkspaceViewModel` with `currentModuleDir`, `currentModuleName`, `activeFlowGraphName`, `mruModules`, `isDirty` as StateFlow properties, plus `openModule()`, `createModule()`, `switchModule()`, `setActiveFlowGraph()`, `markDirty()`, `markClean()` methods in `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/viewmodel/WorkspaceViewModel.kt`
-- [ ] T002 Add workspace persistence: `persistState()` writes `workspace.current` and `workspace.mru` to `~/.codenode/config.properties`; `restoreState()` reads them on startup in `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/viewmodel/WorkspaceViewModel.kt`
-- [ ] T003 Add unit tests for WorkspaceViewModel: openModule sets state, switchModule updates MRU, persistState/restoreState round-trip, markDirty/markClean in `graphEditor/src/jvmTest/kotlin/io/codenode/grapheditor/viewmodel/WorkspaceViewModelTest.kt`
-- [ ] T004 Compile and run: `./gradlew :graphEditor:jvmTest`
+- [X] T001 Create `WorkspaceViewModel` with `currentModuleDir`, `currentModuleName`, `activeFlowGraphName`, `mruModules`, `isDirty` as StateFlow properties, plus `openModule()`, `createModule()`, `switchModule()`, `setActiveFlowGraph()`, `markDirty()`, `markClean()` methods in `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/viewmodel/WorkspaceViewModel.kt`
+- [X] T002 Add workspace persistence: `persistState()` writes `workspace.current` and `workspace.mru` to `~/.codenode/config.properties`; `restoreState()` reads them on startup in `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/viewmodel/WorkspaceViewModel.kt`
+- [X] T003 Add unit tests for WorkspaceViewModel: openModule sets state, switchModule updates MRU, persistState/restoreState round-trip, markDirty/markClean in `graphEditor/src/jvmTest/kotlin/io/codenode/grapheditor/viewmodel/WorkspaceViewModelTest.kt`
+- [X] T004 Compile and run: `./gradlew :graphEditor:jvmTest`
 
 **Checkpoint**: WorkspaceViewModel manages workspace state with persistence. All user stories can use it.
 
@@ -35,13 +35,13 @@
 
 ### Implementation
 
-- [ ] T005 [P] [US1] Create `ModuleDropdown` composable with `OutlinedButton` showing module name + `▼`, `DropdownMenu` with current module (checkmarked), MRU list, dividers, "Open Module...", "Create New Module...", "Module Settings..." in `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/ModuleDropdown.kt`
-- [ ] T006 [US1] Replace the gear icon + `flowGraphName` label in `TopToolbar.kt` with `ModuleDropdown`, passing `WorkspaceViewModel` state and callbacks in `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/TopToolbar.kt`
-- [ ] T007 [US1] Instantiate `WorkspaceViewModel` in `GraphEditorApp.kt`, call `restoreState()` on startup, pass to `TopToolbar` and `GraphEditorContent` in `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/GraphEditorApp.kt`
-- [ ] T008 [US1] Update `Main.kt` window title to dynamically show `"CodeNodeIO — ${activeFlowGraphName ?: ""}"` from `WorkspaceViewModel` in `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/Main.kt`
-- [ ] T009 [US1] Wire "Open Module..." dropdown action to show directory chooser filtered for directories containing `build.gradle.kts`, then call `workspaceViewModel.openModule()` in `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/GraphEditorApp.kt`
-- [ ] T010 [US1] Wire module switching: when MRU module selected, prompt for unsaved changes if `isDirty`, then call `workspaceViewModel.switchModule()` in `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/GraphEditorApp.kt`
-- [ ] T011 [US1] Compile and run: `./gradlew :graphEditor:compileKotlinJvm :graphEditor:jvmTest`
+- [X] T005 [P] [US1] Create `ModuleDropdown` composable with `OutlinedButton` showing module name + `▼`, `DropdownMenu` with current module (checkmarked), MRU list, dividers, "Open Module...", "Create New Module...", "Module Settings..." in `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/ModuleDropdown.kt`
+- [X] T006 [US1] Replace the gear icon + `flowGraphName` label in `TopToolbar.kt` with `ModuleDropdown`, passing `WorkspaceViewModel` state and callbacks in `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/TopToolbar.kt`
+- [X] T007 [US1] Instantiate `WorkspaceViewModel` in `GraphEditorApp.kt`, call `restoreState()` on startup, pass to `TopToolbar` and `GraphEditorContent` in `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/GraphEditorApp.kt`
+- [X] T008 [US1] Update `Main.kt` window title to dynamically show `"CodeNodeIO — ${activeFlowGraphName ?: ""}"` from `WorkspaceViewModel` in `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/Main.kt`
+- [X] T009 [US1] Wire "Open Module..." dropdown action to show directory chooser filtered for directories containing `build.gradle.kts`, then call `workspaceViewModel.openModule()` in `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/GraphEditorApp.kt`
+- [X] T010 [US1] Wire module switching: when MRU module selected, prompt for unsaved changes if `isDirty`, then call `workspaceViewModel.switchModule()` in `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/GraphEditorApp.kt`
+- [X] T011 [US1] Compile and run: `./gradlew :graphEditor:compileKotlinJvm :graphEditor:jvmTest`
 
 **Checkpoint**: Module dropdown visible in toolbar. Title bar shows flowGraph name. Module switching works.
 

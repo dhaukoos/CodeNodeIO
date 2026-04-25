@@ -6,6 +6,7 @@
 
 package io.codenode.grapheditor
 
+import androidx.compose.runtime.*
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
@@ -46,13 +47,16 @@ fun main(args: Array<String> = emptyArray()) {
         width = 1400.dp,
         height = 900.dp
     )
+    var windowTitle by remember { mutableStateOf("CodeNodeIO") }
 
     Window(
         onCloseRequest = ::exitApplication,
         state = windowState,
-        title = "CodeNodeIO Graph Editor - Visual Flow-Based Programming"
+        title = windowTitle
     ) {
-        GraphEditorApp()
+        GraphEditorApp(
+            onTitleChanged = { windowTitle = it }
+        )
     }
     }
 }

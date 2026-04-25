@@ -36,6 +36,7 @@ import io.codenode.grapheditor.viewmodel.EditorDialog
 import io.codenode.grapheditor.viewmodel.GraphEditorViewModel
 import io.codenode.grapheditor.viewmodel.LocalSharedState
 import io.codenode.grapheditor.viewmodel.SharedStateProvider
+import io.codenode.grapheditor.viewmodel.WorkspaceViewModel
 import kotlinx.coroutines.flow.drop
 import java.io.File
 
@@ -52,7 +53,10 @@ import java.io.File
  * - [GraphEditorDialogs] for file/save/properties dialogs
  */
 @Composable
-fun GraphEditorApp(modifier: Modifier = Modifier) {
+fun GraphEditorApp(
+    onTitleChanged: (String) -> Unit = {},
+    modifier: Modifier = Modifier
+) {
     // Core state initialization (graphState, registries, project root, etc.)
     val editorState = rememberGraphEditorState()
     val graphState = editorState.graphState
@@ -66,6 +70,16 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
     var statusMessage by editorState.statusMessage
     var registryVersion by editorState.registryVersion
     var ipTypesVersion by editorState.ipTypesVersion
+
+    // WorkspaceViewModel for module context
+    val workspaceViewModel = remember { WorkspaceViewModel() }
+    LaunchedEffect(Unit) {
+        workspaceViewModel.restoreState()
+        workspaceViewModel.currentModuleDir.value?.let { moduleRootDir = it }
+    }
+    val currentModuleName by workspaceViewModel.currentModuleName.collectAsState()
+    val mruModules by workspaceViewModel.mruModules.collectAsState()
+    val activeFlowGraphName by workspaceViewModel.activeFlowGraphName.collectAsState()
 
     // Panel collapse/expand state
     var isNodePanelExpanded by remember { mutableStateOf(true) }
@@ -87,6 +101,12 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
     // Keep Node Generator's moduleLoaded state in sync with moduleRootDir
     LaunchedEffect(moduleRootDir) {
         nodeGeneratorViewModel.setModuleLoaded(moduleRootDir != null, moduleRootDir?.absolutePath)
+        // Sync workspace when moduleRootDir changes externally (e.g., from opening a .flow.kt)
+        moduleRootDir?.let { dir ->
+            if (dir.absolutePath != workspaceViewModel.currentModuleDir.value?.absolutePath) {
+                workspaceViewModel.openModule(dir)
+            }
+        }
     }
 
     // NodePaletteViewModel for the Node Palette
@@ -212,6 +232,8 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
     var showFlowGraphPropertiesDialog by remember { mutableStateOf(false) }
     val saveLocationRegistry = remember { mutableMapOf<String, File>() }
     var showRemoveConfirmDialog by remember { mutableStateOf(false) }
+    var pendingSwitchModuleDir by remember { mutableStateOf<File?>(null) }
+    var showModuleSwitchConfirmDialog by remember { mutableStateOf(false) }
     var removeTargetIPType by remember { mutableStateOf<InformationPacketType?>(null) }
 
     // Create/recreate RuntimeSession synchronously when module changes
@@ -403,6 +425,21 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
 
     LaunchedEffect(graphState.flowGraph.name) {
         graphEditorViewModel.updateFlowGraphName(graphState.flowGraph.name)
+        val name = graphState.flowGraph.name
+        if (name != "New Graph") {
+            workspaceViewModel.setActiveFlowGraph(name)
+        } else {
+            workspaceViewModel.setActiveFlowGraph("")
+        }
+    }
+
+    LaunchedEffect(activeFlowGraphName) {
+        val title = if (!activeFlowGraphName.isNullOrEmpty()) {
+            "CodeNodeIO \u2014 $activeFlowGraphName"
+        } else {
+            "CodeNodeIO"
+        }
+        onTitleChanged(title)
     }
 
     // Create SharedStateProvider for ViewModel pattern
@@ -425,8 +462,36 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
                 canUngroup = canUngroup,
                 isInsideGraphNode = isInsideGraphNode,
                 currentGraphNodeName = currentGraphNodeName,
-                flowGraphName = graphState.flowGraph.name,
-                onShowProperties = { showFlowGraphPropertiesDialog = true },
+                currentModuleName = currentModuleName,
+                mruModules = mruModules,
+                onSwitchModule = { moduleDir ->
+                    if (graphState.isDirty) {
+                        pendingSwitchModuleDir = moduleDir
+                        showModuleSwitchConfirmDialog = true
+                    } else {
+                        workspaceViewModel.switchModule(moduleDir)
+                        moduleRootDir = moduleDir
+                        statusMessage = "Switched to module: ${moduleDir.name}"
+                    }
+                },
+                onOpenModule = {
+                    val chooser = javax.swing.JFileChooser().apply {
+                        fileSelectionMode = javax.swing.JFileChooser.DIRECTORIES_ONLY
+                        dialogTitle = "Open Module Directory"
+                    }
+                    if (chooser.showOpenDialog(null) == javax.swing.JFileChooser.APPROVE_OPTION) {
+                        val selectedDir = chooser.selectedFile
+                        if (java.io.File(selectedDir, "build.gradle.kts").exists()) {
+                            workspaceViewModel.openModule(selectedDir)
+                            moduleRootDir = selectedDir
+                            statusMessage = "Opened module: ${selectedDir.name}"
+                        } else {
+                            statusMessage = "Not a valid module directory (no build.gradle.kts)"
+                        }
+                    }
+                },
+                onCreateModule = { showFlowGraphPropertiesDialog = true },
+                onModuleSettings = { showFlowGraphPropertiesDialog = true },
                 onNew = {
                     val newGraph = flowGraph(
                         name = "New Graph",
@@ -567,6 +632,38 @@ fun GraphEditorApp(modifier: Modifier = Modifier) {
             onRegistryVersionIncrement = { registryVersion++ },
             onIpTypesVersionIncrement = { ipTypesVersion++ },
         )
+
+        if (showModuleSwitchConfirmDialog && pendingSwitchModuleDir != null) {
+            AlertDialog(
+                onDismissRequest = {
+                    showModuleSwitchConfirmDialog = false
+                    pendingSwitchModuleDir = null
+                },
+                title = { Text("Unsaved Changes") },
+                text = { Text("You have unsaved changes. Do you want to discard them and switch modules?") },
+                confirmButton = {
+                    TextButton(onClick = {
+                        showModuleSwitchConfirmDialog = false
+                        pendingSwitchModuleDir?.let { moduleDir ->
+                            workspaceViewModel.switchModule(moduleDir)
+                            moduleRootDir = moduleDir
+                            statusMessage = "Switched to module: ${moduleDir.name}"
+                        }
+                        pendingSwitchModuleDir = null
+                    }) {
+                        Text("Don't Save")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = {
+                        showModuleSwitchConfirmDialog = false
+                        pendingSwitchModuleDir = null
+                    }) {
+                        Text("Cancel")
+                    }
+                }
+            )
+        }
         }
     }
 }

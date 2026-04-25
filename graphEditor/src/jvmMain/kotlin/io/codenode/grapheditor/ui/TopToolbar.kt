@@ -15,8 +15,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import io.codenode.fbpdsl.model.FeatureGate
 import io.codenode.grapheditor.state.UndoRedoManager
+import java.io.File
 
 @Composable
 fun TopToolbar(
@@ -25,8 +25,12 @@ fun TopToolbar(
     canUngroup: Boolean = false,
     isInsideGraphNode: Boolean = false,
     currentGraphNodeName: String? = null,
-    flowGraphName: String = "New Graph",
-    onShowProperties: () -> Unit = {},
+    currentModuleName: String = "",
+    mruModules: List<File> = emptyList(),
+    onSwitchModule: (File) -> Unit = {},
+    onOpenModule: () -> Unit = {},
+    onCreateModule: () -> Unit = {},
+    onModuleSettings: () -> Unit = {},
     onNew: () -> Unit,
     onOpen: () -> Unit,
     onSave: () -> Unit,
@@ -74,26 +78,21 @@ fun TopToolbar(
                 color = Color.White
             )
 
-            // Show graph name and properties button when at root level
+            // Module dropdown (visible at root level)
             if (!isInsideGraphNode) {
                 Text(
                     text = " - ",
                     color = Color.White.copy(alpha = 0.7f),
                     fontSize = 18.sp
                 )
-                Text(
-                    text = flowGraphName,
-                    fontWeight = FontWeight.Medium,
-                    color = Color.White,
-                    fontSize = 18.sp
+                ModuleDropdown(
+                    currentModuleName = currentModuleName,
+                    mruModules = mruModules,
+                    onSwitchModule = onSwitchModule,
+                    onOpenModule = onOpenModule,
+                    onCreateModule = onCreateModule,
+                    onModuleSettings = onModuleSettings
                 )
-                IconButton(onClick = onShowProperties) {
-                    Text(
-                        text = "\u2699",  // Gear icon
-                        fontSize = 18.sp,
-                        color = Color.White
-                    )
-                }
             }
 
             Spacer(modifier = Modifier.weight(1f))
