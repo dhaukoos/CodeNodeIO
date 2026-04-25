@@ -15,7 +15,8 @@ Currently, the toolbar's left side shows a gear icon + the flow graph name label
 
 - **Variation A (Context Bar)**: The gear icon + label moves into the context bar. Clicking the module name in the context bar opens Module Properties. The toolbar no longer hosts this control.
 - **Variation B (Toolbar Dropdown)**: The gear icon is replaced by the module dropdown selector. Module Properties is accessible via a "Module Settings..." item at the bottom of the dropdown.
-- **Variation C (Workspace — Recommended)**: The gear icon + label remain in the toolbar but display the module name (not the flowGraph name). Clicking it opens Module Properties. The title bar also shows the workspace module name for passive context. At startup with no module, the gear icon shows "No Module" and clicking it opens Module Properties in create mode.
+- **Variation C (Workspace)**: The gear icon + label remain in the toolbar but display the module name. Clicking it opens Module Properties. The title bar shows the flowGraph name.
+- **Variation D (Workspace via Dropdown — Recommended)**: The gear icon + label are replaced by a module dropdown (`[StopWatch ▼]`). The dropdown includes "Module Settings..." to open Module Properties in edit mode, "Create New Module..." for create mode, and an MRU list for quick module switching. The title bar shows the active flowGraph name ("CodeNodeIO — MainFlow"). At startup with no module, the dropdown shows "[No Module ▼]" with create/open options.
 
 In all variations, Module Properties serves dual purposes:
 1. **Create mode** (no module loaded): Entry point for creating a new module — the first step before any work can begin
@@ -167,9 +168,9 @@ In all variations, Module Properties serves dual purposes:
 
 ---
 
-### 2.3 Variation C — Module as Workspace (Recommended)
+### 2.3 Variation C — Module as Workspace
 
-**Concept**: The module IS the workspace. The application title bar shows the current workspace. New/Open/Save are scoped to the workspace module. Switching modules is an explicit workspace action.
+**Concept**: The module IS the workspace. The title bar shows the active flowGraph name. New/Open/Save are scoped to the workspace module. Switching modules is an explicit workspace action.
 
 **Module Properties access**: Gear icon + module name in toolbar (e.g., "⚙ StopWatch"). Clicking opens Module Properties. At startup with no module, shows "⚙ No Module" and clicking opens create mode.
 
@@ -217,7 +218,7 @@ In all variations, Module Properties serves dual purposes:
 
 ### 2.4 Variation D — Module as Workspace via Dropdown (Recommended)
 
-**Concept**: Combines B and C — the module IS the workspace (title bar context, deterministic Save, scoped Open, 1-field New), but the toolbar gear icon + label becomes a dropdown for quick module switching. The dropdown lists recently used modules plus "Create New Module..." and "Open Module..." options. No additional screen space — the dropdown replaces the existing gear icon + label in the same toolbar position.
+**Concept**: Combines B and C — the module IS the workspace (deterministic Save, scoped Open, 1-field New), the title bar shows the active flowGraph name, and the toolbar gear icon + label becomes a module dropdown for quick workspace switching. The dropdown lists recently used modules plus "Create New Module..." and "Open Module..." options. No additional screen space — the dropdown replaces the existing gear icon + label in the same toolbar position.
 
 **Module Properties access**: "Module Settings..." option at the bottom of the dropdown. Also accessible by selecting the current module name (re-selecting it opens settings).
 
@@ -352,7 +353,7 @@ A FlowGraph is a `.flow.kt` file within a module's `flow/` directory containing:
 |-------|-----------|-------------|---------|
 | **Module** | Create | Creates directory structure + Gradle files via ModuleScaffoldingGenerator | Module Properties → "Create Module" |
 | **Module** | Configure | Edit target platforms | Module Properties (edit mode) |
-| **Module** | Open | Set as current workspace | Module Properties → "Browse..." or Open a .flow.kt from a different module |
+| **Module** | Open/Switch | Set as current workspace | Toolbar dropdown → select module, or "Open Module...", or open a .flow.kt from a different module |
 | **Module** | Delete | Remove module directory (manual — not a tool operation) | File system |
 | **FlowGraph** | New | Create blank canvas with a name, within the current workspace module | Toolbar → "New" |
 | **FlowGraph** | Open | Load a .flow.kt from the current module's flow/ directory | Toolbar → "Open" |
@@ -363,7 +364,7 @@ A FlowGraph is a `.flow.kt` file within a module's `flow/` directory containing:
 
 | Scenario | Behavior |
 |----------|----------|
-| **No module loaded** | Toolbar shows "CodeNodeIO" (no module name). New and Save are disabled. Open is available but only via "Open from..." (full file browser) which also sets the workspace. Module Properties prompts to create or browse. |
+| **No module loaded** | Toolbar dropdown shows "[No Module ▼]". Title bar shows "CodeNodeIO". New and Save are disabled. Open is available but only via "Open from..." (full file browser) which also sets the workspace. Dropdown offers "Create New Module..." and "Open Module...". |
 | **Empty module (0 flowGraphs)** | Valid state. Canvas is blank. New is enabled. Open shows empty list. Save is disabled (nothing to save). Generate is disabled (no graph). |
 | **Orphan .flow.kt (outside any module)** | Can be opened via "Open from..." — loads the graph but with no module context. Save and Generate are disabled. Status bar shows "No module context — create or open a module to save." |
 | **Duplicate flowGraph name** | New dialog validates the name against existing .flow.kt files in the module's flow/ directory. If duplicate, shows error "A flowGraph named '{name}' already exists in this module." |
@@ -383,8 +384,8 @@ A FlowGraph is a `.flow.kt` file within a module's `flow/` directory containing:
 | Implied 1:1 flowGraph/module | Explicit many:1 — module contains N flowGraphs |
 | Save prompts for directory on first save | Save is deterministic — always writes to workspace module's flow/ |
 | Open browses entire filesystem | Open scoped to current module's flow/ directory (with "Open from..." fallback) |
-| No module creation step | Module must be created first via Module Properties |
-| Title bar shows "CodeNodeIO" | Title bar shows "CodeNodeIO — {ModuleName}" |
+| No module creation step | Module must be created first via toolbar dropdown → "Create New Module..." or Module Properties |
+| Title bar shows "CodeNodeIO" | Title bar shows "CodeNodeIO — {FlowGraphName}" (module context in toolbar dropdown) |
 
 ### 4.2 Implementation Feature Scope (Subsequent Feature)
 
@@ -392,13 +393,15 @@ The next feature should implement:
 
 1. **Rename "FlowGraph Properties" to "Module Properties"** — update dialog title, menu item, keyboard shortcut tooltip
 2. **Redesign dialog fields** — empty name, platform checkboxes, Create Module button with validation, edit mode
-3. **Implement workspace model** — track current module as workspace state, update title bar
-4. **Redesign "New"** — simple name-only dialog, creates .flow.kt in workspace module
-5. **Redesign "Open"** — scoped to workspace flow/ directory with "Open from..." fallback
-6. **Redesign "Save"** — deterministic write to workspace flow/ directory, disabled without module
-7. **Add unsaved-changes prompt** when switching modules
-8. **Update status bar** for no-module-context scenarios
-9. **Backward compatibility** — existing .flow.kt files in old locations should still be openable via "Open from..."
+3. **Replace gear icon + label with module dropdown** — toolbar dropdown showing current module name with MRU list, "Create New Module...", "Open Module...", "Module Settings..."
+4. **Implement workspace model** — track current module as workspace state; title bar shows flowGraph name ("CodeNodeIO — {FlowGraphName}"), toolbar dropdown shows module name
+5. **Redesign "New"** — simple name-only dialog, creates .flow.kt in workspace module
+6. **Redesign "Open"** — scoped to workspace flow/ directory with "Open from..." fallback
+7. **Redesign "Save"** — deterministic write to workspace flow/ directory, disabled without module
+8. **Add unsaved-changes prompt** when switching modules via dropdown
+9. **Update status bar** for no-module-context scenarios
+10. **Persist last workspace** — remember and restore workspace module on next launch
+11. **Backward compatibility** — existing .flow.kt files in old locations should still be openable via "Open from..."
 
 ### 4.3 Backward Compatibility Considerations
 
