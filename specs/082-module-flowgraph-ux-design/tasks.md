@@ -21,8 +21,8 @@
 
 ### Implementation
 
-- [ ] T001 [US1] Write Module Properties dialog specification: field definitions (name with 3+ char validation, target platforms checkboxes, module path read-only), button states (Create Module enabled/disabled conditions), and edit mode behavior in `specs/082-module-flowgraph-ux-design/ux-design.md`
-- [ ] T002 [US1] Write mockup description of Module Properties dialog layout: field positioning, validation indicator placement, button arrangement, and how it differs between create-new and edit-existing modes in `specs/082-module-flowgraph-ux-design/ux-design.md`
+- [X] T001 [US1] Write Module Properties dialog specification with field definitions, validation rules, button states, and create/edit modes in `specs/082-module-flowgraph-ux-design/ux-design.md`
+- [X] T002 [US1] Write ASCII mockups for both create-new and edit-existing modes of Module Properties dialog in `specs/082-module-flowgraph-ux-design/ux-design.md`
 
 **Checkpoint**: Module Properties dialog fully specified and reviewable.
 
@@ -36,10 +36,10 @@
 
 ### Implementation
 
-- [ ] T003 [US2] Write Variation A (Module Context Bar): complete New/Open/Save user flows, mockup description of the context bar, and pros/cons table in `specs/082-module-flowgraph-ux-design/ux-design.md`
-- [ ] T004 [US2] Write Variation B (Module Dropdown in Toolbar): complete user flows, mockup description of the toolbar dropdown, and pros/cons table in `specs/082-module-flowgraph-ux-design/ux-design.md`
-- [ ] T005 [US2] Write Variation C (Module as Workspace — Recommended): complete user flows, mockup description of title bar context, and pros/cons table in `specs/082-module-flowgraph-ux-design/ux-design.md`
-- [ ] T006 [US2] Write comparison summary table and recommendation rationale explaining why Variation C is preferred in `specs/082-module-flowgraph-ux-design/ux-design.md`
+- [X] T003 [US2] Write Variation A (Context Bar) with user flows, ASCII mockup, and pros/cons table in `ux-design.md`
+- [X] T004 [US2] Write Variation B (Toolbar Dropdown) with user flows, ASCII mockup, and pros/cons table in `ux-design.md`
+- [X] T005 [US2] Write Variation C (Workspace — Recommended) with user flows, ASCII mockup, and pros/cons table in `ux-design.md`
+- [X] T006 [US2] Write 7-criterion comparison table and recommendation rationale in `ux-design.md`
 
 **Checkpoint**: All 3 variations documented with clear recommendation.
 
