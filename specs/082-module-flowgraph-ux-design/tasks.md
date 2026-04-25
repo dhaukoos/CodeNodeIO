@@ -53,10 +53,10 @@
 
 ### Implementation
 
-- [ ] T007 [US3] Write entity definitions: what constitutes a Module (directory, scaffolding, gradle, source sets) and what constitutes a FlowGraph (.flow.kt, nodes, connections, ports) in `specs/082-module-flowgraph-ux-design/ux-design.md`
-- [ ] T008 [US3] Write relationship model: many-to-one (module contains 0..N flowGraphs), constraints (flowGraph requires module context, unique names within module), and relationship diagram in `specs/082-module-flowgraph-ux-design/ux-design.md`
-- [ ] T009 [US3] Write operations table: which operations apply at module level (create, configure, delete) vs flowGraph level (new, open, save, generate) in `specs/082-module-flowgraph-ux-design/ux-design.md`
-- [ ] T010 [US3] Write edge case behavior table: no module loaded, empty module, orphan flowGraph, duplicate flowGraph names, switching modules with unsaved changes in `specs/082-module-flowgraph-ux-design/ux-design.md`
+- [X] T007 [US3] Write entity definitions for Module and FlowGraph in `ux-design.md` Section 3.1
+- [X] T008 [US3] Write relationship model with diagram, cardinality, and constraints in `ux-design.md` Section 3.2
+- [X] T009 [US3] Write operations table (8 operations across module and flowGraph levels) in `ux-design.md` Section 3.3
+- [X] T010 [US3] Write edge case behavior table (6 scenarios with defined behaviors) in `ux-design.md` Section 3.4
 
 **Checkpoint**: Relationship model fully documented and edge cases addressed.
 
@@ -66,9 +66,9 @@
 
 **Purpose**: Consolidate all sections into a cohesive design document and add migration notes.
 
-- [ ] T011 Write migration notes section: what changes from current behavior, what the subsequent implementation feature needs to address, and backward compatibility considerations in `specs/082-module-flowgraph-ux-design/ux-design.md`
-- [ ] T012 Review consolidated `ux-design.md` for completeness against spec.md requirements (FR-001 through FR-010)
-- [ ] T013 Run quickstart.md verification scenarios VS1–VS5
+- [X] T011 Write migration notes: current→new behavior table, 9-item implementation scope, backward compatibility in `ux-design.md` Section 4
+- [X] T012 Review `ux-design.md` for completeness — all FR-001 through FR-010 addressed across 4 sections
+- [X] T013 Run quickstart.md verification scenarios VS1–VS5 — all pass
 
 ---
 

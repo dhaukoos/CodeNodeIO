@@ -204,3 +204,119 @@
 4. **IDE-aligned pattern** — developers already understand "project = workspace" from IntelliJ, VS Code, Xcode
 5. **Scoped Open is a feature** — seeing only the current module's flowGraphs reduces cognitive load
 6. **Startup module setup** is a one-time cost that establishes the foundation for all subsequent work — and Module Properties makes it a 10-second operation (name + platforms + directory)
+
+---
+
+## 3. Module/FlowGraph Relationship Model
+
+### 3.1 Entity Definitions
+
+**Module**
+
+A Module is a KMP project directory containing:
+- **Scaffolding**: `build.gradle.kts`, `settings.gradle.kts`
+- **Source directories**: `src/commonMain/kotlin/{package}/` with subdirectories:
+  - `flow/` — FlowGraph definitions (.flow.kt files) and runtime Flow class
+  - `controller/` — Controller, ControllerInterface, ControllerAdapter
+  - `viewmodel/` — ViewModel, State object
+  - `userInterface/` — Compose UI composables
+  - `nodes/` — CodeNode definitions
+  - `iptypes/` — Module-level IP type definitions
+- **Identity**: Module name (derived from directory name, immutable after creation)
+- **Configuration**: Target platforms (Android, iOS, Desktop, Web, WASM)
+- **Created by**: Module Properties dialog → "Create Module" button
+
+**FlowGraph**
+
+A FlowGraph is a `.flow.kt` file within a module's `flow/` directory containing:
+- **Graph definition**: Nodes (CodeNodes, GraphNodes), connections, port types
+- **Identity**: FlowGraph name (derived from filename, e.g., `MainFlow.flow.kt` → "MainFlow")
+- **Content**: DSL code defining the node graph using `flowGraph("Name") { ... }` syntax
+- **Created by**: "New" toolbar button
+- **Persisted by**: "Save" toolbar button
+
+### 3.2 Relationship Model
+
+```
+┌─────────────┐        contains        ┌─────────────┐
+│   Module    │ ◄──────────────────── │  FlowGraph  │
+│             │     0..N               │             │
+│  name       │                        │  name       │
+│  platforms  │                        │  nodes      │
+│  rootDir    │                        │  connections │
+└─────────────┘                        └─────────────┘
+       │
+       │ contains
+       ▼
+  flow/, controller/,
+  viewmodel/, nodes/,
+  userInterface/, iptypes/
+```
+
+**Cardinality**: One Module contains zero or more FlowGraphs. Each FlowGraph belongs to exactly one Module.
+
+**Constraints**:
+- A FlowGraph cannot exist (be saved) without a Module context
+- FlowGraph names must be unique within a Module
+- A Module can exist with zero FlowGraphs (empty module — valid state)
+- The Module name is immutable after creation (directory name is the source of truth)
+
+### 3.3 Operations by Level
+
+| Level | Operation | Description | Trigger |
+|-------|-----------|-------------|---------|
+| **Module** | Create | Creates directory structure + Gradle files via ModuleScaffoldingGenerator | Module Properties → "Create Module" |
+| **Module** | Configure | Edit target platforms | Module Properties (edit mode) |
+| **Module** | Open | Set as current workspace | Module Properties → "Browse..." or Open a .flow.kt from a different module |
+| **Module** | Delete | Remove module directory (manual — not a tool operation) | File system |
+| **FlowGraph** | New | Create blank canvas with a name, within the current workspace module | Toolbar → "New" |
+| **FlowGraph** | Open | Load a .flow.kt from the current module's flow/ directory | Toolbar → "Open" |
+| **FlowGraph** | Save | Write the current graph to `{module}/flow/{name}.flow.kt` | Toolbar → "Save" |
+| **FlowGraph** | Generate | Produce runtime files (controller, viewmodel, etc.) from the graph | Code Generator panel → "Generate" |
+
+### 3.4 Edge Case Behavior
+
+| Scenario | Behavior |
+|----------|----------|
+| **No module loaded** | Toolbar shows "CodeNodeIO" (no module name). New and Save are disabled. Open is available but only via "Open from..." (full file browser) which also sets the workspace. Module Properties prompts to create or browse. |
+| **Empty module (0 flowGraphs)** | Valid state. Canvas is blank. New is enabled. Open shows empty list. Save is disabled (nothing to save). Generate is disabled (no graph). |
+| **Orphan .flow.kt (outside any module)** | Can be opened via "Open from..." — loads the graph but with no module context. Save and Generate are disabled. Status bar shows "No module context — create or open a module to save." |
+| **Duplicate flowGraph name** | New dialog validates the name against existing .flow.kt files in the module's flow/ directory. If duplicate, shows error "A flowGraph named '{name}' already exists in this module." |
+| **Switching modules with unsaved changes** | Prompt: "You have unsaved changes to {flowGraphName}. Save before switching?" with Save / Don't Save / Cancel options. |
+| **Module directory deleted externally** | On next Save or Open attempt, shows error "Module directory not found: {path}. The module may have been moved or deleted." Module Properties opens for resolution. |
+
+---
+
+## 4. Migration Notes
+
+### 4.1 What Changes from Current Behavior
+
+| Current | New |
+|---------|-----|
+| "FlowGraph Properties" dialog | "Module Properties" dialog |
+| Default graph name "New Graph" | Empty name field, must enter ≥ 3 chars |
+| Implied 1:1 flowGraph/module | Explicit many:1 — module contains N flowGraphs |
+| Save prompts for directory on first save | Save is deterministic — always writes to workspace module's flow/ |
+| Open browses entire filesystem | Open scoped to current module's flow/ directory (with "Open from..." fallback) |
+| No module creation step | Module must be created first via Module Properties |
+| Title bar shows "CodeNodeIO" | Title bar shows "CodeNodeIO — {ModuleName}" |
+
+### 4.2 Implementation Feature Scope (Subsequent Feature)
+
+The next feature should implement:
+
+1. **Rename "FlowGraph Properties" to "Module Properties"** — update dialog title, menu item, keyboard shortcut tooltip
+2. **Redesign dialog fields** — empty name, platform checkboxes, Create Module button with validation, edit mode
+3. **Implement workspace model** — track current module as workspace state, update title bar
+4. **Redesign "New"** — simple name-only dialog, creates .flow.kt in workspace module
+5. **Redesign "Open"** — scoped to workspace flow/ directory with "Open from..." fallback
+6. **Redesign "Save"** — deterministic write to workspace flow/ directory, disabled without module
+7. **Add unsaved-changes prompt** when switching modules
+8. **Update status bar** for no-module-context scenarios
+9. **Backward compatibility** — existing .flow.kt files in old locations should still be openable via "Open from..."
+
+### 4.3 Backward Compatibility Considerations
+
+- Existing modules with a single .flow.kt in the base package (pre-feature-077 layout) should still be openable — the system infers the module from `build.gradle.kts` presence
+- The `saveFlowKtOnly()` method in ModuleSaveService should be updated to write to the workspace module's `flow/` directory instead of the base package
+- The save location registry (mapping flowGraph name → directory) should be replaced by the workspace model (module root directory is the single source of truth)
