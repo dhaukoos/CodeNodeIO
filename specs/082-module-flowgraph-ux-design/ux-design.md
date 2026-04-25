@@ -7,6 +7,20 @@
 
 ## 1. Module Properties Dialog
 
+### 1.0 Current State & Integration with Toolbar
+
+Currently, the toolbar's left side shows a gear icon + the flow graph name label (e.g., "⚙ StopWatch"). Clicking it opens the "FlowGraph Properties" dialog. This feature renames it to "Module Properties" and redefines its role.
+
+**How Module Properties integrates with each UI variation**:
+
+- **Variation A (Context Bar)**: The gear icon + label moves into the context bar. Clicking the module name in the context bar opens Module Properties. The toolbar no longer hosts this control.
+- **Variation B (Toolbar Dropdown)**: The gear icon is replaced by the module dropdown selector. Module Properties is accessible via a "Module Settings..." item at the bottom of the dropdown.
+- **Variation C (Workspace — Recommended)**: The gear icon + label remain in the toolbar but display the module name (not the flowGraph name). Clicking it opens Module Properties. The title bar also shows the workspace module name for passive context. At startup with no module, the gear icon shows "No Module" and clicking it opens Module Properties in create mode.
+
+In all variations, Module Properties serves dual purposes:
+1. **Create mode** (no module loaded): Entry point for creating a new module — the first step before any work can begin
+2. **Edit mode** (module loaded): View/edit module settings (platforms), view module path
+
 ### 1.1 Dialog Specification
 
 **Title**: "Module Properties" (renamed from "FlowGraph Properties")
@@ -94,12 +108,14 @@
 
 **Concept**: A persistent horizontal bar below the toolbar displays the current module context. New/Open/Save operate on flowGraphs within that module.
 
+**Module Properties access**: Clicking the module name in the context bar opens Module Properties.
+
 **Layout mockup**:
 ```
 ┌──────────────────────────────────────────────────┐
 │  [New] [Open] [Save]  │  [Undo] [Redo]  │ ...   │  ← Toolbar
 ├──────────────────────────────────────────────────┤
-│  📁 StopWatch — /Users/dev/projects/StopWatch    │  ← Context Bar
+│  📁 StopWatch — /Users/dev/projects/StopWatch    │  ← Context Bar (clickable → Module Properties)
 ├──────────────────────────────────────────────────┤
 │                                                  │
 │               (Graph Canvas)                     │
@@ -124,10 +140,12 @@
 
 **Concept**: The toolbar includes a dropdown showing the current module name. Module selection is inline with New/Open/Save.
 
+**Module Properties access**: "Module Settings..." option at the bottom of the module dropdown.
+
 **Layout mockup**:
 ```
 ┌────────────────────────────────────────────────────────────┐
-│ [New▼] [Open] [Save] │ Module: [StopWatch ▼] │ [Undo] ... │
+│ [New▼] [Open] [Save] │ Module: [StopWatch ▼] │ [Undo] ... │  ← dropdown includes "Module Settings..."
 ├────────────────────────────────────────────────────────────┤
 │                                                            │
 │                     (Graph Canvas)                          │
@@ -153,12 +171,14 @@
 
 **Concept**: The module IS the workspace. The application title bar shows the current workspace. New/Open/Save are scoped to the workspace module. Switching modules is an explicit workspace action.
 
+**Module Properties access**: Gear icon + module name in toolbar (e.g., "⚙ StopWatch"). Clicking opens Module Properties. At startup with no module, shows "⚙ No Module" and clicking opens create mode.
+
 **Layout mockup**:
 ```
 ╔══════════════════════════════════════════════════╗
-║  CodeNodeIO — StopWatch                          ║  ← Window title
+║  CodeNodeIO — StopWatch                          ║  ← Window title (passive context)
 ╠══════════════════════════════════════════════════╣
-│  [New] [Open] [Save]  │  [Undo] [Redo]  │ ...   │  ← Toolbar
+│ ⚙ StopWatch │ [New] [Open] [Save] │ [Undo] ... │  ← Toolbar (⚙ clickable → Module Properties)
 ├──────────────────────────────────────────────────┤
 │                                                  │
 │               (Graph Canvas)                     │
@@ -166,7 +186,7 @@
 
 **User flows**:
 
-- **Startup**: Application opens with no workspace. Module Properties dialog appears automatically, prompting the user to create a new module or open an existing one (via a "Browse..." button that looks for directories containing `build.gradle.kts`).
+- **Startup**: Application opens with no workspace. Toolbar shows "⚙ No Module". Module Properties dialog appears automatically on first launch, prompting the user to create a new module or open an existing one (via a "Browse..." button that looks for directories containing `build.gradle.kts`). Subsequent launches remember the last workspace.
 - **New FlowGraph**: Click "New" → simple dialog with only "FlowGraph Name" field (module is implicit — it's the workspace). Enter name → blank canvas. Saved to `{workspace}/flow/{name}.flow.kt`.
 - **Open FlowGraph**: Click "Open" → file chooser opens **scoped to the current workspace module's `flow/` directory** (not the entire filesystem). Shows only `.flow.kt` files in that directory. An "Open from..." secondary option allows browsing any location (and switches workspace if the file is in a different module).
 - **Save FlowGraph**: Click "Save" → writes to `{workspace}/flow/{flowGraphName}.flow.kt`. Completely deterministic — no directory prompt ever needed after initial module setup.
@@ -195,15 +215,80 @@
 | Learning curve | Low — bar is obvious | Low — dropdown familiar | Medium — workspace concept |
 | Multi-module workflow | Fair | Good (quick dropdown) | Fair (explicit switch) |
 
-**Recommendation**: **Variation C — Module as Workspace**
+### 2.4 Variation D — Module as Workspace via Dropdown (Recommended)
+
+**Concept**: Combines B and C — the module IS the workspace (title bar context, deterministic Save, scoped Open, 1-field New), but the toolbar gear icon + label becomes a dropdown for quick module switching. The dropdown lists recently used modules plus "Create New Module..." and "Open Module..." options. No additional screen space — the dropdown replaces the existing gear icon + label in the same toolbar position.
+
+**Module Properties access**: "Module Settings..." option at the bottom of the dropdown. Also accessible by selecting the current module name (re-selecting it opens settings).
+
+**Layout mockup**:
+```
+╔══════════════════════════════════════════════════════╗
+║  CodeNodeIO — StopWatch                              ║  ← Window title (passive context)
+╠══════════════════════════════════════════════════════╣
+│ [StopWatch ▼] │ [New] [Open] [Save] │ [Undo] [Redo] │  ← Toolbar (dropdown = workspace selector)
+├──────────────────────────────────────────────────────┤
+│                                                      │
+│                   (Graph Canvas)                      │
+```
+
+**Dropdown contents**:
+```
+┌──────────────────────────┐
+│ ✓ StopWatch              │  ← current workspace (checkmark)
+│   WeatherForecast        │  ← recently used
+│   UserProfiles           │  ← recently used
+│ ─────────────────────── │
+│   Open Module...         │  ← browse for existing module
+│   Create New Module...   │  ← opens Module Properties in create mode
+│ ─────────────────────── │
+│   Module Settings...     │  ← opens Module Properties in edit mode
+└──────────────────────────┘
+```
+
+**User flows**:
+
+- **Startup**: Application opens with last workspace remembered. If no previous workspace, toolbar shows "[No Module ▼]" and the dropdown offers "Create New Module..." and "Open Module...". Module Properties appears automatically on first launch.
+- **New FlowGraph**: Click "New" → simple dialog with only "FlowGraph Name" field (module is implicit — it's the workspace). Enter name → blank canvas. Saved to `{workspace}/flow/{name}.flow.kt`.
+- **Open FlowGraph**: Click "Open" → file chooser scoped to current workspace module's `flow/` directory. Shows only `.flow.kt` files. An "Open from..." secondary option allows browsing any location (and switches workspace if the file is in a different module).
+- **Save FlowGraph**: Click "Save" → writes to `{workspace}/flow/{flowGraphName}.flow.kt`. Completely deterministic — no directory prompt.
+- **Switch Workspace**: Click the module dropdown → select a different module from the MRU list. Prompts to save unsaved changes if needed. Or use "Open Module..." to browse.
+
+| Pros | Cons |
+|------|------|
+| Zero additional screen space — replaces existing gear icon | Requires maintaining MRU module list |
+| Quick module switching via dropdown (best of B) | Dropdown is slightly more complex than static label |
+| Deterministic Save — no prompts (best of C) | |
+| 1-field New dialog — simplest (best of C) | |
+| Scoped Open — focused on current module (best of C) | |
+| IDE-aligned workspace pattern (best of C) | |
+| Title bar provides passive context (best of C) | |
+| Startup remembers last workspace — no repeated setup | |
+
+---
+
+### 2.5 Comparison and Recommendation
+
+| Criterion | A — Context Bar | B — Toolbar Dropdown | C — Workspace | D — Workspace via Dropdown |
+|-----------|----------------|---------------------|---------------|---------------------------|
+| Context visibility | High (persistent bar) | Medium (dropdown) | High (title bar) | High (title bar + dropdown) |
+| Screen space cost | 24dp vertical bar | Same as current | Same as current | Same as current |
+| Save determinism | Yes | Yes | Yes | Yes |
+| New dialog complexity | 1 field | 2 fields | 1 field | 1 field |
+| Module switching | Open from elsewhere | Dropdown (quick) | Explicit action | Dropdown (quick) |
+| Learning curve | Low | Low | Medium | Low |
+| Multi-module workflow | Fair | Good | Fair | Good |
+
+**Recommendation**: **Variation D — Module as Workspace via Dropdown**
 
 **Reasoning**:
-1. **Zero screen space cost** — title bar is already there, just underutilized
-2. **Simplest New dialog** — just a name, no module selection (it's the workspace)
-3. **Deterministic Save** — never asks where to save, ever
-4. **IDE-aligned pattern** — developers already understand "project = workspace" from IntelliJ, VS Code, Xcode
-5. **Scoped Open is a feature** — seeing only the current module's flowGraphs reduces cognitive load
-6. **Startup module setup** is a one-time cost that establishes the foundation for all subsequent work — and Module Properties makes it a 10-second operation (name + platforms + directory)
+1. **Best of B and C combined** — workspace semantics (deterministic Save, scoped Open, 1-field New) with quick module switching via dropdown
+2. **Zero screen space cost** — the dropdown replaces the existing gear icon + label in the same toolbar position
+3. **Quick module switching** — dropdown MRU list eliminates the friction of C's explicit switching
+4. **Simplest New dialog** — just a name, module is implicit
+5. **Deterministic Save** — never asks where to save
+6. **IDE-aligned pattern** — developers understand workspace + project switcher (IntelliJ's recent projects, VS Code's workspace selector)
+7. **Startup remembers last workspace** — returning users go straight to work
 
 ---
 
