@@ -150,7 +150,6 @@ Kotlin 1.9+, Go 1.21+: Follow standard conventions
 ## Recent Changes
 - 081-wire-codegen-panel: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + Compose Desktop 1.7.3 + graphEditor (CodeGeneratorPanel, TopToolbar, GraphEditorApp), flowGraph-generate (CodeGenerationRunner, ModuleScaffoldingGenerator, SelectionFilter)
 - 080-codegen-flow-graphs: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + flowGraph-generate (Generator CodeNode wrappers, GenerationConfig), fbpDsl (FlowGraph DSL for .flow.kt files)
-- 079-generator-codenode-wrappers: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + fbpDsl (CodeNodeDefinition, CodeNodeType, PortSpec, NodeRuntime), flowGraph-generate (existing generators)
 
 
 <!-- MANUAL ADDITIONS START -->
