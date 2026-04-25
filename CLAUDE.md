@@ -129,6 +129,8 @@ Auto-generated from all feature plans. Last updated: 2026-01-13
 - Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + flowGraph-generate (Generator CodeNode wrappers, GenerationConfig), fbpDsl (FlowGraph DSL for .flow.kt files) (080-codegen-flow-graphs)
 - N/A — in-memory content production (080-codegen-flow-graphs)
 - Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + Compose Desktop 1.7.3 + graphEditor (CodeGeneratorPanel, TopToolbar, GraphEditorApp), flowGraph-generate (CodeGenerationRunner, ModuleScaffoldingGenerator, SelectionFilter) (081-wire-codegen-panel)
+- Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + Compose Desktop 1.7.3 + graphEditor (TopToolbar, GraphEditorApp, GraphEditorDialogs, FlowGraphPropertiesDialog), flowGraph-generate (ModuleScaffoldingGenerator), fbpDsl (FlowGraph model) (083-implement-workspace-dropdown)
+- `~/.codenode/config.properties` for workspace persistence + MRU lis (083-implement-workspace-dropdown)
 
 - Kotlin 1.9+, Go 1.21+ (001-ide-plugin-platform)
 
@@ -148,6 +150,7 @@ tests/
 Kotlin 1.9+, Go 1.21+: Follow standard conventions
 
 ## Recent Changes
+- 083-implement-workspace-dropdown: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + Compose Desktop 1.7.3 + graphEditor (TopToolbar, GraphEditorApp, GraphEditorDialogs, FlowGraphPropertiesDialog), flowGraph-generate (ModuleScaffoldingGenerator), fbpDsl (FlowGraph model)
 - 081-wire-codegen-panel: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + Compose Desktop 1.7.3 + graphEditor (CodeGeneratorPanel, TopToolbar, GraphEditorApp), flowGraph-generate (CodeGenerationRunner, ModuleScaffoldingGenerator, SelectionFilter)
 - 080-codegen-flow-graphs: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + flowGraph-generate (Generator CodeNode wrappers, GenerationConfig), fbpDsl (FlowGraph DSL for .flow.kt files)
 
