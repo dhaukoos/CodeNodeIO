@@ -242,7 +242,7 @@ fun GraphEditorApp(
     // (must be synchronous so runtimeSession is always in sync with moduleRootDir
     // during the same recomposition — avoids ClassCastException on module switch)
     // Pass the editor's FlowGraph so animation connection IDs match the Canvas.
-    val runtimeSession = remember(moduleRootDir) {
+    val runtimeSession = remember(moduleRootDir, graphState.flowGraph) {
         moduleRootDir?.name?.let {
             ModuleSessionFactory.createSession(
                 moduleName = it,
@@ -691,28 +691,41 @@ fun GraphEditorApp(
                     pendingSwitchModuleDir = null
                 },
                 title = { Text("Unsaved Changes") },
-                text = { Text("You have unsaved changes. Do you want to discard them and switch modules?") },
+                text = { Text("You have unsaved changes. Save before switching modules?") },
                 confirmButton = {
-                    TextButton(onClick = {
-                        showModuleSwitchConfirmDialog = false
-                        pendingSwitchModuleDir?.let { moduleDir ->
-                            workspaceViewModel.switchModule(moduleDir)
-                            moduleRootDir = moduleDir
-                            statusMessage = "Switched to module: ${moduleDir.name}"
+                    Row {
+                        TextButton(onClick = {
+                            showModuleSwitchConfirmDialog = false
+                            pendingSwitchModuleDir = null
+                        }) {
+                            Text("Cancel")
                         }
-                        pendingSwitchModuleDir = null
-                    }) {
-                        Text("Don't Save")
+                        TextButton(onClick = {
+                            showModuleSwitchConfirmDialog = false
+                            pendingSwitchModuleDir?.let { moduleDir ->
+                                workspaceViewModel.switchModule(moduleDir)
+                                moduleRootDir = moduleDir
+                                statusMessage = "Switched to module: ${moduleDir.name}"
+                            }
+                            pendingSwitchModuleDir = null
+                        }) {
+                            Text("Don't Save")
+                        }
+                        TextButton(onClick = {
+                            showModuleSwitchConfirmDialog = false
+                            showModuleSaveDialog = true
+                            pendingSwitchModuleDir?.let { moduleDir ->
+                                workspaceViewModel.switchModule(moduleDir)
+                                moduleRootDir = moduleDir
+                                statusMessage = "Saved and switched to module: ${moduleDir.name}"
+                            }
+                            pendingSwitchModuleDir = null
+                        }) {
+                            Text("Save")
+                        }
                     }
                 },
-                dismissButton = {
-                    TextButton(onClick = {
-                        showModuleSwitchConfirmDialog = false
-                        pendingSwitchModuleDir = null
-                    }) {
-                        Text("Cancel")
-                    }
-                }
+                dismissButton = {}
             )
         }
         }

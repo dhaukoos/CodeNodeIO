@@ -63,7 +63,7 @@ fun ModuleDropdown(
                 }
             }
 
-            val otherModules = mruModules.filter { it.name != currentModuleName }
+            val otherModules = mruModules.filter { it.name != currentModuleName && it.isDirectory }
             otherModules.forEach { moduleDir ->
                 DropdownMenuItem(
                     onClick = {

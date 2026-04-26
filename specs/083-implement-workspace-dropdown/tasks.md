@@ -92,12 +92,12 @@
 
 ### Implementation
 
-- [ ] T023 [US4] Call `workspaceViewModel.persistState()` on module changes (open, create, switch) and on app close in `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/GraphEditorApp.kt`
-- [ ] T024 [US4] Add unsaved-changes prompt when switching modules: if `isDirty`, show dialog with Save / Don't Save / Cancel before proceeding in `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/GraphEditorApp.kt`
-- [ ] T025 [US4] Add duplicate flowGraph name validation in `NewFlowGraphDialog`: check `{moduleDir}/flow/` for existing `.flow.kt` with same name, show inline error in `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/NewFlowGraphDialog.kt`
-- [ ] T026 [US4] Handle deleted module directory: on Save or Open attempt, show error and open Module Properties for resolution in `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/GraphEditorDialogs.kt`
-- [ ] T027 [US4] Remove stale MRU entries: when a module directory no longer exists, silently remove it from the MRU list on next dropdown render in `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/ModuleDropdown.kt`
-- [ ] T028 [US4] Compile and run: `./gradlew :graphEditor:compileKotlinJvm :graphEditor:jvmTest`
+- [X] T023 [US4] Call `workspaceViewModel.persistState()` on module changes (open, create, switch) and on app close in `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/GraphEditorApp.kt`
+- [X] T024 [US4] Add unsaved-changes prompt when switching modules: if `isDirty`, show dialog with Save / Don't Save / Cancel before proceeding in `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/GraphEditorApp.kt`
+- [X] T025 [US4] Add duplicate flowGraph name validation in `NewFlowGraphDialog`: check `{moduleDir}/flow/` for existing `.flow.kt` with same name, show inline error in `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/NewFlowGraphDialog.kt`
+- [X] T026 [US4] Handle deleted module directory: on Save or Open attempt, show error and open Module Properties for resolution in `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/GraphEditorDialogs.kt`
+- [X] T027 [US4] Remove stale MRU entries: when a module directory no longer exists, silently remove it from the MRU list on next dropdown render in `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/ModuleDropdown.kt`
+- [X] T028 [US4] Compile and run: `./gradlew :graphEditor:compileKotlinJvm :graphEditor:jvmTest`
 
 **Checkpoint**: Workspace persists. Edge cases handled gracefully.
 
@@ -107,10 +107,10 @@
 
 **Purpose**: Full verification and backward compatibility
 
-- [ ] T029 Run full test suite: `./gradlew :flowGraph-generate:jvmTest :graphEditor:jvmTest`
-- [ ] T030 Run quickstart.md verification scenarios VS1–VS10
-- [ ] T031 Verify all demo project modules (StopWatch, UserProfiles, Addresses, EdgeArtFilter, WeatherForecast) work with the new workspace model
-- [ ] T032 Verify "Open from..." can still open .flow.kt files from non-standard locations (backward compatibility)
+- [X] T029 Run full test suite: `./gradlew :flowGraph-generate:jvmTest :graphEditor:jvmTest`
+- [X] T030 Run quickstart.md verification scenarios VS1–VS10
+- [X] T031 Verify all demo project modules (StopWatch, UserProfiles, Addresses, EdgeArtFilter, WeatherForecast) work with the new workspace model
+- [X] T032 Verify "Open from..." can still open .flow.kt files from non-standard locations (backward compatibility)
 
 ---
 

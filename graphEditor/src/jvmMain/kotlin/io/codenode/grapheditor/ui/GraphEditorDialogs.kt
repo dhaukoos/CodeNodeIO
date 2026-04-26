@@ -89,6 +89,8 @@ fun GraphEditorDialogs(
         LaunchedEffect(Unit) {
             if (currentModuleDir == null) {
                 onStatusMessage("No module loaded — open or create a module first")
+            } else if (!currentModuleDir.isDirectory) {
+                onStatusMessage("Module directory no longer exists: ${currentModuleDir.absolutePath}")
             } else {
                 val ipTypeNamesMap = buildMap {
                     for (ipType in ipTypeRegistry.getAllTypes()) {
