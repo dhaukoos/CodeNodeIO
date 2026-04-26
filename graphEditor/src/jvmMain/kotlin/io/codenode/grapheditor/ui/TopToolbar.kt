@@ -31,6 +31,7 @@ fun TopToolbar(
     onOpenModule: () -> Unit = {},
     onCreateModule: () -> Unit = {},
     onModuleSettings: () -> Unit = {},
+    hasModule: Boolean = false,
     onNew: () -> Unit,
     onOpen: () -> Unit,
     onSave: () -> Unit,
@@ -100,6 +101,7 @@ fun TopToolbar(
             // File operations
             TextButton(
                 onClick = onNew,
+                enabled = hasModule,
                 colors = ButtonDefaults.textButtonColors(contentColor = Color.White)
             ) {
                 Text("New")
@@ -114,6 +116,7 @@ fun TopToolbar(
 
             TextButton(
                 onClick = onSave,
+                enabled = hasModule,
                 colors = ButtonDefaults.textButtonColors(contentColor = Color.White)
             ) {
                 Text("Save")

@@ -55,11 +55,11 @@
 
 ### Implementation
 
-- [ ] T012 [US2] Create `ModulePropertiesDialog` composable with: name field (empty default, 3+ char validation), platform checkboxes (1+ required), Create Module button (enabled when valid), edit mode (read-only name + path display) in `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/ModulePropertiesDialog.kt`
-- [ ] T013 [US2] Wire "Create Module" button to show directory chooser, then call `ModuleScaffoldingGenerator.generate()` and `workspaceViewModel.createModule()` in `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/ModulePropertiesDialog.kt`
-- [ ] T014 [US2] Wire "Create New Module..." and "Module Settings..." dropdown actions to show `ModulePropertiesDialog` in create mode and edit mode respectively in `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/GraphEditorApp.kt`
-- [ ] T015 [US2] Remove the old `FlowGraphPropertiesDialog` and its `showFlowGraphPropertiesDialog` state/callbacks from `GraphEditorApp.kt` and `GraphEditorDialogs.kt` in `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/`
-- [ ] T016 [US2] Compile and run: `./gradlew :graphEditor:compileKotlinJvm :graphEditor:jvmTest`
+- [X] T012 [US2] Create `ModulePropertiesDialog` composable with: name field (empty default, 3+ char validation), platform checkboxes (1+ required), Create Module button (enabled when valid), edit mode (read-only name + path display) in `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/ModulePropertiesDialog.kt`
+- [X] T013 [US2] Wire "Create Module" button to show directory chooser, then call `ModuleScaffoldingGenerator.generate()` and `workspaceViewModel.createModule()` in `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/ModulePropertiesDialog.kt`
+- [X] T014 [US2] Wire "Create New Module..." and "Module Settings..." dropdown actions to show `ModulePropertiesDialog` in create mode and edit mode respectively in `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/GraphEditorApp.kt`
+- [X] T015 [US2] Remove the old `FlowGraphPropertiesDialog` and its `showFlowGraphPropertiesDialog` state/callbacks from `GraphEditorApp.kt` and `GraphEditorDialogs.kt` in `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/`
+- [X] T016 [US2] Compile and run: `./gradlew :graphEditor:compileKotlinJvm :graphEditor:jvmTest`
 
 **Checkpoint**: Module Properties dialog works. Create Module produces scaffolding. Old FlowGraph Properties removed.
 
@@ -73,12 +73,12 @@
 
 ### Implementation
 
-- [ ] T017 [P] [US3] Create `NewFlowGraphDialog` composable with single name field, validation (non-empty, no duplicate in module's flow/, valid filename), and confirm/cancel buttons in `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/NewFlowGraphDialog.kt`
-- [ ] T018 [US3] Wire "New" toolbar button to show `NewFlowGraphDialog`, on confirm create a blank `FlowGraph(name = enteredName)`, set as active via `workspaceViewModel.setActiveFlowGraph()`, update title bar in `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/GraphEditorApp.kt`
-- [ ] T019 [US3] Redesign "Open" to scope the file chooser to `{workspaceModuleDir}/src/commonMain/kotlin/{packagePath}/flow/` filtered to `.flow.kt` files. Add "Open from..." fallback via secondary action. When opening from different module, infer module and call `switchModule()` in `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/GraphEditorDialogs.kt`
-- [ ] T020 [US3] Redesign "Save" to write deterministically to `{workspaceModuleDir}/src/commonMain/kotlin/{packagePath}/flow/{flowGraphName}.flow.kt` with no directory chooser. Disable Save when no module loaded. Remove `saveLocationRegistry` usage in `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/GraphEditorDialogs.kt`
-- [ ] T021 [US3] Disable New, Open (scoped), and Save buttons when `workspaceViewModel.currentModuleDir` is null in `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/TopToolbar.kt`
-- [ ] T022 [US3] Compile and run: `./gradlew :graphEditor:compileKotlinJvm :graphEditor:jvmTest`
+- [X] T017 [P] [US3] Create `NewFlowGraphDialog` composable with single name field, validation (non-empty, no duplicate in module's flow/, valid filename), and confirm/cancel buttons in `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/NewFlowGraphDialog.kt`
+- [X] T018 [US3] Wire "New" toolbar button to show `NewFlowGraphDialog`, on confirm create a blank `FlowGraph(name = enteredName)`, set as active via `workspaceViewModel.setActiveFlowGraph()`, update title bar in `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/GraphEditorApp.kt`
+- [X] T019 [US3] Redesign "Open" to scope the file chooser to `{workspaceModuleDir}/src/commonMain/kotlin/{packagePath}/flow/` filtered to `.flow.kt` files. Add "Open from..." fallback via secondary action. When opening from different module, infer module and call `switchModule()` in `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/GraphEditorDialogs.kt`
+- [X] T020 [US3] Redesign "Save" to write deterministically to `{workspaceModuleDir}/src/commonMain/kotlin/{packagePath}/flow/{flowGraphName}.flow.kt` with no directory chooser. Disable Save when no module loaded. Remove `saveLocationRegistry` usage in `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/GraphEditorDialogs.kt`
+- [X] T021 [US3] Disable New, Open (scoped), and Save buttons when `workspaceViewModel.currentModuleDir` is null in `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/TopToolbar.kt`
+- [X] T022 [US3] Compile and run: `./gradlew :graphEditor:compileKotlinJvm :graphEditor:jvmTest`
 
 **Checkpoint**: New/Open/Save work within workspace context. Save is deterministic. Disabled without module.
 

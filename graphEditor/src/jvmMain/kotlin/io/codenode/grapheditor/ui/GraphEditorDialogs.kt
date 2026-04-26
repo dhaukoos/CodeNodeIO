@@ -32,8 +32,6 @@ fun GraphEditorDialogs(
     onShowOpenDialogChanged: (Boolean) -> Unit,
     showModuleSaveDialog: Boolean,
     onShowModuleSaveDialogChanged: (Boolean) -> Unit,
-    showFlowGraphPropertiesDialog: Boolean,
-    onShowFlowGraphPropertiesDialogChanged: (Boolean) -> Unit,
     showRemoveConfirmDialog: Boolean,
     onShowRemoveConfirmDialogChanged: (Boolean) -> Unit,
     removeTargetIPType: InformationPacketType?,
@@ -44,7 +42,8 @@ fun GraphEditorDialogs(
     ipTypeRegistry: IPTypeRegistry,
     registry: NodeDefinitionRegistry,
     moduleSaveService: ModuleSaveService,
-    saveLocationRegistry: MutableMap<String, File>,
+    moduleFlowDir: File?,
+    currentModuleDir: File?,
     projectRoot: File,
     codeEditorViewModel: CodeEditorViewModel,
     pendingEditorAction: (() -> Unit)?,
@@ -54,14 +53,13 @@ fun GraphEditorDialogs(
     onRegistryVersionIncrement: () -> Unit = {},
     onIpTypesVersionIncrement: () -> Unit,
 ) {
-    // File open dialog
+    // File open dialog — scoped to module's flow/ directory when available
     if (showOpenDialog) {
         LaunchedEffect(Unit) {
-            val openResult = showFileOpenDialog()
+            val openResult = showFileOpenDialog(initialDir = moduleFlowDir)
             val file = openResult.file
             if (file != null) {
                 try {
-                    // T062: Only support .flow.kt files (removed .flow.kts support)
                     val parser = FlowKtParser()
                     parser.setTypeResolver { typeName ->
                         ipTypeRegistry.getByTypeName(typeName)?.payloadType
@@ -69,23 +67,9 @@ fun GraphEditorDialogs(
                     val parseResult = parser.parseFlowKt(file.readText())
                     val loadedGraph = parseResult.graph
                     if (parseResult.isSuccess && loadedGraph != null) {
-                        // Auto-resolve connection IP types from source port data types
-                        // Pass portTypeNameHints for typealias IP types that can't be resolved via reflection
-                        println("[DEBUG-OPEN] portTypeNameHints: ${parseResult.portTypeNameHints.size} entries")
-                        parseResult.portTypeNameHints.forEach { (k, v) -> println("[DEBUG-OPEN]   hint: $k -> $v") }
-                        println("[DEBUG-OPEN] ipTypeRegistry has ${ipTypeRegistry.getAllTypes().size} types:")
-                        ipTypeRegistry.getAllTypes().forEach { t -> println("[DEBUG-OPEN]   reg: ${t.typeName} (id=${t.id})") }
                         val resolvedGraph = resolveConnectionIPTypes(loadedGraph, ipTypeRegistry, parseResult.portTypeNameHints)
-                        println("[DEBUG-OPEN] Resolved ${resolvedGraph.connections.size} connections:")
-                        resolvedGraph.connections.forEach { c ->
-                            println("[DEBUG-OPEN]   ${c.sourcePortId} -> ${c.targetPortId} ipTypeId=${c.ipTypeId}")
-                        }
                         graphState.setGraph(resolvedGraph, markDirty = false)
                         onModuleRootDirChanged(findModuleRoot(file.parentFile))
-                        // Register save location so re-save skips the directory prompt
-                        findModuleRoot(file.parentFile)?.parentFile?.let { parentDir ->
-                            saveLocationRegistry[loadedGraph.name] = parentDir
-                        }
                         onStatusMessage("Opened ${file.name}")
                     } else {
                         onStatusMessage("Error opening: ${parseResult.errorMessage}")
@@ -100,23 +84,12 @@ fun GraphEditorDialogs(
         }
     }
 
-    // Save handler: writes only the .flow.kt file (no code generation)
+    // Save handler: deterministic write to workspace module's flow/ directory
     if (showModuleSaveDialog) {
         LaunchedEffect(Unit) {
-            val flowGraphName = graphState.flowGraph.name
-            val savedDir = saveLocationRegistry[flowGraphName]
-
-            // Determine output directory: use registry or prompt user
-            val outputDir = if (savedDir != null && savedDir.exists()) {
-                savedDir
+            if (currentModuleDir == null) {
+                onStatusMessage("No module loaded — open or create a module first")
             } else {
-                if (savedDir != null) {
-                    saveLocationRegistry.remove(flowGraphName)
-                }
-                showDirectoryChooser("Save Flow Graph To")
-            }
-
-            if (outputDir != null) {
                 val ipTypeNamesMap = buildMap {
                     for (ipType in ipTypeRegistry.getAllTypes()) {
                         put(ipType.id, ipType.typeName)
@@ -124,7 +97,8 @@ fun GraphEditorDialogs(
                 }
                 val result = moduleSaveService.saveFlowKtOnly(
                     flowGraph = graphState.flowGraph,
-                    outputDir = outputDir,
+                    outputDir = currentModuleDir.parentFile ?: currentModuleDir,
+                    moduleName = currentModuleDir.name,
                     ipTypeNames = ipTypeNamesMap,
                     codeNodeClassLookup = { nodeName ->
                         registry.getByName(nodeName)?.let {
@@ -133,8 +107,8 @@ fun GraphEditorDialogs(
                     }
                 )
                 if (result.success) {
-                    saveLocationRegistry[flowGraphName] = outputDir
                     onModuleRootDirChanged(result.moduleDir)
+                    graphState.markAsSaved()
                     onStatusMessage("Saved ${graphState.flowGraph.name}.flow.kt")
                 } else {
                     onStatusMessage("Save error: ${result.errorMessage}")
@@ -142,25 +116,6 @@ fun GraphEditorDialogs(
             }
             onShowModuleSaveDialogChanged(false)
         }
-    }
-
-    // FlowGraph Properties dialog
-    if (showFlowGraphPropertiesDialog) {
-        FlowGraphPropertiesDialog(
-            name = graphState.flowGraph.name,
-            targetPlatforms = graphState.flowGraph.targetPlatforms.toSet(),
-            onNameChanged = { newName ->
-                if (newName.isNotBlank()) {
-                    graphState.setGraph(graphState.flowGraph.copy(name = newName), markDirty = true)
-                }
-            },
-            onTargetPlatformToggled = { platform ->
-                val current = graphState.flowGraph.targetPlatforms.toMutableList()
-                if (platform in current) current.remove(platform) else current.add(platform)
-                graphState.setGraph(graphState.flowGraph.withTargetPlatforms(current), markDirty = true)
-            },
-            onDismiss = { onShowFlowGraphPropertiesDialogChanged(false) }
-        )
     }
 
     // Remove Repository Module confirmation dialog

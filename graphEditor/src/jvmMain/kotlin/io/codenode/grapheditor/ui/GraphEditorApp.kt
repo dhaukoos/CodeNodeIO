@@ -18,6 +18,7 @@ import io.codenode.flowgraphcompose.viewmodel.PropertiesPanelViewModel
 import io.codenode.flowgraphexecute.ModuleSessionFactory
 import io.codenode.flowgraphgenerate.compilation.CompilationService
 import io.codenode.flowgraphgenerate.save.ModuleSaveService
+import io.codenode.flowgraphgenerate.save.ModuleScaffoldingGenerator
 import io.codenode.flowgraphgenerate.viewmodel.IPGeneratorViewModel
 import io.codenode.flowgraphgenerate.viewmodel.NodeGeneratorViewModel
 import io.codenode.flowgraphinspect.discovery.DynamicPreviewDiscovery
@@ -229,8 +230,9 @@ fun GraphEditorApp(
     var selectedIPType by remember { mutableStateOf<InformationPacketType?>(null) }
     var showOpenDialog by remember { mutableStateOf(false) }
     var showModuleSaveDialog by remember { mutableStateOf(false) }
-    var showFlowGraphPropertiesDialog by remember { mutableStateOf(false) }
-    val saveLocationRegistry = remember { mutableMapOf<String, File>() }
+    var showNewFlowGraphDialog by remember { mutableStateOf(false) }
+    var showModulePropertiesDialog by remember { mutableStateOf(false) }
+    var moduleDialogMode by remember { mutableStateOf(ModuleDialogMode.CREATE) }
     var showRemoveConfirmDialog by remember { mutableStateOf(false) }
     var pendingSwitchModuleDir by remember { mutableStateOf<File?>(null) }
     var showModuleSwitchConfirmDialog by remember { mutableStateOf(false) }
@@ -490,18 +492,16 @@ fun GraphEditorApp(
                         }
                     }
                 },
-                onCreateModule = { showFlowGraphPropertiesDialog = true },
-                onModuleSettings = { showFlowGraphPropertiesDialog = true },
-                onNew = {
-                    val newGraph = flowGraph(
-                        name = "New Graph",
-                        version = "1.0.0"
-                    ) {}
-                    graphState.setGraph(newGraph, markDirty = false)
-                    graphState.navigateToRoot()
-                    moduleRootDir = null
-                    statusMessage = "New graph created"
+                onCreateModule = {
+                    moduleDialogMode = ModuleDialogMode.CREATE
+                    showModulePropertiesDialog = true
                 },
+                onModuleSettings = {
+                    moduleDialogMode = ModuleDialogMode.EDIT
+                    showModulePropertiesDialog = true
+                },
+                hasModule = workspaceViewModel.currentModuleDir.value != null,
+                onNew = { showNewFlowGraphDialog = true },
                 onOpen = { showOpenDialog = true },
                 onSave = { showModuleSaveDialog = true },
                 onUndo = {
@@ -610,8 +610,6 @@ fun GraphEditorApp(
             onShowOpenDialogChanged = { showOpenDialog = it },
             showModuleSaveDialog = showModuleSaveDialog,
             onShowModuleSaveDialogChanged = { showModuleSaveDialog = it },
-            showFlowGraphPropertiesDialog = showFlowGraphPropertiesDialog,
-            onShowFlowGraphPropertiesDialogChanged = { showFlowGraphPropertiesDialog = it },
             showRemoveConfirmDialog = showRemoveConfirmDialog,
             onShowRemoveConfirmDialogChanged = { showRemoveConfirmDialog = it },
             removeTargetIPType = removeTargetIPType,
@@ -622,7 +620,8 @@ fun GraphEditorApp(
             ipTypeRegistry = ipTypeRegistry,
             registry = registry,
             moduleSaveService = moduleSaveService,
-            saveLocationRegistry = saveLocationRegistry,
+            moduleFlowDir = workspaceViewModel.currentModuleDir.value?.let { resolveFlowDir(it) },
+            currentModuleDir = workspaceViewModel.currentModuleDir.value,
             projectRoot = projectRoot,
             codeEditorViewModel = codeEditorViewModel,
             pendingEditorAction = pendingEditorAction,
@@ -632,6 +631,58 @@ fun GraphEditorApp(
             onRegistryVersionIncrement = { registryVersion++ },
             onIpTypesVersionIncrement = { ipTypesVersion++ },
         )
+
+        if (showNewFlowGraphDialog) {
+            val moduleDir = workspaceViewModel.currentModuleDir.value
+            val flowDir = moduleDir?.let { resolveFlowDir(it) }
+            NewFlowGraphDialog(
+                moduleFlowDir = flowDir,
+                onConfirm = { name ->
+                    showNewFlowGraphDialog = false
+                    val newGraph = flowGraph(
+                        name = name,
+                        version = "1.0.0"
+                    ) {}
+                    graphState.setGraph(newGraph, markDirty = true)
+                    graphState.navigateToRoot()
+                    workspaceViewModel.setActiveFlowGraph(name)
+                    statusMessage = "Created new flowGraph: $name"
+                },
+                onDismiss = { showNewFlowGraphDialog = false }
+            )
+        }
+
+        if (showModulePropertiesDialog) {
+            ModulePropertiesDialog(
+                mode = moduleDialogMode,
+                existingName = currentModuleName,
+                existingPath = workspaceViewModel.currentModuleDir.value?.absolutePath ?: "",
+                existingPlatforms = graphState.flowGraph.targetPlatforms.toSet(),
+                onCreateModule = { name, platforms ->
+                    showModulePropertiesDialog = false
+                    val chooser = javax.swing.JFileChooser().apply {
+                        fileSelectionMode = javax.swing.JFileChooser.DIRECTORIES_ONLY
+                        dialogTitle = "Select Parent Directory for Module"
+                    }
+                    if (chooser.showOpenDialog(null) == javax.swing.JFileChooser.APPROVE_OPTION) {
+                        try {
+                            val scaffolding = ModuleScaffoldingGenerator()
+                            val result = scaffolding.generate(
+                                moduleName = name,
+                                outputDir = chooser.selectedFile,
+                                targetPlatforms = platforms
+                            )
+                            workspaceViewModel.createModule(result.moduleDir)
+                            moduleRootDir = result.moduleDir
+                            statusMessage = "Created module: $name (${result.filesCreated.size} files)"
+                        } catch (e: Exception) {
+                            statusMessage = "Error creating module: ${e.message}"
+                        }
+                    }
+                },
+                onDismiss = { showModulePropertiesDialog = false }
+            )
+        }
 
         if (showModuleSwitchConfirmDialog && pendingSwitchModuleDir != null) {
             AlertDialog(
@@ -666,4 +717,12 @@ fun GraphEditorApp(
         }
         }
     }
+}
+
+private fun resolveFlowDir(moduleDir: File): File? {
+    val srcDir = File(moduleDir, "src/commonMain/kotlin")
+    if (!srcDir.isDirectory) return null
+    return srcDir.walkTopDown()
+        .filter { it.isDirectory && it.name == "flow" }
+        .firstOrNull()
 }

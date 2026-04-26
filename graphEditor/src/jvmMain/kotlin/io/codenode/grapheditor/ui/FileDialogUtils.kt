@@ -23,8 +23,9 @@ data class FileOpenResult(val file: File? = null, val error: String? = null)
  * file at the conventional path:
  *   {moduleDir}/src/commonMain/kotlin/io/codenode/{modulename}/{ModuleName}.flow.kt
  */
-fun showFileOpenDialog(): FileOpenResult {
-    val startDir = System.getProperty("codenode.project.dir")?.let { File(it) }
+fun showFileOpenDialog(initialDir: File? = null): FileOpenResult {
+    val startDir = initialDir
+        ?: System.getProperty("codenode.project.dir")?.let { File(it) }
         ?: File(System.getProperty("user.dir"))
 
     val dialog = FileDialog(null as Frame?, "Open Flow Graph", FileDialog.LOAD)
