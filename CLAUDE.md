@@ -131,6 +131,8 @@ Auto-generated from all feature plans. Last updated: 2026-01-13
 - Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + Compose Desktop 1.7.3 + graphEditor (CodeGeneratorPanel, TopToolbar, GraphEditorApp), flowGraph-generate (CodeGenerationRunner, ModuleScaffoldingGenerator, SelectionFilter) (081-wire-codegen-panel)
 - Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + Compose Desktop 1.7.3 + graphEditor (TopToolbar, GraphEditorApp, GraphEditorDialogs, FlowGraphPropertiesDialog), flowGraph-generate (ModuleScaffoldingGenerator), fbpDsl (FlowGraph model) (083-implement-workspace-dropdown)
 - `~/.codenode/config.properties` for workspace persistence + MRU lis (083-implement-workspace-dropdown)
+- Kotlin 2.1.21 (KMP — Kotlin Multiplatform). Generators run on JVM; generated source spans `commonMain` (KMP) only for the new file (the eliminated trio's `flow/` placement is gone). (085-collapse-thick-runtime)
+- N/A. Generator emits source files to module directory trees; no new persistence. (085-collapse-thick-runtime)
 
 - Kotlin 1.9+, Go 1.21+ (001-ide-plugin-platform)
 
@@ -150,9 +152,9 @@ tests/
 Kotlin 1.9+, Go 1.21+: Follow standard conventions
 
 ## Recent Changes
+- 085-collapse-thick-runtime: Added Kotlin 2.1.21 (KMP — Kotlin Multiplatform). Generators run on JVM; generated source spans `commonMain` (KMP) only for the new file (the eliminated trio's `flow/` placement is gone).
 - 083-implement-workspace-dropdown: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + Compose Desktop 1.7.3 + graphEditor (TopToolbar, GraphEditorApp, GraphEditorDialogs, FlowGraphPropertiesDialog), flowGraph-generate (ModuleScaffoldingGenerator), fbpDsl (FlowGraph model)
 - 081-wire-codegen-panel: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + Compose Desktop 1.7.3 + graphEditor (CodeGeneratorPanel, TopToolbar, GraphEditorApp), flowGraph-generate (CodeGenerationRunner, ModuleScaffoldingGenerator, SelectionFilter)
-- 080-codegen-flow-graphs: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + flowGraph-generate (Generator CodeNode wrappers, GenerationConfig), fbpDsl (FlowGraph DSL for .flow.kt files)
 
 
 <!-- MANUAL ADDITIONS START -->
