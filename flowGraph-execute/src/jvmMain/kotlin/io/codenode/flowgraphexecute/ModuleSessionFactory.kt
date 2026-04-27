@@ -119,6 +119,7 @@ object ModuleSessionFactory {
                 "reset" -> { controller.reset(); flowGraphProvider() }
                 "pause" -> { controller.pause(); flowGraphProvider() }
                 "resume" -> { controller.resume(); flowGraphProvider() }
+                "getStatus" -> controller.getStatus()
                 else -> {
                     // Delegate state flow getters to the State object
                     if (stateObject != null && method.name.startsWith("get")) {

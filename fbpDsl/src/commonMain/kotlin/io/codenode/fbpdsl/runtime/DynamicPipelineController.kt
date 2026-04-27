@@ -7,6 +7,7 @@
 package io.codenode.fbpdsl.runtime
 
 import io.codenode.fbpdsl.model.ExecutionState
+import io.codenode.fbpdsl.model.FlowExecutionStatus
 import io.codenode.fbpdsl.model.FlowGraph
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
@@ -141,6 +142,17 @@ class DynamicPipelineController(
     override fun setValueObserver(observer: ((String, Int, Any?) -> Unit)?) {
         valueObserver = observer
         pipeline?.let { applyValueObserver(it) }
+    }
+
+    /**
+     * Returns a snapshot derived from the currently-tracked FlowGraph.
+     * The `overallState` is taken from the controller's own [executionState]
+     * tracking (since per-node states in the FlowGraph are not mutated by
+     * the dynamic-pipeline path); all count fields come from the FlowGraph.
+     */
+    override fun getStatus(): FlowExecutionStatus {
+        val base = FlowExecutionStatus.fromFlowGraph(currentFlowGraph)
+        return base.copy(overallState = _executionState.value)
     }
 
     private fun applyEmissionObserver(pipeline: DynamicPipeline) {
