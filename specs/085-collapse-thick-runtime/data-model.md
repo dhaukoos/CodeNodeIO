@@ -128,6 +128,34 @@ fun createStopWatchRuntime(flowGraph: FlowGraph): StopWatchControllerInterface {
 - The `object` expression in the factory uses `ModuleController by controller` Kotlin interface delegation to forward all inherited control methods (`start`, `stop`, `pause`, `resume`, `reset`, `executionState`, `setAttenuationDelay`, `setEmissionObserver`, `setValueObserver`, `getStatus`, `nodeDefinitionLookup`) to the underlying `DynamicPipelineController`.
 - Per-port `StateFlow` getters are emitted as explicit `override val xxx = {Module}State.xxxFlow` (cannot use Kotlin delegation because they come from a different source than the controller).
 
+### 4a. DAO-bearing modules (Addresses, UserProfiles)
+
+The factory function shape is **identical** for entity modules with persistence — the factory still returns `{Module}ControllerInterface` and the registry/factory body is unchanged. The DAO is NOT a parameter to the factory; it stays at the consumer's call site, passed to the ViewModel constructor:
+
+```kotlin
+// Generated AddressesRuntime.kt — identical pattern to StopWatch
+fun createAddressesRuntime(flowGraph: FlowGraph): AddressesControllerInterface {
+    val controller = DynamicPipelineController(
+        flowGraphProvider = { flowGraph },
+        lookup = AddressesNodeRegistry::lookup,
+        onReset = AddressesState::reset
+    )
+    return object : AddressesControllerInterface, ModuleController by controller {
+        override val save = AddressesState.saveFlow
+        override val update = AddressesState.updateFlow
+        override val remove = AddressesState.removeFlow
+        override val result = AddressesState.resultFlow
+        override val error = AddressesState.errorFlow
+    }
+}
+
+// At the consumer (KMPMobileApp/App.kt):
+val controller = createAddressesRuntime(addressesFlowGraph)        // returns AddressesControllerInterface
+val viewModel = AddressesViewModel(controller, AddressesPersistence.dao)  // ViewModel takes (Interface, Dao)
+```
+
+The two-arg ViewModel constructor (`AddressesViewModel(ControllerInterface, AddressDao)`, `UserProfilesViewModel(ControllerInterface, UserProfileDao)`) is preserved by `RuntimeViewModelGenerator` (out of scope for this feature). The DAO comes from the persistence module's static accessor at the consumer's call site, exactly as today. The factory function does **not** know about DAOs — keeping it generic is what allows a single `ModuleRuntimeGenerator` template to serve every module type.
+
 ---
 
 ## 5. ModuleGenerator orchestration changes
