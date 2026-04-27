@@ -53,12 +53,24 @@ class CodeGenerationRunnerTest {
         moduleName = "TestModule"
     )
 
+    // Feature 085: GENERATE_MODULE path now produces 5 entries (was 7).
+    // Eliminated: RuntimeFlowGenerator, RuntimeControllerGenerator, RuntimeControllerAdapterGenerator.
+    // Replaced by: ModuleRuntimeGenerator (single ~30-line file).
+    private val expectedGenerateModuleIds = setOf(
+        "FlowKtGenerator",
+        "ModuleRuntimeGenerator",
+        "RuntimeControllerInterfaceGenerator",
+        "RuntimeViewModelGenerator",
+        "UserInterfaceStubGenerator"
+    )
+
     @Test
-    fun `execute with GENERATE_MODULE produces 7 entries`() = runTest {
+    fun `execute with GENERATE_MODULE produces 5 entries after universal-runtime collapse`() = runTest {
         val runner = CodeGenerationRunner()
         val result = runner.execute(GenerationPath.GENERATE_MODULE, testConfig)
 
-        assertEquals(7, result.totalGenerated, "Should produce 7 generated files")
+        assertEquals(expectedGenerateModuleIds.size, result.totalGenerated,
+            "GENERATE_MODULE path emits the post-collapse generator set")
         assertTrue(result.isSuccess, "Should have no errors")
         assertEquals(0, result.totalSkipped)
     }
@@ -78,41 +90,33 @@ class CodeGenerationRunnerTest {
         val runner = CodeGenerationRunner()
         val result = runner.execute(GenerationPath.GENERATE_MODULE, testConfig)
 
-        val expectedIds = setOf(
-            "FlowKtGenerator", "RuntimeFlowGenerator",
-            "RuntimeControllerGenerator", "RuntimeControllerInterfaceGenerator",
-            "RuntimeControllerAdapterGenerator", "RuntimeViewModelGenerator",
-            "UserInterfaceStubGenerator"
-        )
-        assertEquals(expectedIds, result.generatedFiles.keys)
+        assertEquals(expectedGenerateModuleIds, result.generatedFiles.keys)
     }
 
     @Test
     fun `execute with selection filter excludes specified generators`() = runTest {
         val runner = CodeGenerationRunner()
-        val filter = SelectionFilter(excludedGeneratorIds = setOf("RuntimeControllerGenerator"))
+        val filter = SelectionFilter(excludedGeneratorIds = setOf("ModuleRuntimeGenerator"))
         val result = runner.execute(GenerationPath.GENERATE_MODULE, testConfig, filter)
 
-        assertEquals(6, result.totalGenerated, "Should produce 6 files (7 minus 1 excluded)")
-        assertFalse(result.generatedFiles.containsKey("RuntimeControllerGenerator"))
-        assertTrue(result.skipped.contains("RuntimeControllerGenerator"))
+        assertEquals(
+            expectedGenerateModuleIds.size - 1,
+            result.totalGenerated,
+            "Should produce post-collapse set minus 1 excluded"
+        )
+        assertFalse(result.generatedFiles.containsKey("ModuleRuntimeGenerator"))
+        assertTrue(result.skipped.contains("ModuleRuntimeGenerator"))
         assertEquals(1, result.totalSkipped)
     }
 
     @Test
     fun `execute with all excluded produces empty result`() = runTest {
         val runner = CodeGenerationRunner()
-        val allIds = setOf(
-            "FlowKtGenerator", "RuntimeFlowGenerator",
-            "RuntimeControllerGenerator", "RuntimeControllerInterfaceGenerator",
-            "RuntimeControllerAdapterGenerator", "RuntimeViewModelGenerator",
-            "UserInterfaceStubGenerator"
-        )
-        val filter = SelectionFilter(excludedGeneratorIds = allIds)
+        val filter = SelectionFilter(excludedGeneratorIds = expectedGenerateModuleIds)
         val result = runner.execute(GenerationPath.GENERATE_MODULE, testConfig, filter)
 
         assertEquals(0, result.totalGenerated)
-        assertEquals(7, result.totalSkipped)
+        assertEquals(expectedGenerateModuleIds.size, result.totalSkipped)
         assertTrue(result.isSuccess)
     }
 
@@ -127,12 +131,22 @@ class CodeGenerationRunnerTest {
     }
 
     @Test
-    fun `RuntimeControllerGenerator output contains controller package`() = runTest {
+    fun `ModuleRuntimeGenerator output contains base package and registry`() = runTest {
         val runner = CodeGenerationRunner()
         val result = runner.execute(GenerationPath.GENERATE_MODULE, testConfig)
 
-        val controllerContent = result.generatedFiles["RuntimeControllerGenerator"]!!
-        assertTrue(controllerContent.contains("package io.codenode.testmodule.controller"),
-            "Controller output should contain controller package declaration")
+        val runtimeContent = result.generatedFiles["ModuleRuntimeGenerator"]!!
+        assertTrue(
+            runtimeContent.contains("package io.codenode.testmodule"),
+            "ModuleRuntime output must declare the base package, not a subpackage"
+        )
+        assertTrue(
+            runtimeContent.contains("object TestModuleNodeRegistry"),
+            "ModuleRuntime output must declare the per-module NodeRegistry"
+        )
+        assertTrue(
+            runtimeContent.contains("fun createTestModuleRuntime"),
+            "ModuleRuntime output must declare the factory function"
+        )
     }
 }

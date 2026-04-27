@@ -99,68 +99,62 @@ class RuntimeControllerInterfaceGeneratorTest {
         assertTrue(result.contains("val minutes: StateFlow<Int>"))
     }
 
-    @Test
-    fun `StopWatch-like flow generates executionState property`() {
-        val flowGraph = createStopWatchLikeFlow()
-        val result = generator.generate(flowGraph, generatedPackage)
-
-        assertTrue(result.contains("val executionState: StateFlow<ExecutionState>"))
-    }
-
-    @Test
-    fun `StopWatch-like flow generates start method`() {
-        val flowGraph = createStopWatchLikeFlow()
-        val result = generator.generate(flowGraph, generatedPackage)
-
-        assertTrue(result.contains("fun start(): FlowGraph"))
-    }
-
-    @Test
-    fun `StopWatch-like flow generates stop method`() {
-        val flowGraph = createStopWatchLikeFlow()
-        val result = generator.generate(flowGraph, generatedPackage)
-
-        assertTrue(result.contains("fun stop(): FlowGraph"))
-    }
-
-    @Test
-    fun `StopWatch-like flow generates reset method`() {
-        val flowGraph = createStopWatchLikeFlow()
-        val result = generator.generate(flowGraph, generatedPackage)
-
-        assertTrue(result.contains("fun reset(): FlowGraph"))
-    }
-
-    @Test
-    fun `StopWatch-like flow generates pause method`() {
-        val flowGraph = createStopWatchLikeFlow()
-        val result = generator.generate(flowGraph, generatedPackage)
-
-        assertTrue(result.contains("fun pause(): FlowGraph"))
-    }
-
-    @Test
-    fun `StopWatch-like flow generates resume method`() {
-        val flowGraph = createStopWatchLikeFlow()
-        val result = generator.generate(flowGraph, generatedPackage)
-
-        assertTrue(result.contains("fun resume(): FlowGraph"))
-    }
+    // executionState + control methods (start/stop/pause/resume/reset) are no longer
+    // declared on the interface body — they're inherited from ModuleController.
+    // See `interface body does not redeclare members inherited from ModuleController`
+    // and `interface declaration extends ModuleController` below.
 
     @Test
     fun `StopWatch-like flow generates required imports`() {
         val flowGraph = createStopWatchLikeFlow()
         val result = generator.generate(flowGraph, generatedPackage)
 
-        assertTrue(result.contains("import io.codenode.fbpdsl.model.ExecutionState"))
         assertTrue(result.contains("import io.codenode.fbpdsl.model.FlowGraph"))
         assertTrue(result.contains("import kotlinx.coroutines.flow.StateFlow"))
+        // After feature 085: ExecutionState is no longer imported here because
+        // executionState is inherited from ModuleController.
+        assertTrue(result.contains("import io.codenode.fbpdsl.runtime.ModuleController"))
+    }
+
+    // ========== Feature 085: ModuleController inheritance ==========
+
+    @Test
+    fun `interface declaration extends ModuleController`() {
+        val flowGraph = createStopWatchLikeFlow()
+        val result = generator.generate(flowGraph, generatedPackage)
+
+        assertTrue(
+            result.contains("interface StopWatch2ControllerInterface : ModuleController"),
+            "interface must extend ModuleController so consumers reach " +
+                "setAttenuationDelay/observers/getStatus through the typed surface"
+        )
+    }
+
+    @Test
+    fun `interface body does not redeclare members inherited from ModuleController`() {
+        val flowGraph = createStopWatchLikeFlow()
+        val result = generator.generate(flowGraph, generatedPackage)
+
+        // The typed sink-input flows (seconds/minutes) stay; everything else
+        // comes from ModuleController by inheritance.
+        assertFalse(result.contains("fun start(): FlowGraph"),
+            "start() must be inherited from ModuleController, not redeclared")
+        assertFalse(result.contains("fun stop(): FlowGraph"),
+            "stop() must be inherited")
+        assertFalse(result.contains("fun pause(): FlowGraph"),
+            "pause() must be inherited")
+        assertFalse(result.contains("fun resume(): FlowGraph"),
+            "resume() must be inherited")
+        assertFalse(result.contains("fun reset(): FlowGraph"),
+            "reset() must be inherited")
+        assertFalse(result.contains("val executionState: StateFlow<ExecutionState>"),
+            "executionState must be inherited, not redeclared")
     }
 
     // ========== Test 2: No boundary nodes → only executionState property ==========
 
     @Test
-    fun `no boundary nodes generates only executionState property`() {
+    fun `no boundary nodes still extends ModuleController`() {
         val transformer = createTestCodeNode(
             "trans", "DataTransformer", CodeNodeType.TRANSFORMER,
             inputPorts = listOf(inputPort("t_in", "input", Int::class, "trans")),
@@ -169,12 +163,13 @@ class RuntimeControllerInterfaceGeneratorTest {
         val flowGraph = createFlowGraph(nodes = listOf(transformer))
         val result = generator.generate(flowGraph, generatedPackage)
 
-        assertTrue(result.contains("val executionState: StateFlow<ExecutionState>"))
+        assertTrue(result.contains(": ModuleController"),
+            "even with no boundary nodes, interface must extend ModuleController")
         assertFalse(result.contains("val input: StateFlow"))
     }
 
     @Test
-    fun `no sink nodes still generates all control methods`() {
+    fun `no sink nodes still inherits all control methods via ModuleController`() {
         val gen = createTestCodeNode(
             "gen", "ValueGenerator", CodeNodeType.SOURCE,
             outputPorts = listOf(outputPort("g_out", "value", Int::class, "gen"))
@@ -182,11 +177,10 @@ class RuntimeControllerInterfaceGeneratorTest {
         val flowGraph = createFlowGraph(nodes = listOf(gen))
         val result = generator.generate(flowGraph, generatedPackage)
 
-        assertTrue(result.contains("fun start(): FlowGraph"))
-        assertTrue(result.contains("fun stop(): FlowGraph"))
-        assertTrue(result.contains("fun reset(): FlowGraph"))
-        assertTrue(result.contains("fun pause(): FlowGraph"))
-        assertTrue(result.contains("fun resume(): FlowGraph"))
+        // Control methods come from ModuleController, not redeclared here.
+        assertTrue(result.contains(": ModuleController"))
+        assertFalse(result.contains("fun start(): FlowGraph"))
+        assertFalse(result.contains("fun stop(): FlowGraph"))
     }
 
     // ========== Helper: StopWatch-like FlowGraph ==========

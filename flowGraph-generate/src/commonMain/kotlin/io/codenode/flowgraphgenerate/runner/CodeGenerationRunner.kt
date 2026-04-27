@@ -18,20 +18,21 @@ class CodeGenerationRunner {
             io.codenode.flowgraphgenerate.generator.FlowKtGenerator()
                 .generateFlowKt(config.flowGraph, config.flowPackage)
         },
-        "RuntimeFlowGenerator" to { config: GenerationConfig ->
-            io.codenode.flowgraphgenerate.generator.RuntimeFlowGenerator()
-                .generate(config.flowGraph, config.flowPackage, config.viewModelPackage)
-        },
-        "RuntimeControllerGenerator" to { config: GenerationConfig ->
-            io.codenode.flowgraphgenerate.generator.RuntimeControllerGenerator()
-                .generate(config.flowGraph, config.controllerPackage, config.viewModelPackage)
+        // Feature 085 (universal-runtime collapse): replaces RuntimeFlowGenerator +
+        // RuntimeControllerGenerator + RuntimeControllerAdapterGenerator. Emits a
+        // single ~30-line `{Module}Runtime.kt` that wires DynamicPipelineController
+        // to a module-local NodeRegistry and exposes the typed ControllerInterface.
+        "ModuleRuntimeGenerator" to { config: GenerationConfig ->
+            io.codenode.flowgraphgenerate.generator.ModuleRuntimeGenerator()
+                .generate(
+                    config.flowGraph,
+                    config.basePackage,
+                    config.controllerPackage,
+                    config.viewModelPackage
+                )
         },
         "RuntimeControllerInterfaceGenerator" to { config: GenerationConfig ->
             io.codenode.flowgraphgenerate.generator.RuntimeControllerInterfaceGenerator()
-                .generate(config.flowGraph, config.controllerPackage)
-        },
-        "RuntimeControllerAdapterGenerator" to { config: GenerationConfig ->
-            io.codenode.flowgraphgenerate.generator.RuntimeControllerAdapterGenerator()
                 .generate(config.flowGraph, config.controllerPackage)
         },
         "RuntimeViewModelGenerator" to { config: GenerationConfig ->
@@ -46,23 +47,25 @@ class CodeGenerationRunner {
 
     private val generatorsByPath = mapOf(
         GenerationPath.GENERATE_MODULE to listOf(
-            "FlowKtGenerator", "RuntimeFlowGenerator",
-            "RuntimeControllerGenerator", "RuntimeControllerInterfaceGenerator",
-            "RuntimeControllerAdapterGenerator", "RuntimeViewModelGenerator",
+            "FlowKtGenerator",
+            "ModuleRuntimeGenerator",
+            "RuntimeControllerInterfaceGenerator",
+            "RuntimeViewModelGenerator",
             "UserInterfaceStubGenerator"
         ),
         GenerationPath.REPOSITORY to listOf(
-            "FlowKtGenerator", "RuntimeFlowGenerator",
-            "RuntimeControllerGenerator", "RuntimeControllerInterfaceGenerator",
-            "RuntimeControllerAdapterGenerator", "RuntimeViewModelGenerator",
+            "FlowKtGenerator",
+            "ModuleRuntimeGenerator",
+            "RuntimeControllerInterfaceGenerator",
+            "RuntimeViewModelGenerator",
             "UserInterfaceStubGenerator",
             "EntityCUDGenerator", "EntityRepositoryGenerator",
             "EntityDisplayGenerator", "EntityPersistenceGenerator"
         ),
         GenerationPath.UI_FBP to listOf(
-            "FlowKtGenerator", "RuntimeFlowGenerator",
-            "RuntimeControllerGenerator", "RuntimeControllerInterfaceGenerator",
-            "RuntimeControllerAdapterGenerator",
+            "FlowKtGenerator",
+            "ModuleRuntimeGenerator",
+            "RuntimeControllerInterfaceGenerator",
             "UIFBPStateGenerator", "UIFBPViewModelGenerator",
             "UIFBPSourceGenerator", "UIFBPSinkGenerator"
         )

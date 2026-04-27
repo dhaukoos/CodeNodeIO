@@ -38,15 +38,17 @@ class RuntimeControllerInterfaceGenerator {
             generateImports()
             appendLine()
             generateKDoc(flowName)
-            appendLine("interface ${flowName}ControllerInterface {")
+            // Feature 085: extend ModuleController so consumers reach setAttenuationDelay
+            // / observers / getStatus through the typed surface (instead of having to cast
+            // to the now-eliminated concrete {Module}Controller class).
+            appendLine("interface ${flowName}ControllerInterface : ModuleController {")
             appendLine()
 
             if (observableProps.isNotEmpty()) {
                 generateObservableStateDeclarations(observableProps)
             }
 
-            generateExecutionStateDeclaration()
-            generateMethodDeclarations(flowName)
+            // executionState + start/stop/pause/resume/reset are inherited from ModuleController.
 
             appendLine("}")
             appendLine()
@@ -68,8 +70,8 @@ class RuntimeControllerInterfaceGenerator {
     }
 
     private fun StringBuilder.generateImports() {
-        appendLine("import io.codenode.fbpdsl.model.ExecutionState")
         appendLine("import io.codenode.fbpdsl.model.FlowGraph")
+        appendLine("import io.codenode.fbpdsl.runtime.ModuleController")
         appendLine("import kotlinx.coroutines.flow.StateFlow")
     }
 
@@ -92,20 +94,4 @@ class RuntimeControllerInterfaceGenerator {
         appendLine()
     }
 
-    private fun StringBuilder.generateExecutionStateDeclaration() {
-        appendLine("    val executionState: StateFlow<ExecutionState>")
-        appendLine()
-    }
-
-    private fun StringBuilder.generateMethodDeclarations(flowName: String) {
-        appendLine("    fun start(): FlowGraph")
-        appendLine()
-        appendLine("    fun stop(): FlowGraph")
-        appendLine()
-        appendLine("    fun reset(): FlowGraph")
-        appendLine()
-        appendLine("    fun pause(): FlowGraph")
-        appendLine()
-        appendLine("    fun resume(): FlowGraph")
-    }
 }

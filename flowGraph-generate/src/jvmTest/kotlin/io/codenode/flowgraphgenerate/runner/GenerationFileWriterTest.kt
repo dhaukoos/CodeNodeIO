@@ -22,74 +22,75 @@ class GenerationFileWriterTest {
         tempDir.deleteRecursively()
     }
 
+    private fun newModuleDir(name: String): Pair<File, File> {
+        val moduleDir = File(tempDir, name).apply { mkdirs() }
+        val baseSrcDir = File(moduleDir, "src/commonMain/kotlin/io/codenode/${name.lowercase()}")
+        baseSrcDir.mkdirs()
+        return moduleDir to baseSrcDir
+    }
+
     @Test
     fun `writes FlowKtGenerator content to flow subdirectory`() {
+        val (moduleDir, baseSrcDir) = newModuleDir("TestModule")
         val result = GenerationResult(
             generatedFiles = mapOf("FlowKtGenerator" to "package io.test.flow\n// flow content")
         )
-        val moduleDir = File(tempDir, "TestModule").apply { mkdirs() }
-        val baseSrcDir = File(moduleDir, "src/commonMain/kotlin/io/codenode/testmodule")
-        baseSrcDir.mkdirs()
 
         val writer = GenerationFileWriter()
         val written = writer.write(result, moduleDir, "io.codenode.testmodule", "TestModule")
 
         assertEquals(1, written.size)
-        assertTrue(written[0].contains("flow/TestModule.flow.kt"))
+        assertEquals("flow/TestModule.flow.kt", written[0])
         val file = File(baseSrcDir, "flow/TestModule.flow.kt")
         assertTrue(file.exists(), "FlowKt file should exist in flow/")
         assertTrue(file.readText().contains("flow content"))
     }
 
     @Test
-    fun `writes RuntimeControllerGenerator content to controller subdirectory`() {
+    fun `writes ModuleRuntimeGenerator content at base package root`() {
+        val (moduleDir, baseSrcDir) = newModuleDir("TestModule")
         val result = GenerationResult(
-            generatedFiles = mapOf("RuntimeControllerGenerator" to "package io.test.controller\n// controller content")
+            generatedFiles = mapOf("ModuleRuntimeGenerator" to "package io.test\n// runtime content")
         )
-        val moduleDir = File(tempDir, "TestModule").apply { mkdirs() }
-        val baseSrcDir = File(moduleDir, "src/commonMain/kotlin/io/codenode/testmodule")
-        baseSrcDir.mkdirs()
 
         val writer = GenerationFileWriter()
         writer.write(result, moduleDir, "io.codenode.testmodule", "TestModule")
 
-        val file = File(baseSrcDir, "controller/TestModuleController.kt")
-        assertTrue(file.exists(), "Controller file should exist in controller/")
-        assertTrue(file.readText().contains("controller content"))
+        val file = File(baseSrcDir, "TestModuleRuntime.kt")
+        assertTrue(file.exists(), "Runtime file lives at the module package root, not a subpackage")
+        assertTrue(file.readText().contains("runtime content"))
     }
 
     @Test
     fun `writes multiple generator outputs to correct locations`() {
+        val (moduleDir, baseSrcDir) = newModuleDir("MyModule")
         val result = GenerationResult(
             generatedFiles = mapOf(
                 "FlowKtGenerator" to "flow content",
-                "RuntimeFlowGenerator" to "runtime flow content",
-                "RuntimeControllerGenerator" to "controller content",
+                "ModuleRuntimeGenerator" to "runtime content",
+                "RuntimeControllerInterfaceGenerator" to "interface content",
                 "RuntimeViewModelGenerator" to "viewmodel content",
                 "UserInterfaceStubGenerator" to "ui content"
             )
         )
-        val moduleDir = File(tempDir, "MyModule").apply { mkdirs() }
-        val baseSrcDir = File(moduleDir, "src/commonMain/kotlin/io/codenode/mymodule")
-        baseSrcDir.mkdirs()
 
         val writer = GenerationFileWriter()
         val written = writer.write(result, moduleDir, "io.codenode.mymodule", "MyModule")
 
         assertEquals(5, written.size)
         assertTrue(File(baseSrcDir, "flow/MyModule.flow.kt").exists())
-        assertTrue(File(baseSrcDir, "flow/MyModuleFlow.kt").exists())
-        assertTrue(File(baseSrcDir, "controller/MyModuleController.kt").exists())
+        assertTrue(File(baseSrcDir, "MyModuleRuntime.kt").exists(), "Runtime at module root")
+        assertTrue(File(baseSrcDir, "controller/MyModuleControllerInterface.kt").exists())
         assertTrue(File(baseSrcDir, "viewmodel/MyModuleViewModel.kt").exists())
         assertTrue(File(baseSrcDir, "userInterface/MyModule.kt").exists())
     }
 
     @Test
     fun `creates parent directories if needed`() {
+        val moduleDir = File(tempDir, "NewModule").apply { mkdirs() }
         val result = GenerationResult(
             generatedFiles = mapOf("FlowKtGenerator" to "content")
         )
-        val moduleDir = File(tempDir, "NewModule").apply { mkdirs() }
 
         val writer = GenerationFileWriter()
         writer.write(result, moduleDir, "io.codenode.newmodule", "NewModule")
@@ -100,14 +101,98 @@ class GenerationFileWriterTest {
 
     @Test
     fun `skips unknown generator IDs`() {
+        val moduleDir = File(tempDir, "TestModule").apply { mkdirs() }
         val result = GenerationResult(
             generatedFiles = mapOf("UnknownGenerator" to "content")
         )
-        val moduleDir = File(tempDir, "TestModule").apply { mkdirs() }
 
         val writer = GenerationFileWriter()
         val written = writer.write(result, moduleDir, "io.codenode.testmodule", "TestModule")
 
         assertEquals(0, written.size)
+    }
+
+    // ========== Feature 085: deletion of legacy thick-stack files ==========
+
+    @Test
+    fun `deletes legacy Controller Adapter and Flow runtime when carrying Generated marker`() {
+        val (moduleDir, baseSrcDir) = newModuleDir("LegacyModule")
+
+        // Seed legacy files with the standard generator marker
+        File(baseSrcDir, "controller").mkdirs()
+        File(baseSrcDir, "flow").mkdirs()
+        File(baseSrcDir, "controller/LegacyModuleController.kt").writeText(
+            "/* Generated by CodeNodeIO RuntimeControllerGenerator */\nclass LegacyModuleController"
+        )
+        File(baseSrcDir, "controller/LegacyModuleControllerAdapter.kt").writeText(
+            "/* Generated by CodeNodeIO RuntimeControllerAdapterGenerator */\nclass LegacyModuleControllerAdapter"
+        )
+        File(baseSrcDir, "flow/LegacyModuleFlow.kt").writeText(
+            "/* Generated by CodeNodeIO RuntimeFlowGenerator */\nclass LegacyModuleFlow"
+        )
+
+        val report = mutableListOf<FileChange>()
+        val writer = GenerationFileWriter()
+        writer.write(
+            GenerationResult(generatedFiles = emptyMap()),
+            moduleDir,
+            "io.codenode.legacymodule",
+            "LegacyModule",
+            report
+        )
+
+        assertFalse(File(baseSrcDir, "controller/LegacyModuleController.kt").exists())
+        assertFalse(File(baseSrcDir, "controller/LegacyModuleControllerAdapter.kt").exists())
+        assertFalse(File(baseSrcDir, "flow/LegacyModuleFlow.kt").exists())
+
+        val deletions = report.filter { it.kind == FileChangeKind.DELETED }
+        assertEquals(3, deletions.size)
+        assertTrue(deletions.any { it.relativePath == "controller/LegacyModuleController.kt" })
+        assertTrue(deletions.any { it.relativePath == "controller/LegacyModuleControllerAdapter.kt" })
+        assertTrue(deletions.any { it.relativePath == "flow/LegacyModuleFlow.kt" })
+    }
+
+    @Test
+    fun `refuses to delete legacy file lacking the Generated marker`() {
+        val (moduleDir, baseSrcDir) = newModuleDir("HandEditedModule")
+
+        File(baseSrcDir, "controller").mkdirs()
+        val handEdited = File(baseSrcDir, "controller/HandEditedModuleController.kt").apply {
+            writeText("// custom code by user\nclass HandEditedModuleController { /* hand-tuned */ }")
+        }
+
+        val report = mutableListOf<FileChange>()
+        val writer = GenerationFileWriter()
+        writer.write(
+            GenerationResult(generatedFiles = emptyMap()),
+            moduleDir,
+            "io.codenode.handeditedmodule",
+            "HandEditedModule",
+            report
+        )
+
+        assertTrue(handEdited.exists(), "hand-edited file must NOT be deleted")
+        val skipped = report.filter { it.kind == FileChangeKind.SKIPPED_CONFLICT }
+        assertTrue(skipped.any { it.relativePath == "controller/HandEditedModuleController.kt" },
+            "structured report must include a SKIPPED_CONFLICT entry naming the file")
+    }
+
+    @Test
+    fun `legacy deletion only fires when files exist`() {
+        val (moduleDir, _) = newModuleDir("FreshModule")
+
+        val report = mutableListOf<FileChange>()
+        val writer = GenerationFileWriter()
+        writer.write(
+            GenerationResult(generatedFiles = emptyMap()),
+            moduleDir,
+            "io.codenode.freshmodule",
+            "FreshModule",
+            report
+        )
+
+        // No legacy files seeded → no DELETED or SKIPPED_CONFLICT entries
+        assertEquals(0, report.count { it.kind == FileChangeKind.DELETED })
+        assertEquals(0, report.count { it.kind == FileChangeKind.SKIPPED_CONFLICT })
     }
 }
