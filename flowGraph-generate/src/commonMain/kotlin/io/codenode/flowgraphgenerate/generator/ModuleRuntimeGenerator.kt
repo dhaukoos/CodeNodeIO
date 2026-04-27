@@ -47,8 +47,11 @@ class ModuleRuntimeGenerator {
     ): String {
         val moduleName = flowGraph.name.pascalCase()
         val codeNodes = flowGraph.getAllCodeNodes()
-        val sinkInputProps = observableStateResolver.getObservableStateProperties(flowGraph)
-            .filter { prop -> isSinkInput(flowGraph, prop) }
+        // Match exactly what RuntimeControllerInterfaceGenerator declares on the
+        // interface — every observable property (both source-output and sink-input
+        // boundary ports) must be overridden so Kotlin's `ModuleController by controller`
+        // delegation has nothing to satisfy beyond the inherited control surface.
+        val observableProps = observableStateResolver.getObservableStateProperties(flowGraph)
 
         return buildString {
             generateHeader(moduleName)
@@ -57,7 +60,7 @@ class ModuleRuntimeGenerator {
             appendLine()
             generateNodeRegistry(moduleName, codeNodes)
             appendLine()
-            generateFactoryFunction(moduleName, sinkInputProps)
+            generateFactoryFunction(moduleName, observableProps)
         }
     }
 
@@ -142,16 +145,4 @@ class ModuleRuntimeGenerator {
         appendLine("}")
     }
 
-    // ========== Helpers ==========
-
-    /**
-     * Filters [ObservableStateResolver]'s output to keep only ports owned by sink nodes
-     * (input ports). Source-output ports are emitted by the UI via `viewModel.emit(...)`
-     * rather than observed back through the controller.
-     */
-    private fun isSinkInput(flowGraph: FlowGraph, prop: ObservableProperty): Boolean {
-        val owningNode = flowGraph.getAllCodeNodes()
-            .firstOrNull { it.name == prop.sourceNodeName } ?: return false
-        return owningNode.inputPorts.isNotEmpty() && owningNode.outputPorts.isEmpty()
-    }
 }

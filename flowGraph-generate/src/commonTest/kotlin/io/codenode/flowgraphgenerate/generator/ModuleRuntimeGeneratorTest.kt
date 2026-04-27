@@ -169,13 +169,19 @@ class ModuleRuntimeGeneratorTest {
     }
 
     @Test
-    fun `factory emits override val for each typed sink-input state flow`() {
+    fun `factory emits override val for every observable boundary port`() {
         val source = generator.generate(stopWatchFlow(), basePackage, controllerPackage, viewModelPackage)
-        // Sink-input ports become typed StateFlow getters reading directly from State
+        // Every property declared by RuntimeControllerInterfaceGenerator (source outputs +
+        // sink inputs from ObservableStateResolver) must be overridden, otherwise the
+        // anonymous `object : ControllerInterface, ModuleController by controller` won't compile.
         assertTrue(source.contains("override val seconds = StopWatchState.secondsFlow"),
-            "must emit override val for seconds reading StopWatchState.secondsFlow")
+            "must override sink-input port `seconds`")
         assertTrue(source.contains("override val minutes = StopWatchState.minutesFlow"),
-            "must emit override val for minutes reading StopWatchState.minutesFlow")
+            "must override sink-input port `minutes`")
+        assertTrue(source.contains("override val elapsedSeconds = StopWatchState.elapsedSecondsFlow"),
+            "must override source-output port `elapsedSeconds` (also declared on the interface)")
+        assertTrue(source.contains("override val elapsedMinutes = StopWatchState.elapsedMinutesFlow"),
+            "must override source-output port `elapsedMinutes` (also declared on the interface)")
     }
 
     @Test
