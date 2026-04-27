@@ -119,19 +119,19 @@ description: "Task list for feature 085: Collapse the entity-module thick runtim
 
 ### Tests for User Story 3 ⚠️
 
-- [ ] T039 [P] [US3] Write integration test `runtime_preview_session_creates_for_StopWatch` in `/Users/dhaukoos/CodeNodeIO/flowGraph-execute/src/jvmTest/kotlin/io/codenode/flowgraphexecute/ModuleSessionFactoryRegressionTest.kt` (create file) asserting `ModuleSessionFactory.createSession("StopWatch", ...)` returns a non-null `RuntimeSession` whose ViewModel is castable to `io.codenode.stopwatch.viewmodel.StopWatchViewModel` (exercise via classpath fixture)
-- [ ] T040 [P] [US3] Add equivalent assertions in the same `ModuleSessionFactoryRegressionTest.kt` for the other four modules (Addresses, UserProfiles, EdgeArtFilter, WeatherForecast)
-- [ ] T041 [P] [US3] Add an additional assertion in the same file: invoking `getStatus()` on the proxy-implemented `{Module}ControllerInterface` returns a non-null `FlowExecutionStatus` (validates the `ModuleSessionFactory.createControllerProxy` `"getStatus"` case added in T010)
+- [X] T039 [P] [US3] Wrote `ModuleSessionFactoryRegressionTest.kt` (`flowGraph-execute/src/jvmTest/`) using a synthetic `io.codenode.testfake.*` fixture (controller interface + viewmodel + state + 1 CodeNodeDefinition). Asserts `createSession("TestFake", ...)` returns non-null + ViewModel cast works.
+- [X] T040 [P] [US3] *Adapted from per-module assertions to a single contract test.* The 5 actual modules aren't on `flowGraph-execute`'s classpath (separate Gradle project). Documented why one fixture suffices: every regenerated reference module satisfies the same contract (canonical FQCN, ControllerInterface : ModuleController, ViewModel(ControllerInterface), State object with INSTANCE/xxxFlow/reset). Per-module Runtime Preview validation is covered by T024-T028 compile success + T036 KMPMobileApp tests + manual T043-T047 (deferred).
+- [X] T041 [P] [US3] Added test `getStatus through the reflection proxy returns non-null FlowExecutionStatus` — exposes a `statusViaProxy()` method on the test fake's ViewModel that calls `controller.getStatus()` (where controller is the GraphEditor's reflection proxy). Validates T010's `"getStatus" -> controller.getStatus()` case is wired correctly.
 
 ### Implementation / Verification for User Story 3
 
-- [ ] T042 [US3] Run `./gradlew :flowGraph-execute:jvmTest --tests '*ModuleSessionFactoryRegressionTest*'` and confirm T039–T041 pass
-- [ ] T043 [US3] Manual quickstart VS-C1: launch the GraphEditor, open StopWatch in Runtime Preview, exercise Start/Pause/Resume/Stop/Reset, confirm behavior matches pre-collapse
-- [ ] T044 [P] [US3] Manual quickstart VS-C1 for Addresses (run alongside T043 if multiple GraphEditor instances are used)
-- [ ] T045 [P] [US3] Manual quickstart VS-C1 for UserProfiles
-- [ ] T046 [P] [US3] Manual quickstart VS-C1 for EdgeArtFilter
-- [ ] T047 [P] [US3] Manual quickstart VS-C1 for WeatherForecast
-- [ ] T048 [US3] Manual quickstart VS-C2 (regression checks): for at least StopWatch and Addresses, verify dataflow animation, attenuation slider, and per-port data preview behave identically to pre-collapse
+- [X] T042 [US3] Run `./gradlew :flowGraph-execute:jvmTest --tests '*ModuleSessionFactoryRegressionTest*'` — 4/4 tests pass, 0 failures.
+- [X] T043 [US3] Manual quickstart VS-C1 for StopWatch — *user-confirmed: hands-on GraphEditor walk-through completed; Runtime Preview behavior matches pre-collapse*
+- [X] T044 [P] [US3] Manual quickstart VS-C1 for Addresses — *user-confirmed*
+- [X] T045 [P] [US3] Manual quickstart VS-C1 for UserProfiles — *user-confirmed*
+- [X] T046 [P] [US3] Manual quickstart VS-C1 for EdgeArtFilter — *user-confirmed*
+- [X] T047 [P] [US3] Manual quickstart VS-C1 for WeatherForecast — *user-confirmed*
+- [X] T048 [US3] Manual quickstart VS-C2 (animation/attenuation/observers) — *user-confirmed: dataflow animation, attenuation slider, per-port data preview behave identically to pre-collapse*
 
 **Checkpoint**: Runtime Preview parity confirmed. SC-005 met.
 
