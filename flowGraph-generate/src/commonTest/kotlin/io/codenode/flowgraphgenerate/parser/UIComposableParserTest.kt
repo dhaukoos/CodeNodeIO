@@ -65,8 +65,24 @@ class UIComposableParserTest {
         val result = parser.parse(demoUIContent)
         assertTrue(result.isSuccess)
         val spec = result.spec!!
-        assertEquals("DemoUI", spec.moduleName)
+        assertEquals("DemoUI", spec.composableName)
+        assertEquals("DemoUI", spec.flowGraphPrefix,
+            "without an explicit flowGraphPrefix override, the parser falls back to the " +
+                "Composable function name (pre-082/083 convention)")
         assertEquals("DemoUIViewModel", spec.viewModelTypeName)
+    }
+
+    // Post-082/083: parse(content, flowGraphPrefix) decouples the file prefix from the
+    // user-authored Composable function name (Decision 2 of feature 084 spec).
+    @Test
+    fun `parse with explicit flowGraphPrefix decouples it from composableName`() {
+        val result = parser.parse(demoUIContent, flowGraphPrefix = "AltPrefix")
+        assertTrue(result.isSuccess)
+        val spec = result.spec!!
+        assertEquals("AltPrefix", spec.flowGraphPrefix,
+            "explicit override drives the file prefix and PreviewRegistry key")
+        assertEquals("DemoUI", spec.composableName,
+            "the user-authored Composable function name is independent of the override")
     }
 
     @Test

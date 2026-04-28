@@ -30,7 +30,17 @@ class UIComposableParser {
     private val lifecycleMethods = setOf("start", "stop", "pause", "resume", "reset")
     private val composeMethods = setOf("collectAsState", "collectAsLazyPagingItems")
 
-    fun parse(fileContent: String): UIFBPParseResult {
+    /**
+     * Parses a qualifying UI source file and produces a [UIFBPSpec].
+     *
+     * @param fileContent The Kotlin source of the qualifying UI file.
+     * @param flowGraphPrefix Optional override for the generated-file prefix and `PreviewRegistry`
+     * key. Post-082/083 a module may host more than one flow graph, so this prefix MUST be derived
+     * from the user-selected `.flow.kt` file's filename (minus `.flow.kt`) at the entry-point caller.
+     * When `null`, falls back to the parsed Composable function name — preserves pre-082/083
+     * behavior where `flowGraphPrefix == composableName == moduleName` was assumed.
+     */
+    fun parse(fileContent: String, flowGraphPrefix: String? = null): UIFBPParseResult {
         val packageMatch = packagePattern.find(fileContent)
             ?: return UIFBPParseResult(errorMessage = "No package declaration found")
         val uiPackage = packageMatch.groupValues[1]
@@ -42,7 +52,7 @@ class UIComposableParser {
 
         val composableMatch = composableFunPattern.find(fileContent)
             ?: return UIFBPParseResult(errorMessage = "No composable function with a viewModel parameter found")
-        val moduleName = composableMatch.groupValues[1]
+        val composableName = composableMatch.groupValues[1]
         val viewModelTypeName = composableMatch.groupValues[2]
 
         val sinkInputs = extractSinkInputs(fileContent)
@@ -51,7 +61,8 @@ class UIComposableParser {
 
         return UIFBPParseResult(
             spec = UIFBPSpec(
-                moduleName = moduleName,
+                flowGraphPrefix = flowGraphPrefix ?: composableName,
+                composableName = composableName,
                 viewModelTypeName = viewModelTypeName,
                 packageName = basePackage,
                 sourceOutputs = sourceOutputs,
