@@ -2,7 +2,7 @@
 
 **Visual Flow-based Programming for Cross Platform Development**
 
-CodeNodeIO is a graph editing tool that enables developers to create full-stack applications using Flow-based Programming (FBP) principles through a visual CAD-like interface. Design 'flowGraphs' visually, generate production-ready Kotlin Multiplatform (Android, iOS, Web) code automatically.
+CodeNodeIO is a graph editing tool that enables developers to create Kotlin MultiPlatform applications using Flow-based Programming (FBP) principles through a visual CAD-like interface. Design 'flowGraphs' visually and generate supporting production-ready Kotlin Multiplatform (Android, iOS, Web) code automatically.
 
 ![Status](https://img.shields.io/badge/status-in%20development-yellow)
 ![License](https://img.shields.io/badge/license-Apache%202.0-blue)
@@ -17,11 +17,11 @@ CodeNodeIO brings **CAD-level abstraction** to software development through Flow
 
 - **Visualize** application logic as flow graphs with nodes and connections
 - **Design** business logic using drag-and-drop visual composition
-- **Generate** production-ready KMP (Kotlin Multiplatform) and Go code automatically
+- **Generate** production-ready KMP (Kotlin Multiplatform) code automatically
 - **Debug** flows using the built-in circuit simulator
 - **Maintain** a hybrid visual/textual representation for clarity
 
-**The Vision**: Shift software development from artisan-era "hand-coding" to industrial-era systematic design - just as CAD revolutionized engineering.
+**The Vision**: Shift software development from artisan-era "hand-coding" to designing "virtual circuits" with onboard emulation.
 
 ---
 
