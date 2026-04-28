@@ -87,7 +87,8 @@ fun CodeGeneratorPanel(
             val generateEnabled = when (state.selectedPath) {
                 GenerationPath.GENERATE_MODULE -> state.selectedFlowGraph != null
                 GenerationPath.REPOSITORY -> state.selectedIPTypeId != null
-                GenerationPath.UI_FBP -> state.selectedUIFilePath != null
+                // UI-FBP per FR-014/FR-015 (post-clarification): explicit {flow graph, UI file} pair.
+                GenerationPath.UI_FBP -> state.selectedFlowGraph != null && state.selectedUIFilePath != null
             }
             Button(
                 onClick = onGenerate,
@@ -198,6 +199,24 @@ private fun InputSelector(
             }
         }
         GenerationPath.UI_FBP -> {
+            // First selector: the .flow.kt file (post-082/083: drives flow-graph prefix
+            // for all generated artifacts). Reuses the GENERATE_MODULE selector wiring.
+            Text("FlowGraph File", fontSize = 11.sp, color = Color.Gray)
+            OutlinedButton(
+                onClick = {
+                    val result = showFileOpenDialog()
+                    val file = result.file
+                    if (file != null) {
+                        onLoadFlowGraphFile(file)
+                    }
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(state.selectedFlowGraphFileName ?: "Select flowGraph file...", fontSize = 12.sp)
+            }
+
+            // Second selector: the qualifying UI file (post-Decision 2: drives the user-
+            // authored Composable function name, distinct from the flow-graph prefix).
             Text("UI File", fontSize = 11.sp, color = Color.Gray)
             OutlinedButton(
                 onClick = {

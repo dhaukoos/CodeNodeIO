@@ -45,6 +45,7 @@ import io.codenode.grapheditor.state.GraphState
 import io.codenode.grapheditor.state.LevelCompatibilityChecker
 import io.codenode.grapheditor.state.NodePromoter
 import io.codenode.grapheditor.state.UndoRedoManager
+import io.codenode.grapheditor.util.findModuleRoot
 import io.codenode.grapheditor.util.resolveConnectionIPTypes
 
 /**
@@ -310,19 +311,49 @@ fun ColumnScope.GraphEditorContent(
                         },
                         onGenerate = {
                             kotlinx.coroutines.MainScope().launch {
-                                val dir = showDirectoryChooser("Generate Module To")
-                                if (dir != null) {
-                                    val result = codeGeneratorViewModel.generate(
-                                        outputDir = dir,
-                                        flowGraph = graphState.flowGraph,
-                                        targetPlatforms = graphState.flowGraph.targetPlatforms
-                                    )
-                                    val msg = if (result.isSuccess) {
-                                        "Generated ${result.totalGenerated} files for ${graphState.flowGraph.name}"
+                                val panelState = codeGeneratorViewModel.state.value
+                                if (panelState.selectedPath == io.codenode.flowgraphgenerate.model.GenerationPath.UI_FBP) {
+                                    // UI-FBP routes through UIFBPSaveService directly (per FR-014/FR-015
+                                    // explicit-pair input). The host module is the directory containing
+                                    // the user-selected .flow.kt — derived from its path.
+                                    val flowGraphFilePath = panelState.selectedFlowGraphFilePath
+                                    if (flowGraphFilePath == null) {
+                                        onStatusMessage("UI-FBP: select a .flow.kt file before generating")
+                                        return@launch
+                                    }
+                                    val moduleRoot = findModuleRoot(java.io.File(flowGraphFilePath).parentFile)
+                                    if (moduleRoot == null) {
+                                        onStatusMessage("UI-FBP: unable to locate module root from .flow.kt path")
+                                        return@launch
+                                    }
+                                    val saveResult = codeGeneratorViewModel.generateUIFBP(moduleRoot)
+                                    val msg = if (saveResult.success) {
+                                        val created = saveResult.files.count { it.kind == io.codenode.flowgraphgenerate.save.FileChangeKind.CREATED }
+                                        val updated = saveResult.files.count { it.kind == io.codenode.flowgraphgenerate.save.FileChangeKind.UPDATED }
+                                        val unchanged = saveResult.files.count { it.kind == io.codenode.flowgraphgenerate.save.FileChangeKind.UNCHANGED }
+                                        val skipped = saveResult.files.count { it.kind == io.codenode.flowgraphgenerate.save.FileChangeKind.SKIPPED_CONFLICT }
+                                        "UI-FBP: $created created, $updated updated, $unchanged unchanged" +
+                                            (if (skipped > 0) ", $skipped SKIPPED (hand-edited)" else "")
                                     } else {
-                                        "Generated ${result.totalGenerated} files, ${result.totalErrors} errors"
+                                        "UI-FBP failed: ${saveResult.errorMessage ?: "unknown error"}"
                                     }
                                     onStatusMessage(msg)
+                                } else {
+                                    // GENERATE_MODULE / REPOSITORY paths: existing CodeGenerationRunner flow.
+                                    val dir = showDirectoryChooser("Generate Module To")
+                                    if (dir != null) {
+                                        val result = codeGeneratorViewModel.generate(
+                                            outputDir = dir,
+                                            flowGraph = graphState.flowGraph,
+                                            targetPlatforms = graphState.flowGraph.targetPlatforms
+                                        )
+                                        val msg = if (result.isSuccess) {
+                                            "Generated ${result.totalGenerated} files for ${graphState.flowGraph.name}"
+                                        } else {
+                                            "Generated ${result.totalGenerated} files, ${result.totalErrors} errors"
+                                        }
+                                        onStatusMessage(msg)
+                                    }
                                 }
                             }
                         },
