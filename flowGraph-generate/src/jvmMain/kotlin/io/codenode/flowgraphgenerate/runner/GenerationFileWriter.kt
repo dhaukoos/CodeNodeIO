@@ -30,6 +30,7 @@ class GenerationFileWriter {
         "RuntimeControllerInterfaceGenerator" to { moduleName: String -> "controller/${moduleName}ControllerInterface.kt" },
         "RuntimeViewModelGenerator" to { moduleName: String -> "viewmodel/${moduleName}ViewModel.kt" },
         "UserInterfaceStubGenerator" to { moduleName: String -> "userInterface/$moduleName.kt" },
+        "PreviewProviderGenerator" to { moduleName: String -> "userInterface/${moduleName}PreviewProvider.kt" },
         "EntityCUDGenerator" to { moduleName: String -> "nodes/${moduleName}CUDCodeNode.kt" },
         "EntityRepositoryGenerator" to { moduleName: String -> "nodes/${moduleName}RepositoryCodeNode.kt" },
         "EntityDisplayGenerator" to { moduleName: String -> "nodes/${moduleName}DisplayCodeNode.kt" },
@@ -38,6 +39,16 @@ class GenerationFileWriter {
         "UIFBPViewModelGenerator" to { moduleName: String -> "viewmodel/${moduleName}ViewModel.kt" },
         "UIFBPSourceGenerator" to { moduleName: String -> "nodes/${moduleName}SourceCodeNode.kt" },
         "UIFBPSinkGenerator" to { moduleName: String -> "nodes/${moduleName}SinkCodeNode.kt" }
+    )
+
+    /**
+     * Per-generator source-set override. Defaults to `commonMain` for any
+     * generator not listed here. PreviewProvider is JVM-only because the
+     * GraphEditor's Runtime Preview is desktop-only and `preview-api` is
+     * consumed only from `jvmMain`.
+     */
+    private val generatorToSourceSet = mapOf(
+        "PreviewProviderGenerator" to "jvmMain"
     )
 
     /**
@@ -69,14 +80,16 @@ class GenerationFileWriter {
         report: MutableList<FileChange> = mutableListOf()
     ): List<String> {
         val basePackagePath = basePackage.replace(".", "/")
-        val baseSrcDir = File(moduleDir, "src/commonMain/kotlin/$basePackagePath")
+        val commonSrcDir = File(moduleDir, "src/commonMain/kotlin/$basePackagePath")
         val filesAffected = mutableListOf<String>()
 
         for ((generatorId, content) in result.generatedFiles) {
             val pathMapper = generatorToPath[generatorId]
             if (pathMapper != null) {
+                val sourceSet = generatorToSourceSet[generatorId] ?: "commonMain"
+                val srcDir = File(moduleDir, "src/$sourceSet/kotlin/$basePackagePath")
                 val relativePath = pathMapper(moduleName)
-                val targetFile = File(baseSrcDir, relativePath)
+                val targetFile = File(srcDir, relativePath)
                 val existed = targetFile.exists()
                 targetFile.parentFile?.mkdirs()
                 targetFile.writeText(content)
@@ -92,9 +105,10 @@ class GenerationFileWriter {
 
         // Feature 085: delete legacy thick-stack files (Controller / Adapter / Flow runtime)
         // with a safety check that refuses to delete files lacking the generator marker.
+        // Legacy files all live in commonMain.
         for (deletionMapper in deletionTargets) {
             val relativePath = deletionMapper(moduleName)
-            val targetFile = File(baseSrcDir, relativePath)
+            val targetFile = File(commonSrcDir, relativePath)
             if (!targetFile.exists()) continue
 
             if (carriesGeneratorMarker(targetFile)) {

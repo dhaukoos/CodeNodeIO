@@ -53,19 +53,20 @@ class CodeGenerationRunnerTest {
         moduleName = "TestModule"
     )
 
-    // Feature 085: GENERATE_MODULE path now produces 5 entries (was 7).
+    // Feature 085: GENERATE_MODULE path produces the post-collapse set.
     // Eliminated: RuntimeFlowGenerator, RuntimeControllerGenerator, RuntimeControllerAdapterGenerator.
-    // Replaced by: ModuleRuntimeGenerator (single ~30-line file).
+    // Added (post-085): ModuleRuntimeGenerator, PreviewProviderGenerator (Runtime Preview hookup).
     private val expectedGenerateModuleIds = setOf(
         "FlowKtGenerator",
         "ModuleRuntimeGenerator",
         "RuntimeControllerInterfaceGenerator",
         "RuntimeViewModelGenerator",
-        "UserInterfaceStubGenerator"
+        "UserInterfaceStubGenerator",
+        "PreviewProviderGenerator"
     )
 
     @Test
-    fun `execute with GENERATE_MODULE produces 5 entries after universal-runtime collapse`() = runTest {
+    fun `execute with GENERATE_MODULE produces the post-collapse generator set`() = runTest {
         val runner = CodeGenerationRunner()
         val result = runner.execute(GenerationPath.GENERATE_MODULE, testConfig)
 

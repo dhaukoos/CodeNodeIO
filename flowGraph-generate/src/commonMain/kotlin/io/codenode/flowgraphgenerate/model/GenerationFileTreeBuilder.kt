@@ -42,7 +42,8 @@ object GenerationFileTreeBuilder {
             FolderNode(
                 name = "userInterface",
                 files = listOf(
-                    FileNode("$moduleName.kt", generatorId = "UserInterfaceStubGenerator")
+                    FileNode("$moduleName.kt", generatorId = "UserInterfaceStubGenerator"),
+                    FileNode("${moduleName}PreviewProvider.kt", generatorId = "PreviewProviderGenerator")
                 ),
                 selectionState = TriState.ALL
             )
@@ -108,7 +109,8 @@ object GenerationFileTreeBuilder {
                 FolderNode(
                     name = "userInterface",
                     files = listOf(
-                        FileNode("$pluralName.kt", generatorId = "UserInterfaceStubGenerator")
+                        FileNode("$pluralName.kt", generatorId = "UserInterfaceStubGenerator"),
+                        FileNode("${pluralName}PreviewProvider.kt", generatorId = "PreviewProviderGenerator")
                     ),
                     selectionState = TriState.ALL
                 ),
@@ -161,6 +163,13 @@ object GenerationFileTreeBuilder {
                     files = listOf(
                         FileNode("${moduleName}SourceCodeNode.kt", generatorId = "UIFBPSourceGenerator"),
                         FileNode("${moduleName}SinkCodeNode.kt", generatorId = "UIFBPSinkGenerator")
+                    ),
+                    selectionState = TriState.ALL
+                ),
+                FolderNode(
+                    name = "userInterface",
+                    files = listOf(
+                        FileNode("${moduleName}PreviewProvider.kt", generatorId = "PreviewProviderGenerator")
                     ),
                     selectionState = TriState.ALL
                 )

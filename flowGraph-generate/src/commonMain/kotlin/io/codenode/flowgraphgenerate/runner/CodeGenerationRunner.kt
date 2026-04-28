@@ -42,6 +42,10 @@ class CodeGenerationRunner {
         "UserInterfaceStubGenerator" to { config: GenerationConfig ->
             io.codenode.flowgraphgenerate.generator.UserInterfaceStubGenerator()
                 .generate(config.flowGraph, config.userInterfacePackage, config.viewModelPackage)
+        },
+        "PreviewProviderGenerator" to { config: GenerationConfig ->
+            io.codenode.flowgraphgenerate.generator.PreviewProviderGenerator()
+                .generate(config.flowGraph, config.basePackage, config.viewModelPackage)
         }
     )
 
@@ -51,7 +55,8 @@ class CodeGenerationRunner {
             "ModuleRuntimeGenerator",
             "RuntimeControllerInterfaceGenerator",
             "RuntimeViewModelGenerator",
-            "UserInterfaceStubGenerator"
+            "UserInterfaceStubGenerator",
+            "PreviewProviderGenerator"
         ),
         GenerationPath.REPOSITORY to listOf(
             "FlowKtGenerator",
@@ -59,6 +64,7 @@ class CodeGenerationRunner {
             "RuntimeControllerInterfaceGenerator",
             "RuntimeViewModelGenerator",
             "UserInterfaceStubGenerator",
+            "PreviewProviderGenerator",
             "EntityCUDGenerator", "EntityRepositoryGenerator",
             "EntityDisplayGenerator", "EntityPersistenceGenerator"
         ),
@@ -67,7 +73,8 @@ class CodeGenerationRunner {
             "ModuleRuntimeGenerator",
             "RuntimeControllerInterfaceGenerator",
             "UIFBPStateGenerator", "UIFBPViewModelGenerator",
-            "UIFBPSourceGenerator", "UIFBPSinkGenerator"
+            "UIFBPSourceGenerator", "UIFBPSinkGenerator",
+            "PreviewProviderGenerator"
         )
     )
 
