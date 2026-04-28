@@ -6,6 +6,7 @@
 package io.codenode.grapheditor.viewmodel
 
 import androidx.lifecycle.ViewModel
+import io.codenode.fbpdsl.model.FlowGraph
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -35,6 +36,29 @@ class WorkspaceViewModel(
         private const val KEY_WORKSPACE_CURRENT = "workspace.current"
         private const val KEY_WORKSPACE_MRU = "workspace.mru"
         private const val MAX_MRU_SIZE = 5
+
+        /**
+         * Infers the module's KMP target platforms from its on-disk directory
+         * structure. Target platforms are not persisted in a sidecar metadata
+         * file — they're only implicit in `src/{android|ios|jvm|js|wasmJs}Main`
+         * directories and the build.gradle.kts. The directory probe is the
+         * cheaper, more robust signal.
+         *
+         * Returns an empty set when [moduleDir] is null, missing, or contains
+         * no recognized platform-specific directories.
+         */
+        fun detectTargetPlatforms(moduleDir: File?): Set<FlowGraph.TargetPlatform> {
+            if (moduleDir == null || !moduleDir.isDirectory) return emptySet()
+            val srcDir = File(moduleDir, "src")
+            if (!srcDir.isDirectory) return emptySet()
+            return buildSet {
+                if (File(srcDir, "androidMain").isDirectory) add(FlowGraph.TargetPlatform.KMP_ANDROID)
+                if (File(srcDir, "iosMain").isDirectory) add(FlowGraph.TargetPlatform.KMP_IOS)
+                if (File(srcDir, "jvmMain").isDirectory) add(FlowGraph.TargetPlatform.KMP_DESKTOP)
+                if (File(srcDir, "jsMain").isDirectory) add(FlowGraph.TargetPlatform.KMP_WEB)
+                if (File(srcDir, "wasmJsMain").isDirectory) add(FlowGraph.TargetPlatform.KMP_WASM)
+            }
+        }
     }
 
     fun openModule(moduleDir: File) {

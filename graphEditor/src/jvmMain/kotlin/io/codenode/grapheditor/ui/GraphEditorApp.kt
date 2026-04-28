@@ -653,11 +653,19 @@ fun GraphEditorApp(
         }
 
         if (showModulePropertiesDialog) {
+            // Module Properties (EDIT mode) reflects the module's actual on-disk
+            // platform targets, not the canvas's current FlowGraph.targetPlatforms
+            // (which can be empty for a freshly-scaffolded module that has no
+            // .flow.kt authored yet). Detect from `src/{platform}Main` directories.
+            val detectedPlatforms = WorkspaceViewModel.detectTargetPlatforms(
+                workspaceViewModel.currentModuleDir.value
+            )
+            val canvasPlatforms = graphState.flowGraph.targetPlatforms.toSet()
             ModulePropertiesDialog(
                 mode = moduleDialogMode,
                 existingName = currentModuleName,
                 existingPath = workspaceViewModel.currentModuleDir.value?.absolutePath ?: "",
-                existingPlatforms = graphState.flowGraph.targetPlatforms.toSet(),
+                existingPlatforms = if (detectedPlatforms.isNotEmpty()) detectedPlatforms else canvasPlatforms,
                 onCreateModule = { name, platforms ->
                     showModulePropertiesDialog = false
                     val chooser = javax.swing.JFileChooser().apply {
