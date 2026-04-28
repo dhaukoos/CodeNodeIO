@@ -26,7 +26,12 @@
       "Bash(find EdgeArtFilter/src -name '*.kt' -exec sed -i '' -e 's/import io.codenode.edgeartfilter.viewmodel.EdgeArtFilterState/import io.codenode.edgeartfilter.EdgeArtFilterState/g' '{}' ';')",
       "Bash(find WeatherForecast/src -name '*.kt' -exec sed -i '' -e 's/import io.codenode.weatherforecast.viewmodel.WeatherForecastState/import io.codenode.weatherforecast.WeatherForecastState/g' '{}' ';')",
       "Bash(find UserProfiles/src -name '*.kt' -exec sed -i '' -e 's/import io.codenode.userprofiles.UserProfilesPersistence/import io.codenode.userprofiles.persistence.UserProfilesPersistence/g' '{}' ';')",
-      "Bash(find Addresses/src -name '*.kt' -exec sed -i '' -e 's/import io.codenode.addresses.AddressesPersistence/import io.codenode.addresses.persistence.AddressesPersistence/g' '{}' ';')"
+      "Bash(find Addresses/src -name '*.kt' -exec sed -i '' -e 's/import io.codenode.addresses.AddressesPersistence/import io.codenode.addresses.persistence.AddressesPersistence/g' '{}' ';')",
+      "Bash(mkdir -p /Users/dhaukoos/CodeNodeIO-DemoProject/StopWatch/src/commonMain/kotlin/io/codenode/stopwatch/controller)",
+      "Bash(mkdir -p /Users/dhaukoos/CodeNodeIO-DemoProject/UserProfiles/src/commonMain/kotlin/io/codenode/userprofiles/controller)",
+      "Bash(mkdir -p /Users/dhaukoos/CodeNodeIO-DemoProject/Addresses/src/commonMain/kotlin/io/codenode/addresses/controller)",
+      "Bash(mkdir -p /Users/dhaukoos/CodeNodeIO-DemoProject/EdgeArtFilter/src/commonMain/kotlin/io/codenode/edgeartfilter/controller)",
+      "Bash(mkdir -p /Users/dhaukoos/CodeNodeIO-DemoProject/WeatherForecast/src/commonMain/kotlin/io/codenode/weatherforecast/controller)"
     ]
   }
 }
