@@ -205,12 +205,19 @@ class ModuleRuntimeGeneratorTest {
     }
 
     @Test
-    fun `emits package declaration at base package`() {
+    fun `emits package declaration at controller subpackage`() {
         val source = generator.generate(stopWatchFlow(), basePackage, controllerPackage, viewModelPackage)
-        assertTrue(source.contains("package io.codenode.stopwatch"),
-            "file must live at the base module package, not a subpackage")
-        assertFalse(source.contains("package io.codenode.stopwatch.controller"),
-            "file must NOT be in controller subpackage")
+        assertTrue(source.contains("package io.codenode.stopwatch.controller"),
+            "file must live in the controller subpackage alongside StopWatchControllerInterface")
+    }
+
+    @Test
+    fun `does not import own-package ControllerInterface`() {
+        val source = generator.generate(stopWatchFlow(), basePackage, controllerPackage, viewModelPackage)
+        assertFalse(
+            source.contains("import io.codenode.stopwatch.controller.StopWatchControllerInterface"),
+            "ControllerInterface lives in the same package — must not be self-imported"
+        )
     }
 
     @Test
@@ -220,7 +227,6 @@ class ModuleRuntimeGeneratorTest {
         assertTrue(source.contains("import io.codenode.fbpdsl.runtime.CodeNodeDefinition"))
         assertTrue(source.contains("import io.codenode.fbpdsl.runtime.DynamicPipelineController"))
         assertTrue(source.contains("import io.codenode.fbpdsl.runtime.ModuleController"))
-        assertTrue(source.contains("import io.codenode.stopwatch.controller.StopWatchControllerInterface"))
         assertTrue(source.contains("import io.codenode.stopwatch.viewmodel.StopWatchState"))
         // Per-node CodeNodeDefinition imports
         assertTrue(source.contains("import io.codenode.stopwatch.nodes.TimerEmitterCodeNode"))

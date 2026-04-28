@@ -19,14 +19,14 @@ class GenerationFileWriter {
 
     /**
      * Maps a generator ID to its on-disk path under the module's base source directory.
-     * `ModuleRuntimeGenerator` lives at the module package root (no subdirectory);
-     * everything else is in a subdirectory by role.
+     * Each path is rooted in the role-named subdirectory the generator owns.
      */
     private val generatorToPath = mapOf(
         "FlowKtGenerator" to { moduleName: String -> "flow/$moduleName.flow.kt" },
         // Feature 085: replaces flow/${moduleName}Flow.kt + controller/${moduleName}Controller.kt
-        // + controller/${moduleName}ControllerAdapter.kt
-        "ModuleRuntimeGenerator" to { moduleName: String -> "${moduleName}Runtime.kt" },
+        // + controller/${moduleName}ControllerAdapter.kt. Lives in controller/ alongside
+        // the typed ControllerInterface — the Runtime is the controller-tier factory.
+        "ModuleRuntimeGenerator" to { moduleName: String -> "controller/${moduleName}Runtime.kt" },
         "RuntimeControllerInterfaceGenerator" to { moduleName: String -> "controller/${moduleName}ControllerInterface.kt" },
         "RuntimeViewModelGenerator" to { moduleName: String -> "viewmodel/${moduleName}ViewModel.kt" },
         "UserInterfaceStubGenerator" to { moduleName: String -> "userInterface/$moduleName.kt" },

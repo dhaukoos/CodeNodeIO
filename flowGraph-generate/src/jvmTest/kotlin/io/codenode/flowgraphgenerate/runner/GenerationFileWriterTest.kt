@@ -47,17 +47,17 @@ class GenerationFileWriterTest {
     }
 
     @Test
-    fun `writes ModuleRuntimeGenerator content at base package root`() {
+    fun `writes ModuleRuntimeGenerator content under controller subpackage`() {
         val (moduleDir, baseSrcDir) = newModuleDir("TestModule")
         val result = GenerationResult(
-            generatedFiles = mapOf("ModuleRuntimeGenerator" to "package io.test\n// runtime content")
+            generatedFiles = mapOf("ModuleRuntimeGenerator" to "package io.test.controller\n// runtime content")
         )
 
         val writer = GenerationFileWriter()
         writer.write(result, moduleDir, "io.codenode.testmodule", "TestModule")
 
-        val file = File(baseSrcDir, "TestModuleRuntime.kt")
-        assertTrue(file.exists(), "Runtime file lives at the module package root, not a subpackage")
+        val file = File(baseSrcDir, "controller/TestModuleRuntime.kt")
+        assertTrue(file.exists(), "Runtime file lives under controller/ alongside ControllerInterface")
         assertTrue(file.readText().contains("runtime content"))
     }
 
@@ -79,7 +79,7 @@ class GenerationFileWriterTest {
 
         assertEquals(5, written.size)
         assertTrue(File(baseSrcDir, "flow/MyModule.flow.kt").exists())
-        assertTrue(File(baseSrcDir, "MyModuleRuntime.kt").exists(), "Runtime at module root")
+        assertTrue(File(baseSrcDir, "controller/MyModuleRuntime.kt").exists(), "Runtime under controller/")
         assertTrue(File(baseSrcDir, "controller/MyModuleControllerInterface.kt").exists())
         assertTrue(File(baseSrcDir, "viewmodel/MyModuleViewModel.kt").exists())
         assertTrue(File(baseSrcDir, "userInterface/MyModule.kt").exists())

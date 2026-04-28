@@ -131,14 +131,15 @@ class CodeGenerationRunnerTest {
     }
 
     @Test
-    fun `ModuleRuntimeGenerator output contains base package and registry`() = runTest {
+    fun `ModuleRuntimeGenerator output declares controller-subpackage and registry`() = runTest {
         val runner = CodeGenerationRunner()
         val result = runner.execute(GenerationPath.GENERATE_MODULE, testConfig)
 
         val runtimeContent = result.generatedFiles["ModuleRuntimeGenerator"]!!
         assertTrue(
-            runtimeContent.contains("package io.codenode.testmodule"),
-            "ModuleRuntime output must declare the base package, not a subpackage"
+            runtimeContent.contains("package io.codenode.testmodule.controller"),
+            "ModuleRuntime output must declare the controller subpackage so the file " +
+                "lives at controller/{Module}Runtime.kt alongside the typed ControllerInterface"
         )
         assertTrue(
             runtimeContent.contains("object TestModuleNodeRegistry"),

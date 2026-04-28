@@ -34,9 +34,11 @@ class ModuleRuntimeGenerator {
     /**
      * @param flowGraph The user's FlowGraph (provides node names + their
      *        `_codeNodeClass` configuration entries to populate the registry).
-     * @param basePackage Top-level module package (e.g., `io.codenode.stopwatch`)
-     *        — this is where the generated file lives.
-     * @param controllerPackage Subpackage holding the typed `{Module}ControllerInterface`.
+     * @param basePackage Top-level module package (e.g., `io.codenode.stopwatch`).
+     *        Retained for signature compatibility; the generated file now lives
+     *        under [controllerPackage].
+     * @param controllerPackage Subpackage holding the typed `{Module}ControllerInterface`
+     *        — this is where the generated `{Module}Runtime.kt` file lives.
      * @param viewModelPackage Subpackage holding the `{Module}State` object.
      */
     fun generate(
@@ -55,8 +57,8 @@ class ModuleRuntimeGenerator {
 
         return buildString {
             generateHeader(moduleName)
-            generatePackage(basePackage)
-            generateImports(codeNodes, moduleName, controllerPackage, viewModelPackage)
+            generatePackage(controllerPackage)
+            generateImports(codeNodes, moduleName, viewModelPackage)
             appendLine()
             generateNodeRegistry(moduleName, codeNodes)
             appendLine()
@@ -83,14 +85,13 @@ class ModuleRuntimeGenerator {
     private fun StringBuilder.generateImports(
         codeNodes: List<CodeNode>,
         moduleName: String,
-        controllerPackage: String,
         viewModelPackage: String
     ) {
         appendLine("import io.codenode.fbpdsl.model.FlowGraph")
         appendLine("import io.codenode.fbpdsl.runtime.CodeNodeDefinition")
         appendLine("import io.codenode.fbpdsl.runtime.DynamicPipelineController")
         appendLine("import io.codenode.fbpdsl.runtime.ModuleController")
-        appendLine("import $controllerPackage.${moduleName}ControllerInterface")
+        // {Module}ControllerInterface lives in this same controller package — no import needed.
         appendLine("import $viewModelPackage.${moduleName}State")
         // Per-node CodeNodeDefinition imports (sorted for determinism)
         codeNodes
