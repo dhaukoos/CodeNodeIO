@@ -233,7 +233,14 @@ class {FlowGraph}ViewModel(
         {FlowGraph}State._{a}.value = {a}
     }
 
-    // Control surface optionally re-exposed; default is to call controller.start() etc. inline from the UI
+    // Forwarding control surface — the UI invokes these directly (US1.AS3, US2.AS3).
+    // Each delegates one-to-one to the underlying ControllerInterface (which inherits
+    // from ModuleController, so the methods exist on `controller`).
+    fun start(): FlowGraph = controller.start()
+    fun stop(): FlowGraph = controller.stop()
+    fun pause(): FlowGraph = controller.pause()
+    fun resume(): FlowGraph = controller.resume()
+    fun reset(): FlowGraph = controller.reset()
 }
 ```
 
@@ -243,6 +250,7 @@ class {FlowGraph}ViewModel(
 - The class MUST extend `androidx.lifecycle.ViewModel`.
 - `emit(...)` continues to write to `{FlowGraph}State._x` mutable fields — preserves today's UI → State → SourceCodeNode flow.
 - Sink-input flows are read from `{FlowGraph}State.yFlow` directly (matches entity-module precedent; same code works under both runtime paths).
+- The forwarding control methods (`start/stop/pause/resume/reset`) are required because the UI invokes them as `viewModel.start()` etc. (US1.AS3, US2.AS3). Each is a one-line delegation to `controller.{same}()`. Generators MUST emit them; they are NOT inherited from `androidx.lifecycle.ViewModel` and the UI cannot reach the controller directly.
 
 ---
 
