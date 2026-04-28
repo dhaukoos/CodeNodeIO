@@ -1,7 +1,9 @@
 # Quickstart: Verifying UI-FBP Runtime Preview + Deployable Module
 
-**Date**: 2026-04-26
-**Feature**: [spec.md](./spec.md)
+**Date**: 2026-04-26 (drafted) / 2026-04-28 (cross-checked against 085)
+**Feature**: [spec.md](./spec.md) · **Cross-check**: [CROSS-CHECK-085.md](./CROSS-CHECK-085.md)
+
+> **POST-085 INTEGRATION NOTE (2026-04-28)**: Feature 085 (universal-runtime collapse) shipped 2026-04-28. The file lists in **VS-A2**, **VS-A7**, and **VS-B3** are obsolete: `controller/{Module}Controller.kt`, `controller/{Module}ControllerAdapter.kt`, and `flow/{Module}Flow.kt` (runtime) are **never emitted** anywhere in the project anymore. The post-085 file set for a UI-FBP-generated module is: `viewmodel/{Module}State.kt`, `viewmodel/{Module}ViewModel.kt`, `nodes/{Module}SourceCodeNode.kt`, `nodes/{Module}SinkCodeNode.kt`, `controller/{Module}ControllerInterface.kt` (now extends `ModuleController`), `controller/{Module}Runtime.kt` (NEW — replaces the trio), `userInterface/{Module}PreviewProvider.kt` (jvmMain — already produced by `PreviewProviderGenerator`), `flow/{Module}.flow.kt`. **VS-C** ("Deployable parity check") is fully replaced by feature 085's `quickstart.md` VS-D5 ("Production-app integration template") — the consumer code in VS-C3 must change from `DemoUIController(demoUIFlowGraph)` to `createDemoUIRuntime(demoUIFlowGraph)`. **VS-A4**'s note about the unused `DemoUIController` class is moot — that class doesn't exist. **VS-A1**, **VS-A3**, **VS-A5**, **VS-A6**, **VS-A8**, **VS-B1–B2**, **VS-B4**, and the `.flow.kt` merge / hand-edit safety scenarios survive structurally; only the file lists need updating to the post-085 set. See [CROSS-CHECK-085.md](./CROSS-CHECK-085.md) for the line-by-line delta.
 
 This document is the manual verification path for feature 084. Per spec Clarifications Q1, the feature targets BOTH scenarios:
 

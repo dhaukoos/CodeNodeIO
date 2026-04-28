@@ -1,7 +1,9 @@
 # Phase 0 Research: UI-FBP Runtime Preview Gap Analysis
 
-**Date**: 2026-04-26
-**Feature**: [spec.md](./spec.md) · **Plan**: [plan.md](./plan.md)
+**Date**: 2026-04-26 (drafted) / 2026-04-28 (cross-checked against 085)
+**Feature**: [spec.md](./spec.md) · **Plan**: [plan.md](./plan.md) · **Cross-check**: [CROSS-CHECK-085.md](./CROSS-CHECK-085.md)
+
+> **POST-085 INTEGRATION NOTE (2026-04-28)**: Feature 085 (universal-runtime collapse) shipped 2026-04-28. Decision 1 below is **fully retired** — the thick stack it specified (`{Module}Controller.kt` + `{Module}ControllerAdapter.kt` + `{Module}Flow.kt` runtime) no longer exists; the three generators that produced it (`RuntimeControllerGenerator`, `RuntimeControllerAdapterGenerator`, `RuntimeFlowGenerator`) are deleted. UI-FBP rides the universal runtime collapse just like every other module. Decisions 2 and 4 are **partially valid** — the ControllerInterface and ViewModel shapes survive, but the interface now extends `ModuleController` (control surface inherited; UI-FBP's per-port flow members become `override val`). Decision 3 (`PreviewProvider` in `jvmMain`) is **already implemented** by the new `PreviewProviderGenerator`. Decisions 5–8 survive structurally. The `UIFBPSpecAdapter` and likely the `UIFBPControllerInterfaceGenerator` are unnecessary because their target generators are gone or have absorbed the UI-FBP shape. See [CROSS-CHECK-085.md](./CROSS-CHECK-085.md) for the line-by-line delta.
 
 ## Purpose
 
@@ -11,7 +13,11 @@ All claims below are grounded in source files referenced by absolute path; line 
 
 ---
 
-## Decision 1 (REVISED): Generate the full thick stack (ControllerInterface + Controller + ControllerAdapter + Flow runtime + PreviewProvider), matching today's entity-module pattern, so the module is both Runtime-Preview-loadable AND deployable to a production app
+## Decision 1 (RETIRED 2026-04-28 by feature 085): ~~Generate the full thick stack (ControllerInterface + Controller + ControllerAdapter + Flow runtime + PreviewProvider), matching today's entity-module pattern, so the module is both Runtime-Preview-loadable AND deployable to a production app~~
+
+> **Status**: This decision is fully retired. Feature 085 (universal-runtime collapse) eliminated the thick stack across all modules. UI-FBP modules now emit `controller/{Module}ControllerInterface.kt` (extending `ModuleController`) + `controller/{Module}Runtime.kt` (factory `create{Module}Runtime(flowGraph)` returning an anonymous `object : {Module}ControllerInterface, ModuleController by controller`). The deployable contract is satisfied by the Runtime factory; production-app consumers wire it as documented in `specs/085-collapse-thick-runtime/quickstart.md` VS-D5. The `RuntimeControllerGenerator`, `RuntimeControllerAdapterGenerator`, `RuntimeFlowGenerator` referenced below are **deleted**. The "background — what an earlier draft got wrong" subsection in this decision was correct on its own terms at the time of writing, but the deployment-path argument is now moot because the deployment path also goes through the universal runtime.
+
+**Original decision content (historical, retained for context):**
 
 **Background — what an earlier draft of this research got wrong**: An earlier version of this decision claimed that `Controller.kt`, `ControllerAdapter.kt`, and `Flow.kt` runtime files were no longer needed because `ModuleSessionFactory.createControllerProxy` (`flowGraph-execute/src/jvmMain/kotlin/io/codenode/flowgraphexecute/ModuleSessionFactory.kt:108-150`) builds a `java.lang.reflect.Proxy` over `DynamicPipelineController` for every module. That observation is correct **for the GraphEditor's Runtime Preview path only**, but it confused two distinct runtime paths:
 

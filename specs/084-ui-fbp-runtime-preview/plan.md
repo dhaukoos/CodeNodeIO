@@ -1,7 +1,9 @@
 # Implementation Plan: Add Runtime Preview Support to UI-FBP Code Generation
 
-**Branch**: `084-ui-fbp-runtime-preview` | **Date**: 2026-04-26 | **Spec**: [spec.md](./spec.md)
+**Branch**: `084-ui-fbp-runtime-preview` | **Date**: 2026-04-26 (drafted) / 2026-04-28 (cross-checked against 085) | **Spec**: [spec.md](./spec.md)
 **Input**: Feature specification from `/Users/dhaukoos/CodeNodeIO/specs/084-ui-fbp-runtime-preview/spec.md`
+
+> **POST-085 INTEGRATION NOTE (2026-04-28)**: Feature 085 (universal-runtime collapse) shipped before this plan was implemented. The thick stack this plan describes (`{Module}Controller.kt`, `{Module}ControllerAdapter.kt`, `{Module}Flow.kt` runtime, the `UIFBPSpecAdapter`, the four reused entity-module generators, the standalone `{Module}ControllerInterface.kt` shape) is **obsolete**. UI-FBP modules now ride the universal runtime: a single `controller/{Module}Runtime.kt` factory + a `controller/{Module}ControllerInterface.kt` that extends `ModuleController`. The `PreviewProviderGenerator` and per-module Runtime emission are already wired into `GenerationPath.UI_FBP` in `CodeGenerationRunner`. See [CROSS-CHECK-085.md](./CROSS-CHECK-085.md) for the full inventory of what's superseded vs. what survives, and re-run `/speckit.plan` to regenerate this document against the post-085 surface before resuming implementation. The Summary, Technical Context, and Project Structure sections below describe the pre-085 design and should be read as historical context.
 
 ## Summary
 

@@ -1,7 +1,9 @@
 # Phase 1 Data Model: UI-FBP Runtime Preview
 
-**Date**: 2026-04-26
-**Feature**: [spec.md](./spec.md) · **Plan**: [plan.md](./plan.md) · **Research**: [research.md](./research.md)
+**Date**: 2026-04-26 (drafted) / 2026-04-28 (cross-checked against 085)
+**Feature**: [spec.md](./spec.md) · **Plan**: [plan.md](./plan.md) · **Research**: [research.md](./research.md) · **Cross-check**: [CROSS-CHECK-085.md](./CROSS-CHECK-085.md)
+
+> **POST-085 INTEGRATION NOTE (2026-04-28)**: The §2 file table below lists 10 entries including the post-collapse-deleted trio (`Controller.kt`, `ControllerAdapter.kt`, `Flow.kt` runtime) and the no-longer-needed `UIFBPSpecAdapter`. The post-085 set is: (1) `viewmodel/{Module}State.kt`, (2) `viewmodel/{Module}ViewModel.kt`, (3) `nodes/{Module}SourceCodeNode.kt`, (4) `nodes/{Module}SinkCodeNode.kt`, (5) `controller/{Module}ControllerInterface.kt` (now `: ModuleController`), (6) `controller/{Module}Runtime.kt` (NEW — replaces the trio), (7) `userInterface/{Module}PreviewProvider.kt` (jvmMain — already wired into UI_FBP path), (8) `flow/{Module}.flow.kt` (bootstrap or merge). §4's interface example needs `: ModuleController` and `override val` modifiers; §3's `UIFBPSaveService` scope shrinks to `.flow.kt` merge + `build.gradle.kts` touch-up + legacy `saved/` cleanup (file emission and hand-edit safety go through `CodeGenerationRunner` + `GenerationFileWriter`). §5 ViewModel shape survives. §7's "no universal-runtime collapse" bullet is obsolete — UI-FBP participates in the collapse. See [CROSS-CHECK-085.md](./CROSS-CHECK-085.md) for the full delta.
 
 This feature introduces no new persistence and no new domain model. It does add **typed inputs and outputs to the generator pipeline** and a **structured re-generation summary**. Those are the entities described here. Existing types (`UIFBPSpec`, `PortInfo`, `UIFBPParseResult`, `UIFBPGenerateResult`, `UIFBPGeneratedFile`) are referenced but unchanged in shape unless noted.
 
