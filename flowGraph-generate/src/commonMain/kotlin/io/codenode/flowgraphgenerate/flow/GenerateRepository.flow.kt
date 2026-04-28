@@ -3,6 +3,14 @@ package io.codenode.flowgraphgenerate.flow
 import io.codenode.fbpdsl.dsl.*
 import io.codenode.fbpdsl.model.*
 
+// Documentary FBP graph for the Generate Repository pipeline. The runtime
+// path is CodeGenerationRunner (it invokes generators directly, not via
+// this graph), so this file is a structural reference, not an executed
+// pipeline.
+//
+// Feature 085 (universal-runtime collapse) replaced the trio
+// {RuntimeFlow, RuntimeController, RuntimeControllerAdapter}Generator with
+// a single ModuleRuntimeGenerator. This graph reflects that.
 val generateRepositoryFlowGraph = flowGraph("GenerateRepository", version = "1.0.0") {
 
     val configSource = codeNode("ConfigSource", nodeType = "SOURCE") {
@@ -17,63 +25,57 @@ val generateRepositoryFlowGraph = flowGraph("GenerateRepository", version = "1.0
         output("content", String::class)
     }
 
-    val runtimeFlowGen = codeNode("RuntimeFlowGenerator", nodeType = "TRANSFORMER") {
+    val moduleRuntimeGen = codeNode("ModuleRuntimeGenerator", nodeType = "TRANSFORMER") {
         position(350.0, 130.0)
         input("config", Any::class)
         output("content", String::class)
     }
 
-    val controllerGen = codeNode("RuntimeControllerGenerator", nodeType = "TRANSFORMER") {
+    val controllerInterfaceGen = codeNode("RuntimeControllerInterfaceGenerator", nodeType = "TRANSFORMER") {
         position(350.0, 210.0)
         input("config", Any::class)
         output("content", String::class)
     }
 
-    val controllerInterfaceGen = codeNode("RuntimeControllerInterfaceGenerator", nodeType = "TRANSFORMER") {
+    val viewModelGen = codeNode("RuntimeViewModelGenerator", nodeType = "TRANSFORMER") {
         position(350.0, 290.0)
         input("config", Any::class)
         output("content", String::class)
     }
 
-    val controllerAdapterGen = codeNode("RuntimeControllerAdapterGenerator", nodeType = "TRANSFORMER") {
+    val uiStubGen = codeNode("UserInterfaceStubGenerator", nodeType = "TRANSFORMER") {
         position(350.0, 370.0)
         input("config", Any::class)
         output("content", String::class)
     }
 
-    val viewModelGen = codeNode("RuntimeViewModelGenerator", nodeType = "TRANSFORMER") {
+    val previewProviderGen = codeNode("PreviewProviderGenerator", nodeType = "TRANSFORMER") {
         position(350.0, 450.0)
-        input("config", Any::class)
-        output("content", String::class)
-    }
-
-    val uiStubGen = codeNode("UserInterfaceStubGenerator", nodeType = "TRANSFORMER") {
-        position(350.0, 530.0)
         input("config", Any::class)
         output("content", String::class)
     }
 
     // Entity-specific generators
     val entityCUDGen = codeNode("EntityCUDGenerator", nodeType = "TRANSFORMER") {
-        position(350.0, 630.0)
+        position(350.0, 530.0)
         input("config", Any::class)
         output("content", String::class)
     }
 
     val entityRepoGen = codeNode("EntityRepositoryGenerator", nodeType = "TRANSFORMER") {
-        position(350.0, 710.0)
+        position(350.0, 610.0)
         input("config", Any::class)
         output("content", String::class)
     }
 
     val entityDisplayGen = codeNode("EntityDisplayGenerator", nodeType = "TRANSFORMER") {
-        position(350.0, 790.0)
+        position(350.0, 690.0)
         input("config", Any::class)
         output("content", String::class)
     }
 
     val entityPersistenceGen = codeNode("EntityPersistenceGenerator", nodeType = "TRANSFORMER") {
-        position(350.0, 870.0)
+        position(350.0, 770.0)
         input("config", Any::class)
         output("content", String::class)
     }
@@ -81,12 +83,11 @@ val generateRepositoryFlowGraph = flowGraph("GenerateRepository", version = "1.0
     val resultCollector = codeNode("ResultCollector", nodeType = "SINK") {
         position(650.0, 400.0)
         input("flowKt", String::class)
-        input("runtimeFlow", String::class)
-        input("controller", String::class)
+        input("moduleRuntime", String::class)
         input("controllerInterface", String::class)
-        input("controllerAdapter", String::class)
         input("viewModel", String::class)
         input("uiStub", String::class)
+        input("previewProvider", String::class)
         input("entityCUD", String::class)
         input("entityRepo", String::class)
         input("entityDisplay", String::class)
@@ -95,12 +96,11 @@ val generateRepositoryFlowGraph = flowGraph("GenerateRepository", version = "1.0
 
     // Source fan-out to all generators
     configSource.output("config") connect flowKtGen.input("config")
-    configSource.output("config") connect runtimeFlowGen.input("config")
-    configSource.output("config") connect controllerGen.input("config")
+    configSource.output("config") connect moduleRuntimeGen.input("config")
     configSource.output("config") connect controllerInterfaceGen.input("config")
-    configSource.output("config") connect controllerAdapterGen.input("config")
     configSource.output("config") connect viewModelGen.input("config")
     configSource.output("config") connect uiStubGen.input("config")
+    configSource.output("config") connect previewProviderGen.input("config")
     configSource.output("config") connect entityCUDGen.input("config")
     configSource.output("config") connect entityRepoGen.input("config")
     configSource.output("config") connect entityDisplayGen.input("config")
@@ -108,12 +108,11 @@ val generateRepositoryFlowGraph = flowGraph("GenerateRepository", version = "1.0
 
     // Generator outputs to sink
     flowKtGen.output("content") connect resultCollector.input("flowKt")
-    runtimeFlowGen.output("content") connect resultCollector.input("runtimeFlow")
-    controllerGen.output("content") connect resultCollector.input("controller")
+    moduleRuntimeGen.output("content") connect resultCollector.input("moduleRuntime")
     controllerInterfaceGen.output("content") connect resultCollector.input("controllerInterface")
-    controllerAdapterGen.output("content") connect resultCollector.input("controllerAdapter")
     viewModelGen.output("content") connect resultCollector.input("viewModel")
     uiStubGen.output("content") connect resultCollector.input("uiStub")
+    previewProviderGen.output("content") connect resultCollector.input("previewProvider")
     entityCUDGen.output("content") connect resultCollector.input("entityCUD")
     entityRepoGen.output("content") connect resultCollector.input("entityRepo")
     entityDisplayGen.output("content") connect resultCollector.input("entityDisplay")

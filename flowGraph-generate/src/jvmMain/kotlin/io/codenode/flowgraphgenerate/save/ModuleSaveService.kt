@@ -10,10 +10,8 @@ import io.codenode.fbpdsl.model.CodeNode
 import io.codenode.fbpdsl.model.FlowGraph
 import io.codenode.flowgraphgenerate.generator.FlowKtGenerator
 import io.codenode.flowgraphgenerate.generator.ModuleGenerator
-import io.codenode.flowgraphgenerate.generator.RuntimeFlowGenerator
-import io.codenode.flowgraphgenerate.generator.RuntimeControllerGenerator
+import io.codenode.flowgraphgenerate.generator.ModuleRuntimeGenerator
 import io.codenode.flowgraphgenerate.generator.RuntimeControllerInterfaceGenerator
-import io.codenode.flowgraphgenerate.generator.RuntimeControllerAdapterGenerator
 import io.codenode.flowgraphgenerate.generator.RuntimeViewModelGenerator
 import io.codenode.flowgraphgenerate.generator.UserInterfaceStubGenerator
 import io.codenode.flowgraphgenerate.generator.RepositoryCodeGenerator
@@ -69,10 +67,8 @@ class ModuleSaveService {
     private val scaffoldingGenerator = ModuleScaffoldingGenerator()
     private val moduleGenerator = ModuleGenerator()
     private val flowKtGenerator = FlowKtGenerator()
-    private val runtimeFlowGenerator = RuntimeFlowGenerator()
-    private val runtimeControllerGenerator = RuntimeControllerGenerator()
+    private val moduleRuntimeGenerator = ModuleRuntimeGenerator()
     private val runtimeControllerInterfaceGenerator = RuntimeControllerInterfaceGenerator()
-    private val runtimeControllerAdapterGenerator = RuntimeControllerAdapterGenerator()
     private val runtimeViewModelGenerator = RuntimeViewModelGenerator()
     private val userInterfaceStubGenerator = UserInterfaceStubGenerator()
     private val repositoryCodeGenerator = RepositoryCodeGenerator()
@@ -1061,18 +1057,16 @@ class ModuleSaveService {
         filesCreated: MutableList<String>,
         filesOverwritten: MutableList<String>
     ) {
-        val flowPath = flowPackage.replace(".", "/")
         val controllerPath = controllerPackage.replace(".", "/")
-        val flowDir = File(moduleDir, "src/commonMain/kotlin/$flowPath")
         val controllerDir = File(moduleDir, "src/commonMain/kotlin/$controllerPath")
 
-        val flowFile = "${effectiveModuleName}Flow.kt" to runtimeFlowGenerator.generate(flowGraph, flowPackage, viewModelPackage)
-        writeFileAlways(File(flowDir, flowFile.first), flowFile.second, "src/commonMain/kotlin/$flowPath/${flowFile.first}", filesCreated, filesOverwritten)
-
+        // Feature 085 (universal-runtime collapse): the trio
+        // {RuntimeFlow,RuntimeController,RuntimeControllerAdapter}Generator
+        // collapsed into a single ModuleRuntimeGenerator that emits
+        // controller/{Module}Runtime.kt alongside ControllerInterface.
         val controllerFiles = listOf(
-            "${effectiveModuleName}Controller.kt" to runtimeControllerGenerator.generate(flowGraph, controllerPackage, viewModelPackage),
             "${effectiveModuleName}ControllerInterface.kt" to runtimeControllerInterfaceGenerator.generate(flowGraph, controllerPackage),
-            "${effectiveModuleName}ControllerAdapter.kt" to runtimeControllerAdapterGenerator.generate(flowGraph, controllerPackage)
+            "${effectiveModuleName}Runtime.kt" to moduleRuntimeGenerator.generate(flowGraph, basePackage, controllerPackage, viewModelPackage)
         )
 
         for ((fileName, content) in controllerFiles) {

@@ -36,10 +36,8 @@ class EntityModuleGenerator {
     private val persistenceGenerator = EntityPersistenceGenerator()
     private val uiGenerator = EntityUIGenerator()
     private val viewModelGenerator = RuntimeViewModelGenerator()
-    private val runtimeFlowGenerator = RuntimeFlowGenerator()
-    private val runtimeControllerGenerator = RuntimeControllerGenerator()
+    private val moduleRuntimeGenerator = ModuleRuntimeGenerator()
     private val runtimeControllerInterfaceGenerator = RuntimeControllerInterfaceGenerator()
-    private val runtimeControllerAdapterGenerator = RuntimeControllerAdapterGenerator()
     private val repositoryCodeGenerator = RepositoryCodeGenerator()
 
     /**
@@ -94,18 +92,12 @@ class EntityModuleGenerator {
         moduleFiles["src/commonMain/kotlin/$basePackagePath/${pluralName}ViewModel.kt"] =
             viewModelGenerator.generate(flowGraph, basePackage, generatedPackage)
 
-        // 6. 4 generated runtime files
-        moduleFiles["src/commonMain/kotlin/$generatedPath/${pluralName}Flow.kt"] =
-            runtimeFlowGenerator.generate(flowGraph, generatedPackage, basePackage)
-
-        moduleFiles["src/commonMain/kotlin/$generatedPath/${pluralName}Controller.kt"] =
-            runtimeControllerGenerator.generate(flowGraph, generatedPackage, basePackage)
-
+        // 6. Runtime files (post-085 universal-runtime collapse: ControllerInterface + Runtime)
         moduleFiles["src/commonMain/kotlin/$generatedPath/${pluralName}ControllerInterface.kt"] =
             runtimeControllerInterfaceGenerator.generate(flowGraph, generatedPackage)
 
-        moduleFiles["src/commonMain/kotlin/$generatedPath/${pluralName}ControllerAdapter.kt"] =
-            runtimeControllerAdapterGenerator.generate(flowGraph, generatedPackage)
+        moduleFiles["src/commonMain/kotlin/$generatedPath/${pluralName}Runtime.kt"] =
+            moduleRuntimeGenerator.generate(flowGraph, basePackage, generatedPackage, basePackage)
 
         // 7. UI composable files
         moduleFiles["src/commonMain/kotlin/$userInterfacePath/${pluralName}.kt"] =

@@ -145,10 +145,10 @@ description: "Task list for feature 085: Collapse the entity-module thick runtim
 
 ### Implementation / Verification for User Story 4
 
-- [ ] T049 [US4] Create a new fresh entity-style module via the GraphEditor's "Create New Module..." flow in a scratch location; record the list of files emitted by the generator (use the structured summary from T021)
-- [ ] T050 [US4] Verify the emitted set contains `{Module}Runtime.kt`, `{Module}ControllerInterface.kt`, `{Module}State.kt`, `{Module}ViewModel.kt`, nodes/, `.flow.kt`, and `{Module}PreviewProvider.kt`, but does NOT contain `{Module}Controller.kt`, `{Module}ControllerAdapter.kt`, or `{Module}Flow.kt` runtime
-- [ ] T051 [US4] Verify SC-006 quantitatively: the file count is at least 3 lower than the pre-collapse equivalent for the same module type
-- [ ] T052 [US4] Read every emitted file end-to-end and confirm each is either trivially small (≤ ~30 lines of declarative wiring, e.g., `{Module}Runtime.kt`) or genuinely module-specific (no copy-pasta-able boilerplate); record outcome
+- [X] T049 [US4] Create a new fresh entity-style module via the GraphEditor's "Create New Module..." flow in a scratch location; record the list of files emitted by the generator (use the structured summary from T021)
+- [X] T050 [US4] Verify the emitted set contains `{Module}Runtime.kt`, `{Module}ControllerInterface.kt`, `{Module}State.kt`, `{Module}ViewModel.kt`, nodes/, `.flow.kt`, and `{Module}PreviewProvider.kt`, but does NOT contain `{Module}Controller.kt`, `{Module}ControllerAdapter.kt`, or `{Module}Flow.kt` runtime
+- [X] T051 [US4] Verify SC-006 quantitatively: the file count is at least 3 lower than the pre-collapse equivalent for the same module type
+- [X] T052 [US4] Read every emitted file end-to-end and confirm each is either trivially small (≤ ~30 lines of declarative wiring, e.g., `{Module}Runtime.kt`) or genuinely module-specific (no copy-pasta-able boilerplate); record outcome
 
 **Checkpoint**: New-module developer experience confirmed simpler. SC-006 met.
 
@@ -162,14 +162,14 @@ description: "Task list for feature 085: Collapse the entity-module thick runtim
 
 ### Implementation for User Story 5
 
-- [ ] T053 [P] [US5] Delete `/Users/dhaukoos/CodeNodeIO/flowGraph-generate/src/commonMain/kotlin/io/codenode/flowgraphgenerate/generator/RuntimeControllerGenerator.kt`
-- [ ] T054 [P] [US5] Delete `/Users/dhaukoos/CodeNodeIO/flowGraph-generate/src/commonMain/kotlin/io/codenode/flowgraphgenerate/generator/RuntimeControllerAdapterGenerator.kt`
-- [ ] T055 [P] [US5] Delete `/Users/dhaukoos/CodeNodeIO/flowGraph-generate/src/commonMain/kotlin/io/codenode/flowgraphgenerate/generator/RuntimeFlowGenerator.kt`
-- [ ] T056 [P] [US5] Delete the corresponding unit test files: `RuntimeControllerGeneratorTest.kt`, `RuntimeControllerAdapterGeneratorTest.kt`, `RuntimeFlowGeneratorTest.kt` from `/Users/dhaukoos/CodeNodeIO/flowGraph-generate/src/commonTest/kotlin/io/codenode/flowgraphgenerate/generator/`
-- [ ] T057 [US5] Verify absence: `find /Users/dhaukoos/CodeNodeIO/flowGraph-generate/src -name 'RuntimeControllerGenerator.kt' -o -name 'RuntimeControllerAdapterGenerator.kt' -o -name 'RuntimeFlowGenerator.kt' -o -name 'RuntimeControllerGeneratorTest.kt' -o -name 'RuntimeControllerAdapterGeneratorTest.kt' -o -name 'RuntimeFlowGeneratorTest.kt'` returns empty output
-- [ ] T058 [US5] Verify no live references remain: `grep -rn "RuntimeControllerGenerator\|RuntimeControllerAdapterGenerator\|RuntimeFlowGenerator" /Users/dhaukoos/CodeNodeIO/flowGraph-generate/src --include='*.kt'` returns empty (or only clearly-archival CHANGELOG comments)
-- [ ] T059 [US5] Verify the orchestrator doesn't invoke the deleted generators: `grep -n "ModuleRuntimeGenerator\|RuntimeControllerInterfaceGenerator\|RuntimeControllerGenerator\|RuntimeControllerAdapterGenerator\|RuntimeFlowGenerator" /Users/dhaukoos/CodeNodeIO/flowGraph-generate/src/commonMain/kotlin/io/codenode/flowgraphgenerate/generator/ModuleGenerator.kt` shows references ONLY to `ModuleRuntimeGenerator` and `RuntimeControllerInterfaceGenerator`
-- [ ] T060 [US5] Run full project test suite from `/Users/dhaukoos/CodeNodeIO`: `./gradlew test` (or the equivalent multi-module test target); confirm no test failure attributable to the removal
+- [X] T053 [P] [US5] Delete `/Users/dhaukoos/CodeNodeIO/flowGraph-generate/src/commonMain/kotlin/io/codenode/flowgraphgenerate/generator/RuntimeControllerGenerator.kt`
+- [X] T054 [P] [US5] Delete `/Users/dhaukoos/CodeNodeIO/flowGraph-generate/src/commonMain/kotlin/io/codenode/flowgraphgenerate/generator/RuntimeControllerAdapterGenerator.kt`
+- [X] T055 [P] [US5] Delete `/Users/dhaukoos/CodeNodeIO/flowGraph-generate/src/commonMain/kotlin/io/codenode/flowgraphgenerate/generator/RuntimeFlowGenerator.kt`
+- [X] T056 [P] [US5] Delete the corresponding unit test files: `RuntimeControllerGeneratorTest.kt`, `RuntimeControllerAdapterGeneratorTest.kt`, `RuntimeFlowGeneratorTest.kt` from `/Users/dhaukoos/CodeNodeIO/flowGraph-generate/src/commonTest/kotlin/io/codenode/flowgraphgenerate/generator/`
+- [X] T057 [US5] Verify absence: `find /Users/dhaukoos/CodeNodeIO/flowGraph-generate/src -name 'RuntimeControllerGenerator.kt' -o -name 'RuntimeControllerAdapterGenerator.kt' -o -name 'RuntimeFlowGenerator.kt' -o -name 'RuntimeControllerGeneratorTest.kt' -o -name 'RuntimeControllerAdapterGeneratorTest.kt' -o -name 'RuntimeFlowGeneratorTest.kt'` returns empty output
+- [X] T058 [US5] Verify no live references remain: `grep -rn "RuntimeControllerGenerator\|RuntimeControllerAdapterGenerator\|RuntimeFlowGenerator" /Users/dhaukoos/CodeNodeIO/flowGraph-generate/src --include='*.kt'` returns empty (or only clearly-archival CHANGELOG comments)
+- [X] T059 [US5] Verify the orchestrator doesn't invoke the deleted generators: `grep -n "ModuleRuntimeGenerator\|RuntimeControllerInterfaceGenerator\|RuntimeControllerGenerator\|RuntimeControllerAdapterGenerator\|RuntimeFlowGenerator" /Users/dhaukoos/CodeNodeIO/flowGraph-generate/src/commonMain/kotlin/io/codenode/flowgraphgenerate/generator/ModuleGenerator.kt` shows references ONLY to `ModuleRuntimeGenerator` and `RuntimeControllerInterfaceGenerator`
+- [X] T060 [US5] Run full project test suite from `/Users/dhaukoos/CodeNodeIO`: `./gradlew test` (or the equivalent multi-module test target); confirm no test failure attributable to the removal
 
 **Checkpoint**: Generator codebase cleanup complete. SC-007 met.
 

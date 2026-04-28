@@ -12,14 +12,17 @@ import kotlin.test.assertFalse
 
 class GenerationFileTreeTest {
 
+    // Feature 085 (universal-runtime collapse) replaced the trio
+    // (RuntimeFlow + RuntimeController + RuntimeControllerAdapter)Generator
+    // with a single ModuleRuntimeGenerator emitting controller/{Module}Runtime.kt.
     private val sampleTree = GenerationFileTree(
         folders = listOf(
             FolderNode(
                 name = "controller",
                 files = listOf(
-                    FileNode("Controller.kt", isSelected = true, generatorId = "RuntimeControllerGenerator"),
                     FileNode("ControllerInterface.kt", isSelected = true, generatorId = "RuntimeControllerInterfaceGenerator"),
-                    FileNode("ControllerAdapter.kt", isSelected = true, generatorId = "RuntimeControllerAdapterGenerator")
+                    FileNode("Runtime.kt", isSelected = true, generatorId = "ModuleRuntimeGenerator"),
+                    FileNode("ViewModelLink.kt", isSelected = true, generatorId = "RuntimeViewModelGenerator")
                 ),
                 selectionState = TriState.ALL
             ),
@@ -27,7 +30,7 @@ class GenerationFileTreeTest {
                 name = "flow",
                 files = listOf(
                     FileNode("Test.flow.kt", isSelected = true, generatorId = "FlowKtGenerator"),
-                    FileNode("TestFlow.kt", isSelected = true, generatorId = "RuntimeFlowGenerator")
+                    FileNode("Stub.kt", isSelected = true, generatorId = "UserInterfaceStubGenerator")
                 ),
                 selectionState = TriState.ALL
             )

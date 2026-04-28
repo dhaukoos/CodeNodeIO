@@ -20,13 +20,13 @@ class SelectionFilterTest {
     fun `empty filter includes all generators`() {
         val filter = SelectionFilter()
         assertTrue(filter.isIncluded("FlowKtGenerator"))
-        assertTrue(filter.isIncluded("RuntimeControllerGenerator"))
+        assertTrue(filter.isIncluded("ModuleRuntimeGenerator"))
     }
 
     @Test
     fun `filter excludes specified generators`() {
-        val filter = SelectionFilter(excludedGeneratorIds = setOf("RuntimeControllerGenerator"))
-        assertFalse(filter.isIncluded("RuntimeControllerGenerator"))
+        val filter = SelectionFilter(excludedGeneratorIds = setOf("ModuleRuntimeGenerator"))
+        assertFalse(filter.isIncluded("ModuleRuntimeGenerator"))
         assertTrue(filter.isIncluded("FlowKtGenerator"))
     }
 
@@ -37,7 +37,7 @@ class SelectionFilterTest {
                 FolderNode(
                     name = "controller",
                     files = listOf(
-                        FileNode("Controller.kt", isSelected = false, generatorId = "RuntimeControllerGenerator"),
+                        FileNode("Controller.kt", isSelected = false, generatorId = "ModuleRuntimeGenerator"),
                         FileNode("ControllerInterface.kt", isSelected = true, generatorId = "RuntimeControllerInterfaceGenerator")
                     ),
                     selectionState = TriState.PARTIAL
@@ -45,7 +45,7 @@ class SelectionFilterTest {
             )
         )
         val filter = SelectionFilter.fromFileTree(tree)
-        assertFalse(filter.isIncluded("RuntimeControllerGenerator"))
+        assertFalse(filter.isIncluded("ModuleRuntimeGenerator"))
         assertTrue(filter.isIncluded("RuntimeControllerInterfaceGenerator"))
     }
 
@@ -57,7 +57,7 @@ class SelectionFilterTest {
                     name = "flow",
                     files = listOf(
                         FileNode("Flow.kt", isSelected = true, generatorId = "FlowKtGenerator"),
-                        FileNode("FlowRuntime.kt", isSelected = true, generatorId = "RuntimeFlowGenerator")
+                        FileNode("Runtime.kt", isSelected = true, generatorId = "ModuleRuntimeGenerator")
                     ),
                     selectionState = TriState.ALL
                 )
@@ -74,7 +74,7 @@ class SelectionFilterTest {
                 FolderNode(
                     name = "controller",
                     files = listOf(
-                        FileNode("Controller.kt", isSelected = false, generatorId = "RuntimeControllerGenerator"),
+                        FileNode("Controller.kt", isSelected = false, generatorId = "ModuleRuntimeGenerator"),
                         FileNode("ControllerInterface.kt", isSelected = false, generatorId = "RuntimeControllerInterfaceGenerator")
                     ),
                     selectionState = TriState.NONE
@@ -83,7 +83,7 @@ class SelectionFilterTest {
         )
         val filter = SelectionFilter.fromFileTree(tree)
         assertEquals(2, filter.excludedGeneratorIds.size)
-        assertFalse(filter.isIncluded("RuntimeControllerGenerator"))
+        assertFalse(filter.isIncluded("ModuleRuntimeGenerator"))
         assertFalse(filter.isIncluded("RuntimeControllerInterfaceGenerator"))
     }
 

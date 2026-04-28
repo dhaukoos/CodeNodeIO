@@ -52,13 +52,12 @@ class EntityModuleGeneratorTest {
         val persKey = output.moduleFiles.keys.find { it.endsWith("SamplesPersistence.kt") }
         assertNotNull(persKey, "Should generate SamplesPersistence.kt")
 
-        // Verify 4 generated runtime files
+        // Feature 085 (universal-runtime collapse): generated/ now holds
+        // ControllerInterface + Runtime (the legacy Flow + Controller + Adapter trio is gone).
         val generatedKeys = output.moduleFiles.keys.filter { it.contains("/generated/") }
-        assertTrue(generatedKeys.size >= 4, "Should generate at least 4 runtime files in generated/")
-        assertTrue(generatedKeys.any { it.endsWith("SamplesFlow.kt") }, "Should generate SamplesFlow.kt")
-        assertTrue(generatedKeys.any { it.endsWith("SamplesController.kt") }, "Should generate SamplesController.kt")
+        assertTrue(generatedKeys.size >= 2, "Should generate ControllerInterface + Runtime in generated/")
         assertTrue(generatedKeys.any { it.endsWith("SamplesControllerInterface.kt") }, "Should generate SamplesControllerInterface.kt")
-        assertTrue(generatedKeys.any { it.endsWith("SamplesControllerAdapter.kt") }, "Should generate SamplesControllerAdapter.kt")
+        assertTrue(generatedKeys.any { it.endsWith("SamplesRuntime.kt") }, "Should generate SamplesRuntime.kt")
 
         // Verify UI files
         val uiKeys = output.moduleFiles.keys.filter { it.contains("/userInterface/") }

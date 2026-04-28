@@ -71,32 +71,10 @@ class GeneratorCodeNodeTest {
     }
 
     // === US2: Module-level wrappers ===
-
-    @Test
-    fun `RuntimeFlowGeneratorNode has correct properties`() {
-        assertEquals("RuntimeFlowGenerator", RuntimeFlowGeneratorNode.name)
-        assertEquals(CodeNodeType.TRANSFORMER, RuntimeFlowGeneratorNode.category)
-        assertEquals(1, RuntimeFlowGeneratorNode.inputPorts.size)
-        assertEquals(1, RuntimeFlowGeneratorNode.outputPorts.size)
-    }
-
-    @Test
-    fun `RuntimeFlowGeneratorNode produces non-empty output`() {
-        val output = RuntimeFlowGenerator().generate(testFlowGraph, testConfig.flowPackage, testConfig.viewModelPackage)
-        assertTrue(output.isNotBlank())
-    }
-
-    @Test
-    fun `RuntimeControllerGeneratorNode has correct properties`() {
-        assertEquals("RuntimeControllerGenerator", RuntimeControllerGeneratorNode.name)
-        assertEquals(CodeNodeType.TRANSFORMER, RuntimeControllerGeneratorNode.category)
-    }
-
-    @Test
-    fun `RuntimeControllerGeneratorNode produces non-empty output`() {
-        val output = RuntimeControllerGenerator().generate(testFlowGraph, testConfig.controllerPackage, testConfig.viewModelPackage)
-        assertTrue(output.isNotBlank())
-    }
+    // Feature 085 (universal-runtime collapse) eliminated three wrappers:
+    // RuntimeFlowGeneratorNode, RuntimeControllerGeneratorNode, and
+    // RuntimeControllerAdapterGeneratorNode — replaced by ModuleRuntimeGenerator
+    // (no CodeNode wrapper; the runner invokes it directly).
 
     @Test
     fun `RuntimeControllerInterfaceGeneratorNode has correct properties`() {
@@ -107,18 +85,6 @@ class GeneratorCodeNodeTest {
     @Test
     fun `RuntimeControllerInterfaceGeneratorNode produces non-empty output`() {
         val output = RuntimeControllerInterfaceGenerator().generate(testFlowGraph, testConfig.controllerPackage)
-        assertTrue(output.isNotBlank())
-    }
-
-    @Test
-    fun `RuntimeControllerAdapterGeneratorNode has correct properties`() {
-        assertEquals("RuntimeControllerAdapterGenerator", RuntimeControllerAdapterGeneratorNode.name)
-        assertEquals(CodeNodeType.TRANSFORMER, RuntimeControllerAdapterGeneratorNode.category)
-    }
-
-    @Test
-    fun `RuntimeControllerAdapterGeneratorNode produces non-empty output`() {
-        val output = RuntimeControllerAdapterGenerator().generate(testFlowGraph, testConfig.controllerPackage)
         assertTrue(output.isNotBlank())
     }
 
@@ -147,17 +113,14 @@ class GeneratorCodeNodeTest {
     }
 
     @Test
-    fun `all 7 module-level wrappers have unique names`() {
+    fun `module-level wrappers have unique names`() {
         val names = listOf(
             FlowKtGeneratorNode.name,
-            RuntimeFlowGeneratorNode.name,
-            RuntimeControllerGeneratorNode.name,
             RuntimeControllerInterfaceGeneratorNode.name,
-            RuntimeControllerAdapterGeneratorNode.name,
             RuntimeViewModelGeneratorNode.name,
             UserInterfaceStubGeneratorNode.name
         )
-        assertEquals(7, names.distinct().size, "All 7 wrappers should have unique names")
+        assertEquals(names.size, names.distinct().size, "Module-level wrappers must have unique names")
     }
 
     // === US3: Entity generator wrappers ===
@@ -216,13 +179,12 @@ class GeneratorCodeNodeTest {
     }
 
     @Test
-    fun `all 15 generator CodeNodes have unique names`() {
+    fun `all post-collapse generator CodeNodes have unique names`() {
+        // Feature 085 collapsed 3 module-level wrappers into ModuleRuntimeGenerator
+        // (which has no CodeNode wrapper); 12 remain.
         val names = listOf(
             FlowKtGeneratorNode.name,
-            RuntimeFlowGeneratorNode.name,
-            RuntimeControllerGeneratorNode.name,
             RuntimeControllerInterfaceGeneratorNode.name,
-            RuntimeControllerAdapterGeneratorNode.name,
             RuntimeViewModelGeneratorNode.name,
             UserInterfaceStubGeneratorNode.name,
             EntityCUDGeneratorNode.name,
@@ -234,6 +196,6 @@ class GeneratorCodeNodeTest {
             UIFBPSourceGeneratorNode.name,
             UIFBPSinkGeneratorNode.name
         )
-        assertEquals(15, names.distinct().size, "All 15 wrappers should have unique names")
+        assertEquals(names.size, names.distinct().size, "All wrappers should have unique names")
     }
 }

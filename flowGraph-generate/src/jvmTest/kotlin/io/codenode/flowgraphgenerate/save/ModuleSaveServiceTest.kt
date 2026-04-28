@@ -446,10 +446,10 @@ class ModuleSaveServiceTest {
         val flowDir = File(result.moduleDir, "src/commonMain/kotlin/io/codenode/fullsave/flow")
         val viewModelDir = File(result.moduleDir, "src/commonMain/kotlin/io/codenode/fullsave/viewmodel")
 
-        assertTrue(File(flowDir, "FullSaveFlow.kt").exists(), "FullSaveFlow.kt should exist in flow/")
-        assertTrue(File(controllerDir, "FullSaveController.kt").exists(), "FullSaveController.kt should exist in controller/")
+        // Feature 085 (universal-runtime collapse): Flow.kt + Controller.kt + ControllerAdapter.kt
+        // collapsed into a single controller/{Module}Runtime.kt alongside ControllerInterface.kt.
         assertTrue(File(controllerDir, "FullSaveControllerInterface.kt").exists(), "FullSaveControllerInterface.kt should exist in controller/")
-        assertTrue(File(controllerDir, "FullSaveControllerAdapter.kt").exists(), "FullSaveControllerAdapter.kt should exist in controller/")
+        assertTrue(File(controllerDir, "FullSaveRuntime.kt").exists(), "FullSaveRuntime.kt should exist in controller/")
 
         val viewModelFile = File(viewModelDir, "FullSaveViewModel.kt")
         assertTrue(viewModelFile.exists(), "FullSaveViewModel.kt should exist in viewmodel/")
@@ -612,7 +612,7 @@ class ModuleSaveServiceTest {
     // ========== Runtime File Generation ==========
 
     @Test
-    fun `saveModule creates all 4 runtime files in generated directory and ViewModel in base package`() {
+    fun `saveModule creates Runtime + ControllerInterface in controller dir and ViewModel in base package`() {
         val node1 = CodeNode(
             id = "gen1",
             name = "TimerEmitter",
@@ -650,10 +650,10 @@ class ModuleSaveServiceTest {
         val controllerDir = File(result.moduleDir, "src/commonMain/kotlin/io/codenode/runtimetest/controller")
         val flowDir = File(result.moduleDir, "src/commonMain/kotlin/io/codenode/runtimetest/flow")
 
-        assertTrue(File(flowDir, "RuntimeTestFlow.kt").exists(), "RuntimeTestFlow.kt should exist in flow/")
-        assertTrue(File(controllerDir, "RuntimeTestController.kt").exists(), "RuntimeTestController.kt should exist in controller/")
+        // Feature 085 (universal-runtime collapse): Flow.kt + Controller.kt + ControllerAdapter.kt
+        // collapsed into a single controller/{Module}Runtime.kt alongside ControllerInterface.kt.
         assertTrue(File(controllerDir, "RuntimeTestControllerInterface.kt").exists(), "RuntimeTestControllerInterface.kt should exist in controller/")
-        assertTrue(File(controllerDir, "RuntimeTestControllerAdapter.kt").exists(), "RuntimeTestControllerAdapter.kt should exist in controller/")
+        assertTrue(File(controllerDir, "RuntimeTestRuntime.kt").exists(), "RuntimeTestRuntime.kt should exist in controller/")
 
         val viewModelDir = File(result.moduleDir, "src/commonMain/kotlin/io/codenode/runtimetest/viewmodel")
         val viewModelFile = File(viewModelDir, "RuntimeTestViewModel.kt")
@@ -661,7 +661,7 @@ class ModuleSaveServiceTest {
     }
 
     @Test
-    fun `re-save overwrites existing runtime files`() {
+    fun `re-save updates flow_kt content with new node names`() {
         val node1 = CodeNode(
             id = "gen1",
             name = "Source",
@@ -683,9 +683,10 @@ class ModuleSaveServiceTest {
         val result1 = saveService.saveModule(flowGraph1, tempDir)
         assertTrue(result1.success)
 
+        // Feature 085: the post-collapse Runtime + .flow.kt are the artifacts that change on re-save.
         val flowDir = File(result1.moduleDir, "src/commonMain/kotlin/io/codenode/overwritetest/flow")
-        val flowFile = File(flowDir, "OverwriteTestFlow.kt")
-        val originalContent = flowFile.readText()
+        val flowKtFile = File(flowDir, "OverwriteTest.flow.kt")
+        val originalContent = flowKtFile.readText()
         assertTrue(originalContent.contains("Source"), "First save should reference Source node")
 
         val node2 = node1.copy(name = "UpdatedSource")
@@ -694,9 +695,9 @@ class ModuleSaveServiceTest {
         val result2 = saveService.saveModule(flowGraph2, tempDir)
 
         assertTrue(result2.success)
-        val updatedContent = flowFile.readText()
+        val updatedContent = flowKtFile.readText()
         assertTrue(updatedContent.contains("UpdatedSource"),
-            "Runtime file should be overwritten with new content")
+            "flow.kt should be overwritten with new node name")
     }
 
     // ========== filesOverwritten Tracking ==========
@@ -726,20 +727,18 @@ class ModuleSaveServiceTest {
         val result2 = saveService.saveModule(flowGraph, tempDir)
 
         assertTrue(result2.success)
+        // Feature 085 (universal-runtime collapse): the trio Flow + Controller +
+        // ControllerAdapter collapsed into a single Runtime file.
         assertTrue(result2.filesOverwritten.any { it.contains("StopWatch4.flow.kt") },
             "flow.kt should be in filesOverwritten")
-        assertTrue(result2.filesOverwritten.any { it.contains("StopWatch4Flow.kt") },
-            "StopWatch4Flow.kt should be in filesOverwritten")
-        assertTrue(result2.filesOverwritten.any { it.contains("StopWatch4Controller.kt") },
-            "StopWatch4Controller.kt should be in filesOverwritten")
         assertTrue(result2.filesOverwritten.any { it.contains("StopWatch4ControllerInterface.kt") },
             "StopWatch4ControllerInterface.kt should be in filesOverwritten")
-        assertTrue(result2.filesOverwritten.any { it.contains("StopWatch4ControllerAdapter.kt") },
-            "StopWatch4ControllerAdapter.kt should be in filesOverwritten")
+        assertTrue(result2.filesOverwritten.any { it.contains("StopWatch4Runtime.kt") },
+            "StopWatch4Runtime.kt should be in filesOverwritten")
         assertTrue(result2.filesOverwritten.any { it.contains("StopWatch4ViewModel.kt") },
             "StopWatch4ViewModel.kt should be in filesOverwritten")
-        assertEquals(6, result2.filesOverwritten.size,
-            "Should have exactly 6 overwritten files (flow.kt + 4 runtime + 1 ViewModel)")
+        assertEquals(4, result2.filesOverwritten.size,
+            "Should have exactly 4 overwritten files (flow.kt + ControllerInterface + Runtime + ViewModel)")
     }
 
     @Test
@@ -770,17 +769,16 @@ class ModuleSaveServiceTest {
         assertTrue(result.filesCreated.any { it.contains("settings.gradle.kts") })
         // .flow.kt
         assertTrue(result.filesCreated.any { it.contains("StopWatch4.flow.kt") })
-        // 4 runtime files in generated/
-        assertTrue(result.filesCreated.any { it.contains("StopWatch4Flow.kt") })
-        assertTrue(result.filesCreated.any { it.contains("StopWatch4Controller.kt") })
+        // Feature 085 (universal-runtime collapse): the legacy trio
+        // (Flow + Controller + ControllerAdapter) collapsed into one Runtime file.
         assertTrue(result.filesCreated.any { it.contains("StopWatch4ControllerInterface.kt") })
-        assertTrue(result.filesCreated.any { it.contains("StopWatch4ControllerAdapter.kt") })
+        assertTrue(result.filesCreated.any { it.contains("StopWatch4Runtime.kt") })
         // ViewModel stub in base package
         assertTrue(result.filesCreated.any { it.contains("StopWatch4ViewModel.kt") })
         // UI stub
         assertTrue(result.filesCreated.any { it.contains("StopWatch4.kt") && it.contains("userInterface") })
-        // Total: 2 gradle + 1 flow.kt + 4 runtime + 1 ViewModel + 1 UI stub = 9
-        assertEquals(9, result.filesCreated.size, "First save should create 9 files")
+        // Total: 2 gradle + 1 flow.kt + 2 controller (Runtime + Interface) + 1 ViewModel + 1 UI stub = 7
+        assertEquals(7, result.filesCreated.size, "First save should create 7 files")
     }
 
     // ========== End-to-End Quickstart Validation ==========
@@ -812,20 +810,16 @@ class ModuleSaveServiceTest {
         assertTrue(viewModelContent.contains("val minutesFlow: StateFlow<Int>"),
             "State object should have minutes StateFlow accessor")
 
-        // Verify Flow class delegates from State object
-        val flowFile = File(flowDir, "StopWatch4Flow.kt")
-        assertTrue(flowFile.exists(), "StopWatch4Flow.kt should exist")
-        val flowContent = flowFile.readText()
-        assertTrue(flowContent.contains("val secondsFlow: StateFlow<Int> = StopWatch4State.secondsFlow"),
-            "Flow should delegate secondsFlow from StopWatch4State")
-        assertTrue(flowContent.contains("val minutesFlow: StateFlow<Int> = StopWatch4State.minutesFlow"),
-            "Flow should delegate minutesFlow from StopWatch4State")
-        assertFalse(flowContent.contains("MutableStateFlow"),
-            "Flow should not own MutableStateFlow when delegating to State object")
-
-        // Verify Flow's reset() calls State.reset()
-        assertTrue(flowContent.contains("StopWatch4State.reset()"),
-            "Flow reset() should call StopWatch4State.reset()")
+        // Feature 085 (universal-runtime collapse): the legacy Flow class is gone.
+        // The Runtime factory wires DynamicPipelineController to the State object's
+        // reset() and to typed state-flow getters.
+        val runtimeFile = File(controllerDir, "StopWatch4Runtime.kt")
+        assertTrue(runtimeFile.exists(), "StopWatch4Runtime.kt should exist in controller/")
+        val runtimeContent = runtimeFile.readText()
+        assertTrue(runtimeContent.contains("StopWatch4State::reset"),
+            "Runtime should pass StopWatch4State::reset as the controller's onReset callback")
+        assertTrue(runtimeContent.contains("DynamicPipelineController("),
+            "Runtime should construct a DynamicPipelineController")
 
         // Verify re-save selective regeneration: Module Properties section updated, user code preserved
         val endMarker = RuntimeViewModelGenerator.MODULE_PROPERTIES_END
@@ -846,7 +840,7 @@ class ModuleSaveServiceTest {
     }
 
     @Test
-    fun `filesCreated includes all 4 runtime file paths and ViewModel on first save`() {
+    fun `filesCreated includes runtime file paths and ViewModel on first save`() {
         val node1 = CodeNode(
             id = "gen1",
             name = "Emitter",
@@ -868,11 +862,11 @@ class ModuleSaveServiceTest {
         val result = saveService.saveModule(flowGraph, tempDir)
 
         assertTrue(result.success)
+        // Feature 085 (universal-runtime collapse): post-collapse runtime files are
+        // ControllerInterface + Runtime (the legacy trio is gone).
         val runtimeFileNames = listOf(
-            "FilesTestFlow.kt",
-            "FilesTestController.kt",
             "FilesTestControllerInterface.kt",
-            "FilesTestControllerAdapter.kt"
+            "FilesTestRuntime.kt"
         )
         for (fileName in runtimeFileNames) {
             assertTrue(result.filesCreated.any { it.contains(fileName) },
@@ -931,22 +925,19 @@ class ModuleSaveServiceTest {
         assertTrue(File(moduleDir, "settings.gradle.kts").exists(), "settings.gradle.kts should exist")
         assertTrue(File(moduleDir, "$basePackagePath/flow/StopWatch3.flow.kt").exists(), ".flow.kt should be in flow/")
 
-        // 2. All 4 runtime files in generated/
+        // 2. Runtime files (post-085: ControllerInterface + Runtime in controller/)
         val controllerDir = File(moduleDir, "$basePackagePath/controller")
-        val flowDir = File(moduleDir, "$basePackagePath/flow")
         val viewModelDir = File(moduleDir, "$basePackagePath/viewmodel")
-        assertTrue(File(flowDir, "StopWatch3Flow.kt").exists(), "StopWatch3Flow.kt should exist")
-        assertTrue(File(controllerDir, "StopWatch3Controller.kt").exists(), "StopWatch3Controller.kt should exist")
         assertTrue(File(controllerDir, "StopWatch3ControllerInterface.kt").exists(), "StopWatch3ControllerInterface.kt should exist")
-        assertTrue(File(controllerDir, "StopWatch3ControllerAdapter.kt").exists(), "StopWatch3ControllerAdapter.kt should exist")
+        assertTrue(File(controllerDir, "StopWatch3Runtime.kt").exists(), "StopWatch3Runtime.kt should exist")
 
         // 3. ViewModel stub in viewmodel/
         val viewModelFile = File(viewModelDir, "StopWatch3ViewModel.kt")
         assertTrue(viewModelFile.exists(), "StopWatch3ViewModel.kt should exist in viewmodel/")
 
-        // 4. filesCreated includes all 9 files
-        assertEquals(9, result.filesCreated.size,
-            "First save should report 9 files created (2 gradle + 1 flow.kt + 4 runtime + 1 ViewModel + 1 UI stub)")
+        // 4. filesCreated count: 2 gradle + 1 flow.kt + 2 controller + 1 ViewModel + 1 UI stub = 7
+        assertEquals(7, result.filesCreated.size,
+            "First save should report 7 files created (2 gradle + 1 flow.kt + 2 controller + 1 ViewModel + 1 UI stub)")
 
         // 5. No overwrites or deletions on first save
         assertTrue(result.filesOverwritten.isEmpty(), "First save should have 0 overwritten")
@@ -1006,7 +997,7 @@ class ModuleSaveServiceTest {
     }
 
     @Test
-    fun `T008 - re-save overwrites all 4 runtime files and ViewModel`() {
+    fun `T008 - re-save overwrites runtime files and ViewModel`() {
         val timerEmitter = CodeNode(
             id = "timer", name = "TimerEmitter", codeNodeType = CodeNodeType.SOURCE,
             position = Node.Position(100.0, 200.0),
@@ -1035,9 +1026,11 @@ class ModuleSaveServiceTest {
         val result2 = saveService.saveModule(flowGraph1, tempDir)
 
         assertTrue(result2.success)
+        // Feature 085 (universal-runtime collapse): the trio (Flow/Controller/Adapter)
+        // collapsed into one Runtime file.
         val runtimeFiles = listOf(
-            "ReSaveTestFlow.kt", "ReSaveTestController.kt",
-            "ReSaveTestControllerInterface.kt", "ReSaveTestControllerAdapter.kt"
+            "ReSaveTestControllerInterface.kt",
+            "ReSaveTestRuntime.kt"
         )
         for (fileName in runtimeFiles) {
             assertTrue(result2.filesOverwritten.any { it.contains(fileName) },
@@ -1080,8 +1073,9 @@ class ModuleSaveServiceTest {
         // Step 1: First save
         val result1 = saveService.saveModule(flowGraph1, tempDir)
         assertTrue(result1.success)
-        assertEquals(9, result1.filesCreated.size,
-            "Step 1: 9 files created (2 gradle + 1 flow.kt + 4 runtime + 1 ViewModel + 1 UI stub)")
+        // Feature 085: 9 → 7 (Flow + Controller + Adapter trio collapsed into one Runtime).
+        assertEquals(7, result1.filesCreated.size,
+            "Step 1: 7 files created (2 gradle + 1 flow.kt + 2 controller + 1 ViewModel + 1 UI stub)")
 
         // Step 2: Add Logger node (SINK), re-save
         val logger = CodeNode(
@@ -1097,20 +1091,18 @@ class ModuleSaveServiceTest {
         val result2 = saveService.saveModule(flowGraph2, tempDir)
 
         assertTrue(result2.success)
-        // Step 2: 0 files created, 6 files overwritten, 0 deleted
+        // Step 2 post-085: 0 created, 4 overwritten (flow.kt + ControllerInterface + Runtime + ViewModel), 0 deleted
         assertEquals(0, result2.filesCreated.size,
             "Step 2: 0 new files created")
-        assertEquals(6, result2.filesOverwritten.size,
-            "Step 2: 6 files overwritten (flow.kt + 4 runtime + 1 ViewModel)")
+        assertEquals(4, result2.filesOverwritten.size,
+            "Step 2: 4 files overwritten (flow.kt + ControllerInterface + Runtime + ViewModel)")
         assertEquals(0, result2.filesDeleted.size,
             "Step 2: 0 files deleted")
 
-        // Verify the 6 overwritten files are flow.kt + 4 runtime + ViewModel
+        // Verify the 4 overwritten files are flow.kt + ControllerInterface + Runtime + ViewModel
         assertTrue(result2.filesOverwritten.any { it.contains("StopWatch3.flow.kt") })
-        assertTrue(result2.filesOverwritten.any { it.contains("StopWatch3Flow.kt") })
-        assertTrue(result2.filesOverwritten.any { it.contains("StopWatch3Controller.kt") })
         assertTrue(result2.filesOverwritten.any { it.contains("StopWatch3ControllerInterface.kt") })
-        assertTrue(result2.filesOverwritten.any { it.contains("StopWatch3ControllerAdapter.kt") })
+        assertTrue(result2.filesOverwritten.any { it.contains("StopWatch3Runtime.kt") })
         assertTrue(result2.filesOverwritten.any { it.contains("StopWatch3ViewModel.kt") })
     }
 
@@ -1177,8 +1169,8 @@ class ModuleSaveServiceTest {
         assertTrue(File(betaDir, "src/commonMain/kotlin/io/codenode/beta/flow/Beta.flow.kt").exists(), "Beta .flow.kt should exist")
         assertTrue(File(betaDir, "build.gradle.kts").exists(), "Beta build.gradle.kts should exist")
         assertTrue(File(betaDir, "settings.gradle.kts").exists(), "Beta settings.gradle.kts should exist")
-        assertTrue(File(betaDir, "src/commonMain/kotlin/io/codenode/beta/flow/BetaFlow.kt").exists(),
-            "Beta runtime files should exist")
+        assertTrue(File(betaDir, "src/commonMain/kotlin/io/codenode/beta/controller/BetaRuntime.kt").exists(),
+            "Beta runtime file should exist (post-085 universal-runtime collapse)")
         assertTrue(File(betaDir, "src/commonMain/kotlin/io/codenode/beta/viewmodel/BetaViewModel.kt").exists(),
             "Beta ViewModel stub should exist in base package")
 
