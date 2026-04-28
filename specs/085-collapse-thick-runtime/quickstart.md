@@ -185,6 +185,97 @@ Behavior MUST match pre-collapse exactly.
 
 This satisfies SC-004 and US2.
 
+### D5. Production-app integration template (SC-008)
+
+Use this template as the full instantiation pattern for any of the five reference modules
+(StopWatch, Addresses, UserProfiles, EdgeArtFilter, WeatherForecast). A new developer
+should be able to write a working production-app integration in under 30 minutes from
+this template alone.
+
+**Template** — replace `<Module>` with the module name (e.g., `StopWatch`) throughout:
+
+```kotlin
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import io.codenode.<module>.controller.create<Module>Runtime
+import io.codenode.<module>.flow.<module>FlowGraph         // .flow.kt's val export
+import io.codenode.<module>.viewmodel.<Module>ViewModel
+import io.codenode.<module>.userInterface.<Module>Screen   // or {Module}() for a non-screen UI
+
+@Composable
+fun <Module>Tab() {
+    // 1. Build the typed ControllerInterface from the FlowGraph DSL constant.
+    //    The factory returns an object that delegates ModuleController by the
+    //    underlying DynamicPipelineController — start/stop/pause/resume/reset
+    //    all "just work."
+    val controller = remember { create<Module>Runtime(<module>FlowGraph) }
+
+    // 2. Wrap the controller in the typed ViewModel. (For DAO-bearing modules
+    //    — Addresses, UserProfiles — pass the DAO as the second argument:
+    //    `<Module>ViewModel(controller, <Persistence>.dao)`.)
+    val viewModel = remember { <Module>ViewModel(controller) }
+
+    // 3. Render the module's UI; the composable observes ViewModel state flows
+    //    via `collectAsState()` internally. No bespoke wiring needed.
+    <Module>Screen(viewModel = viewModel)
+}
+```
+
+**Concrete example — StopWatch** (mirrors `KMPMobileApp/.../mobileapp/App.kt`):
+
+```kotlin
+import io.codenode.stopwatch.controller.createStopWatchRuntime
+import io.codenode.stopwatch.flow.stopWatchFlowGraph
+import io.codenode.stopwatch.viewmodel.StopWatchViewModel
+import io.codenode.stopwatch.userInterface.StopWatchScreen
+
+@Composable
+fun StopWatchTab() {
+    val controller = remember { createStopWatchRuntime(stopWatchFlowGraph) }
+    val viewModel = remember { StopWatchViewModel(controller) }
+    StopWatchScreen(viewModel = viewModel)
+}
+```
+
+**Concrete example — UserProfiles (DAO-bearing module)**:
+
+```kotlin
+import io.codenode.userprofiles.controller.createUserProfilesRuntime
+import io.codenode.userprofiles.flow.userProfilesFlowGraph
+import io.codenode.userprofiles.persistence.UserProfilesPersistence
+import io.codenode.userprofiles.viewmodel.UserProfilesViewModel
+import io.codenode.userprofiles.userInterface.UserProfiles
+
+@Composable
+fun UserProfilesTab() {
+    val controller = remember { createUserProfilesRuntime(userProfilesFlowGraph) }
+    val viewModel  = remember { UserProfilesViewModel(controller, UserProfilesPersistence.dao) }
+    UserProfiles(viewModel = viewModel)
+}
+```
+
+**Why this template is sufficient** — the universal-runtime collapse means there is only
+one wiring pattern across all five modules. The `create<Module>Runtime(...)` factory
+encapsulates `DynamicPipelineController` construction, the per-module NodeRegistry
+lookup, and the State-object wiring. Production consumers never see the runtime
+plumbing. Adding a sixth module is purely a regeneration step plus the three lines
+above.
+
+**Build dependencies** — the consuming app's Gradle module needs:
+
+```kotlin
+dependencies {
+    implementation(project(":<Module>"))     // brings the typed ControllerInterface,
+                                              // ViewModel, and the create<Module>Runtime
+                                              // factory into the consumer's classpath
+    implementation(project(":fbpDsl"))        // ModuleController, FlowExecutionStatus
+    // For DAO-bearing modules, also: implementation(project(":persistence"))
+}
+```
+
+No additional `flowGraph-execute` or GraphEditor dependency is needed — `DynamicPipelineController`
+lives in `fbpDsl`, which the module already pulls in.
+
 ---
 
 ## VS-E — Deprecated generators are removed
