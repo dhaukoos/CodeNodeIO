@@ -45,6 +45,7 @@ import io.codenode.grapheditor.state.GraphState
 import io.codenode.grapheditor.state.LevelCompatibilityChecker
 import io.codenode.grapheditor.state.NodePromoter
 import io.codenode.grapheditor.state.UndoRedoManager
+import io.codenode.grapheditor.util.resolveConnectionIPTypes
 
 /**
  * Main content area of the graph editor, containing:
@@ -280,6 +281,33 @@ fun ColumnScope.GraphEditorContent(
                     CodeGeneratorPanel(
                         viewModel = codeGeneratorViewModel,
                         ipTypes = ipTypes,
+                        onLoadFlowGraphFile = { file ->
+                            try {
+                                val parser = io.codenode.flowgraphpersist.serialization.FlowKtParser()
+                                parser.setTypeResolver { typeName ->
+                                    ipTypeRegistry.getByTypeName(typeName)?.payloadType
+                                }
+                                val parseResult = parser.parseFlowKt(file.readText())
+                                val loadedGraph = parseResult.graph
+                                if (parseResult.isSuccess && loadedGraph != null) {
+                                    val resolvedGraph = resolveConnectionIPTypes(
+                                        loadedGraph,
+                                        ipTypeRegistry,
+                                        parseResult.portTypeNameHints
+                                    )
+                                    codeGeneratorViewModel.selectFlowGraphFile(
+                                        filePath = file.absolutePath,
+                                        fileName = file.name,
+                                        flowGraph = resolvedGraph
+                                    )
+                                    onStatusMessage("Loaded ${file.name} for code generation")
+                                } else {
+                                    onStatusMessage("Error loading: ${parseResult.errorMessage}")
+                                }
+                            } catch (e: Exception) {
+                                onStatusMessage("Error loading: ${e.message}")
+                            }
+                        },
                         onGenerate = {
                             kotlinx.coroutines.MainScope().launch {
                                 val dir = showDirectoryChooser("Generate Module To")

@@ -32,6 +32,7 @@ fun CodeGeneratorPanel(
     viewModel: CodeGeneratorViewModel,
     ipTypes: List<InformationPacketType> = emptyList(),
     onGenerate: () -> Unit = {},
+    onLoadFlowGraphFile: (java.io.File) -> Unit = {},
     onCreateRepositoryModule: ((String) -> Unit)? = null,
     onRemoveRepositoryModule: ((String) -> Unit)? = null,
     moduleExists: (String) -> Boolean = { false },
@@ -57,7 +58,12 @@ fun CodeGeneratorPanel(
                 onPathSelected = { viewModel.selectPath(it) }
             )
 
-            InputSelector(state = state, viewModel = viewModel, ipTypes = ipTypes)
+            InputSelector(
+                state = state,
+                viewModel = viewModel,
+                ipTypes = ipTypes,
+                onLoadFlowGraphFile = onLoadFlowGraphFile
+            )
 
             Divider()
             FileTreeView(
@@ -79,7 +85,7 @@ fun CodeGeneratorPanel(
 
             Divider()
             val generateEnabled = when (state.selectedPath) {
-                GenerationPath.GENERATE_MODULE -> true
+                GenerationPath.GENERATE_MODULE -> state.selectedFlowGraph != null
                 GenerationPath.REPOSITORY -> state.selectedIPTypeId != null
                 GenerationPath.UI_FBP -> state.selectedUIFilePath != null
             }
@@ -135,12 +141,24 @@ private fun PathSelector(
 private fun InputSelector(
     state: CodeGeneratorPanelState,
     viewModel: CodeGeneratorViewModel,
-    ipTypes: List<InformationPacketType>
+    ipTypes: List<InformationPacketType>,
+    onLoadFlowGraphFile: (java.io.File) -> Unit = {}
 ) {
     when (state.selectedPath) {
         GenerationPath.GENERATE_MODULE -> {
-            Text("Module", fontSize = 11.sp, color = Color.Gray)
-            Text(state.flowGraphName, fontSize = 12.sp, fontWeight = FontWeight.Medium)
+            Text("FlowGraph File", fontSize = 11.sp, color = Color.Gray)
+            OutlinedButton(
+                onClick = {
+                    val result = showFileOpenDialog()
+                    val file = result.file
+                    if (file != null) {
+                        onLoadFlowGraphFile(file)
+                    }
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(state.selectedFlowGraphFileName ?: "Select flowGraph file...", fontSize = 12.sp)
+            }
         }
         GenerationPath.REPOSITORY -> {
             val customTypes = ipTypes.filter { it.id !in setOf("ip_any", "ip_int", "ip_double", "ip_boolean", "ip_string") }

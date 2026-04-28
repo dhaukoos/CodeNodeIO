@@ -28,6 +28,9 @@ data class CodeGeneratorPanelState(
     val ipTypeDropdownExpanded: Boolean = false,
     val selectedUIFilePath: String? = null,
     val selectedUIFileName: String? = null,
+    val selectedFlowGraphFilePath: String? = null,
+    val selectedFlowGraphFileName: String? = null,
+    val selectedFlowGraph: FlowGraph? = null,
     val fileTree: GenerationFileTree = GenerationFileTree.empty(),
     val flowGraphName: String = "New Graph"
 )
@@ -52,9 +55,11 @@ class CodeGeneratorViewModel {
             selectedIPTypeId = null,
             selectedUIFilePath = null,
             selectedUIFileName = null,
+            selectedFlowGraphFilePath = null,
+            selectedFlowGraphFileName = null,
+            selectedFlowGraph = null,
             fileTree = GenerationFileTree.empty()
         )
-        rebuildFileTree()
     }
 
     fun setIPTypeDropdownExpanded(expanded: Boolean) {
@@ -77,11 +82,33 @@ class CodeGeneratorViewModel {
         )
     }
 
+    /**
+     * Records a user-selected `.flow.kt` file as the source of truth for the
+     * GENERATE_MODULE path's generation. The parsed FlowGraph drives every
+     * generator (its `name` becomes the module name, its nodes populate the
+     * registry, etc.) and the panel's "Files to Generate" tree is rebuilt
+     * from the FlowGraph's name.
+     */
+    fun selectFlowGraphFile(filePath: String, fileName: String, flowGraph: FlowGraph) {
+        val moduleName = flowGraph.name.ifBlank { fileName.removeSuffix(".flow.kt").removeSuffix(".kt") }
+        _state.value = _state.value.copy(
+            selectedFlowGraphFilePath = filePath,
+            selectedFlowGraphFileName = fileName,
+            selectedFlowGraph = flowGraph,
+            flowGraphName = moduleName,
+            fileTree = GenerationFileTreeBuilder.buildForGenerateModule(moduleName)
+        )
+    }
+
+    /**
+     * Updates the displayed flowGraph name. Kept as a pure setter so that
+     * incidental updates from the canvas (e.g., on every recomposition) don't
+     * silently rebuild the GENERATE_MODULE tree — which now requires explicit
+     * file selection via [selectFlowGraphFile].
+     */
     fun updateFlowGraphName(name: String) {
-        val needsRebuild = _state.value.flowGraphName != name || _state.value.fileTree.folders.isEmpty()
-        _state.value = _state.value.copy(flowGraphName = name)
-        if (needsRebuild && _state.value.selectedPath == GenerationPath.GENERATE_MODULE) {
-            rebuildFileTree()
+        if (_state.value.flowGraphName != name) {
+            _state.value = _state.value.copy(flowGraphName = name)
         }
     }
 
@@ -107,7 +134,18 @@ class CodeGeneratorViewModel {
         targetPlatforms: List<FlowGraph.TargetPlatform> = emptyList()
     ): GenerationResult {
         val s = _state.value
-        val moduleName = s.flowGraphName
+        // GENERATE_MODULE path now requires the user to pick a `.flow.kt` file
+        // explicitly; that parsed graph drives generation. Other paths still use
+        // the canvas's flowGraph passed in by the caller.
+        val effectiveFlowGraph = if (s.selectedPath == GenerationPath.GENERATE_MODULE) {
+            s.selectedFlowGraph ?: return GenerationResult(
+                generatedFiles = emptyMap(),
+                errors = mapOf("CodeGeneratorViewModel" to "No FlowGraph file selected")
+            )
+        } else {
+            flowGraph
+        }
+        val moduleName = effectiveFlowGraph.name.ifBlank { s.flowGraphName }
 
         val scaffold = scaffoldingGenerator.generate(
             moduleName = moduleName,
@@ -116,7 +154,7 @@ class CodeGeneratorViewModel {
         )
 
         val config = GenerationConfig(
-            flowGraph = flowGraph,
+            flowGraph = effectiveFlowGraph,
             basePackage = scaffold.basePackage,
             flowPackage = scaffold.flowPackage,
             controllerPackage = scaffold.controllerPackage,
@@ -131,15 +169,5 @@ class CodeGeneratorViewModel {
         fileWriter.write(result, scaffold.moduleDir, scaffold.basePackage, moduleName)
 
         return result
-    }
-
-    private fun rebuildFileTree() {
-        val s = _state.value
-        val tree = when (s.selectedPath) {
-            GenerationPath.GENERATE_MODULE -> GenerationFileTreeBuilder.buildForGenerateModule(s.flowGraphName)
-            GenerationPath.REPOSITORY -> GenerationFileTree.empty()
-            GenerationPath.UI_FBP -> GenerationFileTree.empty()
-        }
-        _state.value = s.copy(fileTree = tree)
     }
 }
