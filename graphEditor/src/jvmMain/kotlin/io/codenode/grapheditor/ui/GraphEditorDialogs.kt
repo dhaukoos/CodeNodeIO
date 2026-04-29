@@ -16,6 +16,7 @@ import io.codenode.flowgraphinspect.viewmodel.CodeEditorViewModel
 import io.codenode.flowgraphpersist.serialization.FlowKtParser
 import io.codenode.flowgraphtypes.registry.IPTypeRegistry
 import io.codenode.grapheditor.state.GraphState
+import io.codenode.grapheditor.util.detectModuleBasePackage
 import io.codenode.grapheditor.util.findModuleRoot
 import io.codenode.grapheditor.util.resolveConnectionIPTypes
 import java.io.File
@@ -97,11 +98,27 @@ fun GraphEditorDialogs(
                         put(ipType.id, ipType.typeName)
                     }
                 }
+                // Compute the FQCN imports for IP types actually referenced by this graph's
+                // connections. Without this, generated `.flow.kt` files referring to custom
+                // IP types (e.g., `CalculationResults::class` on a port) fail to compile
+                // because the FQCN isn't imported.
+                val referencedIpTypeIds = graphState.flowGraph.connections.mapNotNull { it.ipTypeId }.toSet()
+                val ipTypeImportsList = referencedIpTypeIds
+                    .mapNotNull { ipTypeRegistry.getById(it) }
+                    .mapNotNull { it.payloadType.qualifiedName }
+                    .filter { fqcn -> fqcn.contains('.') && !fqcn.startsWith("kotlin.") }
+                    .distinct()
+                // Post-082/083 the workspace module's package may diverge from its directory
+                // name (e.g., TestModule's package is io.codenode.demo). Detect the actual
+                // base package on disk so the save lands at the right path.
+                val detectedBasePackage = detectModuleBasePackage(currentModuleDir, graphState.flowGraph.name)
                 val result = moduleSaveService.saveFlowKtOnly(
                     flowGraph = graphState.flowGraph,
                     outputDir = currentModuleDir.parentFile ?: currentModuleDir,
                     moduleName = currentModuleDir.name,
+                    basePackage = detectedBasePackage,
                     ipTypeNames = ipTypeNamesMap,
+                    ipTypeImports = ipTypeImportsList,
                     codeNodeClassLookup = { nodeName ->
                         registry.getByName(nodeName)?.let {
                             it::class.qualifiedName

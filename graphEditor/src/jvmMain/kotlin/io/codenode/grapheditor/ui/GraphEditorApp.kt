@@ -33,6 +33,7 @@ import io.codenode.flowgraphtypes.repository.FileIPTypeRepository
 import io.codenode.flowgraphtypes.repository.IPTypeMigration
 import io.codenode.grapheditor.state.GroupNodesCommand
 import io.codenode.grapheditor.state.UngroupNodeCommand
+import io.codenode.grapheditor.util.detectModuleBasePackage
 import io.codenode.grapheditor.viewmodel.EditorDialog
 import io.codenode.grapheditor.viewmodel.GraphEditorViewModel
 import io.codenode.grapheditor.viewmodel.LocalSharedState
@@ -71,6 +72,10 @@ fun GraphEditorApp(
     var statusMessage by editorState.statusMessage
     var registryVersion by editorState.registryVersion
     var ipTypesVersion by editorState.ipTypesVersion
+
+    // Bottom error-console state — captures pipeline runtime errors + status-message errors
+    // in a copyable list. Displayed by ErrorConsolePanel below GraphEditorContent.
+    var errorConsoleEntries by remember { mutableStateOf<List<ErrorConsoleEntry>>(emptyList()) }
 
     // WorkspaceViewModel for module context
     val workspaceViewModel = remember { WorkspaceViewModel() }
@@ -243,11 +248,17 @@ fun GraphEditorApp(
     // during the same recomposition — avoids ClassCastException on module switch)
     // Pass the editor's FlowGraph so animation connection IDs match the Canvas.
     val runtimeSession = remember(moduleRootDir, graphState.flowGraph) {
-        moduleRootDir?.name?.let {
+        moduleRootDir?.let { dir ->
+            // Post-082/083 a single workspace module may host multiple flow graphs whose
+            // package diverges from the module-dir name. Pass the flow-graph prefix as the
+            // class-name prefix and derive the base package from disk so reflection lookup
+            // resolves regardless of where the user-authored Composable lives.
+            val flowGraphPrefix = graphState.flowGraph.name.takeIf { it.isNotBlank() } ?: dir.name
             ModuleSessionFactory.createSession(
-                moduleName = it,
+                moduleName = flowGraphPrefix,
                 editorFlowGraph = graphState.flowGraph,
-                flowGraphProvider = { graphState.flowGraph }
+                flowGraphProvider = { graphState.flowGraph },
+                basePackage = detectModuleBasePackage(dir, flowGraphPrefix)
             )
         }
     }
@@ -256,6 +267,24 @@ fun GraphEditorApp(
     val animateDataFlow = runtimeSession?.animateDataFlow?.collectAsState()?.value ?: false
     val activeAnimations = runtimeSession?.animationController?.activeAnimations?.collectAsState()?.value ?: emptyList()
     val runtimeExecutionState = runtimeSession?.executionState?.collectAsState()?.value ?: ExecutionState.IDLE
+
+    // Capture pipeline runtime errors into the bottom Error Console as they appear.
+    // The previous in-panel `Text(text = validationError, …)` in RuntimePreviewPanel still
+    // renders the inline alert; the console below adds a copyable, history-aware view.
+    val pipelineError = runtimeSession?.validationError?.collectAsState()?.value
+    LaunchedEffect(pipelineError) {
+        if (!pipelineError.isNullOrBlank()) {
+            // De-dupe consecutive identical messages (avoid floods on repeat events).
+            val last = errorConsoleEntries.lastOrNull()
+            if (last == null || last.source != "Runtime" || last.message != pipelineError) {
+                errorConsoleEntries = errorConsoleEntries + ErrorConsoleEntry(
+                    timestamp = System.currentTimeMillis(),
+                    source = "Runtime",
+                    message = pipelineError
+                )
+            }
+        }
+    }
 
     // Stop previous session when it's replaced or removed
     DisposableEffect(runtimeSession) {
@@ -594,6 +623,12 @@ fun GraphEditorApp(
                 onCodeGeneratorPanelExpandedChanged = { isCodeGeneratorPanelExpanded = it },
             )
 
+            // Bottom Error Console — copyable runtime / diagnostic messages
+            ErrorConsolePanel(
+                entries = errorConsoleEntries,
+                onClear = { errorConsoleEntries = emptyList() }
+            )
+
             Divider()
 
             // Status bar
@@ -747,3 +782,4 @@ private fun resolveFlowDir(moduleDir: File): File? {
         .filter { it.isDirectory && it.name == "flow" }
         .firstOrNull()
 }
+

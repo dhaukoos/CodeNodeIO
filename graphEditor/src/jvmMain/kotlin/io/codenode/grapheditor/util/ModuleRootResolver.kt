@@ -38,3 +38,44 @@ fun findModuleRoot(startDir: File?): File? {
     }
     return null
 }
+
+/**
+ * Derives the base Kotlin package of a workspace module from its on-disk source tree.
+ *
+ * Strategy (in order):
+ *   1. Scan `src/commonMain/kotlin` for a directory containing `flow/{flowGraphPrefix}.flow.kt`.
+ *      The package is the path from `kotlin/` to the parent of `flow/` with `/` → `.`.
+ *   2. Scan for any `flow/` directory; use its parent's package.
+ *   3. Return null — callers fall back to the legacy `io.codenode.{moduleName.lowercase()}` derivation.
+ *
+ * Handles the post-082/083 reality where the workspace module's directory name (e.g.,
+ * `TestModule`) is independent of its package (e.g., `io.codenode.demo`) and the
+ * flow-graph prefix (e.g., `DemoUI`).
+ */
+fun detectModuleBasePackage(moduleDir: File, flowGraphPrefix: String): String? {
+    val srcDir = File(moduleDir, "src/commonMain/kotlin")
+    if (!srcDir.isDirectory) return null
+
+    fun pathToPackage(dir: File): String? {
+        val rel = dir.absoluteFile.relativeTo(srcDir.absoluteFile).path
+        if (rel.isEmpty() || rel == ".") return null
+        return rel.replace(File.separatorChar, '.')
+    }
+
+    val flowKtName = "$flowGraphPrefix.flow.kt"
+    val matchingFlowDir = srcDir.walkTopDown()
+        .filter { it.isDirectory && it.name == "flow" }
+        .firstOrNull { File(it, flowKtName).isFile }
+    if (matchingFlowDir != null) {
+        return pathToPackage(matchingFlowDir.parentFile)
+    }
+
+    val anyFlowDir = srcDir.walkTopDown()
+        .filter { it.isDirectory && it.name == "flow" }
+        .firstOrNull()
+    if (anyFlowDir != null) {
+        return pathToPackage(anyFlowDir.parentFile)
+    }
+
+    return null
+}

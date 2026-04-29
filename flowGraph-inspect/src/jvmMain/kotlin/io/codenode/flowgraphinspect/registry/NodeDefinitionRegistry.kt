@@ -194,11 +194,16 @@ class NodeDefinitionRegistry {
         directory.listFiles(java.io.FileFilter { it.extension == "kt" })?.forEach { file ->
             val meta = parseTemplateMetadata(file)
             if (meta != null) {
-                templateNodes[meta.name] = meta
-
-                // Attempt to load the compiled CodeNodeDefinition via reflection
+                // Try to compile-load FIRST. Only register as a template if the class is NOT
+                // on the classpath. Previously this method always added the file to templateNodes
+                // before attempting compile-load, which produced duplicate palette entries
+                // ({Name} compiled + {Name} (template -- not compiled)) for every node whose
+                // source AND compiled class were both available.
                 if (!compiledNodes.containsKey(meta.name)) {
                     tryLoadCompiledNode(file)
+                }
+                if (!compiledNodes.containsKey(meta.name)) {
+                    templateNodes[meta.name] = meta
                 }
             }
         }

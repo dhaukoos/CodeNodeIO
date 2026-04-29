@@ -81,24 +81,38 @@ class ModuleSaveService {
      * into the output directory. No directories, gradle files, runtime controllers,
      * ViewModels, UI stubs, or persistence files are created.
      *
-     * @param flowGraph The flow graph to save
-     * @param outputDir Parent directory where the module directory lives
-     * @param moduleName Module name (default: derived from FlowGraph name)
-     * @param ipTypeNames Map of IP type id → display name for port type resolution
-     * @param codeNodeClassLookup Function to resolve CodeNode class names from node names
-     * @return ModuleSaveResult with success status and the single .flow.kt file tracked
+     * @param flowGraph The flow graph to save. The file is named `{flowGraph.name}.flow.kt`
+     *        (post-082/083 a single workspace module may host multiple flow graphs; the
+     *        filename MUST come from the flow graph, not the module).
+     * @param outputDir Parent directory where the module directory lives.
+     * @param moduleName Module directory name (default: derived from FlowGraph name).
+     *        Identifies the workspace module's directory, not its Kotlin package.
+     * @param basePackage Optional base Kotlin package for the module (e.g., `io.codenode.demo`).
+     *        When null, falls back to `"io.codenode.${effectiveModuleName.lowercase()}"` which
+     *        works for entity modules where moduleDir name = package suffix. Post-082/083
+     *        modules whose package diverges from the dir name (e.g., TestModule with package
+     *        `io.codenode.demo`) MUST pass this explicitly.
+     * @param ipTypeNames Map of IP type id → display name for port type resolution.
+     * @param ipTypeImports Fully-qualified-class-name imports to emit for IP types referenced
+     *        as port types (e.g., `io.codenode.testmodule.iptypes.CalculationResults`). Without
+     *        this the generated `.flow.kt` references like `CalculationResults::class` fail to
+     *        resolve. The caller computes the list (typically from `IPTypeRegistry`).
+     * @param codeNodeClassLookup Function to resolve CodeNode class names from node names.
      */
     fun saveFlowKtOnly(
         flowGraph: FlowGraph,
         outputDir: File,
         moduleName: String? = null,
+        basePackage: String? = null,
         ipTypeNames: Map<String, String> = emptyMap(),
+        ipTypeImports: List<String> = emptyList(),
         codeNodeClassLookup: (String) -> String? = { null }
     ): ModuleSaveResult {
         return try {
             val enrichedFlowGraph = enrichWithCodeNodeMetadata(flowGraph, codeNodeClassLookup)
             val effectiveModuleName = moduleName ?: deriveModuleName(enrichedFlowGraph.name)
-            val basePackage = "$DEFAULT_PACKAGE_PREFIX.${effectiveModuleName.lowercase()}"
+            val effectiveBasePackage = basePackage
+                ?: "$DEFAULT_PACKAGE_PREFIX.${effectiveModuleName.lowercase()}"
 
             val filesCreated = mutableListOf<String>()
             val filesOverwritten = mutableListOf<String>()
@@ -106,20 +120,21 @@ class ModuleSaveService {
             val moduleDir = File(outputDir, effectiveModuleName)
             val existingModule = moduleDir.exists() && File(moduleDir, "build.gradle.kts").exists()
 
-            val flowPackage = "$basePackage.$FLOW_SUBPACKAGE"
+            val flowPackage = "$effectiveBasePackage.$FLOW_SUBPACKAGE"
             val flowKtContent = flowKtGenerator.generateFlowKt(
-                enrichedFlowGraph, flowPackage, null, ipTypeNames
+                enrichedFlowGraph, flowPackage, null, ipTypeNames, ipTypeImports
             )
+
+            // Filename is the flow-graph name (post-082/083: independent of moduleName).
+            val flowKtFileName = "${enrichedFlowGraph.name}.flow.kt"
 
             val targetFile: File
             val relativePath: String
             if (existingModule) {
                 val flowPackagePath = flowPackage.replace(".", "/")
-                val flowKtFileName = "${effectiveModuleName}.flow.kt"
                 relativePath = "src/commonMain/kotlin/$flowPackagePath/$flowKtFileName"
                 targetFile = File(moduleDir, relativePath)
             } else {
-                val flowKtFileName = "${effectiveModuleName}.flow.kt"
                 relativePath = flowKtFileName
                 targetFile = File(outputDir, flowKtFileName)
             }
