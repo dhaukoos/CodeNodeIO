@@ -157,6 +157,38 @@ class NodeDefinitionRegistry {
         compiledNodes[node.name] = node
     }
 
+    // ========== Feature 086: session-aware resolution (FR-017) ==========
+    //
+    // Stub bodies — T028 fills these in. Until then, the methods throw NotImplementedError
+    // and the modified getByName below preserves launch-time-only resolution. Existing
+    // callers of getByName see no change in behavior pre-T028.
+
+    /**
+     * Installs a [CodeNodeDefinition] produced by an in-session compile. Replaces any
+     * prior session install or launch-time-classpath entry for [nodeName]. The prior
+     * session install's [io.codenode.flowgraphinspect.compile.ClassloaderScope] reference
+     * is dropped, making it GC-eligible (Decision 6 / SC-004).
+     *
+     * Implementation deferred to T028.
+     */
+    fun installSessionDefinition(
+        scope: io.codenode.flowgraphinspect.compile.ClassloaderScope,
+        nodeName: String,
+        definition: CodeNodeDefinition
+    ) {
+        throw NotImplementedError("T028 will implement installSessionDefinition")
+    }
+
+    /**
+     * Drops a session install. Subsequent [getByName] for [nodeName] falls back to the
+     * launch-time classpath entry, if any. No-op when no session install exists.
+     *
+     * Implementation deferred to T028.
+     */
+    fun revertSessionDefinition(nodeName: String) {
+        throw NotImplementedError("T028 will implement revertSessionDefinition")
+    }
+
     /**
      * Gets the source file path for a node by name, if available.
      * Checks compiled nodes first (via CodeNodeDefinition.sourceFilePath),
