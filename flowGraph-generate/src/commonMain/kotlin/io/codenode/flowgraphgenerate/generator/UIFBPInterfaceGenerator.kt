@@ -1,12 +1,24 @@
 /*
- * UIFBPInterfaceGenerator - Orchestrates UI-FBP code generation against the post-085
- * universal-runtime surface.
+ * UIFBPInterfaceGenerator — post-085 orchestrator for the UI-FBP code-generation path.
  *
- * Per-feature-085, every module produces a controller/{FlowGraph}ControllerInterface
- * extending ModuleController + a controller/{FlowGraph}Runtime factory + a
- * jvmMain/userInterface/{FlowGraph}PreviewProvider. UI-FBP modules ride the same shape;
- * this orchestrator emits the 7-or-8 entry set documented in
- * specs/084-ui-fbp-runtime-preview/data-model.md §2.
+ * Per feature 085's universal-runtime collapse, every module exposes the same surface:
+ *   controller/{FlowGraph}ControllerInterface.kt extending ModuleController
+ *   controller/{FlowGraph}Runtime.kt with create{FlowGraph}Runtime(flowGraph): {FlowGraph}ControllerInterface
+ *   jvmMain/userInterface/{FlowGraph}PreviewProvider.kt registering with PreviewRegistry
+ *
+ * UI-FBP modules ride this same shape. This class emits the 7-or-8 entry artifact set
+ * documented in specs/084-ui-fbp-runtime-preview/data-model.md §2 (Source/Sink CodeNodes
+ * are skipped when their port set is empty per T015 (e)/(f)).
+ *
+ * Three-identifier model (post-082/083 + Decision 2):
+ *   flowGraphPrefix — drives generated-file prefixes + PreviewRegistry key
+ *   composableName — the user-authored function the PreviewProvider invokes
+ *   packageName    — drives on-disk path translation
+ *
+ * The ControllerInterface and Runtime factory are emitted inline (rather than reusing
+ * feature 085's RuntimeControllerInterfaceGenerator / ModuleRuntimeGenerator) so user
+ * IP-type names from the typed UIFBPSpec survive into the emitted source — the universal
+ * generators erase types to Any via KClass<*>.simpleName.
  *
  * License: Apache 2.0
  */

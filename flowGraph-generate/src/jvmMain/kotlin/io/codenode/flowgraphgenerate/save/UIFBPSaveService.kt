@@ -1,14 +1,36 @@
 /*
- * UIFBPSaveService - jvmMain orchestrator that composes UIFBPInterfaceGenerator with
- * filesystem I/O, host-module pre-flight, and the per-file decision tree.
+ * UIFBPSaveService — jvmMain orchestrator that composes UIFBPInterfaceGenerator with
+ * filesystem I/O, host-module pre-flight, and the per-file write/merge decision tree.
  *
- * Phase coverage:
- *   - US1 (T020): pre-flight unscaffolded-host refusal + first-save (CREATED entries)
- *                 + the UNCHANGED branch (idempotent re-save)
- *                 + hand-edit safety (SKIPPED_CONFLICT) for files lacking the marker
- *                 + UPDATED branch when a file with the marker has divergent content
- *   - US3 (T037-T038): legacy saved/ + base-package cleanup (UIFBPSaveOptions.deleteLegacyLocations)
- *   - US4 (T045): .flow.kt parse-and-merge with structured FlowKtMergeReport
+ * Contract (per data-model.md §3 — UIFBPSaveService):
+ *   save(spec, flowGraphFile, moduleRoot, options): UIFBPSaveResult
+ *
+ * 1. Pre-flight: refuse with an actionable error if moduleRoot/build.gradle.kts is missing
+ *    OR lacks `jvm()` OR lacks the `io.codenode:preview-api` dependency. Build wiring is
+ *    the responsibility of feature 085's ModuleGenerator (FR-009 / Decision 5); UI-FBP
+ *    NEVER mutates build.gradle.kts. The user is directed to the one-time migration
+ *    documented in quickstart.md VS-A1.
+ * 2. Generate: produce the 7-or-8 entry universal artifact set via UIFBPInterfaceGenerator.
+ * 3. Per-file decide-and-write:
+ *      - target missing                        → CREATED
+ *      - target matches new content            → UNCHANGED (no write; mtime preserved)
+ *      - target carries the generator marker   → UPDATED (overwrite)
+ *      - target lacks the marker               → SKIPPED_CONFLICT (hand-edit safety, FR-016)
+ * 4. Optional legacy cleanup (deleteLegacyLocations=true): remove pre-085 saved/ duplicates
+ *    only when they carry the marker; lacking it → SKIPPED_CONFLICT.
+ * 5. .flow.kt parse-and-merge (Decision 7 / FR-011 / FR-012):
+ *      - missing or no `flowGraph(`            → bootstrap CodeNode pair → CREATED
+ *      - parse OK + zero diff + matching content → UNCHANGED
+ *      - parse OK + port-shape or content drift → mutate Source/Sink ports, drop
+ *                                                 connections referencing removed ports
+ *                                                 (with structured DroppedConnection
+ *                                                 reasons), re-serialize → UPDATED
+ *      - parse fails                           → PARSE_FAILED_SKIPPED, file untouched,
+ *                                                 warning surfaced
+ *      User-added CodeNodes (anything not the framework `${flowGraphPrefix}Source/Sink`)
+ *      are preserved unchanged across merges.
+ *
+ * One-time TestModule migration: see specs/084-ui-fbp-runtime-preview/quickstart.md §VS-A1.
  *
  * License: Apache 2.0
  */

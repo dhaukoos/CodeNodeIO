@@ -115,3 +115,29 @@ The verification document for the production-app path is now feature 085's `quic
 - `specs/085-collapse-thick-runtime/quickstart.md` VS-D5 (production-app integration template)
 - `specs/085-collapse-thick-runtime/contracts/` (`{Module}Runtime.kt` contract; `ModuleController` interface contract)
 - Reference modules in DemoProject: `StopWatch/`, `Addresses/`, `UserProfiles/`, `EdgeArtFilter/`, `WeatherForecast/` — every one of them carries the post-085 file shape.
+
+---
+
+## Post-implementation reality check (added during T055)
+
+Two assumptions in the original cross-check shifted during 084 implementation. Recording
+the corrections so future readers see what actually landed.
+
+1. **`UIFBPControllerInterfaceGenerator` (NEW) — said "PROBABLY NOT NEEDED"; actually was
+   built inline.** `RuntimeControllerInterfaceGenerator` erases user IP types to `Any` via
+   `KClass<*>.simpleName`, which would emit `val results: StateFlow<Any>` instead of
+   `val results: StateFlow<CalculationResults?>`. To preserve typed IP types from
+   `UIFBPSpec`, `UIFBPInterfaceGenerator.generateControllerInterface(...)` and
+   `UIFBPInterfaceGenerator.generateRuntimeFactory(...)` emit the controller-interface
+   and runtime-factory artifacts inline rather than delegating to the universal generators
+   (research.md Decision 1, T016).
+
+2. **`PreviewProviderGenerator` — extended in 084 land, not just reused.** A new optional
+   `composableName: String?` parameter (T006) decouples the registry key (always the
+   flow-graph prefix) from the in-lambda Composable function call (the user-authored
+   function name from the qualifying UI source). This was needed for the post-082/083
+   three-identifier model (Decision 2) — entity modules where prefix == composable name
+   still get the existing behavior via the default.
+
+Everything else in this document still holds — the universal `ModuleController`,
+`DynamicPipelineController`, and the `getStatus()` proxy path are unchanged.
