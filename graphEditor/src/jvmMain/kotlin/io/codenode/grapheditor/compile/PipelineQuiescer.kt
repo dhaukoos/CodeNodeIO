@@ -19,21 +19,33 @@ import io.codenode.fbpdsl.runtime.DynamicPipelineController
  * API in isolation; T042 wires it to the actual RuntimePreviewPanel state.
  */
 class PipelineQuiescer {
+    private val controllers = java.util.LinkedHashSet<DynamicPipelineController>()
+    private val lock = Any()
+
     /** Add a controller to the tracking set. Idempotent. */
     fun register(controller: DynamicPipelineController) {
-        throw NotImplementedError("T029 will implement PipelineQuiescer.register")
+        synchronized(lock) { controllers.add(controller) }
     }
 
     /** Remove a controller from the tracking set. Idempotent (no-op when absent). */
     fun unregister(controller: DynamicPipelineController) {
-        throw NotImplementedError("T029 will implement PipelineQuiescer.unregister")
+        synchronized(lock) { controllers.remove(controller) }
     }
 
     /**
      * Stops every currently-registered controller (calls [DynamicPipelineController.stop]).
-     * Returns the count of controllers that were stopped — surfaced in [RecompileResult.pipelinesQuiesced].
+     * Returns the count of controllers that were stopped — surfaced in
+     * [io.codenode.flowgraphinspect.compile.RecompileResult.pipelinesQuiesced].
      */
     fun stopAll(): Int {
-        throw NotImplementedError("T029 will implement PipelineQuiescer.stopAll")
+        val snapshot = synchronized(lock) { controllers.toList() }
+        for (c in snapshot) {
+            try {
+                c.stop()
+            } catch (_: Exception) {
+                // Best-effort: continue stopping the rest even if one throws.
+            }
+        }
+        return snapshot.size
     }
 }

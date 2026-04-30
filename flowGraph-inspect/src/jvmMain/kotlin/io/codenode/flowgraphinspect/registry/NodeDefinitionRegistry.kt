@@ -45,6 +45,21 @@ class NodeDefinitionRegistry {
     private val templateNodes = mutableMapOf<String, NodeTemplateMeta>()
 
     /**
+     * Feature 086 — session-installed definitions produced by in-session compiles.
+     * Holds a strong reference to each install's [io.codenode.flowgraphinspect.compile.ClassloaderScope]
+     * so the JVM can't GC the loader while it's the canonical source for that node.
+     * Per Decision 6, replacing an entry drops the prior strong reference, making the
+     * superseded scope GC-eligible.
+     */
+    private val sessionInstalls = mutableMapOf<String, SessionInstall>()
+
+    private data class SessionInstall(
+        val scope: io.codenode.flowgraphinspect.compile.ClassloaderScope,
+        val definition: CodeNodeDefinition,
+        val installedAtMs: Long
+    )
+
+    /**
      * Scans all three levels for node definitions. Populates internal maps.
      *
      * Side effects:
@@ -60,10 +75,16 @@ class NodeDefinitionRegistry {
     /**
      * Looks up a compiled node definition by name.
      *
+     * Resolution precedence (FR-017 / feature 086):
+     *   1. Most-recent session install (if any) — wins over launch-time classpath.
+     *   2. Launch-time classpath compiledNodes map.
+     *   3. null.
+     *
      * @param name The node name to look up
      * @return The compiled node definition, or null if not found
      */
     fun getByName(name: String): CodeNodeDefinition? {
+        sessionInstalls[name]?.let { return it.definition }
         return compiledNodes[name]
     }
 
@@ -168,25 +189,27 @@ class NodeDefinitionRegistry {
      * prior session install or launch-time-classpath entry for [nodeName]. The prior
      * session install's [io.codenode.flowgraphinspect.compile.ClassloaderScope] reference
      * is dropped, making it GC-eligible (Decision 6 / SC-004).
-     *
-     * Implementation deferred to T028.
      */
     fun installSessionDefinition(
         scope: io.codenode.flowgraphinspect.compile.ClassloaderScope,
         nodeName: String,
         definition: CodeNodeDefinition
     ) {
-        throw NotImplementedError("T028 will implement installSessionDefinition")
+        // Replacing the entry drops the prior strong reference to its scope. No event
+        // emission here — RecompileSession is responsible for surfacing user feedback.
+        sessionInstalls[nodeName] = SessionInstall(
+            scope = scope,
+            definition = definition,
+            installedAtMs = System.currentTimeMillis()
+        )
     }
 
     /**
      * Drops a session install. Subsequent [getByName] for [nodeName] falls back to the
      * launch-time classpath entry, if any. No-op when no session install exists.
-     *
-     * Implementation deferred to T028.
      */
     fun revertSessionDefinition(nodeName: String) {
-        throw NotImplementedError("T028 will implement revertSessionDefinition")
+        sessionInstalls.remove(nodeName)
     }
 
     /**

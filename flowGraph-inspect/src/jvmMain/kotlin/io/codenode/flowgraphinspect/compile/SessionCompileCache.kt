@@ -22,13 +22,34 @@ import java.io.File
 class SessionCompileCache(
     val rootDir: File
 ) {
+    private var counter: Long = 0L
+
     /** Allocates a fresh subdirectory for [unit]'s output. Never reuses prior subdirs. */
     fun allocate(unit: CompileUnit): File {
-        throw NotImplementedError("T024 will implement SessionCompileCache.allocate")
+        val slug = slugFor(unit)
+        // Counter monotonically increases across all allocate calls in this session, so
+        // consecutive calls for the SAME unit yield distinct subdirectories. Critical for
+        // Decision 6 — old class files become GC-eligible only when their dir survives
+        // the registry-replacement transition.
+        val n = synchronized(this) { ++counter }
+        val unitsRoot = File(rootDir, "units")
+        val sub = File(unitsRoot, "$slug-$n")
+        sub.mkdirs()
+        return sub
     }
 
     /** Best-effort recursive deletion of [rootDir]. Idempotent. */
     fun deleteAll() {
-        throw NotImplementedError("T024 will implement SessionCompileCache.deleteAll")
+        if (!rootDir.exists()) return
+        rootDir.deleteRecursively()
+    }
+
+    /** Filesystem-safe identifier derived from [unit]'s human description. */
+    private fun slugFor(unit: CompileUnit): String {
+        val raw = when (unit) {
+            is CompileUnit.SingleFile -> unit.source.absolutePath.substringAfterLast('/').removeSuffix(".kt")
+            is CompileUnit.Module -> unit.moduleName
+        }
+        return raw.replace(Regex("[^A-Za-z0-9_]"), "_").ifEmpty { "unit" }
     }
 }

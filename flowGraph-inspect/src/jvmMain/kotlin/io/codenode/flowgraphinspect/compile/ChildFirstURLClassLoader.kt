@@ -24,6 +24,36 @@ class ChildFirstURLClassLoader(
 ) : URLClassLoader(urls, parent) {
 
     override fun loadClass(name: String, resolve: Boolean): Class<*> {
-        throw NotImplementedError("T025 will implement ChildFirstURLClassLoader.loadClass")
+        synchronized(getClassLoadingLock(name)) {
+            // 1) If already loaded by this loader, return it.
+            findLoadedClass(name)?.let {
+                if (resolve) resolveClass(it)
+                return it
+            }
+
+            if (isOwned(name)) {
+                // 2) Owned package: try LOCAL URLs first, fall back to parent on miss.
+                try {
+                    val local = findClass(name)
+                    if (resolve) resolveClass(local)
+                    return local
+                } catch (_: ClassNotFoundException) {
+                    // not in local URLs — fall through to parent delegation
+                }
+            }
+
+            // 3) Default delegation: parent first, then local (for non-owned classes
+            //    we preserve the standard ClassLoader contract by delegating up).
+            return super.loadClass(name, resolve)
+        }
+    }
+
+    /** True iff [fqcn]'s package matches any prefix in [ownedPackages]. */
+    private fun isOwned(fqcn: String): Boolean {
+        val pkg = fqcn.substringBeforeLast('.', missingDelimiterValue = "")
+        if (pkg.isEmpty()) return false
+        return ownedPackages.any { owner ->
+            pkg == owner || pkg.startsWith("$owner.")
+        }
     }
 }
