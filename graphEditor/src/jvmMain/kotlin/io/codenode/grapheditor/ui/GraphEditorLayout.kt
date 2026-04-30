@@ -112,6 +112,10 @@ fun ColumnScope.GraphEditorContent(
     codeGeneratorViewModel: io.codenode.grapheditor.viewmodel.CodeGeneratorViewModel? = null,
     isCodeGeneratorPanelExpanded: Boolean = false,
     onCodeGeneratorPanelExpandedChanged: (Boolean) -> Unit = {},
+    // Feature 086 — Code Editor "Recompile module" action wiring.
+    editorRecompileModuleName: String? = null,
+    editorIsRecompiling: Boolean = false,
+    onEditorRecompileModule: () -> Unit = {},
 ) {
     // Feature 086 — subscribe to registry.version so the Properties panel's
     // "edit source" pencil-icon lookup re-evaluates when a session install lands
@@ -400,7 +404,10 @@ fun ColumnScope.GraphEditorContent(
                     {
                         CodeEditor(
                             viewModel = codeEditorViewModel,
-                            onSaveStatusMessage = { msg -> onStatusMessage(msg) }
+                            onSaveStatusMessage = { msg -> onStatusMessage(msg) },
+                            recompileModuleName = editorRecompileModuleName,
+                            isRecompiling = editorIsRecompiling,
+                            onRecompileModule = onEditorRecompileModule
                         )
                     }
                 } else null,

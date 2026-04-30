@@ -172,22 +172,40 @@ fun TopToolbar(
 
             // Feature 086 — Recompile module button. Visible only when a host module
             // is loaded; disabled while a compile is in-flight.
-            if (recompileModuleName != null) {
+            val recompileState = recompileButtonState(recompileModuleName, isRecompiling)
+            if (recompileState != null) {
                 Divider(
                     modifier = Modifier.width(1.dp).height(32.dp),
                     color = Color.White.copy(alpha = 0.3f)
                 )
                 TextButton(
                     onClick = onRecompileModule,
-                    enabled = !isRecompiling,
+                    enabled = recompileState.enabled,
                     colors = ButtonDefaults.textButtonColors(contentColor = Color.White)
                 ) {
-                    Text(
-                        text = if (isRecompiling) "Recompiling…"
-                               else "Recompile module: $recompileModuleName"
-                    )
+                    Text(text = recompileState.label)
                 }
             }
         }
     }
+}
+
+/** UI state for the toolbar's "Recompile module" affordance. Pure — testable without Compose. */
+data class RecompileButtonState(
+    val label: String,
+    val enabled: Boolean
+)
+
+/**
+ * Computes the toolbar Recompile-module button's state from inputs.
+ *  - Returns null when no module is loaded → button hidden entirely.
+ *  - When a compile is in flight: disabled, label "Recompiling…".
+ *  - Otherwise: enabled, label "Recompile module: {moduleName}" (FR-008 — scope obvious).
+ */
+fun recompileButtonState(moduleName: String?, isRecompiling: Boolean): RecompileButtonState? {
+    if (moduleName == null) return null
+    return RecompileButtonState(
+        label = if (isRecompiling) "Recompiling…" else "Recompile module: $moduleName",
+        enabled = !isRecompiling
+    )
 }

@@ -51,6 +51,14 @@ private class SyntaxHighlightTransformation : VisualTransformation {
 fun CodeEditor(
     viewModel: CodeEditorViewModel,
     onSaveStatusMessage: (String) -> Unit = {},
+    // Feature 086 (T050) — Code Editor's "Recompile module" affordance. Null hides the
+    // button (e.g., when the loaded file isn't classifiable to a recompilable module);
+    // otherwise the button label uses [recompileModuleName] and clicks invoke
+    // [onRecompileModule], which is the same RecompileViewModel.recompile path as the
+    // toolbar button so feedback is uniform.
+    recompileModuleName: String? = null,
+    isRecompiling: Boolean = false,
+    onRecompileModule: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val editorState by viewModel.state.collectAsState()
@@ -74,7 +82,10 @@ fun CodeEditor(
                         if (success) "File saved: ${editorState.currentFile?.name}"
                         else "Save failed: ${editorState.errorMessage ?: "unknown error"}"
                     )
-                }
+                },
+                recompileModuleName = recompileModuleName,
+                isRecompiling = isRecompiling,
+                onRecompileModule = onRecompileModule
             )
         }
 
@@ -191,6 +202,10 @@ private fun EditorToolbar(
     isDirty: Boolean,
     fileName: String,
     onSave: () -> Unit,
+    // Feature 086 (T050) — Recompile-module affordance for the editor's action area.
+    recompileModuleName: String? = null,
+    isRecompiling: Boolean = false,
+    onRecompileModule: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     Surface(
@@ -228,17 +243,35 @@ private fun EditorToolbar(
                 )
             }
 
-            if (isDirty) {
-                IconButton(
-                    onClick = onSave,
-                    modifier = Modifier.size(28.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Save,
-                        contentDescription = "Save file",
-                        tint = Color(0xFFBBBBBB),
-                        modifier = Modifier.size(16.dp)
-                    )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                // Recompile-module affordance — visible when a host module is resolvable.
+                val recompileState = recompileButtonState(recompileModuleName, isRecompiling)
+                if (recompileState != null) {
+                    TextButton(
+                        onClick = onRecompileModule,
+                        enabled = recompileState.enabled
+                    ) {
+                        Text(
+                            text = recompileState.label,
+                            color = Color(0xFFBBBBBB),
+                            fontSize = 11.sp
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(4.dp))
+                }
+
+                if (isDirty) {
+                    IconButton(
+                        onClick = onSave,
+                        modifier = Modifier.size(28.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Save,
+                            contentDescription = "Save file",
+                            tint = Color(0xFFBBBBBB),
+                            modifier = Modifier.size(16.dp)
+                        )
+                    }
                 }
             }
         }

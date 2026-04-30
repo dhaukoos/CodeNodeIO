@@ -40,6 +40,7 @@ import io.codenode.flowgraphinspect.compile.ModuleSourceDiscovery
 import io.codenode.grapheditor.compile.PipelineQuiescer
 import io.codenode.grapheditor.compile.RecompileFeedbackPublisher
 import io.codenode.grapheditor.compile.RecompileSession
+import io.codenode.grapheditor.compile.RecompileTargetResolver
 import io.codenode.grapheditor.viewmodel.RecompileViewModel
 import io.codenode.grapheditor.state.GroupNodesCommand
 import io.codenode.grapheditor.state.UngroupNodeCommand
@@ -165,6 +166,10 @@ fun GraphEditorApp(
     // Feature 086 (US3) — viewmodel for the toolbar's "Recompile module" action.
     val recompileViewModel = remember { RecompileViewModel(recompileSession, recompileBgScope) }
     val isRecompiling by recompileViewModel.isCompiling.collectAsState()
+
+    // Feature 086 (T051) — tier-aware target resolution for the Code Editor's
+    // recompile affordance. Resolves an open .kt file to its host module's compile unit.
+    val editorRecompileTargetResolver = remember { RecompileTargetResolver(projectRoot) }
 
     // T036 — palette refresh on registry change. Subscribe to registry.version; bump
     // editorState.registryVersion so the palette recomposes when a session install lands.
@@ -738,6 +743,26 @@ fun GraphEditorApp(
                 codeGeneratorViewModel = codeGeneratorViewModel,
                 isCodeGeneratorPanelExpanded = isCodeGeneratorPanelExpanded,
                 onCodeGeneratorPanelExpandedChanged = { isCodeGeneratorPanelExpanded = it },
+                // Feature 086 — Code Editor's "Recompile module" affordance.
+                editorRecompileModuleName = run {
+                    val openFile = codeEditorViewModel.state.value.currentFile
+                    if (openFile == null) null
+                    else editorRecompileTargetResolver.resolveForFile(openFile)?.moduleName
+                },
+                editorIsRecompiling = isRecompiling,
+                onEditorRecompileModule = onEditorRecompileModule@{
+                    val openFile = codeEditorViewModel.state.value.currentFile
+                    if (openFile == null) {
+                        statusMessage = "No file is open in the editor"
+                        return@onEditorRecompileModule
+                    }
+                    val unit = editorRecompileTargetResolver.resolveForFile(openFile)
+                    if (unit == null) {
+                        statusMessage = "Cannot resolve a recompilable module for ${openFile.name}"
+                        return@onEditorRecompileModule
+                    }
+                    recompileViewModel.recompile(unit)
+                }
             )
 
             // Bottom Error Console — copyable runtime / diagnostic messages
