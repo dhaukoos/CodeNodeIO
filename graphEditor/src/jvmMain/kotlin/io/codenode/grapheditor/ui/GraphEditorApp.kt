@@ -35,9 +35,12 @@ import io.codenode.fbpdsl.model.FeatureGate
 import io.codenode.fbpdsl.subscription.LocalFeatureGate
 import io.codenode.flowgraphtypes.repository.FileIPTypeRepository
 import io.codenode.flowgraphtypes.repository.IPTypeMigration
+import io.codenode.fbpdsl.model.PlacementLevel
+import io.codenode.flowgraphinspect.compile.ModuleSourceDiscovery
 import io.codenode.grapheditor.compile.PipelineQuiescer
 import io.codenode.grapheditor.compile.RecompileFeedbackPublisher
 import io.codenode.grapheditor.compile.RecompileSession
+import io.codenode.grapheditor.viewmodel.RecompileViewModel
 import io.codenode.grapheditor.state.GroupNodesCommand
 import io.codenode.grapheditor.state.UngroupNodeCommand
 import io.codenode.grapheditor.util.detectModuleBasePackage
@@ -158,6 +161,10 @@ fun GraphEditorApp(
             }
         }
     }
+
+    // Feature 086 (US3) — viewmodel for the toolbar's "Recompile module" action.
+    val recompileViewModel = remember { RecompileViewModel(recompileSession, recompileBgScope) }
+    val isRecompiling by recompileViewModel.isCompiling.collectAsState()
 
     // T036 — palette refresh on registry change. Subscribe to registry.version; bump
     // editorState.registryVersion so the palette recomposes when a session install lands.
@@ -656,6 +663,24 @@ fun GraphEditorApp(
                     if (graphState.navigateOut()) {
                         statusMessage = "Navigated back to parent"
                     }
+                },
+                // Feature 086 — Recompile module action.
+                recompileModuleName = moduleRootDir?.name,
+                isRecompiling = isRecompiling,
+                onRecompileModule = onRecompileModule@{
+                    val dir = moduleRootDir ?: run {
+                        statusMessage = "No module loaded — open or create a module first"
+                        return@onRecompileModule
+                    }
+                    val unit = ModuleSourceDiscovery.forModule(
+                        moduleDir = dir,
+                        moduleName = dir.name,
+                        tier = PlacementLevel.MODULE
+                    ) ?: run {
+                        statusMessage = "Module ${dir.name} has no compilable CodeNode sources under nodes/"
+                        return@onRecompileModule
+                    }
+                    recompileViewModel.recompile(unit)
                 }
             )
 

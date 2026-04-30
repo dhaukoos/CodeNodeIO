@@ -40,6 +40,10 @@ fun TopToolbar(
     onGroup: () -> Unit = {},
     onUngroup: () -> Unit = {},
     onNavigateBack: () -> Unit = {},
+    // Feature 086 — per-module recompile control. Null moduleName hides the button.
+    recompileModuleName: String? = null,
+    isRecompiling: Boolean = false,
+    onRecompileModule: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     Surface(
@@ -164,6 +168,25 @@ fun TopToolbar(
                 colors = ButtonDefaults.textButtonColors(contentColor = Color.White)
             ) {
                 Text("Ungroup")
+            }
+
+            // Feature 086 — Recompile module button. Visible only when a host module
+            // is loaded; disabled while a compile is in-flight.
+            if (recompileModuleName != null) {
+                Divider(
+                    modifier = Modifier.width(1.dp).height(32.dp),
+                    color = Color.White.copy(alpha = 0.3f)
+                )
+                TextButton(
+                    onClick = onRecompileModule,
+                    enabled = !isRecompiling,
+                    colors = ButtonDefaults.textButtonColors(contentColor = Color.White)
+                ) {
+                    Text(
+                        text = if (isRecompiling) "Recompiling…"
+                               else "Recompile module: $recompileModuleName"
+                    )
+                }
             }
         }
     }
