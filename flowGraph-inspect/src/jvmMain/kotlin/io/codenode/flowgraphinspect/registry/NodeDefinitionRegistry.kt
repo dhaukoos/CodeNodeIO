@@ -255,16 +255,38 @@ class NodeDefinitionRegistry {
 
     /**
      * Gets the source file path for a node by name, if available.
-     * Checks compiled nodes first (via CodeNodeDefinition.sourceFilePath),
-     * then falls back to template nodes (filesystem metadata).
+     *
+     * Resolution precedence (FR-017 applied to source-path resolution; feature 086):
+     *   1. Session install — derives the path from the install's [CompileUnit].
+     *      Per-file unit: the single source IS the file. Per-module unit: find
+     *      the source whose basename matches `{name}CodeNode.kt` (the convention
+     *      both Node Generator and UI-FBP emit).
+     *   2. Launch-time `compiledNodes` — uses `CodeNodeDefinition.sourceFilePath`.
+     *   3. Template nodes — filesystem-discovered path.
+     *
+     * The session-install branch is what makes the GraphEditor's "edit source"
+     * pencil icon (Properties panel) appear for a freshly-generated CodeNode that
+     * hasn't yet been picked up by a launch-time classpath scan.
      *
      * @param name The node name to look up
      * @return Absolute file path, or null if no source file is discoverable
      */
     fun getSourceFilePath(name: String): String? {
-        // Check compiled nodes (self-declared source path)
+        // 1. Session install — derive from the install's CompileUnit.
+        sessionInstalls[name]?.let { install ->
+            val unit = install.scope.unit
+            return when (unit) {
+                is io.codenode.flowgraphinspect.compile.CompileUnit.SingleFile ->
+                    unit.source.absolutePath
+                is io.codenode.flowgraphinspect.compile.CompileUnit.Module ->
+                    unit.sources
+                        .firstOrNull { it.absolutePath.endsWith("/${name}CodeNode.kt") }
+                        ?.absolutePath
+            }
+        }
+        // 2. Launch-time compiled nodes (self-declared source path).
         compiledNodes[name]?.sourceFilePath?.let { return it }
-        // Fall back to template nodes (filesystem-discovered path)
+        // 3. Template nodes (filesystem-discovered path).
         return templateNodes[name]?.filePath
     }
 

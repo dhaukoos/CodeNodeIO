@@ -176,4 +176,102 @@ class NodeDefinitionRegistryV2Test {
             "isCompiled must include sessionInstalls — they ARE executable, just not from the launch-time classpath"
         )
     }
+
+    /**
+     * Regression test — feature 086 user-reported defect:
+     *
+     *   "The pencil icon for editing in the Properties panel when a node is selected
+     *    (Calc3) is no longer showing up."
+     *
+     * Root cause: getSourceFilePath() consulted compiledNodes + templateNodes only,
+     * never sessionInstalls. A freshly-generated session-installed node had no
+     * source path resolvable via this API, so the Properties panel hid the pencil.
+     * Fixed by deriving the source path from the install's CompileUnit.
+     */
+    @Test
+    fun `getSourceFilePath derives source from session-install SingleFile unit`() {
+        val sourcePath = "/tmp/Calc3CodeNode.kt"
+        val unit = io.codenode.flowgraphinspect.compile.CompileUnit.SingleFile(
+            io.codenode.flowgraphinspect.compile.CompileSource(
+                absolutePath = sourcePath,
+                tier = PlacementLevel.MODULE,
+                hostModuleName = "TestModule"
+            )
+        )
+        val scope = io.codenode.flowgraphinspect.compile.ClassloaderScope(
+            unit = unit,
+            classOutputDir = File(workDir, "out").apply { mkdirs() },
+            parent = javaClass.classLoader
+        )
+        val registry = NodeDefinitionRegistry()
+        registry.installSessionDefinition(scope, "Calc3", fixtureDefinition("Calc3"))
+
+        assertEquals(
+            sourcePath,
+            registry.getSourceFilePath("Calc3"),
+            "getSourceFilePath MUST resolve a session-installed node to its compiled source — " +
+                "without this, the Properties-panel pencil icon hides for freshly-generated nodes"
+        )
+    }
+
+    @Test
+    fun `getSourceFilePath derives source from session-install Module unit by name convention`() {
+        val moduleSources = listOf(
+            io.codenode.flowgraphinspect.compile.CompileSource(
+                absolutePath = "/tmp/Demo/Helper.kt",
+                tier = PlacementLevel.MODULE,
+                hostModuleName = "Demo"
+            ),
+            io.codenode.flowgraphinspect.compile.CompileSource(
+                absolutePath = "/tmp/Demo/UserCodeNode.kt",
+                tier = PlacementLevel.MODULE,
+                hostModuleName = "Demo"
+            )
+        )
+        val unit = io.codenode.flowgraphinspect.compile.CompileUnit.Module(
+            moduleName = "Demo",
+            tier = PlacementLevel.MODULE,
+            sources = moduleSources
+        )
+        val scope = io.codenode.flowgraphinspect.compile.ClassloaderScope(
+            unit = unit,
+            classOutputDir = File(workDir, "out").apply { mkdirs() },
+            parent = javaClass.classLoader
+        )
+        val registry = NodeDefinitionRegistry()
+        registry.installSessionDefinition(scope, "User", fixtureDefinition("User"))
+
+        assertEquals(
+            "/tmp/Demo/UserCodeNode.kt",
+            registry.getSourceFilePath("User"),
+            "module-unit lookup uses the {name}CodeNode.kt convention"
+        )
+    }
+
+    @Test
+    fun `getSourceFilePath returns null when session-install Module unit has no matching source`() {
+        val unit = io.codenode.flowgraphinspect.compile.CompileUnit.Module(
+            moduleName = "Demo",
+            tier = PlacementLevel.MODULE,
+            sources = listOf(
+                io.codenode.flowgraphinspect.compile.CompileSource(
+                    absolutePath = "/tmp/Demo/Other.kt",
+                    tier = PlacementLevel.MODULE,
+                    hostModuleName = "Demo"
+                )
+            )
+        )
+        val scope = io.codenode.flowgraphinspect.compile.ClassloaderScope(
+            unit = unit,
+            classOutputDir = File(workDir, "out").apply { mkdirs() },
+            parent = javaClass.classLoader
+        )
+        val registry = NodeDefinitionRegistry()
+        registry.installSessionDefinition(scope, "Mismatch", fixtureDefinition("Mismatch"))
+
+        assertNull(
+            registry.getSourceFilePath("Mismatch"),
+            "no source file matches the {name}CodeNode.kt convention; null is the right answer"
+        )
+    }
 }
