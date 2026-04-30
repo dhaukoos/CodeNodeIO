@@ -16,21 +16,28 @@ import java.io.File
 data class FileOpenResult(val file: File? = null, val error: String? = null)
 
 /**
- * Show file open dialog for .flow.kt files or module directories.
+ * Show file open dialog. Defaults to filtering for `.flow.kt` files; callers can
+ * override the filter (e.g., the UI-FBP UI-file picker accepts plain `.kt`).
  *
- * Uses java.awt.FileDialog for native macOS file picker. Accepts both files and
- * directories. When a directory (module folder) is selected, resolves the .flow.kt
- * file at the conventional path:
- *   {moduleDir}/src/commonMain/kotlin/io/codenode/{modulename}/{ModuleName}.flow.kt
+ * Uses java.awt.FileDialog for native macOS file picker.
+ *
+ * @param initialDir Directory to open in
+ * @param title Dialog title (default: "Open Flow Graph")
+ * @param filenameFilter Predicate that accepts (dir, name) pairs. Default keeps
+ *        only `.flow.kt` files.
  */
-fun showFileOpenDialog(initialDir: File? = null): FileOpenResult {
+fun showFileOpenDialog(
+    initialDir: File? = null,
+    title: String = "Open Flow Graph",
+    filenameFilter: (File, String) -> Boolean = { _, name -> name.endsWith(".flow.kt") }
+): FileOpenResult {
     val startDir = initialDir
         ?: System.getProperty("codenode.project.dir")?.let { File(it) }
         ?: File(System.getProperty("user.dir"))
 
-    val dialog = FileDialog(null as Frame?, "Open Flow Graph", FileDialog.LOAD)
+    val dialog = FileDialog(null as Frame?, title, FileDialog.LOAD)
     dialog.directory = startDir.absolutePath
-    dialog.setFilenameFilter { _, name -> name.endsWith(".flow.kt") }
+    dialog.setFilenameFilter { dir, name -> filenameFilter(dir, name) }
     dialog.isVisible = true
 
     val dir = dialog.directory ?: return FileOpenResult()

@@ -368,6 +368,293 @@ class UIFBPSaveServiceTest {
         assertEquals(originalMtime, handEdited.lastModified(), "hand-edited file mtime MUST NOT change")
     }
 
+    // ========== T041: re-save against unchanged spec produces UNCHANGED .flow.kt merge mode ==========
+
+    @Test
+    fun `re-save against unchanged spec produces UNCHANGED flow_kt merge mode`() {
+        val moduleDir = newScaffoldedModuleDir()
+        val flowGraphFile = newFlowKtFile(moduleDir)
+
+        // First save bootstraps the .flow.kt file.
+        val service = UIFBPSaveService()
+        val first = service.save(demoSpec, flowGraphFile, moduleDir)
+        assertTrue(first.success)
+        assertNotNull(first.flowKtMerge, "first save MUST produce a FlowKtMergeReport")
+        assertEquals(FlowKtMergeMode.CREATED, first.flowKtMerge!!.mode,
+            "first save against an empty/placeholder .flow.kt MUST be CREATED")
+
+        // Snapshot the bootstrapped .flow.kt mtime so we can verify zero re-write.
+        val mtimeAfterFirst = flowGraphFile.lastModified()
+
+        // Re-save with the same spec and same file.
+        val second = service.save(demoSpec, flowGraphFile, moduleDir)
+        assertTrue(second.success)
+        assertNotNull(second.flowKtMerge)
+        val report = second.flowKtMerge!!
+        assertEquals(FlowKtMergeMode.UNCHANGED, report.mode,
+            "re-save against unchanged spec MUST be UNCHANGED")
+        assertTrue(report.portsAdded.isEmpty(), "no ports added on UNCHANGED; got: ${report.portsAdded}")
+        assertTrue(report.portsRemoved.isEmpty(), "no ports removed on UNCHANGED; got: ${report.portsRemoved}")
+        assertTrue(report.connectionsDropped.isEmpty(),
+            "no connections dropped on UNCHANGED; got: ${report.connectionsDropped}")
+        assertEquals(0, report.userNodesPreserved,
+            "no user-added CodeNodes were seeded; userNodesPreserved MUST be 0")
+
+        // .flow.kt file MUST NOT have been re-written
+        assertEquals(mtimeAfterFirst, flowGraphFile.lastModified(),
+            ".flow.kt mtime MUST NOT change on UNCHANGED merge")
+    }
+
+    // ========== T042: port-add scenario adds Source output without disturbing user CodeNodes ==========
+
+    @Test
+    fun `port-add scenario adds a Source output without disturbing user-added CodeNodes`() {
+        val moduleDir = newScaffoldedModuleDir()
+        val flowGraphFile = newFlowKtFile(moduleDir)
+
+        // Seed a real .flow.kt that already contains a user-added passthrough CodeNode wired
+        // between Source and Sink. We hand-author this DSL (rather than going through a save())
+        // because we need to seed user-added content the bootstrap wouldn't produce.
+        flowGraphFile.writeText(
+            """
+            package io.codenode.demo.flow
+
+            import io.codenode.fbpdsl.dsl.*
+            import io.codenode.fbpdsl.model.*
+
+            val demoUIFlowGraph = flowGraph("DemoUI", version = "1.0.0") {
+                val source = codeNode("DemoUISource", nodeType = "SOURCE") {
+                    position(100.0, 300.0)
+                    output("numA", Any::class)
+                    output("numB", Any::class)
+                }
+
+                val passthru = codeNode("UserPassthru", nodeType = "TRANSFORMER") {
+                    position(350.0, 300.0)
+                    input("input1", Any::class)
+                    output("output1", Any::class)
+                    config("_codeNodeClass", "io.codenode.demo.nodes.UserPassthruCodeNode")
+                }
+
+                val sink = codeNode("DemoUISink", nodeType = "SINK") {
+                    position(600.0, 300.0)
+                    input("results", Any::class)
+                }
+            }
+            """.trimIndent()
+        )
+
+        // Spec has one EXTRA Source output ("numC") vs the seeded file.
+        val newSpec = demoSpec.copy(
+            sourceOutputs = demoSpec.sourceOutputs + PortInfo("numC", "Double")
+        )
+
+        val result = UIFBPSaveService().save(newSpec, flowGraphFile, moduleDir)
+        assertTrue(result.success)
+        assertNotNull(result.flowKtMerge)
+        val report = result.flowKtMerge!!
+
+        assertEquals(FlowKtMergeMode.UPDATED, report.mode, "added port MUST drive UPDATED mode")
+        assertEquals(1, report.portsAdded.size, "exactly one port added; got: ${report.portsAdded}")
+        assertEquals("numC", report.portsAdded.first().portName)
+        assertEquals("DemoUISource", report.portsAdded.first().nodeName)
+        assertTrue(report.portsRemoved.isEmpty(), "no ports removed; got: ${report.portsRemoved}")
+        assertTrue(report.connectionsDropped.isEmpty(),
+            "no connections dropped (no connections existed); got: ${report.connectionsDropped}")
+        assertEquals(1, report.userNodesPreserved,
+            "the user-added passthrough CodeNode MUST be preserved")
+
+        // The serialized .flow.kt MUST still contain the user-added CodeNode.
+        val rewritten = flowGraphFile.readText()
+        assertTrue(
+            rewritten.contains("UserPassthru"),
+            ".flow.kt MUST still mention the user-added CodeNode 'UserPassthru' after merge; got:\n$rewritten"
+        )
+        assertTrue(
+            rewritten.contains("output(\"numC\", Double::class"),
+            ".flow.kt MUST emit the newly-added 'numC' port with the spec's typeName Double::class " +
+                "(NOT Any::class); got:\n$rewritten"
+        )
+    }
+
+    // ========== T042b: kept port with stale Any-type drifts back to spec's typeName on re-run ==========
+    //
+    // Regression scenario observed in VS-A7: a previous (buggy) save left a port typed as
+    // `Any::class` in `.flow.kt` even though the spec called for `Double::class`. The next
+    // re-run MUST detect content drift on the kept port and re-emit with the spec's typeName.
+
+    @Test
+    fun `kept port with stale Any-type drifts back to spec's typeName on re-run`() {
+        val moduleDir = newScaffoldedModuleDir()
+        val flowGraphFile = newFlowKtFile(moduleDir)
+
+        // Seed a .flow.kt where port "c" exists on the Source already but typed as Any.
+        // This simulates the state left by the earlier buggy generator pass.
+        flowGraphFile.writeText(
+            """
+            package io.codenode.demo.flow
+
+            import io.codenode.fbpdsl.dsl.*
+            import io.codenode.fbpdsl.model.*
+
+            val demoUIFlowGraph = flowGraph("DemoUI", version = "1.0.0") {
+                val source = codeNode("DemoUISource", nodeType = "SOURCE") {
+                    position(100.0, 300.0)
+                    output("numA", Double::class)
+                    output("numB", Double::class)
+                    output("c", Any::class)
+                }
+
+                val sink = codeNode("DemoUISink", nodeType = "SINK") {
+                    position(600.0, 300.0)
+                    input("results", Any::class)
+                }
+            }
+            """.trimIndent()
+        )
+
+        // Spec: same port set (c is already in the file), but the spec types c as Double.
+        val newSpec = demoSpec.copy(
+            sourceOutputs = demoSpec.sourceOutputs + PortInfo("c", "Double")
+        )
+
+        val result = UIFBPSaveService().save(newSpec, flowGraphFile, moduleDir)
+        assertTrue(result.success)
+        assertNotNull(result.flowKtMerge)
+        val report = result.flowKtMerge!!
+
+        // No port-NAME diff (c already exists), but the type is wrong → mode MUST be UPDATED
+        // so the canonical re-emit lands on disk.
+        assertEquals(FlowKtMergeMode.UPDATED, report.mode,
+            "kept-port type drift MUST drive UPDATED mode (file rewrite)")
+
+        val rewritten = flowGraphFile.readText()
+        assertTrue(
+            rewritten.contains("output(\"c\", Double::class"),
+            "kept port 'c' MUST be re-emitted with spec's typeName Double::class; got:\n$rewritten"
+        )
+        assertFalse(
+            rewritten.contains("output(\"c\", Any::class"),
+            "kept port 'c' MUST NOT remain typed as Any::class; got:\n$rewritten"
+        )
+    }
+
+    // ========== T043: port-remove scenario drops only invalid connections ==========
+
+    @Test
+    fun `port-remove scenario drops only invalid connections and reports them`() {
+        val moduleDir = newScaffoldedModuleDir()
+        val flowGraphFile = newFlowKtFile(moduleDir)
+
+        // Seed a .flow.kt where a user CodeNode is connected to Sink.results (a port the
+        // new spec will REMOVE). The user CodeNode itself must survive; only the orphaned
+        // connection must be dropped.
+        flowGraphFile.writeText(
+            """
+            package io.codenode.demo.flow
+
+            import io.codenode.fbpdsl.dsl.*
+            import io.codenode.fbpdsl.model.*
+
+            val demoUIFlowGraph = flowGraph("DemoUI", version = "1.0.0") {
+                val source = codeNode("DemoUISource", nodeType = "SOURCE") {
+                    position(100.0, 300.0)
+                    output("numA", Any::class)
+                    output("numB", Any::class)
+                }
+
+                val helper = codeNode("UserHelper", nodeType = "TRANSFORMER") {
+                    position(350.0, 300.0)
+                    input("input1", Any::class)
+                    output("output1", Any::class)
+                    config("_codeNodeClass", "io.codenode.demo.nodes.UserHelperCodeNode")
+                }
+
+                val sink = codeNode("DemoUISink", nodeType = "SINK") {
+                    position(600.0, 300.0)
+                    input("results", Any::class)
+                }
+
+                helper.output("output1") connect sink.input("results")
+            }
+            """.trimIndent()
+        )
+
+        // Spec REMOVES the "results" sink port (sinkInputs is now empty).
+        val newSpec = demoSpec.copy(sinkInputs = emptyList())
+
+        val result = UIFBPSaveService().save(newSpec, flowGraphFile, moduleDir)
+        assertTrue(result.success)
+        assertNotNull(result.flowKtMerge)
+        val report = result.flowKtMerge!!
+
+        assertEquals(FlowKtMergeMode.UPDATED, report.mode)
+        assertTrue(
+            report.portsRemoved.any { it.portName == "results" && it.nodeName == "DemoUISink" },
+            "removed sink port 'results' MUST appear in portsRemoved; got: ${report.portsRemoved}"
+        )
+        assertEquals(
+            1, report.connectionsDropped.size,
+            "exactly one connection (UserHelper→DemoUISink.results) MUST be dropped; got: ${report.connectionsDropped}"
+        )
+        val dropped = report.connectionsDropped.first()
+        assertNotNull(dropped.reason)
+        assertTrue(
+            dropped.reason.contains("port", ignoreCase = true) ||
+                dropped.reason.contains("removed", ignoreCase = true),
+            "dropped connection reason MUST explain the orphaned port; got: '${dropped.reason}'"
+        )
+        assertEquals(1, report.userNodesPreserved,
+            "user-added 'UserHelper' CodeNode itself MUST be preserved")
+
+        // The user-added CodeNode survives in the rewritten file.
+        val rewritten = flowGraphFile.readText()
+        assertTrue(
+            rewritten.contains("UserHelper"),
+            ".flow.kt MUST still mention 'UserHelper' after port-remove merge; got:\n$rewritten"
+        )
+    }
+
+    // ========== T044: parse-failed .flow.kt is SKIPPED, not overwritten ==========
+
+    @Test
+    fun `parse-failed flow_kt is SKIPPED, not overwritten`() {
+        val moduleDir = newScaffoldedModuleDir()
+        val flowGraphFile = newFlowKtFile(moduleDir)
+
+        // Seed a file that mentions `flowGraph(` (so the service tries to parse) but is
+        // syntactically broken — the parser will reject it.
+        val brokenContent = """
+            package io.codenode.demo.flow
+
+            // intentionally broken — unbalanced brace + missing tokens
+            val demoUIFlowGraph = flowGraph("DemoUI", version = "1.0.0") {
+                val source = codeNode("DemoUISource"
+                    output(... no closing
+        """.trimIndent()
+        flowGraphFile.writeText(brokenContent)
+        val mtimeBefore = flowGraphFile.lastModified()
+
+        val result = UIFBPSaveService().save(demoSpec, flowGraphFile, moduleDir)
+        assertTrue(result.success, "the universal-set save MUST succeed even if .flow.kt is unparseable")
+        assertNotNull(result.flowKtMerge)
+        assertEquals(FlowKtMergeMode.PARSE_FAILED_SKIPPED, result.flowKtMerge!!.mode)
+
+        // File on disk MUST be byte-for-byte unchanged.
+        assertEquals(brokenContent, flowGraphFile.readText(),
+            ".flow.kt content MUST be unchanged on PARSE_FAILED_SKIPPED")
+        assertEquals(mtimeBefore, flowGraphFile.lastModified(),
+            ".flow.kt mtime MUST be unchanged on PARSE_FAILED_SKIPPED")
+
+        // A warning MUST be emitted naming the parse failure.
+        assertTrue(result.warnings.isNotEmpty(),
+            "parse failure MUST surface a warning in UIFBPSaveResult.warnings")
+        assertTrue(
+            result.warnings.any { it.contains("parse", ignoreCase = true) || it.contains("flow.kt", ignoreCase = true) },
+            "warning MUST mention parse failure or the .flow.kt file; got: ${result.warnings}"
+        )
+    }
+
     // ========== T036: target file with marker AND content matching → UNCHANGED ==========
 
     @Test

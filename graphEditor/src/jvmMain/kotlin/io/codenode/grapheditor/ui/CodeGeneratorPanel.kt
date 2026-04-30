@@ -217,10 +217,15 @@ private fun InputSelector(
 
             // Second selector: the qualifying UI file (post-Decision 2: drives the user-
             // authored Composable function name, distinct from the flow-graph prefix).
+            // Filter accepts plain `.kt` (the Composable source) but excludes `.flow.kt`,
+            // which belongs to the FlowGraph selector above.
             Text("UI File", fontSize = 11.sp, color = Color.Gray)
             OutlinedButton(
                 onClick = {
-                    val result = showFileOpenDialog()
+                    val result = showFileOpenDialog(
+                        title = "Select UI File",
+                        filenameFilter = { _, name -> name.endsWith(".kt") && !name.endsWith(".flow.kt") }
+                    )
                     val file = result.file
                     if (file != null) {
                         val moduleName = file.nameWithoutExtension

@@ -15,12 +15,23 @@
 
 package io.codenode.flowgraphgenerate.save
 
+import io.codenode.fbpdsl.model.CodeNode
+import io.codenode.fbpdsl.model.CodeNodeType
+import io.codenode.fbpdsl.model.Connection
+import io.codenode.fbpdsl.model.FlowGraph
+import io.codenode.fbpdsl.model.Node
+import io.codenode.fbpdsl.model.Port
+import io.codenode.fbpdsl.model.PortFactory
+import io.codenode.flowgraphgenerate.generator.FlowKtGenerator
 import io.codenode.flowgraphgenerate.generator.UIFBPInterfaceGenerator
 import io.codenode.flowgraphgenerate.parser.UIFBPSpec
+import io.codenode.flowgraphpersist.serialization.FlowKtParser
 import java.io.File
 
 class UIFBPSaveService(
-    private val orchestrator: UIFBPInterfaceGenerator = UIFBPInterfaceGenerator()
+    private val orchestrator: UIFBPInterfaceGenerator = UIFBPInterfaceGenerator(),
+    private val flowKtGenerator: FlowKtGenerator = FlowKtGenerator(),
+    private val flowKtParser: FlowKtParser = FlowKtParser()
 ) {
 
     /**
@@ -85,7 +96,22 @@ class UIFBPSaveService(
             files += cleanupLegacyLocations(spec, moduleRoot)
         }
 
-        return UIFBPSaveResult(success = true, files = files)
+        // 5. .flow.kt parse-and-merge (FR-011 / FR-012 / Decision 7).
+        //    Bootstraps a fresh `.flow.kt` if missing/empty; otherwise parses, computes the
+        //    Source/Sink port diff against [spec], drops connections referencing now-removed
+        //    ports, and re-serializes via [FlowKtGenerator]. Surfaces the structured
+        //    [FlowKtMergeReport] in the result.
+        val warnings = mutableListOf<String>()
+        val flowKtMerge = if (options.mergeExistingFlowKt) {
+            mergeFlowKt(spec, flowGraphFile, warnings)
+        } else null
+
+        return UIFBPSaveResult(
+            success = true,
+            files = files,
+            flowKtMerge = flowKtMerge,
+            warnings = warnings
+        )
     }
 
     // ========== build.gradle.kts heuristic checks ==========
@@ -190,5 +216,268 @@ class UIFBPSaveService(
         }
 
         return results
+    }
+
+    // ========== .flow.kt parse-and-merge (T045 / FR-011 / FR-012 / Decision 7) ==========
+
+    /**
+     * Bootstraps or merges the `.flow.kt` file at [flowGraphFile] for the given [spec].
+     *
+     * Flow:
+     *  - File missing OR contains no `flowGraph(` declaration → bootstrap with a Source +
+     *    Sink CodeNode pair derived from the spec; mode = [FlowKtMergeMode.CREATED].
+     *  - File parses successfully → compute the Source/Sink port diff (by NAME) against the
+     *    spec, drop connections referencing now-removed port IDs, mutate the FlowGraph
+     *    in-place, and re-serialize via [FlowKtGenerator]. mode = UPDATED or UNCHANGED.
+     *  - File contains `flowGraph(` but [FlowKtParser] rejects it → write nothing; emit a
+     *    warning; mode = [FlowKtMergeMode.PARSE_FAILED_SKIPPED].
+     *
+     * User-added CodeNodes (anything that isn't named `${flowGraphPrefix}Source` or
+     * `${flowGraphPrefix}Sink`) are preserved unchanged across merges; only connections
+     * referencing removed ports are dropped.
+     */
+    private fun mergeFlowKt(
+        spec: UIFBPSpec,
+        flowGraphFile: File,
+        warnings: MutableList<String>
+    ): FlowKtMergeReport {
+        val sourceName = "${spec.flowGraphPrefix}Source"
+        val sinkName = "${spec.flowGraphPrefix}Sink"
+        val flowPackage = "${spec.packageName}.flow"
+
+        // Bootstrap path: file doesn't exist, or content has no flowGraph() declaration
+        // (covers empty files and the placeholder-comment-only fixture pattern).
+        val needsBootstrap = !flowGraphFile.exists() ||
+            !flowGraphFile.readText().contains("flowGraph(")
+        if (needsBootstrap) {
+            val bootstrap = buildBootstrapGraph(spec)
+            val bootstrapOverrides = portTypeOverridesForBootstrap(spec, bootstrap)
+            val content = flowKtGenerator.generateFlowKt(
+                flowGraph = bootstrap,
+                packageName = flowPackage,
+                ipTypeImports = spec.ipTypeImports,
+                portTypeOverrides = bootstrapOverrides
+            )
+            flowGraphFile.parentFile?.mkdirs()
+            flowGraphFile.writeText(content)
+            return FlowKtMergeReport(mode = FlowKtMergeMode.CREATED, userNodesPreserved = 0)
+        }
+
+        // Parse the existing file.
+        val existingText = flowGraphFile.readText()
+        val parseResult = flowKtParser.parseFlowKt(existingText)
+        val existing = parseResult.graph
+        if (!parseResult.isSuccess || existing == null) {
+            warnings += "Could not parse ${flowGraphFile.name}: ${parseResult.errorMessage ?: "unknown error"}. " +
+                "File left untouched. Fix the syntax or delete the file before re-running."
+            return FlowKtMergeReport(mode = FlowKtMergeMode.PARSE_FAILED_SKIPPED)
+        }
+
+        val codeNodes = existing.rootNodes.filterIsInstance<CodeNode>()
+        val source = codeNodes.firstOrNull { it.name == sourceName }
+        val sink = codeNodes.firstOrNull { it.name == sinkName }
+
+        // Compute the by-name port diff for Source and Sink.
+        val desiredSourceNames = spec.sourceOutputs.map { it.name }.toSet()
+        val desiredSinkNames = spec.sinkInputs.map { it.name }.toSet()
+        val currentSourceNames = source?.outputPorts?.map { it.name }?.toSet() ?: emptySet()
+        val currentSinkNames = sink?.inputPorts?.map { it.name }?.toSet() ?: emptySet()
+
+        val portsAdded = mutableListOf<PortChange>()
+        val portsRemoved = mutableListOf<PortChange>()
+
+        if (source != null) {
+            for (newPort in spec.sourceOutputs) {
+                if (newPort.name !in currentSourceNames) {
+                    portsAdded += PortChange(sourceName, newPort.name, newPort.typeName)
+                }
+            }
+            for (oldPort in source.outputPorts) {
+                if (oldPort.name !in desiredSourceNames) {
+                    portsRemoved += PortChange(sourceName, oldPort.name, oldPort.typeName)
+                }
+            }
+        }
+        if (sink != null) {
+            for (newPort in spec.sinkInputs) {
+                if (newPort.name !in currentSinkNames) {
+                    portsAdded += PortChange(sinkName, newPort.name, newPort.typeName)
+                }
+            }
+            for (oldPort in sink.inputPorts) {
+                if (oldPort.name !in desiredSinkNames) {
+                    portsRemoved += PortChange(sinkName, oldPort.name, oldPort.typeName)
+                }
+            }
+        }
+
+        // Count user-added CodeNodes (anything that isn't the framework Source/Sink).
+        val userNodesPreserved = codeNodes.count { it.name != sourceName && it.name != sinkName }
+
+        // Apply mutations: replace Source/Sink CodeNodes with merged port lists.
+        val removedPortIds = mutableSetOf<String>()
+        val newSource = source?.let {
+            val keptOutputs = it.outputPorts.filter { p -> p.name in desiredSourceNames }
+            removedPortIds += it.outputPorts.filter { p -> p.name !in desiredSourceNames }.map { p -> p.id }
+            val addedOutputs = spec.sourceOutputs
+                .filter { p -> p.name !in currentSourceNames }
+                .map { p -> PortFactory.outputWithType(p.name, Any::class, it.id) }
+            it.copy(outputPorts = keptOutputs + addedOutputs)
+        }
+        val newSink = sink?.let {
+            val keptInputs = it.inputPorts.filter { p -> p.name in desiredSinkNames }
+            removedPortIds += it.inputPorts.filter { p -> p.name !in desiredSinkNames }.map { p -> p.id }
+            val addedInputs = spec.sinkInputs
+                .filter { p -> p.name !in currentSinkNames }
+                .map { p -> PortFactory.inputWithType(p.name, Any::class, it.id, required = true) }
+            it.copy(inputPorts = keptInputs + addedInputs)
+        }
+
+        // Drop connections referencing any removed port. Surface each via DroppedConnection.
+        val portIdToName = codeNodes
+            .flatMap { it.inputPorts + it.outputPorts }
+            .associate { it.id to it.name }
+        val nodeIdToName = existing.rootNodes.associate { it.id to it.name }
+
+        val connectionsDropped = mutableListOf<DroppedConnection>()
+        val survivingConnections = existing.connections.filter { conn ->
+            val sourceRemoved = conn.sourcePortId in removedPortIds
+            val targetRemoved = conn.targetPortId in removedPortIds
+            if (sourceRemoved || targetRemoved) {
+                val side = if (sourceRemoved) "Source" else "Sink"
+                connectionsDropped += DroppedConnection(
+                    from = "${nodeIdToName[conn.sourceNodeId] ?: conn.sourceNodeId}." +
+                        "${portIdToName[conn.sourcePortId] ?: conn.sourcePortId}",
+                    to = "${nodeIdToName[conn.targetNodeId] ?: conn.targetNodeId}." +
+                        "${portIdToName[conn.targetPortId] ?: conn.targetPortId}",
+                    reason = "$side port was removed from the UI signature; connection has no valid endpoint."
+                )
+                false
+            } else true
+        }
+
+        val mergedNodes: List<Node> = existing.rootNodes.map { node ->
+            when {
+                node is CodeNode && node.name == sourceName -> newSource ?: node
+                node is CodeNode && node.name == sinkName -> newSink ?: node
+                else -> node
+            }
+        }
+        val mergedGraph = existing.copy(
+            rootNodes = mergedNodes,
+            connections = survivingConnections
+        )
+
+        // Build port-type overrides for ALL spec ports (kept + added) plus parser hints
+        // for types the parser couldn't resolve to a KClass (e.g., user IP types like
+        // CalculationResults). The spec is the source of truth for port types — if a
+        // file's port type drifted from the spec (e.g., a previous buggy save left
+        // `Any` in place of `Double`), the spec's typeName overrides it on re-emit.
+        val mergeOverrides = mutableMapOf<String, String>()
+        mergeOverrides.putAll(parseResult.portTypeNameHints)
+        newSource?.outputPorts?.forEach { port ->
+            spec.sourceOutputs.firstOrNull { it.name == port.name }
+                ?.let { mergeOverrides[port.id] = it.typeName }
+        }
+        newSink?.inputPorts?.forEach { port ->
+            spec.sinkInputs.firstOrNull { it.name == port.name }
+                ?.let { mergeOverrides[port.id] = it.typeName }
+        }
+
+        val newContent = flowKtGenerator.generateFlowKt(
+            flowGraph = mergedGraph,
+            packageName = flowPackage,
+            ipTypeImports = spec.ipTypeImports,
+            portTypeOverrides = mergeOverrides
+        )
+
+        // Decide UNCHANGED vs UPDATED by comparing the canonical re-emit to the file on
+        // disk (modulo trailing whitespace). This catches type/import drift on kept
+        // ports — not just port-name diffs. Skipping the write when content matches
+        // preserves mtime for the idempotent-resave case.
+        val portShapeChanged = portsAdded.isNotEmpty() || portsRemoved.isNotEmpty()
+        val contentDrifted = normalizeForCompare(existingText) != normalizeForCompare(newContent)
+
+        if (!portShapeChanged && !contentDrifted) {
+            return FlowKtMergeReport(
+                mode = FlowKtMergeMode.UNCHANGED,
+                userNodesPreserved = userNodesPreserved
+            )
+        }
+
+        flowGraphFile.writeText(newContent)
+        return FlowKtMergeReport(
+            mode = FlowKtMergeMode.UPDATED,
+            portsAdded = portsAdded,
+            portsRemoved = portsRemoved,
+            connectionsDropped = connectionsDropped,
+            userNodesPreserved = userNodesPreserved
+        )
+    }
+
+    /**
+     * Builds an in-memory bootstrap [FlowGraph] for [spec]: a Source CodeNode mirroring
+     * `spec.sourceOutputs` and a Sink CodeNode mirroring `spec.sinkInputs`, with no
+     * connections. New ports use `Any::class`; user-driven IP-type assignments come later
+     * via the GraphEditor connection workflow.
+     */
+    private fun buildBootstrapGraph(spec: UIFBPSpec): FlowGraph {
+        val nodes = mutableListOf<Node>()
+        val zeroPosition = Node.Position(0.0, 0.0)
+        if (spec.sourceOutputs.isNotEmpty()) {
+            val sourceId = "node_${spec.flowGraphPrefix.lowercase()}source"
+            val outputPorts: List<Port<*>> = spec.sourceOutputs.map { p ->
+                PortFactory.outputWithType(p.name, Any::class, sourceId)
+            }
+            nodes += CodeNode(
+                id = sourceId,
+                name = "${spec.flowGraphPrefix}Source",
+                codeNodeType = CodeNodeType.SOURCE,
+                position = zeroPosition,
+                outputPorts = outputPorts
+            )
+        }
+        if (spec.sinkInputs.isNotEmpty()) {
+            val sinkId = "node_${spec.flowGraphPrefix.lowercase()}sink"
+            val inputPorts: List<Port<*>> = spec.sinkInputs.map { p ->
+                PortFactory.inputWithType(p.name, Any::class, sinkId, required = true)
+            }
+            nodes += CodeNode(
+                id = sinkId,
+                name = "${spec.flowGraphPrefix}Sink",
+                codeNodeType = CodeNodeType.SINK,
+                position = zeroPosition,
+                inputPorts = inputPorts
+            )
+        }
+        return FlowGraph(
+            id = "flow_${spec.flowGraphPrefix.lowercase()}",
+            name = spec.flowGraphPrefix,
+            version = "1.0.0",
+            rootNodes = nodes,
+            connections = emptyList()
+        )
+    }
+
+    /**
+     * Builds a `portId → typeName` override map for bootstrap emission so that the spec's
+     * declared port type names (e.g., `Double`, `CalculationResults`) appear in the
+     * `.flow.kt` rather than the `Any` we use for the in-memory [Port.dataType].
+     */
+    private fun portTypeOverridesForBootstrap(
+        spec: UIFBPSpec,
+        bootstrap: FlowGraph
+    ): Map<String, String> {
+        val overrides = mutableMapOf<String, String>()
+        val codeNodes = bootstrap.rootNodes.filterIsInstance<CodeNode>()
+        codeNodes.firstOrNull { it.codeNodeType == CodeNodeType.SOURCE }?.outputPorts?.forEach { port ->
+            spec.sourceOutputs.firstOrNull { it.name == port.name }
+                ?.let { overrides[port.id] = it.typeName }
+        }
+        codeNodes.firstOrNull { it.codeNodeType == CodeNodeType.SINK }?.inputPorts?.forEach { port ->
+            spec.sinkInputs.firstOrNull { it.name == port.name }
+                ?.let { overrides[port.id] = it.typeName }
+        }
+        return overrides
     }
 }
