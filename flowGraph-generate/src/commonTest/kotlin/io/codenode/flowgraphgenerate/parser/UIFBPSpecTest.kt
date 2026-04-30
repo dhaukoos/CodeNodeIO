@@ -33,25 +33,6 @@ class UIFBPSpecTest {
     }
 
     @Test
-    fun `deprecated moduleName resolves to flowGraphPrefix`() {
-        val spec = UIFBPSpec(
-            flowGraphPrefix = "DemoUI",
-            composableName = "DemoUI",
-            viewModelTypeName = "DemoUIViewModel",
-            packageName = "io.codenode.demo",
-            sourceOutputs = emptyList(),
-            sinkInputs = emptyList()
-        )
-
-        @Suppress("DEPRECATION")
-        assertEquals("DemoUI", spec.moduleName)
-        @Suppress("DEPRECATION")
-        assertEquals(spec.flowGraphPrefix, spec.moduleName,
-            "the deprecated alias must map to flowGraphPrefix (not composableName) " +
-                "because pre-082/083 callers used moduleName for the file prefix")
-    }
-
-    @Test
     fun `ipTypeImports field is unchanged from pre-082-083`() {
         val imports = listOf("io.codenode.iptypes.CalculationResults", "io.codenode.iptypes.CoordsXY")
         val spec = UIFBPSpec(

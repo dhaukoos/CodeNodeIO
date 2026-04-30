@@ -282,7 +282,7 @@ private fun ResultsSection(results: CalculationResults?) {
         assertTrue(result.isSuccess, "Parse should succeed: ${result.errorMessage}")
         val spec = result.spec!!
 
-        assertEquals("DemoUI", spec.moduleName)
+        assertEquals("DemoUI", spec.flowGraphPrefix)
         assertEquals("DemoUIViewModel", spec.viewModelTypeName)
         assertEquals("io.codenode.demo", spec.packageName)
 
