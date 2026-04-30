@@ -689,4 +689,108 @@ class UIFBPSaveServiceTest {
             assertEquals(mtime, file.lastModified(), "file ${file.name} mtime MUST not change on UNCHANGED save")
         }
     }
+
+    // ========== Rename-edge-case regression test (spec.md "Source UI file is renamed or moved") ==========
+    //
+    // When the user renames the flow graph (which drives every artifact's prefix in the
+    // post-082/083 model), saving with the new name MUST NOT collide with stale artifacts
+    // emitted under the prior name. Each artifact set is self-contained at distinct file
+    // paths with distinct class names, so co-existence is the expected outcome — the user
+    // gets to decide manually when (or whether) to delete the stale set. Critically:
+    //   - No SKIPPED_CONFLICT entries (different paths → no overlap).
+    //   - No file under the new prefix is missing (every CREATED entry materialized).
+    //   - Every file under the old prefix is still on disk byte-for-byte unchanged.
+    // This satisfies the spec edge case: "Stale generated artifacts from the prior name
+    // must not collide with new artifacts and break compilation."
+
+    @Test
+    fun `rename of flow graph emits new artifact set without colliding with stale prior-name artifacts`() {
+        val moduleDir = newScaffoldedModuleDir()
+        val service = UIFBPSaveService()
+
+        // First save under prefix "FooUI" — primes the module with a full artifact set.
+        val fooSpec = demoSpec.copy(
+            flowGraphPrefix = "FooUI",
+            composableName = "FooUI",
+            viewModelTypeName = "FooUIViewModel"
+        )
+        val fooFlowFile = newFlowKtFile(moduleDir, prefix = "FooUI")
+        val fooResult = service.save(fooSpec, fooFlowFile, moduleDir)
+        assertTrue(fooResult.success, "first save (FooUI) MUST succeed")
+        val fooCreated = fooResult.files.filter { it.kind == FileChangeKind.CREATED }.map { it.relativePath }
+        assertTrue(fooCreated.isNotEmpty(), "first save MUST produce CREATED entries; got: ${fooResult.files}")
+
+        // Snapshot every FooUI artifact's content + mtime BEFORE the rename save.
+        val fooFiles = fooCreated.map { File(moduleDir, it) }
+        val fooContentBefore = fooFiles.associateWith { it.readText() }
+        val fooMtimesBefore = fooFiles.associateWith { it.lastModified() }
+        assertTrue(fooFiles.all { it.exists() }, "all FooUI artifacts MUST exist after first save")
+
+        // Second save under a NEW prefix "BarUI" — simulates the user renaming the flow
+        // graph. The .flow.kt file path differs (BarUI.flow.kt vs FooUI.flow.kt), every
+        // artifact path differs, every class name differs.
+        val barSpec = demoSpec.copy(
+            flowGraphPrefix = "BarUI",
+            composableName = "BarUI",
+            viewModelTypeName = "BarUIViewModel"
+        )
+        val barFlowFile = newFlowKtFile(moduleDir, prefix = "BarUI")
+        val barResult = service.save(barSpec, barFlowFile, moduleDir)
+        assertTrue(barResult.success, "second save (BarUI rename) MUST succeed")
+
+        // ---- New artifact set lands cleanly ----
+        val barCreated = barResult.files.filter { it.kind == FileChangeKind.CREATED }.map { it.relativePath }
+        assertTrue(
+            barCreated.any { it.endsWith("BarUIState.kt") },
+            "BarUIState MUST be CREATED; got: $barCreated"
+        )
+        assertTrue(
+            barCreated.any { it.endsWith("BarUIViewModel.kt") },
+            "BarUIViewModel MUST be CREATED; got: $barCreated"
+        )
+        assertTrue(
+            barCreated.any { it.endsWith("BarUIControllerInterface.kt") },
+            "BarUIControllerInterface MUST be CREATED; got: $barCreated"
+        )
+        assertTrue(
+            barCreated.any { it.endsWith("BarUIRuntime.kt") },
+            "BarUIRuntime MUST be CREATED; got: $barCreated"
+        )
+        assertTrue(
+            barCreated.any { it.endsWith("BarUIPreviewProvider.kt") },
+            "BarUIPreviewProvider MUST be CREATED; got: $barCreated"
+        )
+
+        // ---- No collisions: zero SKIPPED_CONFLICT entries ----
+        val skippedConflicts = barResult.files.filter { it.kind == FileChangeKind.SKIPPED_CONFLICT }
+        assertTrue(
+            skippedConflicts.isEmpty(),
+            "rename emits NEW artifacts at NEW paths; no path overlap → no conflicts. " +
+                "Got: $skippedConflicts"
+        )
+
+        // ---- No path overlap: nothing in barResult.files references a FooUI path ----
+        assertTrue(
+            barResult.files.none { it.relativePath.contains("FooUI") },
+            "rename save's per-file report MUST NOT mention any FooUI artifact " +
+                "(the orchestrator only knows about the BarUI spec); got: ${barResult.files}"
+        )
+
+        // ---- Stale FooUI artifacts remain on disk byte-for-byte unchanged ----
+        for (fooFile in fooFiles) {
+            assertTrue(
+                fooFile.exists(),
+                "stale FooUI artifact ${fooFile.name} MUST still exist after rename save"
+            )
+            assertEquals(
+                fooContentBefore[fooFile], fooFile.readText(),
+                "stale FooUI artifact ${fooFile.name} content MUST be byte-for-byte unchanged"
+            )
+            assertEquals(
+                fooMtimesBefore[fooFile], fooFile.lastModified(),
+                "stale FooUI artifact ${fooFile.name} mtime MUST be unchanged " +
+                    "(rename save MUST NOT touch prior-name artifacts)"
+            )
+        }
+    }
 }

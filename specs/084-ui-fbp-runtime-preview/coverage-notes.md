@@ -50,17 +50,11 @@ no coverage required.
 |---|---|
 | Composable signature has no input parameters beyond `viewModel` | T015 (e) — degenerate-spec source-output case (Source CodeNode skipped or zero-output runtime) |
 | Composable observes no `StateFlow` properties on the ViewModel | T015 (f) — degenerate-spec sink-input case (Sink CodeNode skipped; ControllerInterface degenerates to inherited-only `ModuleController` surface) |
-| Source UI file is renamed or moved | Implicit in T015's `flowGraphPrefix` derivation (artifact prefix follows the flow-graph filename, not the UI filename); no test currently asserts collision-freeness across renames — flagged below |
+| Source UI file is renamed or moved | `UIFBPSaveServiceTest.rename of flow graph emits new artifact set without colliding with stale prior-name artifacts` — explicitly asserts that a second save under a new prefix produces a new CREATED artifact set with zero SKIPPED_CONFLICT entries while leaving every prior-name artifact byte-for-byte unchanged |
 | Module contains multiple qualifying UI files or multiple flow graphs | Manual VS-B5 (T047) confirmed two `{flow graph, UI file}` pairs in one module produce non-colliding outputs |
 | Module already contains hand-written controller, flow-runtime, or preview-provider files for the same UI | T035 (`target file lacking the Generated marker is SKIPPED_CONFLICT`) + manual VS-A8 (T039) |
 | UI-FBP run inside a module scaffolded under a different build configuration | T019 (unscaffolded refusal) + manual VS-A9 (T040); UI-FBP refuses rather than mutating `build.gradle.kts` |
 | Runtime Preview opened before any business-logic graph has been added | US1 itself — manual VS-A4 (T027) loads with an empty middle graph; runtime reports running state without value flow |
 
-**Follow-ups identified**:
-
-- The "Source UI file is renamed or moved" edge case has no concrete test
-  asserting that stale prior-name artifacts don't collide. Practical mitigation
-  today: hand-written-file detection (FR-016 / T035) blocks silent overwrite,
-  and `deleteLegacyLocations` (T037) opt-in reclaims known duplicate paths.
-  A targeted regression test could be added in a future feature if this edge
-  case becomes contentious.
+**Follow-ups identified**: none — the previously-flagged rename-edge-case follow-up
+was closed by adding an explicit `UIFBPSaveServiceTest` regression test (rows above).
