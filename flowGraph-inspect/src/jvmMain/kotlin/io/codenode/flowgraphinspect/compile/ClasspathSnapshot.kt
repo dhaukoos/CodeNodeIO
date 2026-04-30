@@ -27,28 +27,48 @@ class ClasspathSnapshot(
         entries.joinToString(separator)
 
     companion object {
-        /** Reads the classpath file at [classpathFile]; falls back to [fallbackProperty] when absent. */
-        fun load(classpathFile: File?, fallbackProperty: String? = System.getProperty("java.class.path")): ClasspathSnapshot {
-            if (classpathFile != null && classpathFile.isFile) {
-                val entries = classpathFile.readLines()
-                    .map { it.trim() }
-                    .filter { it.isNotEmpty() }
-                return ClasspathSnapshot(entries = entries, source = Source.CLASSPATH_FILE)
-            }
-            // Fall back to the running JVM's java.class.path. Surface a one-time stderr
-            // warning so launches that bypass `writeRuntimeClasspath` are visible.
-            if (classpathFile != null) {
-                System.err.println(
-                    "[ClasspathSnapshot] grapheditor-runtime-classpath.txt not found at " +
-                        "${classpathFile.absolutePath}; falling back to java.class.path. " +
-                        "Run `./gradlew writeRuntimeClasspath` from the project root for a complete classpath."
-                )
-            }
-            val entries = (fallbackProperty ?: "")
+        /**
+         * Builds the snapshot by UNIONing entries from [classpathFile] (when present)
+         * with [fallbackProperty] (`java.class.path` of the running JVM). Why both:
+         *
+         *  - **`java.class.path`** has every JAR the running JVM was launched with —
+         *    including tool JARs (`fbpDsl`, `flowGraph-*`, `graphEditor`) that the
+         *    compiler MUST see to resolve `CodeNodeDefinition`, `PortSpec`, etc.
+         *  - **`grapheditor-runtime-classpath.txt`** has every project-module JAR
+         *    DemoProject's `graphEditorRuntime` configuration resolves — but it is
+         *    DELIBERATELY filtered to EXCLUDE tool JARs (those are passed via
+         *    `JavaExec.classpath` separately). Reading it alone would omit fbpDsl.
+         *
+         * Non-existent entries are filtered silently — they're typically stale build
+         * outputs from removed modules and would only generate compile-warning noise
+         * without affecting correctness.
+         */
+        fun load(
+            classpathFile: File?,
+            fallbackProperty: String? = System.getProperty("java.class.path")
+        ): ClasspathSnapshot {
+            val fileEntries: List<String> = if (classpathFile != null && classpathFile.isFile) {
+                classpathFile.readLines().map { it.trim() }.filter { it.isNotEmpty() }
+            } else emptyList()
+
+            val propEntries: List<String> = (fallbackProperty ?: "")
                 .split(File.pathSeparator)
                 .map { it.trim() }
                 .filter { it.isNotEmpty() }
-            return ClasspathSnapshot(entries = entries, source = Source.JAVA_CLASS_PATH_PROPERTY)
+
+            // Union, de-dupe, and drop non-existent entries. java.class.path is the more
+            // complete source for tool JARs; classpath.txt complements it with project
+            // modules that may be project()-built but not yet on the launch classpath.
+            val combined = (propEntries + fileEntries)
+                .distinct()
+                .filter { File(it).exists() }
+
+            // Source enum captures provenance for diagnostics. Prefer the file when present
+            // (it's the explicit project artifact); otherwise the JVM property.
+            val source = if (fileEntries.isNotEmpty()) Source.CLASSPATH_FILE
+                         else Source.JAVA_CLASS_PATH_PROPERTY
+
+            return ClasspathSnapshot(entries = combined, source = source)
         }
     }
 }
