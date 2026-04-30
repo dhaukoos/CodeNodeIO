@@ -113,6 +113,14 @@ fun ColumnScope.GraphEditorContent(
     isCodeGeneratorPanelExpanded: Boolean = false,
     onCodeGeneratorPanelExpandedChanged: (Boolean) -> Unit = {},
 ) {
+    // Feature 086 — subscribe to registry.version so the Properties panel's
+    // "edit source" pencil-icon lookup re-evaluates when a session install lands
+    // (a freshly-generated CodeNode's source path becomes resolvable only after
+    // its session install completes; without this subscription, the parent's
+    // unchanged `registry` reference would let Compose skip the rerender and the
+    // pencil would stay hidden until the user navigates away and back).
+    val registryVersionForRecompose by registry.version.collectAsState()
+
     // Navigation breadcrumb bar (only visible when inside a GraphNode)
     NavigationBreadcrumbBar(
         navigationContext = graphState.navigationContext,
@@ -618,9 +626,10 @@ fun ColumnScope.GraphEditorContent(
                 debugger = runtimeSession?.debugger,
                 isPaused = runtimeExecutionState == ExecutionState.PAUSED,
                 isAnimateDataFlow = animateDataFlow,
-                showEditButton = selectedNode != null && registry.getSourceFilePath(selectedNode.name) != null,
+                showEditButton = selectedNode != null && registrySourceFilePathFor(registry, selectedNode.name, registryVersionForRecompose) != null,
                 onEditClick = selectedNode?.let { node ->
-                    registry.getSourceFilePath(node.name)?.let { filePath ->
+                    registrySourceFilePathFor(registry, node.name, registryVersionForRecompose)?.let { filePath ->
+
                         {
                             val file = java.io.File(filePath)
                             codeEditorViewModel.loadFile(file, readOnly = false)
@@ -697,3 +706,17 @@ fun ColumnScope.GraphEditorContent(
         }
     }
 }
+
+/**
+ * Looks up [name]'s source file path through [registry], using [registryVersion] as a
+ * recompose anchor: when the registry's session installs change, [registryVersion] ticks
+ * and any composable that read this function's result will re-evaluate.
+ *
+ * Pure forwarding; the version parameter is read for its side-effect on Compose's
+ * recomposition graph, not used in the lookup itself.
+ */
+private fun registrySourceFilePathFor(
+    registry: NodeDefinitionRegistry,
+    name: String,
+    @Suppress("UNUSED_PARAMETER") registryVersion: Long
+): String? = registry.getSourceFilePath(name)
