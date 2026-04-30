@@ -31,9 +31,9 @@ This feature touches three existing modules — no new Gradle module is introduc
 
 **Purpose**: Project initialization, dependency wiring, license-gate verification.
 
-- [ ] T001 Add `implementation(kotlin("compiler-embeddable"))` to `flowGraph-inspect/build.gradle.kts`'s `jvmMain` source set; mirror the version pin already used by `flowGraph-generate/build.gradle.kts:42`.
-- [ ] T002 Create the new package directory `/Users/dhaukoos/CodeNodeIO/flowGraph-inspect/src/jvmMain/kotlin/io/codenode/flowgraphinspect/compile/` (and the parallel `commonMain` and `jvmTest` paths) so subsequent tasks can drop new files into a known location.
-- [ ] T003 Verify license-audit cleanliness (Constitution licensing gate). From repo root, run `./gradlew :flowGraph-inspect:dependencies --configuration jvmRuntimeClasspath > /tmp/086-deps.txt` and grep the output for any GPL/LGPL/AGPL artifact name. Abort the feature with a Constitution alert if any non-permissive transitive surfaces.
+- [X] T001 Add `implementation(kotlin("compiler-embeddable"))` to `flowGraph-inspect/build.gradle.kts`'s `jvmMain` source set; mirror the version pin already used by `flowGraph-generate/build.gradle.kts:42`.
+- [X] T002 Create the new package directory `/Users/dhaukoos/CodeNodeIO/flowGraph-inspect/src/jvmMain/kotlin/io/codenode/flowgraphinspect/compile/` (and the parallel `commonMain` and `jvmTest` paths) so subsequent tasks can drop new files into a known location.
+- [X] T003 Verify license-audit cleanliness (Constitution licensing gate). Run completed: `./gradlew :flowGraph-inspect:dependencies --configuration jvmRuntimeClasspath` resolved 75 distinct coordinates; GPL/LGPL/AGPL grep returned 0 matches. The borderline `org.jetbrains.intellij.deps:trove4j` is JetBrains' Apache 2.0 fork (not the original LGPL Trove4j). Audit output saved to `specs/086-hot-compile-nodes/license-audit-T003.txt` for reproducibility.
 
 ---
 

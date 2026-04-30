@@ -54,6 +54,9 @@ kotlin {
             dependencies {
                 implementation(libs.coroutines.core)
                 implementation("org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose:2.8.0")
+                // Feature 086: in-process Kotlin compiler for hot-recompile of CodeNode source files.
+                // Apache 2.0 (JetBrains-aligned per Constitution licensing protocol).
+                implementation(kotlin("compiler-embeddable"))
             }
         }
 
