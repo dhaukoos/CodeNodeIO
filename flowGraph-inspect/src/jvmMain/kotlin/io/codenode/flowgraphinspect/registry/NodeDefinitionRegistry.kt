@@ -53,6 +53,15 @@ class NodeDefinitionRegistry {
      */
     private val sessionInstalls = mutableMapOf<String, SessionInstall>()
 
+    /**
+     * Feature 086 — name → on-disk source-file path, populated by [scanDirectory]
+     * regardless of whether the file's class was also compile-loaded into [compiledNodes].
+     * Lets [getSourceFilePath] resolve the source path for a launch-time-compiled node
+     * whose `CodeNodeDefinition` doesn't override `sourceFilePath` (the Node Generator's
+     * default emitted shape).
+     */
+    private val sourceFilePathsByName = mutableMapOf<String, String>()
+
     private data class SessionInstall(
         val scope: io.codenode.flowgraphinspect.compile.ClassloaderScope,
         val definition: CodeNodeDefinition,
@@ -286,7 +295,11 @@ class NodeDefinitionRegistry {
         }
         // 2. Launch-time compiled nodes (self-declared source path).
         compiledNodes[name]?.sourceFilePath?.let { return it }
-        // 3. Template nodes (filesystem-discovered path).
+        // 3. scanDirectory-recorded source path (covers compiled-from-classpath nodes
+        //    whose CodeNodeDefinition didn't override sourceFilePath — the Node
+        //    Generator's default emitted shape).
+        sourceFilePathsByName[name]?.let { return it }
+        // 4. Template nodes (filesystem-discovered path).
         return templateNodes[name]?.filePath
     }
 
@@ -314,6 +327,12 @@ class NodeDefinitionRegistry {
         directory.listFiles(java.io.FileFilter { it.extension == "kt" })?.forEach { file ->
             val meta = parseTemplateMetadata(file)
             if (meta != null) {
+                // Always remember the source-file path for getSourceFilePath fallback —
+                // covers compiled-from-classpath nodes whose CodeNodeDefinition skipped
+                // the sourceFilePath override (feature 086 — Node Generator's default
+                // emitted shape doesn't include it).
+                sourceFilePathsByName[meta.name] = meta.filePath
+
                 // Try to compile-load FIRST. Only register as a template if the class is NOT
                 // on the classpath. Previously this method always added the file to templateNodes
                 // before attempting compile-load, which produced duplicate palette entries

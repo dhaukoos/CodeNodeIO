@@ -249,6 +249,62 @@ class NodeDefinitionRegistryV2Test {
     }
 
     @Test
+    fun `getSourceFilePath falls through to scanDirectory-recorded path for compiled-from-classpath nodes`() {
+        // Regression test for the post-restart pencil-icon defect:
+        //
+        // After a GraphEditor restart that follows a JAR rebuild, a freshly-generated
+        // CodeNode lands in compiledNodes (not templateNodes — the dedup guard in
+        // scanDirectory suppresses the template entry). But the Node Generator's
+        // emitted CodeNodeDefinition doesn't override sourceFilePath, so
+        // compiledNodes[name].sourceFilePath is null. The fix added a parallel
+        // sourceFilePathsByName map populated unconditionally by scanDirectory, with a
+        // fallthrough between compiledNodes and templateNodes lookups.
+        //
+        // We can't easily build a fixture compiled .class file here, so we test the
+        // fallthrough mechanism directly: register a definition (lands in compiledNodes
+        // with sourceFilePath = null) AND simulate scanDirectory's side-effect of
+        // recording the file path via the public scanDirectory API against a fixture
+        // .kt source. The lookup must resolve through sourceFilePathsByName.
+
+        val srcDir = File(workDir, "scanned").apply { mkdirs() }
+        val ktFile = File(srcDir, "ProbeCodeNode.kt").apply {
+            writeText("""
+                package io.codenode.fixture
+
+                import io.codenode.fbpdsl.runtime.CodeNodeDefinition
+                import io.codenode.fbpdsl.runtime.NodeRuntime
+                import io.codenode.fbpdsl.runtime.PortSpec
+                import io.codenode.fbpdsl.model.CodeNodeType
+
+                object ProbeCodeNode : CodeNodeDefinition {
+                    override val name = "Probe"
+                    override val category = CodeNodeType.TRANSFORMER
+                    override val description = "fixture"
+                    override val inputPorts = listOf(PortSpec("input1", Any::class))
+                    override val outputPorts = listOf(PortSpec("output1", Any::class))
+                    override fun createRuntime(name: String): NodeRuntime = TODO("fixture")
+                }
+            """.trimIndent())
+        }
+
+        val registry = NodeDefinitionRegistry()
+        // Pre-register a definition in compiledNodes (simulates the "JAR rebuilt" state).
+        // Its sourceFilePath defaults to null — the Node Generator's emitted shape.
+        registry.register(fixtureDefinition("Probe"))
+
+        // scanDirectory walks ktFile's parent and records the source path.
+        registry.scanDirectory(srcDir)
+
+        val resolved = registry.getSourceFilePath("Probe")
+        assertEquals(
+            ktFile.absolutePath, resolved,
+            "getSourceFilePath MUST resolve via sourceFilePathsByName when compiledNodes' " +
+                "sourceFilePath is null and templateNodes is empty (the post-restart-after- " +
+                "rebuild scenario for Node Generator outputs)"
+        )
+    }
+
+    @Test
     fun `getSourceFilePath returns null when session-install Module unit has no matching source`() {
         val unit = io.codenode.flowgraphinspect.compile.CompileUnit.Module(
             moduleName = "Demo",
