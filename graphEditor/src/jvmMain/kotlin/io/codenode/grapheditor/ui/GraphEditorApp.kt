@@ -20,7 +20,11 @@ import io.codenode.flowgraphgenerate.compilation.CompilationService
 import io.codenode.flowgraphgenerate.save.ModuleSaveService
 import io.codenode.flowgraphgenerate.save.ModuleScaffoldingGenerator
 import io.codenode.flowgraphgenerate.viewmodel.IPGeneratorViewModel
+import io.codenode.flowgraphgenerate.viewmodel.NodeAutoCompileHook
 import io.codenode.flowgraphgenerate.viewmodel.NodeGeneratorViewModel
+import io.codenode.flowgraphinspect.compile.ClasspathSnapshot
+import io.codenode.flowgraphinspect.compile.InProcessCompiler
+import io.codenode.flowgraphinspect.compile.SessionCompileCache
 import io.codenode.flowgraphinspect.discovery.DynamicPreviewDiscovery
 import io.codenode.flowgraphinspect.viewmodel.CodeEditorViewModel
 import io.codenode.flowgraphinspect.viewmodel.IPPaletteViewModel
@@ -31,6 +35,9 @@ import io.codenode.fbpdsl.model.FeatureGate
 import io.codenode.fbpdsl.subscription.LocalFeatureGate
 import io.codenode.flowgraphtypes.repository.FileIPTypeRepository
 import io.codenode.flowgraphtypes.repository.IPTypeMigration
+import io.codenode.grapheditor.compile.PipelineQuiescer
+import io.codenode.grapheditor.compile.RecompileFeedbackPublisher
+import io.codenode.grapheditor.compile.RecompileSession
 import io.codenode.grapheditor.state.GroupNodesCommand
 import io.codenode.grapheditor.state.UngroupNodeCommand
 import io.codenode.grapheditor.util.detectModuleBasePackage
@@ -39,8 +46,13 @@ import io.codenode.grapheditor.viewmodel.GraphEditorViewModel
 import io.codenode.grapheditor.viewmodel.LocalSharedState
 import io.codenode.grapheditor.viewmodel.SharedStateProvider
 import io.codenode.grapheditor.viewmodel.WorkspaceViewModel
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.drop
+import kotlinx.coroutines.launch
 import java.io.File
+import java.util.UUID
 
 /**
  * Main composable for the GraphEditor application.
@@ -96,11 +108,68 @@ fun GraphEditorApp(
     var isRuntimePanelExpanded by remember { mutableStateOf(false) }
     var isCodeGeneratorPanelExpanded by remember { mutableStateOf(false) }
 
+    // ===== Feature 086: in-process recompile session =====
+    //
+    // Session-scoped infrastructure that lets the Node Generator (US1 / FR-001) and
+    // a future per-module recompile button (US2) compile + load a CodeNode in-process,
+    // making "generate → execute" a single-session reality (no rebuild + relaunch).
+    //
+    // Wiring is constructed once per GraphEditor process; cache + scopes are torn down
+    // implicitly when the JVM exits (a future enhancement could add explicit shutdown
+    // on Window close).
+    val recompileBgScope = remember { CoroutineScope(SupervisorJob() + Dispatchers.Default) }
+    val recompileSession = remember {
+        val sessionCacheDir = File(System.getProperty("user.home"), ".codenode/cache/sessions/${UUID.randomUUID()}")
+        sessionCacheDir.mkdirs()
+        // ClasspathSnapshot reads the writeRuntimeClasspath file when present;
+        // falls back to java.class.path otherwise (a stderr warning surfaces).
+        val cpFile = File(projectRoot, "build/grapheditor-runtime-classpath.txt")
+        val classpathSnapshot = ClasspathSnapshot.load(classpathFile = cpFile)
+        val cache = SessionCompileCache(sessionCacheDir)
+        val compiler = InProcessCompiler(classpathSnapshot, cache)
+        val pipelineQuiescer = PipelineQuiescer()
+        val publisher = RecompileFeedbackPublisher(
+            onErrorEntry = { entry ->
+                errorConsoleEntries = errorConsoleEntries + entry
+            },
+            onStatusMessage = { msg ->
+                statusMessage = msg
+            }
+        )
+        RecompileSession(
+            compiler = compiler,
+            registry = registry,
+            pipelineQuiescer = pipelineQuiescer,
+            publisher = publisher,
+            sessionCacheDir = sessionCacheDir
+        )
+    }
+
+    // Auto-compile hook fired by the Node Generator after writing a new CodeNode source.
+    // Background-launches recompileGenerated; the publisher surfaces success/failure to
+    // the status bar + error console.
+    val autoCompileHook = remember {
+        NodeAutoCompileHook { file, tier, hostModule ->
+            recompileBgScope.launch {
+                recompileSession.recompileGenerated(file = file, tier = tier, hostModule = hostModule)
+            }
+        }
+    }
+
+    // T036 — palette refresh on registry change. Subscribe to registry.version; bump
+    // editorState.registryVersion so the palette recomposes when a session install lands.
+    LaunchedEffect(Unit) {
+        registry.version.drop(1).collect {
+            registryVersion++
+        }
+    }
+
     // NodeGeneratorViewModel for the Node Generator Panel
     val nodeGeneratorViewModel = remember {
         NodeGeneratorViewModel(
             registry = registry,
-            projectRoot = projectRoot
+            projectRoot = projectRoot,
+            autoCompileHook = autoCompileHook
         )
     }
 

@@ -84,7 +84,15 @@ data class NodeGeneratorPanelState(
  */
 class NodeGeneratorViewModel(
     var registry: NodeDefinitionRegistry? = null,
-    var projectRoot: File? = null
+    var projectRoot: File? = null,
+    /**
+     * Feature 086 hook — fired after a CodeNode source file is written to disk.
+     * Default is no-op (pre-feature-086 behavior: rebuild + relaunch required).
+     * The graphEditor wires a real implementation that delegates to
+     * `RecompileSession.recompileGenerated(...)` so the new node appears on the
+     * Node Palette within ~3 seconds (SC-001).
+     */
+    var autoCompileHook: NodeAutoCompileHook = NodeAutoCompileHook.NoOp
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(NodeGeneratorPanelState())
@@ -204,25 +212,33 @@ class NodeGeneratorViewModel(
             return null
         }
 
-        // Intentionally NOT calling reg.registerTemplate(...) here. Pre-this-change, the
-        // Node Generator stamped every output as a template in the registry to make it
-        // visible in the palette without a restart. But a freshly-generated node has no
-        // compiled class on the JVM classpath until the host module is rebuilt and the
-        // GraphEditor relaunched, so the in-palette template entry could be dragged onto
-        // a graph but never executed by Runtime Preview — it just accumulated palette
-        // clutter labeled "(template -- not compiled)". Removing the registration matches
-        // the actual capability: generate-and-execute requires rebuild + relaunch today.
-        //
-        // A future feature is planned to make generate→execute a single-session reality
-        // (hot-compile via embedded kotlinc + custom classloader). When that lands,
-        // re-register the node here as compiled (not as a template) so it's runnable
-        // immediately.
+        // Feature 086 (T035) — fire the auto-compile hook AFTER the file has landed on
+        // disk. The default NoOp implementation reverts to pre-feature-086 behavior
+        // (rebuild + relaunch required); the graphEditor wires a real implementation
+        // that triggers an in-process per-file recompile (US1 / SC-001).
         val moduleName = currentState.activeModulePath
             ?.let { java.io.File(it).name }
             ?: currentState.placementLevel.displayName
+        try {
+            autoCompileHook.onGenerated(
+                file = outputFile,
+                tier = currentState.placementLevel,
+                hostModule = currentState.activeModulePath?.let { java.io.File(it).name }
+            )
+        } catch (e: Exception) {
+            // The hook is fire-and-forget; failures are surfaced through its own
+            // RecompileResult publisher, not through the generator's status. Catch only
+            // synchronous throws so the file write isn't rolled back.
+            _state.update { it.copy(
+                generationSuccess = "Generated ${outputFile.name} (auto-compile hook threw: ${e.message}).",
+                generationError = null
+            ) }
+            reset()
+            return outputFile
+        }
+
         _state.update { it.copy(
-            generationSuccess = "Generated ${outputFile.name}. " +
-                "Rebuild $moduleName + relaunch the GraphEditor to make this node runnable in Runtime Preview.",
+            generationSuccess = "Generated ${outputFile.name} — recompiling…",
             generationError = null
         ) }
         reset()

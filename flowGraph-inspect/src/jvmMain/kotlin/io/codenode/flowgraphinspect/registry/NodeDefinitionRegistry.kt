@@ -60,6 +60,22 @@ class NodeDefinitionRegistry {
     )
 
     /**
+     * Feature 086 (T036) — version counter that increments on every install / revert /
+     * register / template-register / discoverAll call. Palette UIs subscribe to this
+     * flow and refresh when it ticks, so a freshly-installed session definition shows
+     * up without manual user action.
+     *
+     * The counter is monotonically increasing within a single GraphEditor session;
+     * specific values are not meaningful (consumers compare across emissions).
+     */
+    private val _version = kotlinx.coroutines.flow.MutableStateFlow(0L)
+    val version: kotlinx.coroutines.flow.StateFlow<Long> = _version
+
+    private fun bumpVersion() {
+        _version.value = _version.value + 1L
+    }
+
+    /**
      * Scans all three levels for node definitions. Populates internal maps.
      *
      * Side effects:
@@ -70,6 +86,7 @@ class NodeDefinitionRegistry {
     fun discoverAll() {
         discoverCompiledNodes()
         discoverTemplateNodes()
+        bumpVersion()
     }
 
     /**
@@ -176,6 +193,7 @@ class NodeDefinitionRegistry {
      */
     fun register(node: CodeNodeDefinition) {
         compiledNodes[node.name] = node
+        bumpVersion()
     }
 
     // ========== Feature 086: session-aware resolution (FR-017) ==========
@@ -196,12 +214,14 @@ class NodeDefinitionRegistry {
         definition: CodeNodeDefinition
     ) {
         // Replacing the entry drops the prior strong reference to its scope. No event
-        // emission here — RecompileSession is responsible for surfacing user feedback.
+        // emission to RecompileSession's publisher (that's its job) — but we DO bump
+        // the version flow so palette UIs refresh (T036).
         sessionInstalls[nodeName] = SessionInstall(
             scope = scope,
             definition = definition,
             installedAtMs = System.currentTimeMillis()
         )
+        bumpVersion()
     }
 
     /**
@@ -209,7 +229,9 @@ class NodeDefinitionRegistry {
      * launch-time classpath entry, if any. No-op when no session install exists.
      */
     fun revertSessionDefinition(nodeName: String) {
-        sessionInstalls.remove(nodeName)
+        if (sessionInstalls.remove(nodeName) != null) {
+            bumpVersion()
+        }
     }
 
     /**
@@ -235,6 +257,7 @@ class NodeDefinitionRegistry {
      */
     fun registerTemplate(template: NodeTemplateMeta) {
         templateNodes[template.name] = template
+        bumpVersion()
     }
 
     /**
@@ -246,6 +269,7 @@ class NodeDefinitionRegistry {
      */
     fun scanDirectory(directory: File) {
         if (!directory.isDirectory) return
+        var changed = false
         directory.listFiles(java.io.FileFilter { it.extension == "kt" })?.forEach { file ->
             val meta = parseTemplateMetadata(file)
             if (meta != null) {
@@ -256,12 +280,15 @@ class NodeDefinitionRegistry {
                 // source AND compiled class were both available.
                 if (!compiledNodes.containsKey(meta.name)) {
                     tryLoadCompiledNode(file)
+                    changed = changed || compiledNodes.containsKey(meta.name)
                 }
                 if (!compiledNodes.containsKey(meta.name)) {
                     templateNodes[meta.name] = meta
+                    changed = true
                 }
             }
         }
+        if (changed) bumpVersion()
     }
 
     /**
