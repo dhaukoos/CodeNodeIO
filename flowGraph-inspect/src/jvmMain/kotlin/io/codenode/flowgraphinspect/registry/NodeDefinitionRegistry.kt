@@ -106,36 +106,54 @@ class NodeDefinitionRegistry {
     }
 
     /**
-     * Returns a merged list from compiled and template sources, suitable for Node Palette display.
+     * Returns a merged list from session installs, compiled, and template sources,
+     * suitable for Node Palette display.
      *
-     * Ordering: Compiled nodes first, then templates (marked as non-executable).
+     * Ordering and de-duplication (FR-017 applied to palette display):
+     *   1. Session installs FIRST — they're the freshest in-session definitions.
+     *   2. Compiled nodes — skipped when a session install already emitted that name.
+     *   3. Template nodes — skipped when either of the above already emitted that name.
      *
      * @return List of NodeTypeDefinitions for palette display
      */
     fun getAllForPalette(): List<NodeTypeDefinition> {
         val result = mutableListOf<NodeTypeDefinition>()
+        val emittedNames = mutableSetOf<String>()
 
-        // Compiled nodes first
-        compiledNodes.values.forEach { node ->
-            result.add(node.toNodeTypeDefinition())
+        // 1. Session installs (feature 086) — wins per FR-017.
+        sessionInstalls.values.forEach { install ->
+            if (emittedNames.add(install.definition.name)) {
+                result.add(install.definition.toNodeTypeDefinition())
+            }
         }
 
-        // Template nodes (Universal level) -- palette display only
+        // 2. Compiled nodes (launch-time classpath) — only when not already shadowed
+        //    by a session install.
+        compiledNodes.values.forEach { node ->
+            if (emittedNames.add(node.name)) {
+                result.add(node.toNodeTypeDefinition())
+            }
+        }
+
+        // 3. Template nodes (Universal level) — palette display only.
         templateNodes.values.forEach { template ->
-            result.add(templateToNodeTypeDefinition(template))
+            if (emittedNames.add(template.name)) {
+                result.add(templateToNodeTypeDefinition(template))
+            }
         }
 
         return result
     }
 
     /**
-     * Checks whether a node with the given name is compiled (on the classpath).
+     * Checks whether a node with the given name is compiled (on the classpath OR via
+     * an in-session compile install). Both paths produce executable definitions.
      *
      * @param name The node name to check
      * @return true if the node is compiled and executable
      */
     fun isCompiled(name: String): Boolean {
-        return compiledNodes.containsKey(name)
+        return sessionInstalls.containsKey(name) || compiledNodes.containsKey(name)
     }
 
     /**
@@ -145,7 +163,8 @@ class NodeDefinitionRegistry {
      * @return true if the name is taken
      */
     fun nameExists(name: String): Boolean {
-        return compiledNodes.containsKey(name)
+        return sessionInstalls.containsKey(name)
+                || compiledNodes.containsKey(name)
                 || templateNodes.containsKey(name)
     }
 

@@ -23,6 +23,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertSame
+import kotlin.test.assertTrue
 
 class NodeDefinitionRegistryV2Test {
 
@@ -124,5 +125,55 @@ class NodeDefinitionRegistryV2Test {
         // (Existing template-registration uses NodeTemplateMeta; for v2's executable lookup
         // path, only compiled OR session-installed definitions count.)
         assertNull(registry.getByName("TemplateOnlyNode"))
+    }
+
+    /**
+     * Regression test for the VS-A1 user-reported bug — a freshly-generated CodeNode
+     * was successfully session-installed (compile + classloader load + registry install
+     * all green), but it never appeared on the Node Palette because
+     * `getAllForPalette()` only walked compiledNodes + templateNodes. The fix added
+     * sessionInstalls as the FIRST source in the palette merge.
+     */
+    @Test
+    fun `getAllForPalette includes session installs`() {
+        val registry = NodeDefinitionRegistry()
+        registry.installSessionDefinition(fixtureScope(), "FreshlyGenerated", fixtureDefinition("FreshlyGenerated"))
+
+        val palette = registry.getAllForPalette()
+        assertTrue(
+            palette.any { it.name == "FreshlyGenerated" },
+            "session-installed nodes MUST appear on the palette; got: ${palette.map { it.name }}"
+        )
+    }
+
+    @Test
+    fun `getAllForPalette deduplicates session install over launch-time compiled with same name`() {
+        val registry = NodeDefinitionRegistry()
+        registry.register(fixtureDefinition("X"))
+        registry.installSessionDefinition(fixtureScope(), "X", fixtureDefinition("X"))
+
+        val palette = registry.getAllForPalette()
+        val xEntries = palette.filter { it.name == "X" }
+        assertTrue(
+            xEntries.size == 1,
+            "palette MUST emit exactly one entry per name (session install shadows launch-time); got $xEntries"
+        )
+    }
+
+    @Test
+    fun `nameExists returns true for session-installed nodes`() {
+        val registry = NodeDefinitionRegistry()
+        registry.installSessionDefinition(fixtureScope(), "Y", fixtureDefinition("Y"))
+        assertTrue(registry.nameExists("Y"), "nameExists must include sessionInstalls (FR-001 conflict-detection)")
+    }
+
+    @Test
+    fun `isCompiled returns true for session-installed nodes`() {
+        val registry = NodeDefinitionRegistry()
+        registry.installSessionDefinition(fixtureScope(), "Z", fixtureDefinition("Z"))
+        assertTrue(
+            registry.isCompiled("Z"),
+            "isCompiled must include sessionInstalls — they ARE executable, just not from the launch-time classpath"
+        )
     }
 }
