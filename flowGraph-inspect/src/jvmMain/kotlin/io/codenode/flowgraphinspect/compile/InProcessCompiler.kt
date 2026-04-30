@@ -39,6 +39,7 @@ class InProcessCompiler(
         val outputDir = cache.allocate(unit)
 
         val collector = CapturingMessageCollector()
+        val friendPaths = deriveFriendPaths(unit)
         val args = K2JVMCompilerArguments().apply {
             // Source roots — the embeddable compiler accepts file paths in freeArgs.
             freeArgs = unit.sources.map { it.absolutePath }
@@ -48,6 +49,15 @@ class InProcessCompiler(
             noStdlib = true
             noReflect = true
             jvmTarget = "17"
+            // -Xfriend-paths: declare the host module's existing build outputs as
+            // "friend modules" so the in-process compile can access their `internal`
+            // members. Without this, sibling files like DemoUISourceCodeNode.kt that
+            // reference `internal val _a` in DemoUIState.kt fail with "Cannot access
+            // 'val _a': it is internal in 'DemoUIState'" — the in-process compilation
+            // is otherwise treated as a separate Kotlin module from the host JAR.
+            if (friendPaths.isNotEmpty()) {
+                this.friendPaths = friendPaths.toTypedArray()
+            }
         }
 
         val exitCode = try {
@@ -98,6 +108,25 @@ class InProcessCompiler(
             classOutputDir = outputDir.absolutePath,
             loadedDefinitionsByName = loaded
         )
+    }
+
+    /**
+     * Computes `-Xfriend-paths` entries so the in-process compile can access
+     * `internal` members of the host module's already-compiled classes.
+     *
+     * Heuristic: any classpath entry whose path contains `/${moduleName}/build/` for
+     * some module name referenced by [unit]. This catches both the produced JAR
+     * (`{moduleDir}/build/libs/{Module}-jvm-{version}.jar`) and the class output
+     * directory (`{moduleDir}/build/classes/kotlin/jvm/main/`). Both carry the same
+     * `.kotlin_module` metadata that defines the module identity for `internal`
+     * visibility.
+     */
+    private fun deriveFriendPaths(unit: CompileUnit): List<String> {
+        val moduleNames = unit.sources.mapNotNull { it.hostModuleName }.toSet()
+        if (moduleNames.isEmpty()) return emptyList()
+        return classpathSnapshot.entries.filter { entry ->
+            moduleNames.any { mn -> entry.contains("/$mn/build/") }
+        }
     }
 
     /**
