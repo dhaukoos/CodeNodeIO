@@ -74,7 +74,7 @@ class GenerationFileTreeTest {
 
     @Test
     fun `toggleFolder selects all when folder is PARTIAL`() {
-        val partial = sampleTree.toggleFile("controller", "Controller.kt")
+        val partial = sampleTree.toggleFile("controller", "Runtime.kt")
         assertEquals(TriState.PARTIAL, partial.folders.first { it.name == "controller" }.selectionState)
 
         val toggled = partial.toggleFolder("controller")
@@ -85,15 +85,15 @@ class GenerationFileTreeTest {
 
     @Test
     fun `toggleFile deselects individual file`() {
-        val updated = sampleTree.toggleFile("controller", "Controller.kt")
+        val updated = sampleTree.toggleFile("controller", "Runtime.kt")
         val folder = updated.folders.first { it.name == "controller" }
-        assertFalse(folder.files.first { it.name == "Controller.kt" }.isSelected)
+        assertFalse(folder.files.first { it.name == "Runtime.kt" }.isSelected)
         assertTrue(folder.files.first { it.name == "ControllerInterface.kt" }.isSelected)
     }
 
     @Test
     fun `toggleFile updates parent folder to PARTIAL`() {
-        val updated = sampleTree.toggleFile("controller", "Controller.kt")
+        val updated = sampleTree.toggleFile("controller", "Runtime.kt")
         val folder = updated.folders.first { it.name == "controller" }
         assertEquals(TriState.PARTIAL, folder.selectionState)
     }
@@ -102,14 +102,14 @@ class GenerationFileTreeTest {
     fun `toggleFile updates parent to NONE when last file deselected`() {
         var tree = sampleTree
         tree = tree.toggleFile("flow", "Test.flow.kt")
-        tree = tree.toggleFile("flow", "TestFlow.kt")
+        tree = tree.toggleFile("flow", "Stub.kt")
         val folder = tree.folders.first { it.name == "flow" }
         assertEquals(TriState.NONE, folder.selectionState)
     }
 
     @Test
     fun `toggleFile does not affect other folders`() {
-        val updated = sampleTree.toggleFile("controller", "Controller.kt")
+        val updated = sampleTree.toggleFile("controller", "Runtime.kt")
         val flowFolder = updated.folders.first { it.name == "flow" }
         assertEquals(TriState.ALL, flowFolder.selectionState)
     }

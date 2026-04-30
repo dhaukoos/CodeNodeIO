@@ -1,298 +1,268 @@
-# Phase 0 Research: UI-FBP Runtime Preview Gap Analysis
+# Phase 0 Research: UI-FBP Runtime Preview Gap Analysis (post-085)
 
-**Date**: 2026-04-26
-**Feature**: [spec.md](./spec.md) · **Plan**: [plan.md](./plan.md)
+**Date**: 2026-04-28
+**Feature**: [spec.md](./spec.md) · **Plan**: [plan.md](./plan.md) · **Cross-check**: [CROSS-CHECK-085.md](./CROSS-CHECK-085.md)
 
 ## Purpose
 
-This research consolidates the reverse-engineered runtime contract that any UI-FBP-generated module must satisfy in order for the GraphEditor's Runtime Preview panel to load, render, and execute it. It also documents the precise delta between today's UI-FBP generator output (as observed in `CodeNodeIO-DemoProject/TestModule` with `DemoUI.kt`) and that contract.
+This research consolidates the post-085 runtime contract that any UI-FBP-generated module must satisfy in order for (a) the GraphEditor's Runtime Preview panel to load, render, and execute it, AND (b) a production app to consume it without the GraphEditor. The previous (pre-085) iteration of this document targeted the now-deleted thick stack (`{Module}Controller.kt` + `{Module}ControllerAdapter.kt` + `{Module}Flow.kt` runtime); that scope is fully retired by feature 085's universal-runtime collapse. This document replaces it with the post-collapse decisions.
 
-All claims below are grounded in source files referenced by absolute path; line numbers are accurate as of the branch starting point.
+All decisions below are grounded in source files referenced by absolute path; line numbers are accurate as of the branch starting point (post-085 main, 2026-04-28).
+
+There are no `NEEDS CLARIFICATION` items remaining — all five `Session 2026-04-28` clarifications in the spec resolve every open dimension introduced by feature 085's landing.
 
 ---
 
-## Decision 1 (REVISED): Generate the full thick stack (ControllerInterface + Controller + ControllerAdapter + Flow runtime + PreviewProvider), matching today's entity-module pattern, so the module is both Runtime-Preview-loadable AND deployable to a production app
+## Decision 1: Ride the universal runtime collapse — UI-FBP emits `{FlowGraph}ControllerInterface.kt` (extending `ModuleController`) + `{FlowGraph}Runtime.kt` (factory) + `{FlowGraph}PreviewProvider.kt`, identical to the shape every other module now produces
 
-**Background — what an earlier draft of this research got wrong**: An earlier version of this decision claimed that `Controller.kt`, `ControllerAdapter.kt`, and `Flow.kt` runtime files were no longer needed because `ModuleSessionFactory.createControllerProxy` (`flowGraph-execute/src/jvmMain/kotlin/io/codenode/flowgraphexecute/ModuleSessionFactory.kt:108-150`) builds a `java.lang.reflect.Proxy` over `DynamicPipelineController` for every module. That observation is correct **for the GraphEditor's Runtime Preview path only**, but it confused two distinct runtime paths:
+**Rationale**: Feature 085 collapsed the per-module thick runtime trio (Flow + Controller + ControllerAdapter) into a single `controller/{Module}Runtime.kt` factory function `create{Module}Runtime(flowGraph): {Module}ControllerInterface`. The factory constructs a `DynamicPipelineController`, looks up node definitions via a per-module registry, and returns an anonymous `object : {Module}ControllerInterface, ModuleController by controller { override val y = {Module}State.yFlow ... }`. Every reference module (StopWatch, Addresses, UserProfiles, EdgeArtFilter, WeatherForecast) carries this shape, and so does every new module created via feature 085's Generate Module path. UI-FBP modules MUST share this shape so they are deployable via the same `create{Module}Runtime(flowGraph)` consumer pattern documented in `specs/085-collapse-thick-runtime/quickstart.md` VS-D5.
 
-1. **GraphEditor Runtime Preview path** (in-process, reflection-based): `ModuleSessionFactory` constructs a `DynamicPipelineController` and a proxy implementing the module's `ControllerInterface`. Per-module `Controller.kt` / `Adapter.kt` / `Flow.kt` are NOT used here — verified by inspection of `ModuleSessionFactory.kt:51-101`.
-2. **Production-app deployment path** (a built Android/iOS/Desktop app importing the module as a library): The app instantiates the module's per-module `Controller` directly (e.g., `AddressesController(flowGraph)`), which constructs its hand-coded `AddressesFlow()` runtime, wires nodes, and bridges to the app's `ViewModel`. There is no `ModuleSessionFactory`, no reflection, no dynamic proxy. The thick files ARE used here.
+**Generator reuse plan** (no new generator code required for the controller/runtime tier):
 
-WeatherForecast (the newest module in the DemoProject) omits the thick files and works in Runtime Preview, but it is correspondingly **not deployable** to a production app without the GraphEditor — that is a known scope limitation of WeatherForecast, not a project-wide deprecation of the thick stack.
+- `RuntimeControllerInterfaceGenerator` (commonMain, owned by 085) emits `interface X : ModuleController { val y: StateFlow<T> ... }` from a `FlowGraph` plus the controller package path. **Reused as-is.**
+- `ModuleRuntimeGenerator` (commonMain, owned by 085) emits `controller/{FlowGraph}Runtime.kt` from a `FlowGraph` plus the package set. **Reused as-is.**
+- Both are already wired into `GenerationPath.UI_FBP` in `CodeGenerationRunner` (verified at `flowGraph-generate/src/commonMain/kotlin/io/codenode/flowgraphgenerate/runner/CodeGenerationRunner.kt`).
 
-**Decision (per Q1 in spec Clarifications)**: UI-FBP MUST emit the thick stack so its modules can serve **both** scenarios. The artifact set MUST be structurally identical to what today's entity-module generators (`RuntimeControllerGenerator`, `RuntimeControllerAdapterGenerator`, `RuntimeFlowGenerator`) emit for Addresses / UserProfiles / EdgeArtFilter — same package layout, same class shapes, same constructor signatures. Reference shape: `CodeNodeIO-DemoProject/Addresses/src/commonMain/kotlin/io/codenode/addresses/controller/AddressesController.kt` and sibling `flow/AddressesFlow.kt`.
-
-**Future direction (per Q2 in spec Clarifications)**: A separate follow-up feature is expected to collapse the thick stack onto a universal `DynamicPipelineController`-based runtime in fbpDsl, eliminating most per-module boilerplate (`Controller.kt` shrinks to ~10 lines wrapping `DynamicPipelineController`; `ControllerAdapter.kt` and `Flow.kt` runtime disappear entirely; per-module `NodeRegistry` becomes a tiny generated map). UI-FBP modules will participate in that collapse alongside entity modules. Feature 084 stays focused on bringing UI-FBP up to parity with the current entity-module pattern; it does not pioneer the universal-runtime collapse.
+**UIFBPSpec → FlowGraph translation**: UI-FBP today builds a Source CodeNode (whose outputs mirror the Composable's input parameters) and a Sink CodeNode (whose inputs mirror the ViewModel's `StateFlow` properties). Feeding `RuntimeControllerInterfaceGenerator` and `ModuleRuntimeGenerator` requires a `FlowGraph` model with those two nodes. This translation is small (~20–30 lines inside `UIFBPInterfaceGenerator`) and replaces the abandoned pre-085 `UIFBPSpecAdapter` (which would have translated `UIFBPSpec` into the now-deleted `RuntimeControllerSpec`/`RuntimeFlowSpec` inputs).
 
 **Alternatives considered**:
-- *Thin / preview-only* (the original Decision 1). Rejected per Q1 — leaves UI-FBP modules un-deployable.
-- *Pioneer the universal-runtime collapse in 084 itself* (only for UI-FBP; entity modules unchanged). Rejected per Q2 — risks designing the universal shape around UI-FBP-only constraints; better to collapse all modules together in a dedicated feature.
-- *Collapse globally inside 084.* Rejected per Q2 — blast radius too large; would expand 084 to a project-wide refactor.
+
+- *Build a UI-FBP-specific Runtime/Interface generator pair.* Rejected — duplicates what 085 already emits, drifts from entity modules, and re-introduces per-path divergence the universal collapse explicitly retired.
+- *Skip the controller/runtime tier (UI-FBP modules in Runtime Preview only, not deployable).* Rejected per spec — FR-005 (post-clarification) mandates both Runtime-Preview-loadable AND deployable. Skipping deployability would re-create the WeatherForecast gap that 085 closed.
 
 **Source references**:
-- `flowGraph-execute/src/jvmMain/kotlin/io/codenode/flowgraphexecute/ModuleSessionFactory.kt:51-150` (Runtime Preview path)
-- `CodeNodeIO-DemoProject/Addresses/src/commonMain/kotlin/io/codenode/addresses/controller/AddressesController.kt` (thick deployable Controller — reference shape)
-- `flowGraph-generate/src/commonMain/kotlin/io/codenode/flowgraphgenerate/generator/RuntimeControllerGenerator.kt` (existing generator UI-FBP will reuse / call into)
-- `flowGraph-generate/src/commonMain/kotlin/io/codenode/flowgraphgenerate/generator/RuntimeControllerAdapterGenerator.kt`
-- `flowGraph-generate/src/commonMain/kotlin/io/codenode/flowgraphgenerate/generator/RuntimeFlowGenerator.kt`
-- `CodeNodeIO-DemoProject/WeatherForecast/` (counter-example: thin-only, not deployable without GraphEditor)
+
+- `flowGraph-generate/src/commonMain/kotlin/io/codenode/flowgraphgenerate/generator/RuntimeControllerInterfaceGenerator.kt` (post-085 — emits `: ModuleController`)
+- `flowGraph-generate/src/commonMain/kotlin/io/codenode/flowgraphgenerate/generator/ModuleRuntimeGenerator.kt`
+- `flowGraph-generate/src/commonMain/kotlin/io/codenode/flowgraphgenerate/runner/CodeGenerationRunner.kt` (UI_FBP path)
+- `CodeNodeIO-DemoProject/StopWatch/src/commonMain/kotlin/io/codenode/stopwatch/controller/StopWatchRuntime.kt` (canonical post-085 reference shape)
+- `specs/085-collapse-thick-runtime/quickstart.md` VS-D5 (production-app integration template)
 
 ---
 
-## Decision 2: `{Module}ControllerInterface.kt` follows the WeatherForecast / entity-module shape — minimal control surface, with state-flow getters for each port to satisfy the GraphEditor proxy
+## Decision 2: `UIFBPSpec` gains a `composableName: String` field separate from `moduleName`/flowGraphPrefix; `PreviewProviderGenerator` takes that as a separate input so the registry key (flow-graph prefix) decouples from the Composable function call (user-authored name)
 
-**Rationale**: `ModuleSessionFactory.createViewModel` at line 87-88 attempts to load the controller interface from exactly two FQCNs (in order):
+**Rationale**: Per the 2026-04-28 clarification (Q3), the post-082/083 naming model has three potentially-distinct identifiers:
 
-1. `io.codenode.{moduleName.lowercase()}.controller.{ModuleName}ControllerInterface` — **new layout** (target)
-2. `io.codenode.{moduleName.lowercase()}.generated.{ModuleName}ControllerInterface` — legacy fallback (do not emit here)
+| Identifier | Source | Used for |
+|---|---|---|
+| Flow graph prefix | The user-selected `.flow.kt` file's filename minus `.flow.kt` | Generated file prefix; `PreviewRegistry` key (matches `RuntimePreviewPanel`'s lookup); ViewModel/State/ControllerInterface/Runtime class names |
+| Module name | The host module's directory / Gradle project name | Package path (`io.codenode.{module-lowercase}.*`). Independent of the flow graph prefix because a module may host multiple flow graphs |
+| Composable function name | The qualifying UI source file's `@Composable fun X(viewModel: ...)` declaration | The function the `PreviewProvider` actually invokes inside its `register { ... }` lambda. The user authored this and it may not coincide with either of the above |
 
-The proxy handler (lines 114-142) intercepts each call by `method.name`:
-- `start`/`stop`/`pause`/`resume`/`reset` → invoke `DynamicPipelineController.{same}()`, return current `FlowGraph`.
-- `getExecutionState` → return `controller.executionState`.
-- Any other `getXxx` → reflectively read `{Module}State.xxxFlow` field.
-
-**However**, in production-app deployment the consumer is the per-module `{Module}Controller` class (not the proxy), and its constructor wires its own `{Module}Flow()` runtime. The interface methods in that path are implemented by `{Module}Controller` directly, returning `FlowGraph` from its `controller.startAll()` etc.
-
-Generated interface (template — matches `AddressesControllerInterface` / `WeatherForecastControllerInterface` shape):
+Today's `UIFBPSpec.moduleName` field conflates "flow graph prefix", "Composable function name", and historically the module name itself. Splitting the spec into typed fields removes the ambiguity:
 
 ```kotlin
-package io.codenode.{modulename}.controller
+data class UIFBPSpec(
+    val flowGraphPrefix: String,        // For file/class prefixes + PreviewRegistry key
+    val composableName: String,         // For the Composable function call inside PreviewProvider (was conflated with moduleName)
+    val packageName: String,            // For on-disk path translation
+    val sourceOutputs: List<PortInfo>,  // Source CodeNode outputs
+    val sinkInputs: List<PortInfo>,     // Sink CodeNode inputs
+    val ipTypeImports: List<String>,    // FQCNs for generated import lines
+    // moduleName retained for backward compat, derived from packageName, no longer drives generation
+)
+```
 
-import io.codenode.fbpdsl.model.ExecutionState
-import io.codenode.fbpdsl.model.FlowGraph
-import kotlinx.coroutines.flow.StateFlow
-// + IP type imports per spec.ipTypeImports
+**Inherited 085 `PreviewProviderGenerator` change**: today the generator emits `PreviewRegistry.register("{moduleName}") { … {moduleName}(viewModel = vm, modifier = modifier) }` where `moduleName = flowGraph.name.pascalCase()`. The first occurrence (registry key) is correct as-is — the flow graph name is what `RuntimePreviewPanel` looks up. The second occurrence (Composable function call) is wrong when the Composable name diverges. The fix is to add a `composableName: String` parameter to `PreviewProviderGenerator.generate(...)`, default to `flowGraph.name.pascalCase()` for backward compat, and emit:
 
-interface {Module}ControllerInterface {
-    // For each port y exposed by {Module}State as yyyFlow:
-    val {y}: StateFlow<{T}>
-    // ...
-    val executionState: StateFlow<ExecutionState>
-    fun start(): FlowGraph
-    fun stop(): FlowGraph
-    fun pause(): FlowGraph
-    fun resume(): FlowGraph
-    fun reset(): FlowGraph
+```kotlin
+PreviewRegistry.register("$flowGraphPrefix") { viewModel, modifier ->
+    val vm = viewModel as ${flowGraphPrefix}ViewModel
+    $composableName(viewModel = vm, modifier = modifier)
 }
 ```
 
-The set of `val xxx: StateFlow<T>` properties is derived from `UIFBPSpec.sinkInputs` (display outputs the UI observes); source outputs are not exposed on the interface because the UI does not observe them as flows in the entity-module pattern. **All flow names emitted in the interface MUST exist as `xxxFlow` properties on `{Module}State`** — already true for current UI-FBP-generated state objects (verified in `TestModule/src/commonMain/kotlin/io/codenode/demo/viewmodel/DemoUIState.kt`). This satisfies both the GraphEditor proxy's reflection lookup AND the production-app `{Module}Controller`'s direct field implementation (where the controller exposes the per-port `StateFlow`s as members backed by its `{Module}Flow` runtime).
+Existing 085 callers (every entity module currently using the convention `{Module}() composable name == {Module}State` etc.) get the no-divergence default and continue to work. UI-FBP callers pass the parser-extracted `composableName`.
 
 **Alternatives considered**:
-- *Minimal interface (executionState + control methods only, like WeatherForecast).* Rejected — works for Runtime Preview where the ViewModel reads State directly, but for production-app deployment we want the controller surface to expose the typed flows so consuming apps can bind to the interface (not to a concrete State object).
-- *Mirror source outputs as readable flows on the interface.* Rejected — entity modules don't do this; the UI emits via `viewModel.emit(...)` but doesn't observe source values back through the controller. Keeping the interface minimal-but-complete (sink ports only) matches existing precedent.
-- *Place interface in the legacy `generated/` subpackage.* Rejected — fallback supported but accumulates legacy debt.
+
+- *Have UI-FBP emit its own `UIFBPPreviewProviderGenerator` that ignores the inherited 085 generator.* Rejected — duplicates ~30 lines of trivial registration code and drifts the two paths. Adding one parameter to the shared generator is strictly less code AND keeps every module's preview-registration shape identical.
+- *Force the user to rename the Composable to match the flow graph prefix.* Rejected — violates the post-082/083 design that allows multiple flow graphs per module (potentially each with their own UI file using arbitrary user-authored Composable names). Also infringes user authorial control.
+- *Auto-rename inside the generator.* Rejected — silent rewriting of user-authored source is a usability disaster and breaks the user's other call sites.
 
 **Source references**:
-- `flowGraph-execute/src/jvmMain/kotlin/io/codenode/flowgraphexecute/ModuleSessionFactory.kt:84-142` (Runtime Preview FQCN + proxy)
-- `CodeNodeIO-DemoProject/Addresses/src/commonMain/kotlin/io/codenode/addresses/controller/AddressesControllerInterface.kt` (reference shape — entity module)
-- `CodeNodeIO-DemoProject/WeatherForecast/src/commonMain/kotlin/io/codenode/weatherforecast/controller/WeatherForecastControllerInterface.kt` (reference shape — minimal variant)
+
+- `flowGraph-generate/src/commonMain/kotlin/io/codenode/flowgraphgenerate/generator/PreviewProviderGenerator.kt` (085 — to be extended)
+- `flowGraph-generate/src/commonMain/kotlin/io/codenode/flowgraphgenerate/parser/UIFBPSpec.kt` (current shape — to be extended)
+- `flowGraph-generate/src/commonMain/kotlin/io/codenode/flowgraphgenerate/parser/UIComposableParser.kt` (already extracts the function name; just needs to populate the new field)
+- `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/RuntimePreviewPanel.kt` (uses `flowGraphName` as the registry-key lookup)
 
 ---
 
-## Decision 3: Generate `{Module}PreviewProvider.kt` in `src/jvmMain/kotlin/{pkg}/userInterface/`
+## Decision 3: `UIFBPViewModelGenerator` emits a constructor `({FlowGraph}ControllerInterface)` and reads flows directly from `{FlowGraph}State` — matching the post-085 entity-module ViewModel shape
 
-**Rationale**: `DynamicPreviewDiscovery.discoverAndRegister` (`flowGraph-inspect/src/jvmMain/kotlin/io/codenode/flowgraphinspect/discovery/DynamicPreviewDiscovery.kt:30-54`) walks a directory non-recursively, picks files whose name ends with `PreviewProvider.kt`, parses the `package` declaration and the `object Xxxx PreviewProvider` declaration with a regex, then reflectively loads the class, fetches the `INSTANCE` field, and invokes the `register()` method.
+**Rationale**: `flowGraph-execute/src/jvmMain/kotlin/io/codenode/flowgraphexecute/ModuleSessionFactory.tryCreateViewModel` attempts ViewModel construction with one of: `(ControllerInterface)` or `(ControllerInterface, Dao)`. If neither matches, it falls back to returning `RuntimeSession(controller, Any(), …)`, and the cast `viewModel as {FlowGraph}ViewModel` inside the `PreviewProvider` throws `ClassCastException` at runtime. So the generated ViewModel **must** declare a public single-arg constructor accepting the typed ControllerInterface.
 
-`GraphEditorApp.kt:130-146` walks each module looking at both `src/commonMain/kotlin` and `src/jvmMain/kotlin`, finds any directory named `userInterface`, and runs the discovery on it. So a `PreviewProvider.kt` in either source set is reachable; we choose `jvmMain` to mirror StopWatch's convention and to localize the `preview-api` dependency to the JVM target (it is needed only for desktop preview).
-
-Generated provider (template):
+Today's UI-FBP-generated ViewModel (`TestModule/.../viewmodel/DemoUIViewModel.kt`) has a no-arg constructor and writes directly to `DemoUIState` mutable fields. Required redesign (mirrors `WeatherForecastViewModel` and `AddressesViewModel`):
 
 ```kotlin
-/*
- * {Module}PreviewProvider — Registers {Module} preview composable for the runtime panel
- * License: Apache 2.0
- */
-
-package io.codenode.{modulename}.userInterface
-
-import androidx.compose.ui.Modifier
-import io.codenode.previewapi.PreviewRegistry
-import io.codenode.{modulename}.viewmodel.{Module}ViewModel
-
-object {Module}PreviewProvider {
-    fun register() {
-        PreviewRegistry.register("{Module}") { viewModel, modifier ->
-            val vm = viewModel as {Module}ViewModel
-            {Module}(viewModel = vm, modifier = modifier)
-        }
-    }
-}
-```
-
-The lookup key is the **Composable function name**, not the module name. In `RuntimePreviewPanel.kt:108-116`, `composables` is discovered by scanning the userInterface dir for `@Composable fun X(viewModel: ...)` declarations, and the panel defaults to the entry whose name equals `flowGraphName`. UI-FBP today derives `flowGraphName` from `spec.moduleName` (which, for current usage, equals the Composable function name). The PreviewProvider registers under that same name. **Edge alignment requirement**: if a future change makes the Composable function name diverge from the module name, this contract breaks; the generator MUST register under the *Composable function name*, which is captured today as `spec.moduleName` and validated at parse time.
-
-**Alternatives considered**:
-- *Place PreviewProvider in `commonMain`.* Possible (PreviewRegistry is in `preview-api/commonMain`). Rejected — StopWatch precedent puts it in `jvmMain`, and keeping the `preview-api` dependency JVM-only avoids dragging a Compose-Desktop-flavored API into Android/iOS targets.
-- *Register multiple Composables per module (à la StopWatch's `StopWatch` + `StopWatchScreen`).* Out of scope — UI-FBP's input is exactly one qualifying Composable. Multi-UI support is gated by FR-017.
-
-**Source references**:
-- `flowGraph-inspect/src/jvmMain/kotlin/io/codenode/flowgraphinspect/discovery/DynamicPreviewDiscovery.kt:30-54`
-- `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/GraphEditorApp.kt:130-146`
-- `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/RuntimePreviewPanel.kt:108-116, 435-450`
-- `preview-api/src/commonMain/kotlin/io/codenode/previewapi/PreviewRegistry.kt`
-
----
-
-## Decision 4: Modify the generated `ViewModel` to take `({Module}ControllerInterface)` and follow the entity-module ViewModel shape — flows from State, control methods through controller
-
-**Rationale**: `ModuleSessionFactory.tryCreateViewModel` (lines 157-188) attempts ViewModel construction in this order:
-
-1. Single-arg constructor whose first parameter accepts the `ControllerInterface`.
-2. Two-arg constructor `(ControllerInterface, Dao)` — used by entity modules with Koin-resolved DAOs.
-
-If neither matches, `createSession` falls back to returning `RuntimeSession(controller, Any(), ...)` (line 69), and the cast `viewModel as {Module}ViewModel` inside the PreviewProvider throws `ClassCastException` at runtime. So the generated ViewModel **must** declare a public single-arg constructor that accepts the ControllerInterface.
-
-The current generated ViewModel (`TestModule/src/commonMain/kotlin/io/codenode/demo/viewmodel/DemoUIViewModel.kt`) has a no-arg constructor, exposes flows directly from `{Module}State`, and provides an `emit(...)` that mutates `{Module}State` fields. Redesign (matches `WeatherForecastViewModel` / `AddressesViewModel` shape):
-
-```kotlin
-package io.codenode.{modulename}.viewmodel
+package io.codenode.{module}.viewmodel
 
 import androidx.lifecycle.ViewModel
 import io.codenode.fbpdsl.model.ExecutionState
-import io.codenode.fbpdsl.model.FlowGraph
-import io.codenode.{modulename}.controller.{Module}ControllerInterface
-import io.codenode.{modulename}.{Module}State    // imports State from same module
-import kotlinx.coroutines.flow.StateFlow
+import io.codenode.{module}.controller.{FlowGraph}ControllerInterface
 // + IP type imports
 
-class {Module}ViewModel(
-    private val controller: {Module}ControllerInterface
+class {FlowGraph}ViewModel(
+    private val controller: {FlowGraph}ControllerInterface
 ) : ViewModel() {
-    // Observable state from module properties — read directly from State
-    val {y}: StateFlow<{T}> = {Module}State.{y}Flow
-    // ... (one per sinkInput)
-
-    // Execution state from controller
+    val {y}: StateFlow<{T}> = {FlowGraph}State.{y}Flow
     val executionState: StateFlow<ExecutionState> = controller.executionState
 
-    // Source emit method — writes to State mutable fields
     fun emit({sourceOutputs as parameters}) {
-        {Module}State._{a}.value = {a}
-        // ... etc.
+        {FlowGraph}State._{a}.value = {a}
     }
 
-    // Control methods delegate to controller
-    fun start(): FlowGraph = controller.start()
-    fun stop(): FlowGraph = controller.stop()
-    fun pause(): FlowGraph = controller.pause()
-    fun resume(): FlowGraph = controller.resume()
-    fun reset(): FlowGraph = controller.reset()
+    // Control methods come via ModuleController-by-controller delegation;
+    // the ViewModel can simply re-expose them or call them inline.
 }
 ```
 
-This matches both reference shapes: `WeatherForecastViewModel` (flows read from `WeatherForecastState.xxxFlow` directly, control methods through controller) and `AddressesViewModel` (same pattern with an additional DAO injected for repository observation). The pattern works with both runtime paths:
-- **Runtime Preview**: the GraphEditor's proxy implements the interface; `controller.start()` etc. delegate to `DynamicPipelineController`. The flows the ViewModel reads from `{Module}State` are mutated by Source/Sink CodeNodes running inside the dynamic pipeline.
-- **Production app**: the per-module `{Module}Controller` implements the interface directly; `controller.start()` constructs the hand-coded `{Module}Flow()` runtime. The same `{Module}State` fields are mutated by the same Source/Sink CodeNodes (which use the same factory methods regardless of which controller drives them).
+The `emit(...)` body continues to write directly to `{FlowGraph}State._x` mutable fields (preserves today's UI-write semantics). The Source CodeNode's runtime body observes those fields and emits into the FBP graph. Sink-input flows are read from `{FlowGraph}State.{y}Flow` (not via `controller.{y}`) — matches WeatherForecast/Addresses precedent. Same code works under both runtime paths because both mutate the same `{FlowGraph}State` singleton.
 
-The `emit(...)` method continues to write directly to `{Module}State._x` mutable fields. The Source CodeNode's runtime body observes those fields and emits into the FBP graph.
+**Control method delegation**: post-085, `{FlowGraph}ControllerInterface` extends `ModuleController`, so `start/stop/pause/resume/reset/getStatus/setAttenuationDelay/setEmissionObserver/setValueObserver` are inherited. The ViewModel's `controller: {FlowGraph}ControllerInterface` field can call them directly without redeclaration.
 
 **Alternatives considered**:
-- *Keep the no-arg constructor.* Rejected — fails ModuleSessionFactory's reflection lookup; PreviewProvider cast throws.
-- *Read flows through the controller (`val y = controller.y`) instead of directly from State.* Rejected — diverges from WeatherForecast/Addresses precedent and adds an unnecessary indirection layer (the controller's flow accessors ultimately resolve to State fields anyway).
-- *Use a property setter for the controller.* Rejected — diverges from the entity-module convention.
+
+- *Keep the no-arg constructor.* Rejected — fails `ModuleSessionFactory.tryCreateViewModel`'s reflection lookup; PreviewProvider cast throws.
+- *Read flows through the controller (`val y = controller.y`) instead of from State.* Rejected — diverges from WeatherForecast/Addresses precedent; adds an unnecessary indirection (the controller's flow accessors ultimately resolve to State fields anyway).
+- *Use a property setter for the controller.* Rejected — diverges from convention; `ModuleSessionFactory` only matches constructors.
 
 **Source references**:
-- `flowGraph-execute/src/jvmMain/kotlin/io/codenode/flowgraphexecute/ModuleSessionFactory.kt:157-188` (tryCreateViewModel)
+
+- `flowGraph-execute/src/jvmMain/kotlin/io/codenode/flowgraphexecute/ModuleSessionFactory.kt` (`tryCreateViewModel` reflection lookup)
 - `CodeNodeIO-DemoProject/WeatherForecast/src/commonMain/kotlin/io/codenode/weatherforecast/viewmodel/WeatherForecastViewModel.kt` (reference shape — minimal)
 - `CodeNodeIO-DemoProject/Addresses/src/commonMain/kotlin/io/codenode/addresses/viewmodel/AddressesViewModel.kt` (reference shape — with DAO)
-- `CodeNodeIO-DemoProject/TestModule/src/commonMain/kotlin/io/codenode/demo/viewmodel/DemoUIViewModel.kt` (current UI-FBP shape — to be revised)
+- `CodeNodeIO-DemoProject/TestModule/src/commonMain/kotlin/io/codenode/demo/viewmodel/DemoUIViewModel.kt` (current shape — to be revised)
 
 ---
 
-## Decision 5: Ensure the module's `build.gradle.kts` has a `jvm()` target and a `jvmMain` `preview-api` dependency
+## Decision 4: `UIFBPStateGenerator` emits to `viewmodel/` subpackage; `{FlowGraph}State` lives at `io.codenode.{module}.viewmodel.{FlowGraph}State`
 
-**Rationale**: The existing `TestModule/build.gradle.kts` declares `androidTarget()` only — no `jvm()` target. Without `jvm()`, the module's compiled classes are not on the GraphEditor's JVM classpath, so `Class.forName(fqcn)` in `ModuleSessionFactory` and `DynamicPreviewDiscovery` will return `ClassNotFoundException` and silently skip. The PreviewProvider also depends on `io.codenode:preview-api`, which is not declared in `TestModule` today.
+**Rationale**: `ModuleSessionFactory` looks up the State at `io.codenode.{module}.viewmodel.{FlowGraph}State` first, with `io.codenode.{module}.{FlowGraph}State` as a fallback. Today's UI-FBP generator emits to the base package directly; entity modules (and post-085 expectation) emit to `viewmodel/`. Aligning UI-FBP avoids the fallback path and matches the canonical layout.
 
-Required edits to `build.gradle.kts`:
+Combined with Decision 6 (legacy `saved/` cleanup), the result is a single canonical State location: `commonMain/kotlin/{packagePath}/viewmodel/{FlowGraph}State.kt`.
 
-1. Add `jvm { compilations.all { kotlinOptions.jvmTarget = "17" } }` block.
-2. Add `val jvmMain by getting { dependencies { implementation("io.codenode:preview-api") } }` source-set block.
-3. Apply the default hierarchy template if not already present (so iOS source sets work alongside jvm).
+**Alternatives considered**: Emit to base package (current behavior). Rejected — accumulates legacy debt; relies on the fallback FQCN.
 
-The `UIFBPSaveService` (new) is responsible for applying these edits idempotently — a presence check for `jvm {` and for the `preview-api` dependency, with insertions only if missing. Robustness expectation: if the module's `build.gradle.kts` is not in a recognized format (e.g., heavily customized), the service MUST emit a warning naming the missing pieces and skip the auto-edit, leaving the user to apply them by hand.
+---
+
+## Decision 5: Build wiring (`jvm()` target + `preview-api` dep) is fully delegated to feature 085's `ModuleGenerator` scaffolding; UI-FBP detects an unscaffolded host and refuses with an actionable error rather than mutating `build.gradle.kts`
+
+**Rationale**: Per the 2026-04-28 clarification (Q4), `ModuleGenerator` (feature 085's module-scaffolding generator) already emits `jvm() { ... }` and `implementation("io.codenode:preview-api")` in `jvmMain` for every module created via the Generate Module path (verified at `flowGraph-generate/.../ModuleGenerator.kt:170, 329, 331`). Modules created by 085's scaffolding have the right wiring out of the box; UI-FBP runs against them with no edits.
+
+For pre-scaffolding-era modules (the only known case is `TestModule`), the user runs a one-time migration documented in `quickstart.md` VS-A1 — adding the `jvm()` block and the `preview-api` dependency by hand (or with the help of a small shell script — see VS-A1). UI-FBP MUST detect a missing `jvm()` target or `preview-api` dep before emitting any output and fail fast with an actionable error pointing at VS-A1.
+
+**Detection heuristic** (in `UIFBPSaveService`):
+
+1. Read host module's `build.gradle.kts` as text.
+2. Confirm the file contains `jvm` followed by `{` (allowing whitespace/newlines) — covers `jvm()`, `jvm {`, `jvm(IR)`, `jvm("desktop") { }`.
+3. Confirm the file contains `io.codenode:preview-api` (string match — the simplest robust check).
+4. If either is missing, return `UIFBPSaveResult(success = false, errorMessage = "host module is unscaffolded; run quickstart.md VS-A1 migration first: missing {jvm()|preview-api dep}")`.
 
 **Alternatives considered**:
-- *Have the user wire the build script manually.* Rejected — violates SC-007 ("no documentation needed about additional generated files or build wiring").
-- *Have the project-level scaffold pre-add `jvm()` to every new module.* Out of scope per spec assumption ("module scaffolding handled separately"). However, an aligned change in module scaffolding to default to `jvm()` would make this gradle touch-up a no-op for new modules — a follow-up worth flagging.
+
+- *Auto-insert the missing entries.* Rejected — silent mutation of user-authored build scripts. Risks breaking heavily customized configurations.
+- *Run UI-FBP unconditionally and let the compile fail.* Rejected — failure mode is opaque; the user has to dig through compile errors to discover the cause. Failing at the generator surface with a precise message is the correct UX.
 
 **Source references**:
-- `CodeNodeIO-DemoProject/TestModule/build.gradle.kts` (current shape)
-- `CodeNodeIO-DemoProject/StopWatch/build.gradle.kts:17-79` (target shape we're aligning to)
+
+- `flowGraph-generate/src/commonMain/kotlin/io/codenode/flowgraphgenerate/generator/ModuleGenerator.kt` (085's scaffolding generator — already emits the right entries)
+- `CodeNodeIO-DemoProject/StopWatch/build.gradle.kts:65` (`implementation("io.codenode:preview-api")`)
+- `CodeNodeIO-DemoProject/TestModule/build.gradle.kts` (legacy — needs the one-time migration)
 
 ---
 
-## Decision 6: Remove the legacy `saved/` package; UI-FBP regenerates only into `viewmodel/`
+## Decision 6: Remove the legacy `saved/` package; UI-FBP regenerates only into `viewmodel/`. Migration is opt-in via `UIFBPSaveOptions(deleteLegacyLocations = true)`, default off
 
-**Rationale**: `TestModule/src/commonMain/kotlin/io/codenode/demo/saved/` contains a parallel pair of `DemoUIState.kt` and `DemoUIViewModel.kt` that conflict with the same files in `viewmodel/`. The `userInterface/DemoUI.kt` currently imports from `saved/` (`import io.codenode.demo.saved.DemoUIViewModel`), and this is the legacy import path. The runtime side (`ModuleSessionFactory:84-98`) prefers `viewmodel/` first.
+**Rationale**: `TestModule/src/commonMain/kotlin/io/codenode/demo/saved/` contains a parallel pair of `DemoUIState.kt` and `DemoUIViewModel.kt` that conflict with the same files in `viewmodel/`. The `userInterface/DemoUI.kt` currently imports from `saved/`. Today's UI-FBP runs to base package; tomorrow it emits to `viewmodel/` (Decision 4). Three alternatives for handling the duplicate:
 
-The current `UIFBPInterfaceGenerator.generateAll` (line 31 of the existing source) writes State and ViewModel to `src/commonMain/kotlin/$basePath/${spec.moduleName}State.kt` and `${spec.viewModelTypeName}.kt` — i.e., the **base package**, not `saved/` and not `viewmodel/`. So the `saved/` files in TestModule are stale output from an even older generator iteration. Today's UI-FBP would emit to base package; we are changing it to emit to `viewmodel/` to match the new layout the runtime prefers.
+1. **Always delete legacy locations** when re-generating. Risks deleting user-edited files.
+2. **Leave them in place.** Fails SC-002 (clean compile) due to duplicate symbol declarations and breaks the `ModuleSessionFactory` State lookup.
+3. **Opt-in via `UIFBPSaveOptions(deleteLegacyLocations = true)`, default off.** ✓ Caller (UI-FBP UI) decides; `quickstart.md` VS-A1 documents the one-time TestModule migration as the canonical opt-in trigger.
 
-Plan:
+The opt-in posture composes with the FR-016 hand-edit safety check: even when `deleteLegacyLocations = true`, files lacking the `Generated by CodeNodeIO` marker are NOT deleted (they're surfaced via `SKIPPED_CONFLICT` in the structured `UIFBPSaveResult`).
 
-- Generator emits all State/ViewModel files to `commonMain/kotlin/$basePath/viewmodel/`.
-- `UIFBPSaveService` MAY (with user opt-in via flag, default off) delete known-stale-locations: a `saved/` directory containing files matching the old naming convention, AND any `${moduleName}State.kt` / `${moduleName}ViewModel.kt` directly in the base package. Default-off because deleting user files without consent violates the "behavior under conflict" requirement (FR-016).
-- For the `TestModule` migration, `quickstart.md` documents a one-line manual `rm -rf src/commonMain/kotlin/io/codenode/demo/saved/` step and updates `DemoUI.kt` to import from `viewmodel/`. After that one-time migration, re-running UI-FBP keeps the module clean.
+**Alternatives considered** — all enumerated above; the opt-in default-off variant is the lowest-risk choice.
 
-**Alternatives considered**:
-- *Always delete legacy locations.* Rejected — risks deleting user-edited files.
-- *Leave duplicates in place.* Rejected — fails SC-002 (clean compile) due to duplicate symbol declarations and breaks `ModuleSessionFactory`'s state lookup (it picks one and the other's mutations go to a phantom State).
+**Source references**:
+
+- `CodeNodeIO-DemoProject/TestModule/src/commonMain/kotlin/io/codenode/demo/saved/` (legacy duplicate)
+- `flowGraph-generate/src/jvmMain/kotlin/io/codenode/flowgraphgenerate/runner/GenerationFileWriter.kt` (post-085 reference for marker-comment detection — `carriesGeneratorMarker`)
 
 ---
 
-## Decision 7: Re-generation preserves user-added content of `.flow.kt` by merging at the FlowGraph DSL level, not by rewriting the file
+## Decision 7: Re-generation preserves user-added content of `.flow.kt` by merging at the FlowGraph DSL level via `FlowKtParser` + `FlowGraphSerializer`, never by text rewriting
 
-**Rationale**: FR-011/FR-012 require that re-running UI-FBP not destroy user-added CodeNodes and connections. The simplest implementation is:
+**Rationale**: FR-011/FR-012 require that re-running UI-FBP not destroy user-added CodeNodes and connections. The mechanism:
 
-1. If `.flow.kt` does not exist, emit the bootstrap (existing behavior of `generateBootstrapFlowKt`).
-2. If `.flow.kt` exists, parse it via `flowGraph-persist/FlowKtParser` to obtain a `FlowGraph` model, compute the new Source/Sink CodeNode port sets from `UIFBPSpec`, then update the existing CodeNodes in-place: add new ports, remove ports the user no longer has in the UI, and drop only those connections that reference removed ports. Re-serialize via `flowGraph-persist/FlowGraphSerializer`.
-3. Surface a structured summary listing: new ports added, ports removed, connections dropped (with from/to identifiers), and a flag indicating whether user-added CodeNodes were preserved (always true if step 2 succeeds).
+1. If `.flow.kt` does not exist, emit the bootstrap (today's behavior, preserved).
+2. If `.flow.kt` exists, parse it via `flowGraph-persist/FlowKtParser` into a `FlowGraph` model. Compute the new Source/Sink CodeNode port sets from the post-clarification `UIFBPSpec`. Update existing CodeNodes in-place: add new ports, remove ports the user no longer has in the UI, drop only those connections that reference removed ports. Re-serialize via `flowGraph-persist/FlowGraphSerializer`.
+3. Surface a structured `FlowKtMergeReport` (mode = CREATED/UPDATED/UNCHANGED/PARSE_FAILED_SKIPPED, plus port-level diff and dropped-connection list).
 
-If parsing fails (the user manually edited `.flow.kt` into a non-parseable shape), the generator MUST NOT overwrite — it MUST emit an error and direct the user to fix or remove the file. This satisfies FR-016.
+If parsing fails (the user manually edited `.flow.kt` into a non-parseable shape), the generator MUST NOT overwrite — emit an error and direct the user to fix or remove the file (FR-016 spirit applied to graph contents). Mode `PARSE_FAILED_SKIPPED` records this.
 
 **Alternatives considered**:
-- *Always overwrite with bootstrap.* Rejected — destroys user work; fails FR-011/012.
-- *Append-only (never modify existing CodeNodes).* Rejected — won't propagate UI signature changes; user would need to manually edit Source/Sink ports.
+
+- *Always overwrite with bootstrap.* Rejected — destroys user work; fails FR-011/FR-012.
+- *Append-only (never modify existing CodeNodes).* Rejected — won't propagate UI-signature changes; user would need to manually edit Source/Sink ports.
 - *Diff at the text level.* Rejected — fragile; `.flow.kt` is structured DSL and round-trips cleanly through the existing parser/serializer.
 
 **Source references**:
-- `flowGraph-persist/src/commonMain/kotlin/io/codenode/flowgraphpersist/FlowKtParser.kt`
-- `flowGraph-persist/src/commonMain/kotlin/io/codenode/flowgraphpersist/FlowGraphSerializer.kt`
-- `flowGraph-generate/src/commonMain/kotlin/io/codenode/flowgraphgenerate/generator/UIFBPInterfaceGenerator.kt:75-110` (current bootstrap)
+
+- `flowGraph-persist/src/jvmMain/kotlin/io/codenode/flowgraphpersist/serialization/FlowKtParser.kt`
+- `flowGraph-persist/src/jvmMain/kotlin/io/codenode/flowgraphpersist/serialization/FlowGraphSerializer.kt` (or its commonMain analog)
 
 ---
 
-## Decision 8: All new generators live in `commonMain` of `flowGraph-generate`; the filesystem-touching `UIFBPSaveService` lives in `jvmMain`
+## Decision 8: All new generators stay in `commonMain` of `flowGraph-generate`; the filesystem-touching `UIFBPSaveService` lives in `jvmMain`
 
-**Rationale**: The existing UI-FBP generators are all in `commonMain` (verified by inspecting `UIFBPInterfaceGenerator.kt`). They produce `String` content from `UIFBPSpec` input and have no I/O. Maintaining this discipline keeps the generators pure and unit-testable in `commonTest` without filesystem fixtures.
+**Rationale**: Existing UI-FBP generators are all in `commonMain` (verified). They produce `String` content from typed input and have no I/O, which keeps them pure and unit-testable in `commonTest` without filesystem fixtures. The merge logic for `.flow.kt` (Decision 7), the `build.gradle.kts` detect-and-refuse (Decision 5), legacy `saved/` cleanup (Decision 6), and structured-result emission are I/O- and project-aware and live in a new `UIFBPSaveService` in `jvmMain`. This service composes the pure generators, calls the `flowGraph-persist` parser/serializer (also commonMain but invoked from jvm), writes outputs, and emits `UIFBPSaveResult`. Tests for `UIFBPSaveService` live in `jvmTest` against tmpdir fixtures.
 
-The merge logic for `.flow.kt` (Decision 7) and the `build.gradle.kts` touch-up (Decision 5) are I/O- and project-aware and live in a new `UIFBPSaveService` in `jvmMain`. This service composes the pure generators, calls the `flowGraph-persist` parser/serializer (also commonMain but invoked from jvm), writes outputs, and emits the structured summary. Tests for `UIFBPSaveService` are integration tests in `jvmTest` against tmpdir fixtures.
+This is the same `commonMain pure / jvmMain orchestrator` discipline established by feature 085's `GenerationFileWriter` and respected throughout `flowGraph-generate`.
 
 **Alternatives considered**:
-- *Put everything in `jvmMain`.* Rejected — breaks KMP-first principle (constitution + memory note `feedback_kmp_first.md`).
+
+- *Put everything in `jvmMain`.* Rejected — breaks KMP-first principle.
 - *Put I/O in `commonMain` via `okio`.* Rejected — adds a dependency for marginal benefit; the only consumer is the desktop GraphEditor.
 
 ---
 
-## Summary: Closing-the-Gap Checklist
+## Decision 9: UI-FBP takes its inputs as an explicit `{flow graph (.flow.kt), qualifying UI file}` pair from the user via GraphEditor file selectors, mirroring feature 085's Generate Module pattern; no implicit module scanning
+
+**Rationale**: Per the 2026-04-28 clarification (Q5), features 082/083 made multiple flow graphs per module the norm. A given module can host any number of `.flow.kt` files and any number of qualifying UI files. Implicit scanning to "discover" the right pair would either (a) refuse with a confusing error when more than one of either kind exists, or (b) silently pick a first match and surprise the user. Both fail.
+
+The clean pattern: the user explicitly selects both inputs in the GraphEditor's file selectors (the same pattern already in production use for feature 085's Generate Module path's `.flow.kt` selector). UI-FBP's caller (the GraphEditor's UI-FBP code-generation entry point) supplies both as explicit arguments; the generator does no scanning and refuses to operate without both.
+
+This also retires the pre-clarification FR-017 ("refuse on more than one qualifying UI file") — that was a workaround for the ambiguity the explicit-pair model removes structurally.
+
+**Alternatives considered**:
+
+- *Implicit scan, refuse on ambiguity.* Rejected — confusing error UX; doesn't compose with the multi-flow-graph-per-module reality.
+- *Implicit scan, silent first-match.* Rejected — surprising; violates principle of least astonishment.
+- *Caller supplies pair OR scan if there's exactly one of each.* Rejected — adds branching for marginal benefit; explicit-pair is the only path that scales to the post-082/083 model.
+
+**Source references**:
+
+- `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/ui/CodeGeneratorPanel.kt` (085's Generate Module file selector — pattern to mirror)
+- `graphEditor/src/jvmMain/kotlin/io/codenode/grapheditor/viewmodel/CodeGeneratorViewModel.kt` (`selectFlowGraphFile` already wired for Generate Module; UI-FBP path will reuse the pattern)
+
+---
+
+## Summary: Closing-the-Gap Checklist (post-085)
 
 | Artifact | Today (UI-FBP) | Target | Owner |
 |---|---|---|---|
-| `{Module}State.kt` | Emitted to base package; canonical copy in `viewmodel/` exists in TestModule | Emit to `viewmodel/` | `UIFBPStateGenerator` (path change in orchestrator) |
-| `{Module}ViewModel.kt` | No-arg constructor; flows from State directly | `(ControllerInterface)` constructor; flows from State; control methods through controller (matches WeatherForecast/Addresses shape) | `UIFBPViewModelGenerator` (signature change) |
-| `{Module}SourceCodeNode.kt` | Emitted to `nodes/` | Unchanged | `UIFBPSourceCodeNodeGenerator` |
-| `{Module}SinkCodeNode.kt` | Emitted to `nodes/` | Unchanged | `UIFBPSinkCodeNodeGenerator` |
-| `{Module}ControllerInterface.kt` | **Not generated** | Emit to `controller/` | **NEW** `UIFBPControllerInterfaceGenerator` (or reuse `RuntimeControllerInterfaceGenerator` if its inputs align) |
-| `{Module}Controller.kt` | **Not generated** | Emit to `controller/` (thick deployable) | **REUSE** `RuntimeControllerGenerator` (entity-module path) |
-| `{Module}ControllerAdapter.kt` | **Not generated** | Emit to `controller/` (thick deployable) | **REUSE** `RuntimeControllerAdapterGenerator` |
-| `{Module}Flow.kt` (runtime) | **Not generated** | Emit to `flow/` (thick deployable) | **REUSE** `RuntimeFlowGenerator` |
-| `{Module}PreviewProvider.kt` | **Not generated** | Emit to `jvmMain/.../userInterface/` | **NEW** `UIFBPPreviewProviderGenerator` |
-| `.flow.kt` | Optional bootstrap | Parse-and-merge if present | `UIFBPSaveService` |
-| `build.gradle.kts` | Untouched | Idempotent edit: add `jvm()` + `preview-api` | `UIFBPSaveService` |
-| Legacy `saved/` package | Present in TestModule | One-time delete (manual or opt-in flag) | `quickstart.md` |
+| `{FlowGraph}State.kt` | Emitted to base package; conflicts with `viewmodel/` copy in TestModule | Emit to `viewmodel/`; prefix from flow-graph (not module) | `UIFBPStateGenerator` (path + prefix change) |
+| `{FlowGraph}ViewModel.kt` | No-arg constructor; flows from State directly | `({FlowGraph}ControllerInterface)` constructor; flows from State; control methods through controller; prefix from flow-graph | `UIFBPViewModelGenerator` (signature + prefix change) |
+| `{FlowGraph}SourceCodeNode.kt` | Emitted to `nodes/` | `nodes/`; prefix from flow-graph | `UIFBPSourceCodeNodeGenerator` (prefix change minimal) |
+| `{FlowGraph}SinkCodeNode.kt` | Emitted to `nodes/` | `nodes/`; prefix from flow-graph | `UIFBPSinkCodeNodeGenerator` (prefix change minimal) |
+| `{FlowGraph}ControllerInterface.kt` | **Not generated** | `controller/`; extends `ModuleController` | **REUSE** `RuntimeControllerInterfaceGenerator` (085-owned, no UI-FBP-specific generator needed) |
+| `{FlowGraph}Runtime.kt` | **Not generated** | `controller/`; factory `create{FlowGraph}Runtime(flowGraph)` | **REUSE** `ModuleRuntimeGenerator` (085-owned) |
+| `{FlowGraph}PreviewProvider.kt` | **Not generated** | `jvmMain/.../userInterface/`; registers under flow-graph prefix; calls user-authored Composable name | **EXTEND** `PreviewProviderGenerator` (085-owned) — add `composableName` parameter |
+| `.flow.kt` | Optional bootstrap | Parse-and-merge if present; bootstrap if absent | `UIFBPSaveService` (new) |
+| `build.gradle.kts` | Untouched | Detect-and-refuse if missing `jvm()` or `preview-api`; do NOT mutate | `UIFBPSaveService` (new) — detection only |
+| Legacy `saved/` package | Present in TestModule | One-time delete (opt-in via `UIFBPSaveOptions(deleteLegacyLocations = true)`) + import-path fix in `userInterface/DemoUI.kt` | `quickstart.md` VS-A1 |
 
-**Reuse strategy**: `RuntimeControllerGenerator`, `RuntimeControllerAdapterGenerator`, `RuntimeFlowGenerator`, and `RuntimeControllerInterfaceGenerator` are existing commonMain generators in `flowGraph-generate/src/commonMain/kotlin/io/codenode/flowgraphgenerate/generator/`. Each takes its own input model (entity-module-flavored). The plan's adapter step is to either (a) construct equivalent input models from `UIFBPSpec` and call them directly, or (b) introduce a thin `UIFBPSpec → {RuntimeControllerSpec, RuntimeFlowSpec, ...}` mapping layer in `UIFBPInterfaceGenerator`. Option (a) is preferred to avoid reimplementing the thick-stack templates; the adapter mapping is a small, well-contained translation.
-
-**Future direction**: The follow-up feature noted in spec Clarifications Q2 is expected to deprecate the four `Runtime*Generator` classes above by introducing a universal `DynamicPipelineController`-based runtime in fbpDsl. UI-FBP modules will then drop their thick generated files in lockstep with entity modules. Until that feature lands, UI-FBP rides the same generator surface as entity modules.
-
-**No NEEDS CLARIFICATION items remain.** All technical-context fields in the plan are populated from inspected source. Spec Clarifications Q1 (thin vs thick: thick) and Q2 (universal-runtime collapse: deferred to a follow-up) have been recorded in spec.md.
+**No NEEDS CLARIFICATION items remain.** All technical-context fields in the plan are populated from inspected source. Spec Clarifications Sessions 2026-04-26, 2026-04-27, and 2026-04-28 have resolved every open dimension.

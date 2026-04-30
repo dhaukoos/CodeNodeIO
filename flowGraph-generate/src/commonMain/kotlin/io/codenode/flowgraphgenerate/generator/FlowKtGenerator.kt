@@ -38,10 +38,14 @@ class FlowKtGenerator {
         packageName: String,
         unused: String? = null,
         ipTypeNames: Map<String, String> = emptyMap(),
-        ipTypeImports: List<String> = emptyList()
+        ipTypeImports: List<String> = emptyList(),
+        portTypeOverrides: Map<String, String> = emptyMap()
     ): String {
-        // Build portId → typeName map from connections with IP type assignments
-        val portTypeOverrides = buildMap<String, String> {
+        // Build portId → typeName map from connections with IP type assignments,
+        // merged with any caller-supplied overrides (connections take precedence —
+        // they represent the user's explicit type assignments).
+        val effectivePortTypeOverrides = buildMap<String, String> {
+            putAll(portTypeOverrides)
             for (connection in flowGraph.connections) {
                 val typeId = connection.ipTypeId ?: continue
                 val typeName = ipTypeNames[typeId] ?: continue
@@ -102,8 +106,8 @@ class FlowKtGenerator {
             allNodes[node.id] = node
 
             when (node) {
-                is CodeNode -> generateCodeNode(node, varName, builder, indent, portTypeOverrides)
-                is GraphNode -> generateGraphNode(node, varName, builder, indent, flowGraph.connections, nodeVariables, allNodes, portTypeOverrides)
+                is CodeNode -> generateCodeNode(node, varName, builder, indent, effectivePortTypeOverrides)
+                is GraphNode -> generateGraphNode(node, varName, builder, indent, flowGraph.connections, nodeVariables, allNodes, effectivePortTypeOverrides)
                 else -> builder.appendLine("${indent}// Unknown node type: ${node::class.simpleName}")
             }
             builder.appendLine()

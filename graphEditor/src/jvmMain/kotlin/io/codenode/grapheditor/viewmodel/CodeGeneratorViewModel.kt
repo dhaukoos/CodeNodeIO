@@ -14,7 +14,11 @@ import io.codenode.flowgraphgenerate.runner.CodeGenerationRunner
 import io.codenode.flowgraphgenerate.runner.GenerationFileWriter
 import io.codenode.flowgraphgenerate.runner.GenerationResult
 import io.codenode.flowgraphgenerate.runner.SelectionFilter
+import io.codenode.flowgraphgenerate.parser.UIComposableParser
 import io.codenode.flowgraphgenerate.save.ModuleScaffoldingGenerator
+import io.codenode.flowgraphgenerate.save.UIFBPSaveOptions
+import io.codenode.flowgraphgenerate.save.UIFBPSaveResult
+import io.codenode.flowgraphgenerate.save.UIFBPSaveService
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -75,10 +79,18 @@ class CodeGeneratorViewModel {
     }
 
     fun selectUIFile(filePath: String, fileName: String, moduleName: String) {
+        // Post-082/083: the file tree's prefix is the flow-graph prefix, not the UI file's
+        // name. For the UI_FBP path we rebuild the tree only when the user picks the
+        // .flow.kt selector via [selectFlowGraphFile]; the UI file selection just records
+        // its path/name (used downstream by UIFBPSaveService to parse the source).
         _state.value = _state.value.copy(
             selectedUIFilePath = filePath,
             selectedUIFileName = fileName,
-            fileTree = GenerationFileTreeBuilder.buildForUIFBP(moduleName)
+            fileTree = if (_state.value.selectedPath == GenerationPath.UI_FBP) {
+                _state.value.fileTree // tree already built by selectFlowGraphFile
+            } else {
+                GenerationFileTreeBuilder.buildForUIFBP(moduleName)
+            }
         )
     }
 
@@ -91,12 +103,16 @@ class CodeGeneratorViewModel {
      */
     fun selectFlowGraphFile(filePath: String, fileName: String, flowGraph: FlowGraph) {
         val moduleName = flowGraph.name.ifBlank { fileName.removeSuffix(".flow.kt").removeSuffix(".kt") }
+        val rebuiltTree = when (_state.value.selectedPath) {
+            GenerationPath.UI_FBP -> GenerationFileTreeBuilder.buildForUIFBP(moduleName)
+            else -> GenerationFileTreeBuilder.buildForGenerateModule(moduleName)
+        }
         _state.value = _state.value.copy(
             selectedFlowGraphFilePath = filePath,
             selectedFlowGraphFileName = fileName,
             selectedFlowGraph = flowGraph,
             flowGraphName = moduleName,
-            fileTree = GenerationFileTreeBuilder.buildForGenerateModule(moduleName)
+            fileTree = rebuiltTree
         )
     }
 
@@ -127,6 +143,60 @@ class CodeGeneratorViewModel {
     private val runner = CodeGenerationRunner()
     private val scaffoldingGenerator = ModuleScaffoldingGenerator()
     private val fileWriter = GenerationFileWriter()
+    private val uifbpComposableParser = UIComposableParser()
+    private val uifbpSaveService = UIFBPSaveService()
+
+    /**
+     * Runs UI-FBP code generation against the user-selected `{flow graph, UI file}` pair.
+     *
+     * Per FR-014/FR-015 (post-clarification): both inputs are explicit selections held in
+     * panel state. This entry-point bypasses [CodeGenerationRunner] (which doesn't model
+     * the UI-FBP-specific `UIFBPSpec` shape) and calls [UIFBPSaveService] directly.
+     *
+     * @param moduleRoot The host module's directory (must contain `build.gradle.kts`).
+     * @return [UIFBPSaveResult] describing the per-file outcome and structured `.flow.kt`
+     *         merge report. Caller (the GraphEditor's status line) reads `success`,
+     *         `errorMessage`, and the per-file kinds.
+     */
+    fun generateUIFBP(moduleRoot: File): UIFBPSaveResult {
+        val s = _state.value
+        val flowGraphFilePath = s.selectedFlowGraphFilePath
+        val uiFilePath = s.selectedUIFilePath
+        if (flowGraphFilePath == null || uiFilePath == null) {
+            return UIFBPSaveResult(
+                success = false,
+                errorMessage = "UI-FBP requires an explicit {flow graph, UI file} pair. " +
+                    "Select both inputs via the file selectors before clicking Generate."
+            )
+        }
+        val flowGraphFile = File(flowGraphFilePath)
+        val uiFile = File(uiFilePath)
+        if (!flowGraphFile.exists() || !uiFile.exists()) {
+            return UIFBPSaveResult(
+                success = false,
+                errorMessage = "Selected file(s) no longer exist on disk: " +
+                    listOfNotNull(
+                        if (!flowGraphFile.exists()) flowGraphFile.absolutePath else null,
+                        if (!uiFile.exists()) uiFile.absolutePath else null
+                    ).joinToString(", ")
+            )
+        }
+        val flowGraphPrefix = flowGraphFile.name.removeSuffix(".flow.kt").removeSuffix(".kt")
+        val parseResult = uifbpComposableParser.parse(uiFile.readText(), flowGraphPrefix = flowGraphPrefix)
+        if (!parseResult.isSuccess || parseResult.spec == null) {
+            return UIFBPSaveResult(
+                success = false,
+                errorMessage = "Selected UI file is not a qualifying UI-FBP source: " +
+                    (parseResult.errorMessage ?: "no Composable function with a viewModel parameter")
+            )
+        }
+        return uifbpSaveService.save(
+            spec = parseResult.spec!!,
+            flowGraphFile = flowGraphFile,
+            moduleRoot = moduleRoot,
+            options = UIFBPSaveOptions()
+        )
+    }
 
     suspend fun generate(
         outputDir: File,

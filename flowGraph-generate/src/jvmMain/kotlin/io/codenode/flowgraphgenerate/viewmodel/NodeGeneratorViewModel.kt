@@ -40,9 +40,16 @@ data class NodeGeneratorPanelState(
 ) : BaseState {
     /**
      * Computed property: available placement levels based on whether a module is loaded.
+     *
+     * The Node Generator excludes [PlacementLevel.UNIVERSAL] from its writable destinations
+     * because Universal-tier files (`~/.codenode/nodes/`) have no host module to compile them —
+     * they would always remain "(template -- not compiled)" entries in the palette. Discovery
+     * of pre-existing Universal-tier files (via `NodeDefinitionRegistry.discoverTemplateNodes`)
+     * is unaffected; users can still drop `.kt` files into `~/.codenode/nodes/` manually.
      */
     val availableLevels: List<PlacementLevel>
         get() = PlacementLevel.availableLevels(moduleLoaded)
+            .filter { it != PlacementLevel.UNIVERSAL }
     /**
      * Computed property: form is valid when name is non-blank AND
      * at least one port exists (not both 0/0).
@@ -197,19 +204,25 @@ class NodeGeneratorViewModel(
             return null
         }
 
-        // Register immediately so the node appears in the palette without restart
-        reg?.registerTemplate(
-            NodeTemplateMeta(
-                name = nodeName,
-                category = currentState.category,
-                inputCount = currentState.inputCount,
-                outputCount = currentState.outputCount,
-                filePath = outputFile.absolutePath
-            )
-        )
-
+        // Intentionally NOT calling reg.registerTemplate(...) here. Pre-this-change, the
+        // Node Generator stamped every output as a template in the registry to make it
+        // visible in the palette without a restart. But a freshly-generated node has no
+        // compiled class on the JVM classpath until the host module is rebuilt and the
+        // GraphEditor relaunched, so the in-palette template entry could be dragged onto
+        // a graph but never executed by Runtime Preview — it just accumulated palette
+        // clutter labeled "(template -- not compiled)". Removing the registration matches
+        // the actual capability: generate-and-execute requires rebuild + relaunch today.
+        //
+        // A future feature is planned to make generate→execute a single-session reality
+        // (hot-compile via embedded kotlinc + custom classloader). When that lands,
+        // re-register the node here as compiled (not as a template) so it's runnable
+        // immediately.
+        val moduleName = currentState.activeModulePath
+            ?.let { java.io.File(it).name }
+            ?: currentState.placementLevel.displayName
         _state.update { it.copy(
-            generationSuccess = "Generated ${outputFile.name}",
+            generationSuccess = "Generated ${outputFile.name}. " +
+                "Rebuild $moduleName + relaunch the GraphEditor to make this node runnable in Runtime Preview.",
             generationError = null
         ) }
         reset()
@@ -225,17 +238,27 @@ class NodeGeneratorViewModel(
             PlacementLevel.MODULE -> {
                 val modulePath = _state.value.activeModulePath ?: return null
                 val moduleDir = File(modulePath)
-                val moduleName = moduleDir.name.lowercase()
-                moduleDir.resolve("src/commonMain/kotlin/io/codenode/$moduleName/nodes/$fileName")
+                // Detect the host module's actual on-disk base package rather than assuming
+                // the convention `io.codenode.{moduleDir.name.lowercase()}`. Pre-082/083
+                // modules (e.g., TestModule with package io.codenode.demo) and any module
+                // whose package diverges from its directory name MUST land here, not at
+                // a convention-derived path.
+                val basePackage = detectModuleBasePackage(moduleDir)
+                    ?: "io.codenode.${moduleDir.name.lowercase()}"
+                val packagePath = "$basePackage.nodes".replace(".", "/")
+                moduleDir.resolve("src/commonMain/kotlin/$packagePath/$fileName")
             }
             PlacementLevel.PROJECT -> {
                 val root = projectRoot ?: return null
                 root.resolve("nodes/src/commonMain/kotlin/io/codenode/nodes/$fileName")
             }
-            PlacementLevel.UNIVERSAL -> {
-                val home = System.getProperty("user.home")
-                File(home, ".codenode/nodes/$fileName")
-            }
+            PlacementLevel.UNIVERSAL -> error(
+                "UNIVERSAL tier is no longer a Node Generator destination. " +
+                    "Files written to ~/.codenode/nodes/ have no host module to compile them and " +
+                    "would always remain '(template -- not compiled)' palette entries. " +
+                    "Choose MODULE or PROJECT placement instead, or drop a .kt file into " +
+                    "~/.codenode/nodes/ manually for Universal-tier discovery."
+            )
             PlacementLevel.INTERNAL -> error("INTERNAL tier is tool-managed and cannot be used for node generation")
         }
     }
@@ -247,13 +270,45 @@ class NodeGeneratorViewModel(
         return when (level) {
             PlacementLevel.MODULE -> {
                 val modulePath = _state.value.activeModulePath
-                val moduleName = if (modulePath != null) File(modulePath).name.lowercase() else "module"
-                "io.codenode.$moduleName.nodes"
+                val basePackage = if (modulePath != null) {
+                    val dir = File(modulePath)
+                    detectModuleBasePackage(dir) ?: "io.codenode.${dir.name.lowercase()}"
+                } else {
+                    "io.codenode.module"
+                }
+                "$basePackage.nodes"
             }
             PlacementLevel.PROJECT -> "io.codenode.nodes"
-            PlacementLevel.UNIVERSAL -> "io.codenode.nodes"
+            PlacementLevel.UNIVERSAL -> error(
+                "UNIVERSAL tier is no longer a Node Generator destination. " +
+                    "Choose MODULE or PROJECT placement instead."
+            )
             PlacementLevel.INTERNAL -> error("INTERNAL tier is tool-managed and cannot be used for node generation")
         }
+    }
+
+    /**
+     * Derives the host module's base Kotlin package by scanning its on-disk source tree.
+     *
+     * Strategy: locate any `flow/`, `controller/`, or `viewmodel/` subdirectory under
+     * `src/commonMain/kotlin/`; the package is the path from `kotlin/` to the parent of
+     * that subdirectory. Returns null when no such structure exists (e.g., a freshly
+     * scaffolded module with empty source dirs) — the caller falls back to the
+     * `io.codenode.{moduleDir.name.lowercase()}` convention.
+     *
+     * Mirrors the helper in graphEditor's `util/ModuleRootResolver.kt`; lives here to
+     * avoid introducing a graphEditor dependency on flowGraph-generate's module.
+     */
+    private fun detectModuleBasePackage(moduleDir: File): String? {
+        val srcDir = File(moduleDir, "src/commonMain/kotlin")
+        if (!srcDir.isDirectory) return null
+        val markerNames = setOf("flow", "controller", "viewmodel")
+        val markerDir = srcDir.walkTopDown()
+            .filter { it.isDirectory && it.name in markerNames }
+            .firstOrNull() ?: return null
+        val rel = markerDir.parentFile.absoluteFile.relativeTo(srcDir.absoluteFile).path
+        if (rel.isEmpty() || rel == ".") return null
+        return rel.replace(File.separatorChar, '.')
     }
 
     /**

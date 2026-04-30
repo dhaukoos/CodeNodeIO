@@ -1,42 +1,59 @@
-# Phase 1 Data Model: UI-FBP Runtime Preview
+# Phase 1 Data Model: UI-FBP Runtime Preview (post-085)
 
-**Date**: 2026-04-26
+**Date**: 2026-04-28
 **Feature**: [spec.md](./spec.md) · **Plan**: [plan.md](./plan.md) · **Research**: [research.md](./research.md)
 
-This feature introduces no new persistence and no new domain model. It does add **typed inputs and outputs to the generator pipeline** and a **structured re-generation summary**. Those are the entities described here. Existing types (`UIFBPSpec`, `PortInfo`, `UIFBPParseResult`, `UIFBPGenerateResult`, `UIFBPGeneratedFile`) are referenced but unchanged in shape unless noted.
+This feature introduces no new persistence and no new domain model. It adds **typed inputs to the generator pipeline** (one new field on `UIFBPSpec`, one new parameter on `PreviewProviderGenerator`) and a **structured re-generation result** (`UIFBPSaveResult` and friends, owned by the new `UIFBPSaveService`). Existing types from the post-085 generator surface (`FlowGraph`, `RuntimeControllerInterfaceGenerator`, `ModuleRuntimeGenerator`, `GenerationFileWriter.FileChangeKind`) are referenced as-is.
 
 ---
 
-## 1. UIFBPSpec (existing — used as-is)
+## 1. UIFBPSpec (existing — extended)
 
 Source: `flowGraph-generate/src/commonMain/kotlin/io/codenode/flowgraphgenerate/parser/UIFBPSpec.kt`
 
+**Pre-clarification (current shape on disk)**:
+
 ```kotlin
 data class UIFBPSpec(
-    val moduleName: String,           // e.g., "DemoUI" — derived from Composable function name
-    val viewModelTypeName: String,    // e.g., "DemoUIViewModel" — derived from viewModel parameter type
-    val packageName: String,          // e.g., "io.codenode.demo" — package of the source UI file
-    val sourceOutputs: List<PortInfo>,// Composable input parameters (excluding viewModel) → Source CodeNode outputs
-    val sinkInputs: List<PortInfo>,   // ViewModel-observed StateFlow properties → Sink CodeNode inputs
-    val ipTypeImports: List<String>   // Fully-qualified IP types referenced by ports (for import generation)
-)
-
-data class PortInfo(
-    val name: String,                 // Property/parameter name
-    val typeName: String,             // Simple type name (e.g., "Double", "CalculationResults")
-    val isNullable: Boolean = false   // Whether the type is nullable
+    val moduleName: String,            // Conflated: was Composable name + flow-graph prefix + module name
+    val viewModelTypeName: String,
+    val packageName: String,
+    val sourceOutputs: List<PortInfo>,
+    val sinkInputs: List<PortInfo>,
+    val ipTypeImports: List<String>
 )
 ```
 
-**Validation rules** (carried from current parser; relevant to this feature):
+**Post-clarification (target shape)**: per Decision 2, the `moduleName` conflation is broken. Three potentially-distinct identifiers become typed fields:
 
-- `moduleName` MUST be a valid Kotlin identifier; it is also used as the PreviewRegistry key and so MUST equal the qualifying `@Composable` function's name.
-- `packageName` determines the on-disk path; generators MUST translate `.` to `/` consistently.
-- Every type in `PortInfo.typeName` that is not a Kotlin built-in MUST appear in `ipTypeImports` so that generated files can import it.
+```kotlin
+data class UIFBPSpec(
+    val flowGraphPrefix: String,       // Drives generated-file prefix + PreviewRegistry key. Derived from the user-selected .flow.kt file (filename minus `.flow.kt`)
+    val composableName: String,        // The user-authored Composable function name from the qualifying UI source file. Drives the function call inside PreviewProvider's register block
+    val packageName: String,           // Drives on-disk path translation; e.g., "io.codenode.demo" → src/commonMain/kotlin/io/codenode/demo/
+    val viewModelTypeName: String,     // Derived from {flowGraphPrefix}ViewModel post-clarification (was conflated with moduleName)
+    val sourceOutputs: List<PortInfo>, // Composable input parameters (excluding viewModel) → Source CodeNode outputs
+    val sinkInputs: List<PortInfo>,    // ViewModel-observed StateFlow properties → Sink CodeNode inputs
+    val ipTypeImports: List<String>    // Fully-qualified IP types referenced by ports
+)
 
-**Relationships**:
+data class PortInfo(
+    val name: String,
+    val typeName: String,
+    val isNullable: Boolean = false
+)
+```
 
-- `UIFBPSpec` is the **single input** to all generators in this feature. Two new generators (`UIFBPControllerInterfaceGenerator`, `UIFBPPreviewProviderGenerator`) consume it; one existing generator (`UIFBPViewModelGenerator`) consumes it under a modified contract (constructor signature change).
+**Migration**: The `moduleName` field is removed entirely (or retained briefly as a deprecated alias resolving to `flowGraphPrefix` for tooling that still references it). `UIComposableParser` is updated to populate `composableName` from the parsed `@Composable fun X(viewModel: ...)` declaration (already extracted) and `flowGraphPrefix` from the user-selected `.flow.kt` file passed in alongside the UI file (the explicit-pair input from FR-014/FR-015).
+
+**Validation rules**:
+
+- `flowGraphPrefix` MUST be a valid Kotlin identifier (PascalCase recommended, but generator enforces casing for emitted class names).
+- `composableName` MUST equal the parsed `@Composable` function name verbatim — the generator does not transform it.
+- `packageName` MUST be a non-empty dotted package path; generator translates `.` to `/` consistently.
+- Every type in `PortInfo.typeName` that is not a Kotlin built-in MUST appear in `ipTypeImports`.
+
+**Relationships**: `UIFBPSpec` is the single typed input to the UI-FBP-specific generators (`UIFBPStateGenerator`, `UIFBPViewModelGenerator`, `UIFBPSourceCodeNodeGenerator`, `UIFBPSinkCodeNodeGenerator`). The 085-owned generators (`RuntimeControllerInterfaceGenerator`, `ModuleRuntimeGenerator`, `PreviewProviderGenerator`) take a `FlowGraph` model — `UIFBPInterfaceGenerator` (the orchestrator) translates `UIFBPSpec` into that `FlowGraph` (Source + Sink CodeNodes wired into an empty middle).
 
 ---
 
@@ -44,7 +61,7 @@ data class PortInfo(
 
 Source: `flowGraph-generate/src/commonMain/kotlin/io/codenode/flowgraphgenerate/generator/UIFBPInterfaceGenerator.kt`
 
-The result type stays the same:
+The result type stays the same shape:
 
 ```kotlin
 data class UIFBPGenerateResult(
@@ -54,53 +71,51 @@ data class UIFBPGenerateResult(
 )
 
 data class UIFBPGeneratedFile(
-    val relativePath: String,         // Module-relative path, forward-slashed
-    val content: String               // Full file content including license header
+    val relativePath: String,          // Module-relative path, forward-slashed
+    val content: String                // Full file content including license header + generator marker
 )
 ```
 
-**Behavioral change**: `UIFBPInterfaceGenerator.generateAll(spec, includeFlowKt)` now emits the full thick stack — appending five additional `UIFBPGeneratedFile` entries (three from reused entity-module generators, two from new UI-FBP generators) on every call:
+**Behavioral change**: `UIFBPInterfaceGenerator.generateAll(spec, includeFlowKt)` now emits the post-085 universal set — eight `UIFBPGeneratedFile` entries per call:
 
-| Index | `relativePath` | Source generator |
-|---|---|---|
-| 1 | `src/commonMain/kotlin/{pkg}/viewmodel/{Module}State.kt` | `UIFBPStateGenerator` (path change) |
-| 2 | `src/commonMain/kotlin/{pkg}/viewmodel/{Module}ViewModel.kt` | `UIFBPViewModelGenerator` (path + content change) |
-| 3 | `src/commonMain/kotlin/{pkg}/nodes/{Module}SourceCodeNode.kt` | `UIFBPSourceCodeNodeGenerator` (unchanged) |
-| 4 | `src/commonMain/kotlin/{pkg}/nodes/{Module}SinkCodeNode.kt` | `UIFBPSinkCodeNodeGenerator` (unchanged) |
-| 5 | `src/commonMain/kotlin/{pkg}/controller/{Module}ControllerInterface.kt` | **NEW** `UIFBPControllerInterfaceGenerator` (or `RuntimeControllerInterfaceGenerator` via adapter) |
-| 6 | `src/commonMain/kotlin/{pkg}/controller/{Module}Controller.kt` | **REUSED** `RuntimeControllerGenerator` via `UIFBPSpecAdapter` |
-| 7 | `src/commonMain/kotlin/{pkg}/controller/{Module}ControllerAdapter.kt` | **REUSED** `RuntimeControllerAdapterGenerator` via `UIFBPSpecAdapter` |
-| 8 | `src/commonMain/kotlin/{pkg}/flow/{Module}Flow.kt` | **REUSED** `RuntimeFlowGenerator` via `UIFBPSpecAdapter` |
-| 9 | `src/jvmMain/kotlin/{pkg}/userInterface/{Module}PreviewProvider.kt` | **NEW** `UIFBPPreviewProviderGenerator` |
-| 10 (opt) | `src/commonMain/kotlin/{pkg}/flow/{Module}.flow.kt` | `UIFBPInterfaceGenerator.generateBootstrapFlowKt` (only when `includeFlowKt` AND target file does not yet exist; otherwise emitted by `UIFBPSaveService` as a merge) |
+| Index | `relativePath` (template) | Source generator | Reuse status |
+|---|---|---|---|
+| 1 | `src/commonMain/kotlin/{pkg}/viewmodel/{FlowGraph}State.kt` | `UIFBPStateGenerator` | MODIFY (path migration to `viewmodel/`; prefix from flow-graph) |
+| 2 | `src/commonMain/kotlin/{pkg}/viewmodel/{FlowGraph}ViewModel.kt` | `UIFBPViewModelGenerator` | MODIFY (constructor `({FlowGraph}ControllerInterface)`; flows from State; prefix from flow-graph) |
+| 3 | `src/commonMain/kotlin/{pkg}/nodes/{FlowGraph}SourceCodeNode.kt` | `UIFBPSourceCodeNodeGenerator` | MODIFY (minimal: prefix from flow-graph) |
+| 4 | `src/commonMain/kotlin/{pkg}/nodes/{FlowGraph}SinkCodeNode.kt` | `UIFBPSinkCodeNodeGenerator` | MODIFY (minimal: prefix from flow-graph) |
+| 5 | `src/commonMain/kotlin/{pkg}/controller/{FlowGraph}ControllerInterface.kt` | `RuntimeControllerInterfaceGenerator` (085-owned) | REUSE AS-IS |
+| 6 | `src/commonMain/kotlin/{pkg}/controller/{FlowGraph}Runtime.kt` | `ModuleRuntimeGenerator` (085-owned) | REUSE AS-IS |
+| 7 | `src/jvmMain/kotlin/{pkg}/userInterface/{FlowGraph}PreviewProvider.kt` | `PreviewProviderGenerator` (085-owned) | EXTEND (add `composableName` parameter) |
+| 8 (opt) | `src/commonMain/kotlin/{pkg}/flow/{FlowGraph}.flow.kt` | (bootstrap inside `UIFBPInterfaceGenerator.generateBootstrapFlowKt`) | UNCHANGED — emitted only when `includeFlowKt = true` AND target file does not exist; otherwise the merge case is handled by `UIFBPSaveService` (Decision 7) |
 
-Indices 3 and 4 may be skipped if `spec.sourceOutputs` / `spec.sinkInputs` are empty (existing behavior preserved). Index 5 is always emitted; the interface degenerates to one with only `executionState` and the control methods if `sinkInputs` is empty. Indices 6, 7, 8, and 9 are always emitted.
+Index 8 is conditional. Indices 3 and 4 may be skipped if `spec.sourceOutputs` / `spec.sinkInputs` are empty (existing behavior preserved). The interface (index 5) degenerates to one with only the inherited `ModuleController` surface if `sinkInputs` is empty. Indices 1, 2, 5, 6, 7 are always emitted.
 
-**`UIFBPSpecAdapter` (new)**: translates `UIFBPSpec` into the input shape each reused generator expects. The reused generators were designed for entity modules (which have richer specs including persistence, repository, CUD operations). For UI-FBP, the adapter populates only the fields the runtime generators actually use (FlowGraph shape, port wiring, ControllerInterface shape) and leaves entity-only fields empty/null. Unit tests verify that the adapter's outputs produce identical thick-stack code to what entity modules emit, modulo entity-specific concerns the adapter zeros out.
+**`UIFBPSpec → FlowGraph` translation** (in `UIFBPInterfaceGenerator`): per research Decision 1, the orchestrator builds a `FlowGraph` model with two CodeNodes (Source + Sink) wired into an empty middle, and feeds that `FlowGraph` to `RuntimeControllerInterfaceGenerator` and `ModuleRuntimeGenerator`. The translation has no per-port special cases — Source's outputs come from `spec.sourceOutputs`, Sink's inputs from `spec.sinkInputs`. Both nodes carry `_codeNodeClass` configuration entries pointing at the per-flow-graph generated CodeNode FQCNs (so `ModuleRuntimeGenerator`'s NodeRegistry lookup resolves them).
 
 ---
 
 ## 3. UIFBPSaveService (NEW — orchestration entity)
 
-Lives in `flowGraph-generate/src/jvmMain/kotlin/io/codenode/flowgraphgenerate/save/UIFBPSaveService.kt`. Composes the pure commonMain generators with filesystem I/O and the `.flow.kt` merge.
+Lives at `flowGraph-generate/src/jvmMain/kotlin/io/codenode/flowgraphgenerate/save/UIFBPSaveService.kt`. Composes the pure commonMain generators with filesystem I/O, `.flow.kt` parse-and-merge, and host-module validation.
 
 ```kotlin
 class UIFBPSaveService(
-    private val generator: UIFBPInterfaceGenerator = UIFBPInterfaceGenerator(),
+    private val orchestrator: UIFBPInterfaceGenerator = UIFBPInterfaceGenerator(),
     private val flowKtParser: FlowKtParser = FlowKtParser(),
     private val flowGraphSerializer: FlowGraphSerializer = FlowGraphSerializer()
 ) {
     fun save(
         spec: UIFBPSpec,
-        moduleRoot: File,
+        flowGraphFile: File,           // The user-selected .flow.kt file (the explicit-pair input from FR-015)
+        moduleRoot: File,              // The host module directory containing build.gradle.kts
         options: UIFBPSaveOptions = UIFBPSaveOptions()
     ): UIFBPSaveResult
 }
 
 data class UIFBPSaveOptions(
-    val deleteLegacyLocations: Boolean = false,        // If true, removes saved/ and base-package State/ViewModel files
-    val touchUpBuildGradle: Boolean = true,            // If false, skip build.gradle.kts edits
-    val mergeExistingFlowKt: Boolean = true            // If false, leave existing .flow.kt untouched
+    val deleteLegacyLocations: Boolean = false,        // If true, removes saved/ + base-package State/ViewModel files (Decision 6)
+    val mergeExistingFlowKt: Boolean = true            // If false, leave existing .flow.kt untouched (no merge attempted)
 )
 ```
 
@@ -109,11 +124,10 @@ data class UIFBPSaveOptions(
 ```kotlin
 data class UIFBPSaveResult(
     val success: Boolean,
-    val files: List<FileChange>,                        // One entry per file the service decided about
-    val flowKtMerge: FlowKtMergeReport?,                // null if no .flow.kt was processed
-    val buildGradleEdit: BuildGradleEditReport?,        // null if touchUpBuildGradle = false
+    val files: List<FileChange>,                       // One entry per file the service decided about
+    val flowKtMerge: FlowKtMergeReport?,               // null if no .flow.kt was processed
     val warnings: List<String>,
-    val errorMessage: String? = null
+    val errorMessage: String? = null                   // Populated when success = false (e.g., unscaffolded host)
 )
 
 enum class FileChangeKind { CREATED, UPDATED, UNCHANGED, SKIPPED_CONFLICT, DELETED }
@@ -121,98 +135,107 @@ enum class FileChangeKind { CREATED, UPDATED, UNCHANGED, SKIPPED_CONFLICT, DELET
 data class FileChange(
     val relativePath: String,
     val kind: FileChangeKind,
-    val reason: String? = null                          // Populated for SKIPPED_CONFLICT and DELETED
+    val reason: String? = null                         // Populated for SKIPPED_CONFLICT and DELETED
 )
 
 data class FlowKtMergeReport(
-    val mode: FlowKtMergeMode,                          // CREATED | UPDATED | UNCHANGED | PARSE_FAILED_SKIPPED
+    val mode: FlowKtMergeMode,                         // CREATED | UPDATED | UNCHANGED | PARSE_FAILED_SKIPPED
     val portsAdded: List<PortChange>,
     val portsRemoved: List<PortChange>,
     val connectionsDropped: List<DroppedConnection>,
-    val userNodesPreserved: Int                         // Count of CodeNodes that are neither Source nor Sink
+    val userNodesPreserved: Int                        // Count of CodeNodes that are neither Source nor Sink
 )
 
 enum class FlowKtMergeMode { CREATED, UPDATED, UNCHANGED, PARSE_FAILED_SKIPPED }
 
 data class PortChange(val nodeName: String, val portName: String, val typeName: String)
 data class DroppedConnection(val from: String, val to: String, val reason: String)
-
-data class BuildGradleEditReport(
-    val addedJvmTarget: Boolean,
-    val addedPreviewApiDependency: Boolean,
-    val skippedReason: String? = null                   // E.g., "non-standard build script structure"
-)
 ```
+
+Note: this feature deliberately does **not** model build.gradle.kts edits (Decision 5 retires the auto-edit responsibility). The service detects an unscaffolded host and refuses; no `BuildGradleEditReport` exists in the post-085 model.
 
 ### Behavioral contract
 
-1. **Idempotency**: `save(...)` followed by `save(...)` against the same inputs MUST produce a result where every `FileChange.kind` in the second call is `UNCHANGED` (modulo file-system mtimes, which are not part of the contract). The `FlowKtMergeReport.mode` MUST be `UNCHANGED` on the second call.
-2. **Conflict handling**: Any target file whose existing on-disk content differs from the would-be-emitted content is treated as a conflict candidate; the service compares semantic content (parsed or trimmed) and only marks it `UPDATED` if the change is generator-induced (Source/Sink port shape changed, controller interface gained/lost a flow getter). User-edited files at non-generator-targeted paths (e.g., the `.flow.kt`) are merged, not overwritten.
-3. **Hand-written collision**: If a file already exists at a generator-target path with a content shape that does NOT carry the `Generated by CodeNodeIO UIFBPInterfaceGenerator` marker comment, the service marks it `SKIPPED_CONFLICT` with a reason and does NOT overwrite. This implements FR-016.
-4. **Legacy cleanup**: When `deleteLegacyLocations = true`, the service deletes:
-   - `src/commonMain/kotlin/{pkg}/saved/{Module}State.kt`
-   - `src/commonMain/kotlin/{pkg}/saved/{Module}ViewModel.kt`
-   - `src/commonMain/kotlin/{pkg}/{Module}State.kt` (base package legacy)
-   - `src/commonMain/kotlin/{pkg}/{Module}ViewModel.kt` (base package legacy)
-   - And removes the empty `saved/` directory if applicable.
-   Each deletion appears in `files` with `kind = DELETED` and a reason.
-5. **`build.gradle.kts` touch-up**: The service inspects the file as text. If a `jvm {` block is absent, it inserts a conventional one inside the `kotlin { ... }` block. If `implementation("io.codenode:preview-api")` is absent from any `jvmMain` source-set block, it inserts the dependency, creating the `val jvmMain by getting { dependencies { ... } }` block if needed. If the script is heavily customized (heuristic: presence of unparseable patterns), the service emits a warning naming both edits and skips. This implements FR-008/FR-009.
+1. **Pre-flight host validation** (Decision 5): the service inspects `moduleRoot/build.gradle.kts` as text. If `jvm` followed by `{` is absent, OR `io.codenode:preview-api` is absent, the service returns `UIFBPSaveResult(success = false, errorMessage = "host module is unscaffolded; run quickstart.md VS-A1 migration first: missing {jvm()|preview-api dep}")` and emits zero file changes. **No silent mutation of the build script.**
+2. **Idempotency** (FR-011): `save(...)` followed by `save(...)` against the same inputs MUST produce a result where every `FileChange.kind` in the second call is `UNCHANGED` (modulo file-system mtimes). The `FlowKtMergeReport.mode` MUST be `UNCHANGED` on the second call.
+3. **Hand-edit safety** (FR-016): A target file existing on disk without the `Generated by CodeNodeIO {Generator}` marker comment is `SKIPPED_CONFLICT` with a reason naming the missing marker — never overwritten. Marker presence is detected with the same `carriesGeneratorMarker` heuristic as feature 085's `GenerationFileWriter` (first ~8 lines contain the marker substring).
+4. **Conflict-vs-update**: a target file with the marker AND content matching what would be emitted is `UNCHANGED`; with the marker AND differing content is `UPDATED`; without the marker is `SKIPPED_CONFLICT`.
+5. **`.flow.kt` merge** (FR-012, Decision 7): orchestrated through `flowKtParser.parseFlowKt(...)` + `flowGraphSerializer.serialize(...)`. The merge surface is the FlowGraph DSL, not text. A `PARSE_FAILED_SKIPPED` mode is emitted when the user has edited `.flow.kt` into a non-parseable shape; the service preserves the file untouched and surfaces a warning.
+6. **Legacy cleanup** (Decision 6): when `deleteLegacyLocations = true`, the service deletes:
+   - `src/commonMain/kotlin/{pkg}/saved/{FlowGraph}State.kt`
+   - `src/commonMain/kotlin/{pkg}/saved/{FlowGraph}ViewModel.kt`
+   - `src/commonMain/kotlin/{pkg}/{FlowGraph}State.kt` (base package legacy)
+   - `src/commonMain/kotlin/{pkg}/{FlowGraph}ViewModel.kt` (base package legacy)
+   - The empty `saved/` directory if applicable.
+
+   Each deletion appears in `files` with `kind = DELETED` and a `reason`. Files lacking the generator marker remain SKIPPED_CONFLICT regardless of this flag.
+7. **Structured summary** (FR-013): `UIFBPSaveResult` is the single summary surface. Both UI callers (the GraphEditor's status line) and CI/automation consumers read it.
 
 ### Validation
 
-- `moduleRoot` MUST be an existing directory containing `build.gradle.kts`. Otherwise `success = false` with a clear `errorMessage`.
-- `spec.moduleName` MUST equal the `@Composable` function name in the source file (validated by the upstream parser, not this service).
+- `moduleRoot` MUST be an existing directory containing `build.gradle.kts`. Otherwise `success = false`.
+- `flowGraphFile` MUST exist and end with `.flow.kt`. Otherwise `success = false`.
+- `spec.composableName` MUST equal the `@Composable` function name in the source file (validated by `UIComposableParser` upstream).
 
 ---
 
-## 4. Generated `{Module}ControllerInterface` shape (the contract)
+## 4. Generated `{FlowGraph}ControllerInterface` shape (the contract)
 
-The **emitted Kotlin interface** is the same shape used today by entity-module ControllerInterfaces (Addresses, UserProfiles), which works with both runtime paths:
-
-- **Runtime Preview path**: GraphEditor's reflection proxy implements the interface (via `ModuleSessionFactory.createControllerProxy`). State-flow getters resolve to `{Module}State.{port}Flow` fields by reflection; control methods route to `DynamicPipelineController`.
-- **Production-app path**: the generated `{Module}Controller` class implements the interface directly, with state-flow getters backed by its `{Module}Flow` runtime instance.
-
-For a spec with `sinkInputs = [results: CalculationResults?]` and `sourceOutputs = [a: Double, b: Double]`, the emitted interface is:
+Identical to the post-085 entity-module ControllerInterface shape (e.g., `StopWatchControllerInterface`, `AddressesControllerInterface`):
 
 ```kotlin
-interface DemoUIControllerInterface {
-    val results: StateFlow<CalculationResults?>      // From sinkInputs (UI observes)
-    val executionState: StateFlow<ExecutionState>    // Required by proxy AND production-app controller
-    fun start(): FlowGraph
-    fun stop(): FlowGraph
-    fun pause(): FlowGraph
-    fun resume(): FlowGraph
-    fun reset(): FlowGraph
+package io.codenode.{module}.controller
+
+import io.codenode.fbpdsl.runtime.ModuleController
+import kotlinx.coroutines.flow.StateFlow
+// + IP type imports per spec.ipTypeImports
+
+interface {FlowGraph}ControllerInterface : ModuleController {
+    // For each y in spec.sinkInputs:
+    val y: StateFlow<{T}>
+    // (start/stop/pause/resume/reset/getStatus/setAttenuationDelay/setEmissionObserver/setValueObserver
+    //  inherit from ModuleController — generators MUST NOT redeclare them)
 }
 ```
 
-The interface declares one `val xxx: StateFlow<T>` per `sinkInput` (display outputs the UI observes). Source outputs are NOT mirrored on the interface — the UI emits them via `viewModel.emit(...)` writing to `{Module}State._x` mutable fields, but does not observe them back through the controller. This matches `AddressesControllerInterface` and `WeatherForecastControllerInterface`.
+**Two implementations** (post-085, see `contracts/controller-interface.md`):
 
-**Type aliasing**: `PortInfo.typeName` is rendered verbatim in the interface; nullable types append `?`. The full FQCN appears in the file's imports via `spec.ipTypeImports`.
+1. **Runtime Preview path** — `java.lang.reflect.Proxy` constructed by `flowGraph-execute/ModuleSessionFactory.createControllerProxy`. Method calls on the inherited `ModuleController` members reflect to `DynamicPipelineController`; state-flow getters reflect to `{FlowGraph}State.{port}Flow` fields.
+2. **Production-app path** — the anonymous `object : {FlowGraph}ControllerInterface, ModuleController by controller { override val y = {FlowGraph}State.yFlow ... }` returned by `create{FlowGraph}Runtime(flowGraph)` (emitted by `ModuleRuntimeGenerator`). The Kotlin interface delegation `ModuleController by controller` resolves all inherited members to the underlying `DynamicPipelineController`.
 
 ---
 
-## 5. Generated `{Module}ViewModel` shape (the dependency surface)
+## 5. Generated `{FlowGraph}ViewModel` shape (the dependency surface)
 
-Matches the `WeatherForecastViewModel` / `AddressesViewModel` shape — flows read directly from `{Module}State`, control methods delegated through the controller:
+Mirrors the entity-module ViewModel shape (e.g., `WeatherForecastViewModel`, `StopWatchViewModel`):
 
 ```kotlin
-class DemoUIViewModel(
-    private val controller: DemoUIControllerInterface
-) : androidx.lifecycle.ViewModel() {
-    // Observable state from module properties
-    val results: StateFlow<CalculationResults?> = DemoUIState.resultsFlow
+package io.codenode.{module}.viewmodel
 
-    // Execution state from controller
+import androidx.lifecycle.ViewModel
+import io.codenode.fbpdsl.model.ExecutionState
+import io.codenode.{module}.controller.{FlowGraph}ControllerInterface
+import io.codenode.{module}.viewmodel.{FlowGraph}State
+import kotlinx.coroutines.flow.StateFlow
+// + IP type imports
+
+class {FlowGraph}ViewModel(
+    private val controller: {FlowGraph}ControllerInterface
+) : ViewModel() {
+    // Observable state (one per spec.sinkInput) — read directly from State
+    val y: StateFlow<{T}> = {FlowGraph}State.yFlow
+
+    // Execution state from controller (inherited via ModuleController)
     val executionState: StateFlow<ExecutionState> = controller.executionState
 
-    // Source emit method
-    fun emit(a: Double, b: Double) {
-        DemoUIState._a.value = a
-        DemoUIState._b.value = b
+    // Source emit method — writes to State mutable fields
+    fun emit({sourceOutputs as parameters}) {
+        {FlowGraph}State._{a}.value = {a}
     }
 
-    // Control methods
+    // Forwarding control surface — the UI invokes these directly (US1.AS3, US2.AS3).
+    // Each delegates one-to-one to the underlying ControllerInterface (which inherits
+    // from ModuleController, so the methods exist on `controller`).
     fun start(): FlowGraph = controller.start()
     fun stop(): FlowGraph = controller.stop()
     fun pause(): FlowGraph = controller.pause()
@@ -222,37 +245,51 @@ class DemoUIViewModel(
 ```
 
 **Constraints**:
-- The constructor MUST be `public` and the parameter MUST be exactly `({Module}ControllerInterface)` so that `ModuleSessionFactory.tryCreateViewModel` matches it via `parameterTypes[0].isAssignableFrom(interfaceClass)`.
-- The class MUST extend `androidx.lifecycle.ViewModel` (matches existing convention; required by the `lifecycle-viewmodel-compose` integration the GraphEditor uses).
-- `emit(...)` continues to write to `{Module}State._x` mutable fields (same as today). This preserves the existing UI → State → SourceCodeNode flow.
-- Sink-input flows are read from `{Module}State.{y}Flow` directly (not via `controller.{y}`), matching WeatherForecast/Addresses precedent. The same code works under both runtime paths because both paths mutate the same `{Module}State` object.
+
+- The constructor MUST be `public` and parameter type MUST be exactly `({FlowGraph}ControllerInterface)` so `ModuleSessionFactory.tryCreateViewModel` matches it via `parameterTypes[0].isAssignableFrom(interfaceClass)`.
+- The class MUST extend `androidx.lifecycle.ViewModel`.
+- `emit(...)` continues to write to `{FlowGraph}State._x` mutable fields — preserves today's UI → State → SourceCodeNode flow.
+- Sink-input flows are read from `{FlowGraph}State.yFlow` directly (matches entity-module precedent; same code works under both runtime paths).
+- The forwarding control methods (`start/stop/pause/resume/reset`) are required because the UI invokes them as `viewModel.start()` etc. (US1.AS3, US2.AS3). Each is a one-line delegation to `controller.{same}()`. Generators MUST emit them; they are NOT inherited from `androidx.lifecycle.ViewModel` and the UI cannot reach the controller directly.
 
 ---
 
 ## 6. State transitions (re-generation lifecycle)
 
-The only "state machine" in this feature is the per-file decision tree inside `UIFBPSaveService`:
+The only "state machine" introduced by this feature is the per-file decision tree inside `UIFBPSaveService`:
 
 ```
 For each generator-target file:
 
-  EXISTS?
+  Pre-flight: host module has jvm() + preview-api?
+    NO  → return success=false, errorMessage describing missing pieces. END.
+    YES → continue.
+
+  EXISTS at target path?
     NO  → write new file → kind = CREATED
     YES → CONTENT MATCHES would-be-emitted?
             YES → kind = UNCHANGED
-            NO  → CARRIES GENERATOR MARKER COMMENT?
+            NO  → CARRIES "Generated by CodeNodeIO" MARKER COMMENT?
                     YES → write new file → kind = UPDATED
                     NO  → leave file → kind = SKIPPED_CONFLICT, warning emitted
 
 For .flow.kt:
-  EXISTS?
+  EXISTS at the user-selected path?
     NO  → emit bootstrap → mode = CREATED
-    YES → PARSEABLE?
+    YES → PARSEABLE via FlowKtParser?
             NO  → leave file → mode = PARSE_FAILED_SKIPPED, warning emitted
             YES → DIFF Source/Sink ports against spec
                   IF no diff → mode = UNCHANGED
                   ELSE       → apply port adds/removes, drop invalid connections,
                                re-serialize → mode = UPDATED
+
+If options.deleteLegacyLocations = true:
+  For each legacy path (saved/{X}.kt, base-package/{X}.kt where X ∈ {State, ViewModel}):
+    EXISTS?
+      NO  → no entry
+      YES → CARRIES MARKER?
+              YES → delete → kind = DELETED, reason = "Legacy {kind} cleanup"
+              NO  → kind = SKIPPED_CONFLICT, reason = "Legacy file lacks marker"
 ```
 
 This is the entirety of the dynamic behavior introduced by the feature; no domain entities have lifecycle states.
@@ -263,7 +300,9 @@ This is the entirety of the dynamic behavior introduced by the feature; no domai
 
 - No new persistence. No database schemas. No migration scripts.
 - No changes to `FlowGraph`, `CodeNode`, `Node`, or any `fbpDsl` model classes.
-- No changes to `DynamicPipelineController`, `DynamicPipelineBuilder`, `PreviewRegistry`, `DynamicPreviewDiscovery`, or `ModuleSessionFactory` (existing contracts are sufficient — see research Decisions 1–4).
-- No changes to the four reused entity-module generators (`RuntimeControllerInterfaceGenerator`, `RuntimeControllerGenerator`, `RuntimeControllerAdapterGenerator`, `RuntimeFlowGenerator`); UI-FBP only adapts inputs to call them.
+- No changes to `DynamicPipelineController`, `DynamicPipelineBuilder`, `PreviewRegistry`, `DynamicPreviewDiscovery`, or `ModuleSessionFactory` — the post-085 contracts are sufficient (see research Decisions 1–3).
+- No changes to `RuntimeControllerInterfaceGenerator`, `ModuleRuntimeGenerator`, `GenerationFileWriter`, or `CodeGenerationRunner` — feature 085's surface is reused as-is.
 - No new IP types; the generator continues to use whatever IP types are already discovered by `IPTypeRegistry`.
-- No universal-runtime collapse (per spec Clarifications Q2 — deferred to a follow-up feature). The thick stack remains intact.
+- No `build.gradle.kts` mutation — Decision 5 retires that responsibility (delegated to feature 085's `ModuleGenerator` scaffolding).
+- No implicit module scanning for flow graphs or qualifying UI files — Decision 9 retires that ambiguity surface in favor of an explicit-pair input.
+- No multi-UI-per-flow-graph emission — one UI-FBP run = one `{flow graph, UI file}` pair = one consistent generated artifact set.

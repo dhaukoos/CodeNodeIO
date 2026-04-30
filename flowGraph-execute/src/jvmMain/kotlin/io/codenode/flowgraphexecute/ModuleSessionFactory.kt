@@ -48,24 +48,62 @@ object ModuleSessionFactory {
         }
     }
 
+    /**
+     * Creates a [RuntimeSession] for the given module.
+     *
+     * @param moduleName Used as the class-name prefix for `{moduleName}ControllerInterface`,
+     *        `{moduleName}ViewModel`, `{moduleName}State`. Post-082/083 this is the **flow-graph
+     *        prefix**, not the host module's directory name (a single workspace module may host
+     *        multiple flow graphs, each with its own per-flow-graph generated artifact set).
+     *        Entity-module callers can pass the module's name; UI-FBP callers pass `flowGraph.name.pascalCase()`.
+     * @param editorFlowGraph The FlowGraph the GraphEditor's canvas is currently displaying.
+     * @param flowGraphProvider Closure returning the FlowGraph to execute. Typically `{ editorFlowGraph }`.
+     * @param basePackage Optional explicit base package (e.g., `io.codenode.demo`) for the host
+     *        module's generated artifacts. When null, falls back to `"io.codenode.${moduleName.lowercase()}"`
+     *        which works for entity modules where moduleDir name = flow-graph prefix = package suffix.
+     *        UI-FBP-style modules where the host module's package diverges from the flow-graph prefix
+     *        (e.g., TestModule hosting DemoUI in `io.codenode.demo`) MUST pass this explicitly.
+     */
     fun createSession(
         moduleName: String,
         editorFlowGraph: FlowGraph? = null,
-        flowGraphProvider: (() -> FlowGraph)? = null
+        flowGraphProvider: (() -> FlowGraph)? = null,
+        basePackage: String? = null
     ): RuntimeSession? {
         val reg = registry ?: return null
         if (editorFlowGraph == null || flowGraphProvider == null) return null
 
         val lookup: (String) -> io.codenode.fbpdsl.runtime.CodeNodeDefinition? = { name -> reg.getByName(name) }
-        if (!DynamicPipelineBuilder.canBuildDynamic(editorFlowGraph, lookup)) return null
+        if (!DynamicPipelineBuilder.canBuildDynamic(editorFlowGraph, lookup)) {
+            // Surface which node names couldn't be resolved — typical cause is a template
+            // (uncompiled) GraphNode in the canvas vs a compiled CodeNodeDefinition. Without
+            // this diagnostic the user sees only the generic "No runtime available" message.
+            val unresolved = editorFlowGraph.getAllCodeNodes()
+                .map { it.name }
+                .filter { lookup(it) == null }
+                .distinct()
+            if (unresolved.isNotEmpty()) {
+                System.err.println(
+                    "[ModuleSessionFactory] No runtime available for module '$moduleName': " +
+                        "the following CodeNode names have no compiled CodeNodeDefinition in the registry: " +
+                        "${unresolved.joinToString(", ")}. " +
+                        "Templates (uncompiled GraphNodes) cannot run in Runtime Preview — " +
+                        "either swap them for compiled CodeNodes from the palette or write " +
+                        "a CodeNodeDefinition .kt file under the module's nodes/ directory."
+                )
+            }
+            return null
+        }
+
+        val effectiveBasePackage = basePackage ?: "io.codenode.${moduleName.lowercase()}"
 
         val controller = DynamicPipelineController(
             flowGraphProvider = flowGraphProvider,
             lookup = lookup,
-            onReset = createResetCallback(moduleName)
+            onReset = createResetCallback(effectiveBasePackage, moduleName)
         )
 
-        val viewModel = createViewModel(moduleName, controller, flowGraphProvider)
+        val viewModel = createViewModel(effectiveBasePackage, moduleName, controller, flowGraphProvider)
             ?: return RuntimeSession(controller, Any(), editorFlowGraph, flowGraphProvider = flowGraphProvider)
 
         return RuntimeSession(controller, viewModel, editorFlowGraph, flowGraphProvider = flowGraphProvider)
@@ -77,12 +115,11 @@ object ModuleSessionFactory {
      * for the interface, and instantiates the ViewModel.
      */
     private fun createViewModel(
+        modulePackage: String,
         moduleName: String,
         controller: DynamicPipelineController,
         flowGraphProvider: () -> FlowGraph
     ): Any? {
-        val modulePackage = "io.codenode.${moduleName.lowercase()}"
-
         // Find the ControllerInterface class (new layout: controller/, fallback: generated/)
         val interfaceClass = tryLoadClass("${modulePackage}.controller.${moduleName}ControllerInterface")
             ?: tryLoadClass("${modulePackage}.generated.${moduleName}ControllerInterface")
@@ -189,8 +226,8 @@ object ModuleSessionFactory {
         return null
     }
 
-    private fun createResetCallback(moduleName: String): (() -> Unit)? {
-        val stateObject = tryGetStateObject("io.codenode.${moduleName.lowercase()}", moduleName)
+    private fun createResetCallback(modulePackage: String, moduleName: String): (() -> Unit)? {
+        val stateObject = tryGetStateObject(modulePackage, moduleName)
             ?: return null
         return try {
             val resetMethod = stateObject.javaClass.getMethod("reset")

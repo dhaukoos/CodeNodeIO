@@ -56,13 +56,84 @@ class PreviewProviderGeneratorTest {
     @Test
     fun `register function wires composable to PreviewRegistry by module name`() {
         val source = generator.generate(stopWatchFlow(), basePackage, viewModelPackage)
-        // The composable name follows the {Module} convention. Modules whose top-level
-        // composable diverges (e.g., WeatherForecastUI) can rename after generation.
+        // Pre-082/083 convention: composable name == flowGraph.name == module name.
+        // No composableName override → both the registry key and the function call use flowGraph.name.
         assertTrue(source.contains("PreviewRegistry.register(\"StopWatch\")"),
-            "must register the composable under the module name")
+            "must register the composable under the flow-graph name")
         assertTrue(source.contains("val vm = viewModel as StopWatchViewModel"),
             "must cast the registry-provided viewModel to the typed ViewModel")
         assertTrue(source.contains("StopWatch(viewModel = vm, modifier = modifier)"),
-            "must invoke the {Module}() composable")
+            "must invoke the {FlowGraph}() composable when no composableName override is supplied")
+    }
+
+    // ========== Post-Session 2026-04-28 Decision 2: composableName decoupling ==========
+
+    @Test
+    fun `entity-module callers passing no composableName produce identical output to pre-feature-084 behavior`() {
+        // Regression-free guarantee: existing entity-module call sites in CodeGenerationRunner
+        // do not pass composableName; the generator MUST default to flowGraph.name.pascalCase()
+        // for both the registry key AND the function call (the legacy behavior).
+        val withoutOverride = generator.generate(stopWatchFlow(), basePackage, viewModelPackage)
+        val withExplicitDefault = generator.generate(
+            stopWatchFlow(), basePackage, viewModelPackage, composableName = "StopWatch"
+        )
+        kotlin.test.assertEquals(
+            withoutOverride, withExplicitDefault,
+            "passing the same composableName the generator would compute by default MUST produce " +
+                "byte-identical output — protects entity-module callers from a regression"
+        )
+    }
+
+    @Test
+    fun `with composableName override the registry key uses flow-graph but lambda body invokes the override`() {
+        // UI-FBP path post-Decision 2: flowGraph.name is the registry key (matches RuntimePreviewPanel
+        // lookup), but the user-authored Composable function name (potentially distinct) is the
+        // function the lambda body invokes.
+        val flow = FlowGraph(
+            id = "test-flow",
+            name = "Quickstart084Alt",                                           // flow-graph prefix
+            version = "1.0.0",
+            rootNodes = emptyList(),
+            connections = emptyList()
+        )
+        val source = generator.generate(
+            flow,
+            basePackage = "io.codenode.quickstart084",
+            viewModelPackage = "io.codenode.quickstart084.viewmodel",
+            composableName = "RenamedDemoUI"                                     // user-authored composable
+        )
+
+        assertTrue(source.contains("PreviewRegistry.register(\"Quickstart084Alt\")"),
+            "registry key MUST be the flow-graph prefix (matches RuntimePreviewPanel lookup)")
+        assertTrue(source.contains("val vm = viewModel as Quickstart084AltViewModel"),
+            "ViewModel cast still uses the flow-graph-prefix-derived ViewModel type name")
+        assertTrue(source.contains("RenamedDemoUI(viewModel = vm, modifier = modifier)"),
+            "lambda body MUST invoke the user-authored Composable function name when supplied")
+    }
+
+    @Test
+    fun `with composableName override the user-authored composable's package is imported so the call resolves`() {
+        // The generated PreviewProvider lives at ${basePackage}.userInterface — which is also where
+        // the user-authored Composable lives by convention. So the in-package call resolves without
+        // an explicit import. This test pins that the generator does NOT spuriously emit an import
+        // when the composable lives in the same package as the PreviewProvider.
+        val flow = FlowGraph(
+            id = "test-flow",
+            name = "Quickstart084Alt",
+            version = "1.0.0",
+            rootNodes = emptyList(),
+            connections = emptyList()
+        )
+        val source = generator.generate(
+            flow,
+            basePackage = "io.codenode.quickstart084",
+            viewModelPackage = "io.codenode.quickstart084.viewmodel",
+            composableName = "RenamedDemoUI"
+        )
+        // The PreviewProvider is in ${basePackage}.userInterface and the user's composable is also
+        // in ${basePackage}.userInterface — same package, no import needed for the function call.
+        assertTrue(source.contains("package io.codenode.quickstart084.userInterface"))
+        // No spurious import attempt that would break compilation
+        assertTrue(!source.contains("import io.codenode.quickstart084.userInterface.RenamedDemoUI"))
     }
 }

@@ -133,6 +133,8 @@ Auto-generated from all feature plans. Last updated: 2026-01-13
 - `~/.codenode/config.properties` for workspace persistence + MRU lis (083-implement-workspace-dropdown)
 - Kotlin 2.1.21 (KMP — Kotlin Multiplatform). Generators run on JVM; generated source spans `commonMain` (KMP) only for the new file (the eliminated trio's `flow/` placement is gone). (085-collapse-thick-runtime)
 - N/A. Generator emits source files to module directory trees; no new persistence. (085-collapse-thick-runtime)
+- Kotlin 2.1.21 (Kotlin Multiplatform). Generators live in `flowGraph-generate/commonMain` (pure string emitters, KMP-safe); the orchestrating `UIFBPSaveService` lives in `flowGraph-generate/jvmMain` (filesystem I/O + `.flow.kt` parse-and-merge). Generated source spans the host module's `commonMain` (KMP) and `jvmMain` (the `PreviewProvider`). (084-ui-fbp-runtime-preview)
+- N/A. Generator emits source files to the host module's directory tree; no new persistence introduced. (084-ui-fbp-runtime-preview)
 
 - Kotlin 1.9+, Go 1.21+ (001-ide-plugin-platform)
 
@@ -152,9 +154,9 @@ tests/
 Kotlin 1.9+, Go 1.21+: Follow standard conventions
 
 ## Recent Changes
+- 084-ui-fbp-runtime-preview: Added Kotlin 2.1.21 (Kotlin Multiplatform). Generators live in `flowGraph-generate/commonMain` (pure string emitters, KMP-safe); the orchestrating `UIFBPSaveService` lives in `flowGraph-generate/jvmMain` (filesystem I/O + `.flow.kt` parse-and-merge). Generated source spans the host module's `commonMain` (KMP) and `jvmMain` (the `PreviewProvider`).
 - 085-collapse-thick-runtime: Added Kotlin 2.1.21 (KMP — Kotlin Multiplatform). Generators run on JVM; generated source spans `commonMain` (KMP) only for the new file (the eliminated trio's `flow/` placement is gone).
 - 083-implement-workspace-dropdown: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + Compose Desktop 1.7.3 + graphEditor (TopToolbar, GraphEditorApp, GraphEditorDialogs, FlowGraphPropertiesDialog), flowGraph-generate (ModuleScaffoldingGenerator), fbpDsl (FlowGraph model)
-- 081-wire-codegen-panel: Added Kotlin 2.1.21 (KMP - Kotlin Multiplatform) + Compose Desktop 1.7.3 + graphEditor (CodeGeneratorPanel, TopToolbar, GraphEditorApp), flowGraph-generate (CodeGenerationRunner, ModuleScaffoldingGenerator, SelectionFilter)
 
 
 <!-- MANUAL ADDITIONS START -->
