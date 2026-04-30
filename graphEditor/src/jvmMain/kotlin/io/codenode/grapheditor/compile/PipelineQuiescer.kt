@@ -19,29 +19,52 @@ import io.codenode.fbpdsl.runtime.DynamicPipelineController
  * API in isolation; T042 wires it to the actual RuntimePreviewPanel state.
  */
 class PipelineQuiescer {
-    private val controllers = java.util.LinkedHashSet<DynamicPipelineController>()
+    /** Generic stoppable target — any pipeline/runtime that needs stopping pre-recompile. */
+    fun interface Stoppable {
+        fun stop()
+    }
+
+    private val stoppables = java.util.LinkedHashSet<Stoppable>()
+    /** Identity map so we can unregister by the original DynamicPipelineController reference. */
+    private val controllerWraps = mutableMapOf<DynamicPipelineController, Stoppable>()
     private val lock = Any()
+
+    /** Register a generic Stoppable. Idempotent. */
+    fun register(stoppable: Stoppable) {
+        synchronized(lock) { stoppables.add(stoppable) }
+    }
+
+    /** Unregister a generic Stoppable. Idempotent (no-op when absent). */
+    fun unregister(stoppable: Stoppable) {
+        synchronized(lock) { stoppables.remove(stoppable) }
+    }
 
     /** Add a controller to the tracking set. Idempotent. */
     fun register(controller: DynamicPipelineController) {
-        synchronized(lock) { controllers.add(controller) }
+        synchronized(lock) {
+            val wrap = controllerWraps.getOrPut(controller) {
+                Stoppable { controller.stop() }
+            }
+            stoppables.add(wrap)
+        }
     }
 
     /** Remove a controller from the tracking set. Idempotent (no-op when absent). */
     fun unregister(controller: DynamicPipelineController) {
-        synchronized(lock) { controllers.remove(controller) }
+        synchronized(lock) {
+            controllerWraps.remove(controller)?.let { stoppables.remove(it) }
+        }
     }
 
     /**
-     * Stops every currently-registered controller (calls [DynamicPipelineController.stop]).
-     * Returns the count of controllers that were stopped — surfaced in
-     * [io.codenode.flowgraphinspect.compile.RecompileResult.pipelinesQuiesced].
+     * Stops every currently-registered Stoppable. Returns the count stopped — surfaced
+     * in [io.codenode.flowgraphinspect.compile.RecompileResult.pipelinesQuiesced].
      */
     fun stopAll(): Int {
-        val snapshot = synchronized(lock) { controllers.toList() }
-        for (c in snapshot) {
+        val snapshot = synchronized(lock) { stoppables.toList() }
+        for (s in snapshot) {
             try {
-                c.stop()
+                s.stop()
             } catch (_: Exception) {
                 // Best-effort: continue stopping the rest even if one throws.
             }

@@ -118,6 +118,10 @@ fun GraphEditorApp(
     // implicitly when the JVM exits (a future enhancement could add explicit shutdown
     // on Window close).
     val recompileBgScope = remember { CoroutineScope(SupervisorJob() + Dispatchers.Default) }
+    // Lifted out of the recompileSession-construction lambda so the
+    // RuntimeSession-state watcher (further below) can register/unregister against it
+    // — that's how a running pipeline gets stopped before any recompile (FR-014).
+    val pipelineQuiescer = remember { PipelineQuiescer() }
     val recompileSession = remember {
         val sessionCacheDir = File(System.getProperty("user.home"), ".codenode/cache/sessions/${UUID.randomUUID()}")
         sessionCacheDir.mkdirs()
@@ -127,7 +131,6 @@ fun GraphEditorApp(
         val classpathSnapshot = ClasspathSnapshot.load(classpathFile = cpFile)
         val cache = SessionCompileCache(sessionCacheDir)
         val compiler = InProcessCompiler(classpathSnapshot, cache)
-        val pipelineQuiescer = PipelineQuiescer()
         val publisher = RecompileFeedbackPublisher(
             onErrorEntry = { entry ->
                 errorConsoleEntries = errorConsoleEntries + entry
@@ -363,6 +366,26 @@ fun GraphEditorApp(
                     it.stop()
                 }
             }
+        }
+    }
+
+    // Feature 086 (T042) — register the active runtimeSession with the PipelineQuiescer
+    // while it's running so any subsequent recompile (per-file or per-module) stops it
+    // first (FR-014). The Stoppable is `remember`ed so its identity is stable across
+    // recompositions, allowing identity-based unregister.
+    val runtimeQuiesceHook = remember(runtimeSession) {
+        runtimeSession?.let { session ->
+            PipelineQuiescer.Stoppable {
+                if (session.executionState.value != ExecutionState.IDLE) {
+                    session.stop()
+                }
+            }
+        }
+    }
+    DisposableEffect(runtimeSession, runtimeQuiesceHook) {
+        runtimeQuiesceHook?.let { pipelineQuiescer.register(it) }
+        onDispose {
+            runtimeQuiesceHook?.let { pipelineQuiescer.unregister(it) }
         }
     }
 
