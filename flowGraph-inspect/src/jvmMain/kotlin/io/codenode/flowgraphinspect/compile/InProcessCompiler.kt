@@ -32,8 +32,26 @@ class InProcessCompiler(
     private val cache: SessionCompileCache
 ) {
     /**
-     * Compile [unit]'s sources atomically. Returns a structured [CompileResult] —
-     * never throws on compilation failure (only on I/O errors).
+     * Compile [unit]'s sources atomically and return a structured [CompileResult]:
+     *
+     * - [CompileResult.Success] when the compiler reports OK *and* at least one
+     *   `CodeNodeDefinition` singleton is discovered in the output. The success result
+     *   carries the (`name → fqcn`) map of every loaded definition so [RecompileSession]
+     *   can install them into the registry without re-walking the directory.
+     * - [CompileResult.Failure] in every other case — including non-OK exit codes,
+     *   compiler exceptions, and an OK exit code that produced zero definitions
+     *   (the latter is treated as a misconfiguration error rather than a silent
+     *   no-op so callers see actionable diagnostics).
+     *
+     * Atomicity: if the compiler emits ANY output before failing, the partial
+     * `.class` files remain in the cache directory but are NOT loaded — only fully
+     * successful compiles install definitions.
+     *
+     * Thread-safety: not internally synchronized. [RecompileSession] holds a single
+     * mutex around every call to keep the compiler driver state coherent.
+     *
+     * @return Never throws on compilation failure. May only throw on disk I/O errors
+     *   (e.g., the cache directory is unwritable) — those are unrecoverable.
      */
     suspend fun compile(unit: CompileUnit): CompileResult {
         val outputDir = cache.allocate(unit)

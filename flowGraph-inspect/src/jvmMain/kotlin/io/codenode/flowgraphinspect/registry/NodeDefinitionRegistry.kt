@@ -225,16 +225,23 @@ class NodeDefinitionRegistry {
     }
 
     // ========== Feature 086: session-aware resolution (FR-017) ==========
-    //
-    // Stub bodies — T028 fills these in. Until then, the methods throw NotImplementedError
-    // and the modified getByName below preserves launch-time-only resolution. Existing
-    // callers of getByName see no change in behavior pre-T028.
 
     /**
-     * Installs a [CodeNodeDefinition] produced by an in-session compile. Replaces any
-     * prior session install or launch-time-classpath entry for [nodeName]. The prior
-     * session install's [io.codenode.flowgraphinspect.compile.ClassloaderScope] reference
-     * is dropped, making it GC-eligible (Decision 6 / SC-004).
+     * Installs a [CodeNodeDefinition] produced by an in-session compile.
+     *
+     * Behavior:
+     *  - Replaces any prior session install for [nodeName] (the prior install's
+     *    strong reference to its [io.codenode.flowgraphinspect.compile.ClassloaderScope]
+     *    is dropped here — combined with [io.codenode.grapheditor.compile.RecompileSession]'s
+     *    matching scope-eviction, that scope becomes GC-eligible per Decision 6 / SC-004).
+     *  - Shadows (but does NOT replace) any launch-time-classpath entry for the
+     *    same name; the launch-time entry remains the fallback if [revertSessionDefinition]
+     *    is called.
+     *  - Increments the [version] flow so palette UIs subscribed via
+     *    `version.collectAsState()` recompose.
+     *
+     * The caller is expected to be [io.codenode.grapheditor.compile.RecompileSession];
+     * direct invocation from elsewhere bypasses pipeline quiescence and is unsafe.
      */
     fun installSessionDefinition(
         scope: io.codenode.flowgraphinspect.compile.ClassloaderScope,
@@ -253,8 +260,13 @@ class NodeDefinitionRegistry {
     }
 
     /**
-     * Drops a session install. Subsequent [getByName] for [nodeName] falls back to the
-     * launch-time classpath entry, if any. No-op when no session install exists.
+     * Drops a session install for [nodeName]. Subsequent [getByName] / palette listings
+     * fall back to the launch-time classpath entry (and, in turn, to the template
+     * source) for that name. No-op when no session install exists.
+     *
+     * Used when an in-session compile is rolled back (e.g., by an Undo of a node
+     * generation that triggered an auto-recompile). Bumps [version] so palette UIs
+     * recompose.
      */
     fun revertSessionDefinition(nodeName: String) {
         if (sessionInstalls.remove(nodeName) != null) {
