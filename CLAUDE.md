@@ -137,6 +137,8 @@ Auto-generated from all feature plans. Last updated: 2026-01-13
 - N/A. Generator emits source files to the host module's directory tree; no new persistence introduced. (084-ui-fbp-runtime-preview)
 - Kotlin 2.1.21 (existing project standard). (086-hot-compile-nodes)
 - Filesystem (compiled `.class` files written to a session-scoped temp directory under `~/.codenode/cache/sessions/{session-id}/`; the directory is best-effort cleaned on graceful shutdown). No database, no persistent state across sessions — by design (FR-018). (086-hot-compile-nodes)
+- Kotlin 2.1.21 (KMP — Kotlin Multiplatform). Generators + existing only — kotlinx-coroutines 1.8.0 (StateFlow, (087-mvi-ui-fbp)
+- N/A. The generator writes `.kt` files to the host module's (087-mvi-ui-fbp)
 
 - Kotlin 1.9+, Go 1.21+ (001-ide-plugin-platform)
 
@@ -156,9 +158,9 @@ tests/
 Kotlin 1.9+, Go 1.21+: Follow standard conventions
 
 ## Recent Changes
+- 087-mvi-ui-fbp: Added Kotlin 2.1.21 (KMP — Kotlin Multiplatform). Generators + existing only — kotlinx-coroutines 1.8.0 (StateFlow,
 - 086-hot-compile-nodes: Added Kotlin 2.1.21 (existing project standard).
 - 084-ui-fbp-runtime-preview: Added Kotlin 2.1.21 (Kotlin Multiplatform). Generators live in `flowGraph-generate/commonMain` (pure string emitters, KMP-safe); the orchestrating `UIFBPSaveService` lives in `flowGraph-generate/jvmMain` (filesystem I/O + `.flow.kt` parse-and-merge). Generated source spans the host module's `commonMain` (KMP) and `jvmMain` (the `PreviewProvider`).
-- 085-collapse-thick-runtime: Added Kotlin 2.1.21 (KMP — Kotlin Multiplatform). Generators run on JVM; generated source spans `commonMain` (KMP) only for the new file (the eliminated trio's `flow/` placement is gone).
 
 
 <!-- MANUAL ADDITIONS START -->
