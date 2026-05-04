@@ -48,6 +48,8 @@ class UIFBPSourceCodeNodeGenerator {
         sb.appendLine("import kotlinx.coroutines.flow.SharedFlow")
         if (outputs.size >= 2) {
             sb.appendLine("import io.codenode.fbpdsl.runtime.ProcessResult${outputs.size}")
+            sb.appendLine("import kotlinx.coroutines.coroutineScope")
+            sb.appendLine("import kotlinx.coroutines.launch")
         }
 
         // IP-type imports — only for sourceOutputs that reference custom non-Unit types.
@@ -103,9 +105,9 @@ class UIFBPSourceCodeNodeGenerator {
             sb.appendLine("            name = name,")
             sb.appendLine("            generate = { emit ->")
             sb.appendLine("                val latest = arrayOfNulls<Any?>(${outputs.size})")
-            sb.appendLine("                kotlinx.coroutines.coroutineScope {")
+            sb.appendLine("                coroutineScope {")
             for ((i, port) in outputs.withIndex()) {
-                sb.appendLine("                    kotlinx.coroutines.launch {")
+                sb.appendLine("                    launch {")
                 sb.appendLine("                        (sources[$i] as SharedFlow<${port.typeName}>).collect { value ->")
                 sb.appendLine("                            latest[$i] = value")
                 val args = outputs.mapIndexed { j, p ->

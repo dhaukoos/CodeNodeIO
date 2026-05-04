@@ -112,8 +112,8 @@ class UIFBPInterfaceGeneratorTest {
             "PreviewProvider MUST live in jvmMain (preview-api is desktop-only)")
         assertTrue(previewFile.content.contains("PreviewRegistry.register(\"AltPrefix\")"),
             "registry key MUST equal flowGraphPrefix (matches RuntimePreviewPanel lookup)")
-        assertTrue(previewFile.content.contains("DemoUI(viewModel = vm, modifier = modifier)"),
-            "lambda body MUST invoke the user-authored Composable function name")
+        assertTrue(previewFile.content.contains("DemoUI(state = state, onEvent = vm::onEvent, modifier = modifier)"),
+            "lambda body MUST invoke the user-authored Composable Screen with (state, onEvent) per Design B")
     }
 
     // T015 (e): zero source-output ports degenerate case

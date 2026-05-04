@@ -62,8 +62,12 @@ class PreviewProviderGeneratorTest {
             "must register the composable under the flow-graph name")
         assertTrue(source.contains("val vm = viewModel as StopWatchViewModel"),
             "must cast the registry-provided viewModel to the typed ViewModel")
-        assertTrue(source.contains("StopWatch(viewModel = vm, modifier = modifier)"),
-            "must invoke the {FlowGraph}() composable when no composableName override is supplied")
+        // Feature 087 / Design B: registered lambda is the host-app ScreenRoot seam —
+        // collects state and passes onEvent to the pure two-parameter Screen.
+        assertTrue(source.contains("val state by vm.state.collectAsState()"),
+            "must collect viewModel.state as Compose state")
+        assertTrue(source.contains("StopWatch(state = state, onEvent = vm::onEvent, modifier = modifier)"),
+            "must invoke the {FlowGraph}() Screen with (state, onEvent) per Design B")
     }
 
     // ========== Post-Session 2026-04-28 Decision 2: composableName decoupling ==========
@@ -107,8 +111,8 @@ class PreviewProviderGeneratorTest {
             "registry key MUST be the flow-graph prefix (matches RuntimePreviewPanel lookup)")
         assertTrue(source.contains("val vm = viewModel as Quickstart084AltViewModel"),
             "ViewModel cast still uses the flow-graph-prefix-derived ViewModel type name")
-        assertTrue(source.contains("RenamedDemoUI(viewModel = vm, modifier = modifier)"),
-            "lambda body MUST invoke the user-authored Composable function name when supplied")
+        assertTrue(source.contains("RenamedDemoUI(state = state, onEvent = vm::onEvent, modifier = modifier)"),
+            "lambda body MUST invoke the user-authored Composable function name with (state, onEvent) per Design B")
     }
 
     @Test
