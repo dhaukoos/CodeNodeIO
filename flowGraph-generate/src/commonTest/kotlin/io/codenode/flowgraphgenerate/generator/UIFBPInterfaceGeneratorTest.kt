@@ -1,5 +1,11 @@
 /*
- * UIFBPGeneratorTest - Tests for all four UI-FBP generators
+ * UIFBPInterfaceGeneratorTest — feature 087 (T005 split from UIFBPGeneratorTest).
+ *
+ * Pre-feature-087 baseline: integration-level assertions over the orchestrator
+ * (UIFBPInterfaceGenerator.generateAll). T020 GREEN updates these for the
+ * Design B 8-mandatory-file output (the existing 7 + the new {Name}Event.kt;
+ * PreviewProvider's body is unchanged from feature 084).
+ *
  * License: Apache 2.0
  */
 
@@ -8,12 +14,10 @@ package io.codenode.flowgraphgenerate.generator
 import io.codenode.flowgraphgenerate.parser.PortInfo
 import io.codenode.flowgraphgenerate.parser.UIFBPSpec
 import kotlin.test.Test
-import kotlin.test.assertTrue
 import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
-import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
-class UIFBPGeneratorTest {
+class UIFBPInterfaceGeneratorTest {
 
     private val demoSpec = UIFBPSpec(
         flowGraphPrefix = "DemoUI",
@@ -29,202 +33,6 @@ class UIFBPGeneratorTest {
         ),
         ipTypeImports = listOf("io.codenode.demo.iptypes.CalculationResults")
     )
-
-    // T009: State generator tests — post-082/083 emits to viewmodel/ subpackage with flow-graph prefix
-    @Test
-    fun `StateGenerator emits to viewmodel subpackage`() {
-        val output = UIFBPStateGenerator().generate(demoSpec)
-        assertTrue(output.contains("package io.codenode.demo.viewmodel"),
-            "post-085: State lives at {basePackage}.viewmodel.{FlowGraph}State (matches " +
-                "ModuleSessionFactory's preferred FQCN lookup order)")
-    }
-
-    @Test
-    fun `StateGenerator uses flowGraphPrefix not moduleName for class name`() {
-        val divergentSpec = demoSpec.copy(flowGraphPrefix = "AltPrefix")
-        val output = UIFBPStateGenerator().generate(divergentSpec)
-        assertTrue(output.contains("object AltPrefixState"),
-            "the State class name MUST come from flowGraphPrefix (not from composableName " +
-                "which equals 'DemoUI' in this fixture)")
-    }
-
-    @Test
-    fun `StateGenerator produces State object with MutableStateFlow pairs`() {
-        val output = UIFBPStateGenerator().generate(demoSpec)
-        assertTrue(output.contains("object DemoUIState"))
-        assertTrue(output.contains("internal val _numA = MutableStateFlow"))
-        assertTrue(output.contains("val numAFlow: StateFlow<Double>"))
-        assertTrue(output.contains("internal val _numB = MutableStateFlow"))
-        assertTrue(output.contains("val numBFlow: StateFlow<Double>"))
-        assertTrue(output.contains("internal val _results = MutableStateFlow"))
-        assertTrue(output.contains("val resultsFlow: StateFlow<CalculationResults?>"))
-    }
-
-    @Test
-    fun `StateGenerator includes reset function`() {
-        val output = UIFBPStateGenerator().generate(demoSpec)
-        assertTrue(output.contains("fun reset()"))
-        assertTrue(output.contains("_numA.value = 0.0"))
-        assertTrue(output.contains("_results.value = null"))
-    }
-
-    @Test
-    fun `StateGenerator includes IP type imports`() {
-        val output = UIFBPStateGenerator().generate(demoSpec)
-        assertTrue(output.contains("import io.codenode.demo.iptypes.CalculationResults"))
-    }
-
-    // T007: ViewModel generator tests — post-085 ViewModel takes ControllerInterface
-    @Test
-    fun `ViewModelGenerator emits to viewmodel subpackage with flowGraphPrefix-derived name`() {
-        val output = UIFBPViewModelGenerator().generate(demoSpec)
-        assertTrue(output.contains("package io.codenode.demo.viewmodel"),
-            "ViewModel lives at {basePackage}.viewmodel matching ModuleSessionFactory's lookup")
-    }
-
-    @Test
-    fun `ViewModelGenerator constructor takes typed ControllerInterface and extends ViewModel`() {
-        val output = UIFBPViewModelGenerator().generate(demoSpec)
-        // The generated ViewModel must accept the typed ControllerInterface so
-        // ModuleSessionFactory.tryCreateViewModel's reflection match succeeds.
-        assertTrue(
-            output.contains("class DemoUIViewModel(") &&
-                output.contains("private val controller: DemoUIControllerInterface") &&
-                output.contains(") : ViewModel()"),
-            "post-085: ViewModel constructor MUST be (private val controller: " +
-                "DemoUIControllerInterface) and the class MUST extend ViewModel"
-        )
-        assertTrue(output.contains("import androidx.lifecycle.ViewModel"))
-        assertTrue(output.contains("import io.codenode.demo.controller.DemoUIControllerInterface"),
-            "the ControllerInterface lives in {basePackage}.controller")
-    }
-
-    @Test
-    fun `ViewModelGenerator exposes StateFlow properties read directly from State`() {
-        val output = UIFBPViewModelGenerator().generate(demoSpec)
-        assertTrue(output.contains("val results: StateFlow<CalculationResults?>"))
-        assertTrue(output.contains("DemoUIState.resultsFlow"),
-            "flows are read directly from {FlowGraph}State (matches WeatherForecast/Addresses precedent)")
-    }
-
-    @Test
-    fun `ViewModelGenerator exposes executionState from the controller`() {
-        val output = UIFBPViewModelGenerator().generate(demoSpec)
-        assertTrue(output.contains("val executionState"),
-            "post-085 ViewModel re-exposes executionState from the inherited ModuleController surface")
-        assertTrue(output.contains("controller.executionState"),
-            "executionState comes from the ControllerInterface (inherits from ModuleController)")
-    }
-
-    @Test
-    fun `ViewModelGenerator generates emit method writing to State mutable fields`() {
-        val output = UIFBPViewModelGenerator().generate(demoSpec)
-        assertTrue(output.contains("fun emit(numA: Double, numB: Double)"))
-        assertTrue(output.contains("DemoUIState._numA.value = numA"))
-        assertTrue(output.contains("DemoUIState._numB.value = numB"))
-    }
-
-    @Test
-    fun `ViewModelGenerator emits forwarding control methods delegating to controller`() {
-        // Per data-model.md §5 + tasks T007/T008: the UI calls viewModel.start() etc. directly.
-        // These methods are NOT inherited from androidx.lifecycle.ViewModel; the generator must
-        // emit them as one-line delegations.
-        val output = UIFBPViewModelGenerator().generate(demoSpec)
-        assertTrue(output.contains("fun start(): FlowGraph = controller.start()"),
-            "must forward start() to controller.start()")
-        assertTrue(output.contains("fun stop(): FlowGraph = controller.stop()"),
-            "must forward stop() to controller.stop()")
-        assertTrue(output.contains("fun pause(): FlowGraph = controller.pause()"),
-            "must forward pause() to controller.pause()")
-        assertTrue(output.contains("fun resume(): FlowGraph = controller.resume()"),
-            "must forward resume() to controller.resume()")
-        assertTrue(output.contains("fun reset(): FlowGraph = controller.reset()"),
-            "must forward reset() to controller.reset()")
-    }
-
-    // T010: Source CodeNode generator tests
-    @Test
-    fun `SourceGenerator produces Source CodeNode with correct category`() {
-        val output = UIFBPSourceCodeNodeGenerator().generate(demoSpec)
-        assertNotNull(output)
-        assertTrue(output.contains("object DemoUISourceCodeNode : CodeNodeDefinition"))
-        assertTrue(output.contains("override val category = CodeNodeType.SOURCE"))
-    }
-
-    @Test
-    fun `SourceGenerator produces correct output ports`() {
-        val output = UIFBPSourceCodeNodeGenerator().generate(demoSpec)!!
-        assertTrue(output.contains("PortSpec(\"numA\", Double::class)"))
-        assertTrue(output.contains("PortSpec(\"numB\", Double::class)"))
-        assertTrue(output.contains("override val inputPorts = emptyList<PortSpec>()"))
-    }
-
-    @Test
-    fun `SourceGenerator uses createSourceOut2 for two outputs`() {
-        val output = UIFBPSourceCodeNodeGenerator().generate(demoSpec)!!
-        assertTrue(output.contains("createSourceOut2<Double, Double>"))
-    }
-
-    @Test
-    fun `SourceGenerator returns null when no source outputs`() {
-        val noSourceSpec = demoSpec.copy(sourceOutputs = emptyList())
-        val output = UIFBPSourceCodeNodeGenerator().generate(noSourceSpec)
-        assertNull(output)
-    }
-
-    @Test
-    fun `SourceGenerator uses createContinuousSource for single output`() {
-        val singleSpec = demoSpec.copy(sourceOutputs = listOf(PortInfo("value", "Int")))
-        val output = UIFBPSourceCodeNodeGenerator().generate(singleSpec)!!
-        assertTrue(output.contains("createContinuousSource<Int>"))
-    }
-
-    // T011: Sink CodeNode generator tests
-    @Test
-    fun `SinkGenerator produces Sink CodeNode with correct category`() {
-        val output = UIFBPSinkCodeNodeGenerator().generate(demoSpec)
-        assertNotNull(output)
-        assertTrue(output.contains("object DemoUISinkCodeNode : CodeNodeDefinition"))
-        assertTrue(output.contains("override val category = CodeNodeType.SINK"))
-    }
-
-    @Test
-    fun `SinkGenerator produces correct input ports`() {
-        val output = UIFBPSinkCodeNodeGenerator().generate(demoSpec)!!
-        assertTrue(output.contains("PortSpec(\"results\", CalculationResults::class)"))
-        assertTrue(output.contains("override val outputPorts = emptyList<PortSpec>()"))
-    }
-
-    @Test
-    fun `SinkGenerator uses createContinuousSink for single input`() {
-        val output = UIFBPSinkCodeNodeGenerator().generate(demoSpec)!!
-        assertTrue(output.contains("createContinuousSink<CalculationResults>"))
-    }
-
-    @Test
-    fun `SinkGenerator returns null when no sink inputs`() {
-        val noSinkSpec = demoSpec.copy(sinkInputs = emptyList())
-        val output = UIFBPSinkCodeNodeGenerator().generate(noSinkSpec)
-        assertNull(output)
-    }
-
-    @Test
-    fun `SinkGenerator uses createSinkIn2 for two inputs`() {
-        val twoInputSpec = demoSpec.copy(sinkInputs = listOf(
-            PortInfo("result", "String"),
-            PortInfo("error", "String")
-        ))
-        val output = UIFBPSinkCodeNodeGenerator().generate(twoInputSpec)!!
-        assertTrue(output.contains("createSinkIn2<String, String>"))
-    }
-
-    @Test
-    fun `SinkGenerator includes IP type import for custom types`() {
-        val output = UIFBPSinkCodeNodeGenerator().generate(demoSpec)!!
-        assertTrue(output.contains("import io.codenode.demo.iptypes.CalculationResults"))
-    }
-
-    // ========== T015: Orchestrator (post-085 universal set) ==========
 
     @Test
     fun `InterfaceGenerator produces the post-085 universal set with both source and sink ports`() {
@@ -341,8 +149,6 @@ class UIFBPGeneratorTest {
             "with zero sink inputs the interface MUST NOT declare sink-input flow members")
     }
 
-    // ========== Backward-compat orchestrator paths ==========
-
     @Test
     fun `InterfaceGenerator omits Source when no source outputs (mandatory entries drop to 6)`() {
         // 7 - 1 (skipped Source) = 6 mandatory entries
@@ -352,7 +158,7 @@ class UIFBPGeneratorTest {
         assertTrue(result.filesGenerated.none { it.relativePath.contains("SourceCodeNode") })
     }
 
-    // T019: End-to-end integration test (post-085 shape)
+    // T019 (feature 084): End-to-end integration test (post-085 shape)
     @Test
     fun `end-to-end generated files contain expected structure for DemoUI`() {
         val result = UIFBPInterfaceGenerator().generateAll(demoSpec)

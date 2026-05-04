@@ -45,6 +45,18 @@ class DynamicPipelineController(
     private var flowScope: CoroutineScope? = null
     private var currentFlowGraph: FlowGraph = flowGraphProvider()
 
+    /**
+     * The active per-pipeline [CoroutineScope] when the controller is running, or
+     * `null` before [start] / after [stop] / [cleanupPipeline].
+     *
+     * Added by feature 087 (Decision 8 — MVI for UI-FBP). Generated `{Name}Runtime`
+     * factories launch source-port emissions on this scope so they share the
+     * pipeline's exception handler + supervisor lifetime. Read-only by design;
+     * callers MUST NOT cancel it directly (use [stop] instead).
+     */
+    val coroutineScope: CoroutineScope?
+        get() = flowScope
+
     private var attenuationDelayMs: Long? = null
     private var emissionObserver: ((String, Int) -> Unit)? = null
     private var valueObserver: ((String, Int, Any?) -> Unit)? = null
