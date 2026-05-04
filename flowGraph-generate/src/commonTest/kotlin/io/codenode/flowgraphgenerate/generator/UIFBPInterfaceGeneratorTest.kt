@@ -35,28 +35,29 @@ class UIFBPInterfaceGeneratorTest {
     )
 
     @Test
-    fun `InterfaceGenerator produces the post-085 universal set with both source and sink ports`() {
-        // 7 mandatory entries (with bootstrap .flow.kt off):
-        //   State, ViewModel, SourceCodeNode, SinkCodeNode, ControllerInterface, Runtime, PreviewProvider
+    fun `InterfaceGenerator produces the Design B universal set with both source and sink ports`() {
+        // 8 mandatory entries (with bootstrap .flow.kt off):
+        //   State, Event (NEW), ViewModel, SourceCodeNode, SinkCodeNode, ControllerInterface, Runtime, PreviewProvider
         val result = UIFBPInterfaceGenerator().generateAll(demoSpec)
         assertTrue(result.success)
-        assertEquals(7, result.filesGenerated.size)
+        assertEquals(8, result.filesGenerated.size)
     }
 
     @Test
-    fun `InterfaceGenerator produces 8 entries when includeFlowKt is true`() {
+    fun `InterfaceGenerator produces 9 entries when includeFlowKt is true`() {
         val result = UIFBPInterfaceGenerator().generateAll(demoSpec, includeFlowKt = true)
         assertTrue(result.success)
-        assertEquals(8, result.filesGenerated.size)
+        assertEquals(9, result.filesGenerated.size)
         assertTrue(result.filesGenerated.any { it.relativePath.endsWith("DemoUI.flow.kt") })
     }
 
     @Test
-    fun `InterfaceGenerator emits all post-085 file paths with flow-graph prefix`() {
+    fun `InterfaceGenerator emits all Design B file paths with flow-graph prefix`() {
         val result = UIFBPInterfaceGenerator().generateAll(demoSpec, includeFlowKt = true)
         val paths = result.filesGenerated.map { it.relativePath }
-        // Post-085 placement (per data-model.md §2 file table)
         assertTrue(paths.any { it == "src/commonMain/kotlin/io/codenode/demo/viewmodel/DemoUIState.kt" })
+        assertTrue(paths.any { it == "src/commonMain/kotlin/io/codenode/demo/viewmodel/DemoUIEvent.kt" },
+            "Design B: new {Name}Event.kt is part of the mandatory output")
         assertTrue(paths.any { it == "src/commonMain/kotlin/io/codenode/demo/viewmodel/DemoUIViewModel.kt" })
         assertTrue(paths.any { it == "src/commonMain/kotlin/io/codenode/demo/nodes/DemoUISourceCodeNode.kt" })
         assertTrue(paths.any { it == "src/commonMain/kotlin/io/codenode/demo/nodes/DemoUISinkCodeNode.kt" })
@@ -90,8 +91,10 @@ class UIFBPInterfaceGeneratorTest {
             "factory body MUST construct a DynamicPipelineController")
         assertTrue(runtimeFile.content.contains("ModuleController by controller"),
             "anonymous object MUST delegate ModuleController to the underlying controller")
-        assertTrue(runtimeFile.content.contains("override val results = DemoUIState.resultsFlow"),
-            "anonymous object MUST override sink-input flows pointing at State")
+        // Design B: per-flow-graph state lives in the factory closure; sink flows
+        // are constructor-local MutableStateFlows asStateFlow()'d in the override.
+        assertTrue(runtimeFile.content.contains("override val results: StateFlow<CalculationResults?> = _results.asStateFlow()"),
+            "anonymous object MUST override sink-input flows from per-flow-graph MutableStateFlows")
         assertTrue(runtimeFile.content.contains("package io.codenode.demo.controller"))
     }
 
@@ -122,14 +125,21 @@ class UIFBPInterfaceGeneratorTest {
 
         // Source CodeNode is skipped
         assertTrue(result.filesGenerated.none { it.relativePath.contains("SourceCodeNode") })
-        // ControllerInterface still emitted with sink-input flows
+        // ControllerInterface still emitted with sink-input flows + no emit methods (Design B)
         val ctrlFile = result.filesGenerated.first { it.relativePath.endsWith("ControllerInterface.kt") }
         assertTrue(ctrlFile.content.contains("interface DemoUIControllerInterface : ModuleController"))
         assertTrue(ctrlFile.content.contains("val results: StateFlow<CalculationResults?>"))
-        // ViewModel emit method with no parameters
+        assertTrue(!ctrlFile.content.contains("fun emit"),
+            "Design B: no source outputs → no emit methods on ControllerInterface")
+        // ViewModel onEvent dispatcher exists but the when block is empty (FR-008)
         val vmFile = result.filesGenerated.first { it.relativePath.endsWith("ViewModel.kt") }
         assertTrue(!vmFile.content.contains("fun emit("),
-            "ViewModel MUST omit emit(...) when there are no source outputs")
+            "Design B: prior emit(...) aggregate is gone")
+        assertTrue(vmFile.content.contains("fun onEvent(event: DemoUIEvent)"),
+            "Design B: onEvent dispatcher always emitted (FR-008)")
+        // Event sealed interface still emitted (empty body)
+        val eventFile = result.filesGenerated.first { it.relativePath.endsWith("DemoUIEvent.kt") }
+        assertTrue(eventFile.content.contains("sealed interface DemoUIEvent"))
     }
 
     // T015 (f): zero sink-input ports degenerate case
@@ -150,42 +160,53 @@ class UIFBPInterfaceGeneratorTest {
     }
 
     @Test
-    fun `InterfaceGenerator omits Source when no source outputs (mandatory entries drop to 6)`() {
-        // 7 - 1 (skipped Source) = 6 mandatory entries
+    fun `InterfaceGenerator omits Source when no source outputs (mandatory entries drop to 7)`() {
+        // 8 - 1 (skipped Source) = 7 mandatory entries
         val noSourceSpec = demoSpec.copy(sourceOutputs = emptyList())
         val result = UIFBPInterfaceGenerator().generateAll(noSourceSpec)
-        assertEquals(6, result.filesGenerated.size)
+        assertEquals(7, result.filesGenerated.size)
         assertTrue(result.filesGenerated.none { it.relativePath.contains("SourceCodeNode") })
     }
 
-    // T019 (feature 084): End-to-end integration test (post-085 shape)
+    // End-to-end integration test (Design B shape)
     @Test
-    fun `end-to-end generated files contain expected structure for DemoUI`() {
+    fun `end-to-end generated files contain expected Design B structure for DemoUI`() {
         val result = UIFBPInterfaceGenerator().generateAll(demoSpec)
         assertTrue(result.success)
 
         val stateFile = result.filesGenerated.first { it.relativePath.endsWith("DemoUIState.kt") }
-        assertTrue(stateFile.content.contains("object DemoUIState"))
-        assertTrue(stateFile.content.contains("_numA"))
-        assertTrue(stateFile.content.contains("_numB"))
-        assertTrue(stateFile.content.contains("_results"))
-        assertTrue(stateFile.content.contains("fun reset()"))
+        assertTrue(stateFile.content.contains("data class DemoUIState("),
+            "Design B: State is an immutable data class")
+        assertTrue(stateFile.content.contains("val results: CalculationResults? = null"))
+
+        val eventFile = result.filesGenerated.first { it.relativePath.endsWith("DemoUIEvent.kt") }
+        assertTrue(eventFile.content.contains("sealed interface DemoUIEvent"))
+        assertTrue(eventFile.content.contains("data class UpdateNumA(val value: Double)"))
+        assertTrue(eventFile.content.contains("data class UpdateNumB(val value: Double)"))
 
         val vmFile = result.filesGenerated.first { it.relativePath.endsWith("DemoUIViewModel.kt") }
         assertTrue(vmFile.content.contains("class DemoUIViewModel("))
         assertTrue(vmFile.content.contains("controller: DemoUIControllerInterface"))
-        assertTrue(vmFile.content.contains("fun emit(numA: Double, numB: Double)"))
-        assertTrue(vmFile.content.contains("val results: StateFlow<CalculationResults?>"))
+        assertTrue(vmFile.content.contains("val state: StateFlow<DemoUIState>"))
+        assertTrue(vmFile.content.contains("fun onEvent(event: DemoUIEvent)"))
+        assertTrue(vmFile.content.contains("controller.emitNumA(event.value)"))
+
+        val ctrlFile = result.filesGenerated.first { it.relativePath.endsWith("DemoUIControllerInterface.kt") }
+        assertTrue(ctrlFile.content.contains("fun emitNumA(value: Double)"))
+        assertTrue(ctrlFile.content.contains("fun emitNumB(value: Double)"))
+
+        val runtimeFile = result.filesGenerated.first { it.relativePath.endsWith("DemoUIRuntime.kt") }
+        assertTrue(runtimeFile.content.contains("DemoUISinkCodeNode.withReporters("))
+        assertTrue(runtimeFile.content.contains("DemoUISourceCodeNode.withSources(_numA, _numB)"))
 
         val sourceFile = result.filesGenerated.first { it.relativePath.endsWith("DemoUISourceCodeNode.kt") }
         assertTrue(sourceFile.content.contains("object DemoUISourceCodeNode : CodeNodeDefinition"))
-        assertTrue(sourceFile.content.contains("CodeNodeType.SOURCE"))
+        assertTrue(sourceFile.content.contains("fun withSources(vararg sources: SharedFlow<*>)"))
         assertTrue(sourceFile.content.contains("PortSpec(\"numA\", Double::class)"))
-        assertTrue(sourceFile.content.contains("PortSpec(\"numB\", Double::class)"))
 
         val sinkFile = result.filesGenerated.first { it.relativePath.endsWith("DemoUISinkCodeNode.kt") }
         assertTrue(sinkFile.content.contains("object DemoUISinkCodeNode : CodeNodeDefinition"))
-        assertTrue(sinkFile.content.contains("CodeNodeType.SINK"))
+        assertTrue(sinkFile.content.contains("fun withReporters(vararg reporters: (Any?) -> Unit)"))
         assertTrue(sinkFile.content.contains("PortSpec(\"results\", CalculationResults::class)"))
     }
 }

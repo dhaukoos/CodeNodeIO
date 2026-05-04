@@ -46,20 +46,30 @@ data class UIFBPGeneratedFile(
 class UIFBPInterfaceGenerator {
 
     private val stateGenerator = UIFBPStateGenerator()
+    private val eventGenerator = UIFBPEventGenerator()
     private val viewModelGenerator = UIFBPViewModelGenerator()
     private val sourceGenerator = UIFBPSourceCodeNodeGenerator()
     private val sinkGenerator = UIFBPSinkCodeNodeGenerator()
     private val previewProviderGenerator = PreviewProviderGenerator()
 
     /**
-     * Emits the post-085 universal artifact set for a UI-FBP module.
+     * Emits the Design B universal artifact set for a UI-FBP module.
      *
-     * @param spec The UI-FBP-derived spec (post-clarification: typed identifiers separate
-     *             flow-graph prefix from user-authored composable name).
+     * Mandatory output set (8 files when both source and sink ports are present):
+     *   1. `viewmodel/{FlowGraph}State.kt` — public immutable data class (FR-001)
+     *   2. `viewmodel/{FlowGraph}Event.kt` — public sealed interface (FR-002, NEW)
+     *   3. `viewmodel/{FlowGraph}ViewModel.kt` — MVI shape (FR-003)
+     *   4. `nodes/{FlowGraph}SourceCodeNode.kt` — object + withSources wrapper (Decision 8)
+     *   5. `nodes/{FlowGraph}SinkCodeNode.kt` — object + withReporters wrapper (Decision 8)
+     *   6. `controller/{FlowGraph}ControllerInterface.kt` — additive emit<Port> (FR-007)
+     *   7. `controller/{FlowGraph}Runtime.kt` — per-flow-graph factory (Design B)
+     *   8. `jvmMain/userInterface/{FlowGraph}PreviewProvider.kt` — body unchanged from feature 084
+     *
+     * Source / Sink CodeNodes are skipped when their port set is empty (degenerate-spec
+     * edge cases preserved from feature 084).
+     *
      * @param includeFlowKt When true, additionally emits a bootstrap `flow/{FlowGraph}.flow.kt`.
      *                      Default false; the merge case is the [UIFBPSaveService]'s job.
-     * @return A [UIFBPGenerateResult] with 7 mandatory entries (or 8 with bootstrap), modulo
-     *         optional Source/Sink CodeNodes which are skipped when their port set is empty.
      */
     fun generateAll(spec: UIFBPSpec, includeFlowKt: Boolean = false): UIFBPGenerateResult {
         return try {
@@ -69,19 +79,25 @@ class UIFBPInterfaceGenerator {
             val controllerPackage = "${spec.packageName}.controller"
             val viewModelPackage = "${spec.packageName}.viewmodel"
 
-            // 1. State (viewmodel/{FlowGraph}State.kt)
+            // 1. State (viewmodel/{FlowGraph}State.kt) — data class (Design B)
             files.add(UIFBPGeneratedFile(
                 relativePath = "src/commonMain/kotlin/$basePath/viewmodel/${flowGraphPrefix}State.kt",
                 content = stateGenerator.generate(spec)
             ))
 
-            // 2. ViewModel (viewmodel/{FlowGraph}ViewModel.kt)
+            // 2. Event (viewmodel/{FlowGraph}Event.kt) — sealed interface (NEW, FR-002)
+            files.add(UIFBPGeneratedFile(
+                relativePath = "src/commonMain/kotlin/$basePath/viewmodel/${flowGraphPrefix}Event.kt",
+                content = eventGenerator.generate(spec)
+            ))
+
+            // 3. ViewModel (viewmodel/{FlowGraph}ViewModel.kt) — MVI shape
             files.add(UIFBPGeneratedFile(
                 relativePath = "src/commonMain/kotlin/$basePath/viewmodel/${flowGraphPrefix}ViewModel.kt",
                 content = viewModelGenerator.generate(spec)
             ))
 
-            // 3. Source CodeNode — skipped when empty (degenerate spec edge case T015 (e))
+            // 4. Source CodeNode — skipped when empty
             val sourceContent = sourceGenerator.generate(spec)
             if (sourceContent != null) {
                 files.add(UIFBPGeneratedFile(
@@ -90,7 +106,7 @@ class UIFBPInterfaceGenerator {
                 ))
             }
 
-            // 4. Sink CodeNode — skipped when empty (degenerate spec edge case T015 (f))
+            // 5. Sink CodeNode — skipped when empty
             val sinkContent = sinkGenerator.generate(spec)
             if (sinkContent != null) {
                 files.add(UIFBPGeneratedFile(
@@ -99,19 +115,19 @@ class UIFBPInterfaceGenerator {
                 ))
             }
 
-            // 5. ControllerInterface (controller/{FlowGraph}ControllerInterface.kt) — extends ModuleController
+            // 6. ControllerInterface — preserves existing surface + additive emit<Port> (FR-007 additive)
             files.add(UIFBPGeneratedFile(
                 relativePath = "src/commonMain/kotlin/$basePath/controller/${flowGraphPrefix}ControllerInterface.kt",
                 content = generateControllerInterface(spec, controllerPackage)
             ))
 
-            // 6. Runtime factory (controller/{FlowGraph}Runtime.kt) — replaces the trio (Flow/Controller/Adapter)
+            // 7. Runtime factory — per-flow-graph closure state (Design B)
             files.add(UIFBPGeneratedFile(
                 relativePath = "src/commonMain/kotlin/$basePath/controller/${flowGraphPrefix}Runtime.kt",
                 content = generateRuntimeFactory(spec, controllerPackage, viewModelPackage)
             ))
 
-            // 7. PreviewProvider (jvmMain/userInterface/{FlowGraph}PreviewProvider.kt)
+            // 8. PreviewProvider — body unchanged from feature 084
             files.add(UIFBPGeneratedFile(
                 relativePath = "src/jvmMain/kotlin/$basePath/userInterface/${flowGraphPrefix}PreviewProvider.kt",
                 content = previewProviderGenerator.generate(
@@ -122,7 +138,7 @@ class UIFBPInterfaceGenerator {
                 )
             ))
 
-            // 8. Bootstrap .flow.kt (optional)
+            // Optional: bootstrap .flow.kt
             if (includeFlowKt) {
                 files.add(UIFBPGeneratedFile(
                     relativePath = "src/commonMain/kotlin/$basePath/flow/${flowGraphPrefix}.flow.kt",
@@ -171,20 +187,23 @@ class UIFBPInterfaceGenerator {
     }
 
     /**
-     * Inline emission of `{FlowGraph}ControllerInterface.kt`. Produces the same shape
-     * as feature 085's `RuntimeControllerInterfaceGenerator` (interface extends
-     * ModuleController, one `val y: StateFlow<T>` per observable port), but driven from
-     * the typed [UIFBPSpec] so user IP-type type names survive into the interface
-     * (where `RuntimeControllerInterfaceGenerator` would erase them to Any via
-     * `KClass<*>.simpleName`).
+     * Inline emission of `{FlowGraph}ControllerInterface.kt` (FR-007 additive).
+     *
+     * Preserves every member the feature-084 baseline emitted (per-sink-port
+     * `StateFlow<T>` plus the inherited `ModuleController` surface), and adds
+     * one `fun emit{PortName}(value: T)` per source-output port (or
+     * `fun emit{PortName}()` for `Unit`-typed ports) per Decision 2 / Design B.
+     *
+     * Visibility is `internal` so the per-method test
+     * (`UIFBPControllerInterfaceTest`) can call this entry point directly.
      */
-    private fun generateControllerInterface(spec: UIFBPSpec, controllerPackage: String): String {
+    internal fun generateControllerInterface(spec: UIFBPSpec, controllerPackage: String): String {
         val sb = StringBuilder()
         val interfaceName = "${spec.flowGraphPrefix}ControllerInterface"
 
         sb.appendLine("/*")
         sb.appendLine(" * $interfaceName")
-        sb.appendLine(" * Generated by CodeNodeIO UIFBPInterfaceGenerator")
+        sb.appendLine(" * Generated by CodeNodeIO UIFBPInterfaceGenerator (feature 087 / Design B additive)")
         sb.appendLine(" * License: Apache 2.0")
         sb.appendLine(" */")
         sb.appendLine()
@@ -192,7 +211,10 @@ class UIFBPInterfaceGenerator {
         sb.appendLine()
         sb.appendLine("import io.codenode.fbpdsl.runtime.ModuleController")
         sb.appendLine("import kotlinx.coroutines.flow.StateFlow")
-        for (imp in spec.ipTypeImports) {
+        // IP-type imports — only when at least one sinkInput or VALUED sourceOutput needs them.
+        val needed = (spec.sinkInputs.map { it.typeName } +
+            spec.sourceOutputs.filter { it.typeName != "Unit" }.map { it.typeName }).toSet()
+        for (imp in spec.ipTypeImports.filter { needed.contains(it.substringAfterLast('.')) }) {
             sb.appendLine("import $imp")
         }
         sb.appendLine()
@@ -201,12 +223,23 @@ class UIFBPInterfaceGenerator {
         sb.appendLine(" *")
         sb.appendLine(" * Inherits start/stop/pause/resume/reset/getStatus/setAttenuationDelay/")
         sb.appendLine(" * setEmissionObserver/setValueObserver and executionState from [ModuleController].")
-        sb.appendLine(" * Adds typed StateFlow members for each sink-input port the UI observes.")
+        sb.appendLine(" * Adds typed StateFlow members for each sink-input port the UI observes")
+        sb.appendLine(" * AND additive emit<Port>(value) methods for each source-output port the UI raises")
+        sb.appendLine(" * (Design B / FR-007 additive).")
         sb.appendLine(" */")
         sb.appendLine("interface $interfaceName : ModuleController {")
         for (port in spec.sinkInputs) {
             val typeStr = if (port.isNullable) "${port.typeName}?" else port.typeName
             sb.appendLine("    val ${port.name}: StateFlow<$typeStr>")
+        }
+        for (port in spec.sourceOutputs) {
+            val caseName = port.name.replaceFirstChar { it.uppercase() }
+            if (port.typeName == "Unit") {
+                sb.appendLine("    fun emit$caseName()")
+            } else {
+                val typeStr = if (port.isNullable) "${port.typeName}?" else port.typeName
+                sb.appendLine("    fun emit$caseName(value: $typeStr)")
+            }
         }
         sb.appendLine("}")
 
@@ -214,14 +247,24 @@ class UIFBPInterfaceGenerator {
     }
 
     /**
-     * Inline emission of `{FlowGraph}Runtime.kt` — the post-085 factory function
-     * `create{FlowGraph}Runtime(flowGraph): {FlowGraph}ControllerInterface` returning an
-     * anonymous `object : {FlowGraph}ControllerInterface, ModuleController by controller`
-     * over a [DynamicPipelineController]. Mirrors `ModuleRuntimeGenerator`'s output shape.
+     * Inline emission of `{FlowGraph}Runtime.kt` — feature 087 / Design B.
      *
-     * The lookup body resolves the synthetic Source/Sink CodeNode names UI-FBP emits.
+     * The factory `create{FlowGraph}Runtime(flowGraph): {FlowGraph}ControllerInterface`
+     * is the per-flow-graph state owner: it constructs `MutableStateFlow<T>` per
+     * sinkInput + `MutableSharedFlow<T>` per sourceOutput, wires them through
+     * `withReporters(...)` / `withSources(...)` wrappers on the per-module
+     * Source/Sink CodeNodes, and returns an anonymous object that overrides
+     * every per-sink-port `StateFlow` and per-source-port `emit<Port>` method.
+     *
+     * Source emissions dispatch on `controller.coroutineScope` (added by T004
+     * / fbpDsl) so they share the pipeline's exception handler + supervisor
+     * lifetime. The factory signature is unchanged from feature 084, so
+     * `ModuleSessionFactory` and Runtime Preview keep working without changes.
+     *
+     * Visibility is `internal` so the per-method test
+     * (`UIFBPRuntimeFactoryTest`) can call this entry point directly.
      */
-    private fun generateRuntimeFactory(
+    internal fun generateRuntimeFactory(
         spec: UIFBPSpec,
         controllerPackage: String,
         viewModelPackage: String
@@ -229,13 +272,12 @@ class UIFBPInterfaceGenerator {
         val sb = StringBuilder()
         val name = spec.flowGraphPrefix
         val interfaceName = "${name}ControllerInterface"
-        val stateName = "${name}State"
         val sourceObj = "${name}SourceCodeNode"
         val sinkObj = "${name}SinkCodeNode"
 
         sb.appendLine("/*")
-        sb.appendLine(" * ${name}Runtime — Universal-runtime factory for the $name UI-FBP module")
-        sb.appendLine(" * Generated by CodeNodeIO UIFBPInterfaceGenerator")
+        sb.appendLine(" * ${name}Runtime — per-flow-graph factory for the $name UI-FBP module.")
+        sb.appendLine(" * Generated by CodeNodeIO UIFBPInterfaceGenerator (feature 087 / Design B)")
         sb.appendLine(" * License: Apache 2.0")
         sb.appendLine(" */")
         sb.appendLine()
@@ -245,50 +287,122 @@ class UIFBPInterfaceGenerator {
         sb.appendLine("import io.codenode.fbpdsl.runtime.CodeNodeDefinition")
         sb.appendLine("import io.codenode.fbpdsl.runtime.DynamicPipelineController")
         sb.appendLine("import io.codenode.fbpdsl.runtime.ModuleController")
-        sb.appendLine("import $viewModelPackage.$stateName")
+        sb.appendLine("import kotlinx.coroutines.flow.MutableSharedFlow")
+        sb.appendLine("import kotlinx.coroutines.flow.MutableStateFlow")
+        sb.appendLine("import kotlinx.coroutines.flow.StateFlow")
+        sb.appendLine("import kotlinx.coroutines.flow.asStateFlow")
+        sb.appendLine("import kotlinx.coroutines.launch")
         if (spec.sourceOutputs.isNotEmpty()) {
             sb.appendLine("import ${spec.packageName}.nodes.$sourceObj")
         }
         if (spec.sinkInputs.isNotEmpty()) {
             sb.appendLine("import ${spec.packageName}.nodes.$sinkObj")
         }
-        sb.appendLine()
-        sb.appendLine("/**")
-        sb.appendLine(" * Module-local lookup for resolving node names to compiled CodeNodeDefinitions.")
-        sb.appendLine(" * Used by [DynamicPipelineController] when running this module without the GraphEditor.")
-        sb.appendLine(" */")
-        sb.appendLine("object ${name}NodeRegistry {")
-        sb.appendLine("    fun lookup(nodeName: String): CodeNodeDefinition? = when (nodeName) {")
-        if (spec.sourceOutputs.isNotEmpty()) {
-            sb.appendLine("        \"${name}Source\" -> $sourceObj")
+        // IP-type imports — needed for the typed MutableStateFlow / emit method bodies.
+        val needed = (spec.sinkInputs.map { it.typeName } +
+            spec.sourceOutputs.filter { it.typeName != "Unit" }.map { it.typeName }).toSet()
+        for (imp in spec.ipTypeImports.filter { needed.contains(it.substringAfterLast('.')) }) {
+            sb.appendLine("import $imp")
         }
-        if (spec.sinkInputs.isNotEmpty()) {
-            sb.appendLine("        \"${name}Sink\" -> $sinkObj")
-        }
-        sb.appendLine("        else -> null")
-        sb.appendLine("    }")
-        sb.appendLine("}")
+
         sb.appendLine()
         sb.appendLine("/**")
         sb.appendLine(" * Constructs a $interfaceName backed by [DynamicPipelineController].")
-        sb.appendLine(" * Production-app consumers call this directly. The returned object delegates")
-        sb.appendLine(" * every [ModuleController] member to the underlying controller and reads typed")
-        sb.appendLine(" * state flows directly from $stateName.")
+        sb.appendLine(" * Per-flow-graph state lives in this function's closure — multiple")
+        sb.appendLine(" * concurrent calls produce fully isolated controllers.")
         sb.appendLine(" */")
         sb.appendLine("fun create${name}Runtime(flowGraph: FlowGraph): $interfaceName {")
+
+        // Per-flow-graph MutableStateFlow per sinkInput.
+        for (port in spec.sinkInputs) {
+            val (typeStr, defaultExpr) = sinkShape(port)
+            sb.appendLine("    val _${port.name} = MutableStateFlow<$typeStr>($defaultExpr)")
+        }
+
+        // Per-flow-graph MutableSharedFlow per sourceOutput.
+        for (port in spec.sourceOutputs) {
+            val typeStr = if (port.typeName == "Unit") "Unit"
+                else if (port.isNullable) "${port.typeName}?"
+                else port.typeName
+            sb.appendLine("    val _${port.name} = MutableSharedFlow<$typeStr>(replay = 1, extraBufferCapacity = 64)")
+        }
+
+        // Build sinkWrapper / sourceWrapper.
+        if (spec.sinkInputs.isNotEmpty()) {
+            sb.appendLine()
+            sb.appendLine("    val sinkWrapper = $sinkObj.withReporters(")
+            for ((i, port) in spec.sinkInputs.withIndex()) {
+                val (typeStr, _) = sinkShape(port)
+                val comma = if (i < spec.sinkInputs.size - 1) "," else ""
+                sb.appendLine("        { value -> _${port.name}.value = value as $typeStr }$comma")
+            }
+            sb.appendLine("    )")
+        }
+        if (spec.sourceOutputs.isNotEmpty()) {
+            val sourceFlows = spec.sourceOutputs.joinToString(", ") { "_${it.name}" }
+            sb.appendLine("    val sourceWrapper = $sourceObj.withSources($sourceFlows)")
+        }
+
+        // DynamicPipelineController — onReset resets every per-sink-port flow.
+        sb.appendLine()
         sb.appendLine("    val controller = DynamicPipelineController(")
         sb.appendLine("        flowGraphProvider = { flowGraph },")
-        sb.appendLine("        lookup = ${name}NodeRegistry::lookup,")
-        sb.appendLine("        onReset = $stateName::reset")
+        sb.appendLine("        lookup = { nodeName -> when (nodeName) {")
+        if (spec.sourceOutputs.isNotEmpty()) {
+            sb.appendLine("            \"${name}Source\" -> sourceWrapper")
+        }
+        if (spec.sinkInputs.isNotEmpty()) {
+            sb.appendLine("            \"${name}Sink\" -> sinkWrapper")
+        }
+        sb.appendLine("            else -> null")
+        sb.appendLine("        } },")
+        sb.appendLine("        onReset = {")
+        for (port in spec.sinkInputs) {
+            val (_, defaultExpr) = sinkShape(port)
+            sb.appendLine("            _${port.name}.value = $defaultExpr")
+        }
+        sb.appendLine("        }")
         sb.appendLine("    )")
+
+        // Returned anonymous object — sinkPort StateFlows + per-source emit methods.
+        sb.appendLine()
         sb.appendLine("    return object : $interfaceName, ModuleController by controller {")
         for (port in spec.sinkInputs) {
-            sb.appendLine("        override val ${port.name} = $stateName.${port.name}Flow")
+            val (typeStr, _) = sinkShape(port)
+            sb.appendLine("        override val ${port.name}: StateFlow<$typeStr> = _${port.name}.asStateFlow()")
+        }
+        for (port in spec.sourceOutputs) {
+            val caseName = port.name.replaceFirstChar { it.uppercase() }
+            if (port.typeName == "Unit") {
+                sb.appendLine("        override fun emit$caseName() {")
+                sb.appendLine("            controller.coroutineScope?.launch { _${port.name}.emit(Unit) }")
+                sb.appendLine("        }")
+            } else {
+                val typeStr = if (port.isNullable) "${port.typeName}?" else port.typeName
+                sb.appendLine("        override fun emit$caseName(value: $typeStr) {")
+                sb.appendLine("            controller.coroutineScope?.launch { _${port.name}.emit(value) }")
+                sb.appendLine("        }")
+            }
         }
         sb.appendLine("    }")
         sb.appendLine("}")
 
         return sb.toString()
+    }
+
+    /** Returns `(propertyType, defaultExpression)` for a sink-input port (mirrors UIFBPStateGenerator). */
+    private fun sinkShape(port: PortInfo): Pair<String, String> {
+        if (port.isNullable) return "${port.typeName}?" to "null"
+        return when (port.typeName) {
+            "Int" -> "Int" to "0"
+            "Long" -> "Long" to "0L"
+            "Double" -> "Double" to "0.0"
+            "Float" -> "Float" to "0.0f"
+            "Boolean" -> "Boolean" to "false"
+            "String" -> "String" to "\"\""
+            "Unit" -> "Unit" to "Unit"
+            else -> "${port.typeName}?" to "null"
+        }
     }
 
     /**

@@ -112,10 +112,10 @@ class UIFBPSaveServiceTest {
         return file
     }
 
-    // ========== T018: first-save against a feature-085-scaffolded module ==========
+    // ========== T018 (feature 084) + T021 (feature 087): first-save universal set ==========
 
     @Test
-    fun `first save against a feature-085-scaffolded module emits the post-085 universal set`() {
+    fun `first save against a feature-085-scaffolded module emits the Design B universal set`() {
         val moduleDir = newScaffoldedModuleDir()
         val flowGraphFile = newFlowKtFile(moduleDir)
 
@@ -126,8 +126,10 @@ class UIFBPSaveServiceTest {
             "(unscaffolded-host pre-flight must NOT block this fixture)")
 
         val createdPaths = result.files.filter { it.kind == FileChangeKind.CREATED }.map { it.relativePath }
-        // Mandatory entries from data-model.md §2 file table (1, 2, 3, 4, 5, 6, 7).
+        // 8 mandatory entries (feature 087 / Design B): the 7 from feature 084 + the new {Name}Event.kt.
         assertTrue(createdPaths.contains("src/commonMain/kotlin/io/codenode/demo/viewmodel/DemoUIState.kt"))
+        assertTrue(createdPaths.contains("src/commonMain/kotlin/io/codenode/demo/viewmodel/DemoUIEvent.kt"),
+            "feature 087: new {Name}Event.kt is part of the mandatory output set")
         assertTrue(createdPaths.contains("src/commonMain/kotlin/io/codenode/demo/viewmodel/DemoUIViewModel.kt"))
         assertTrue(createdPaths.contains("src/commonMain/kotlin/io/codenode/demo/nodes/DemoUISourceCodeNode.kt"))
         assertTrue(createdPaths.contains("src/commonMain/kotlin/io/codenode/demo/nodes/DemoUISinkCodeNode.kt"))
@@ -138,6 +140,8 @@ class UIFBPSaveServiceTest {
         // Verify the actual files materialized on disk under the module root
         val moduleSrc = File(moduleDir, "src/commonMain/kotlin/io/codenode/demo")
         assertTrue(File(moduleSrc, "viewmodel/DemoUIState.kt").exists())
+        assertTrue(File(moduleSrc, "viewmodel/DemoUIEvent.kt").exists(),
+            "feature 087: DemoUIEvent.kt materializes on disk")
         assertTrue(File(moduleSrc, "viewmodel/DemoUIViewModel.kt").exists())
         assertTrue(File(moduleSrc, "controller/DemoUIControllerInterface.kt").exists())
         assertTrue(File(moduleSrc, "controller/DemoUIRuntime.kt").exists())

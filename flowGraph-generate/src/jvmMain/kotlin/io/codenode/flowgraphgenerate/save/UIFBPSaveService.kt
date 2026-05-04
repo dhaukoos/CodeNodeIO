@@ -10,7 +10,9 @@
  *    the responsibility of feature 085's ModuleGenerator (FR-009 / Decision 5); UI-FBP
  *    NEVER mutates build.gradle.kts. The user is directed to the one-time migration
  *    documented in quickstart.md VS-A1.
- * 2. Generate: produce the 7-or-8 entry universal artifact set via UIFBPInterfaceGenerator.
+ * 2. Generate: produce the 8-or-9 entry universal artifact set via UIFBPInterfaceGenerator
+ *    (8 mandatory files post-feature-087: the 7 from feature 084 + the new
+ *    `{Name}Event.kt`; PreviewProvider's body is unchanged from feature 084).
  * 3. Per-file decide-and-write:
  *      - target missing                        → CREATED
  *      - target matches new content            → UNCHANGED (no write; mtime preserved)

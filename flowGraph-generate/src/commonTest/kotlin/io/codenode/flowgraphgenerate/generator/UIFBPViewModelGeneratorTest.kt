@@ -1,9 +1,9 @@
 /*
- * UIFBPViewModelGeneratorTest — feature 087 (T005 split from UIFBPGeneratorTest).
+ * UIFBPViewModelGeneratorTest — feature 087 / Design B.
  *
- * Pre-feature-087 baseline: assertions exercise today's emit(...)-aggregate
- * ViewModel shape. T008 RED replaces these with state/onEvent fixture-string
- * comparisons per contracts/viewmodel-generator.md. The split is mechanical.
+ * Pins the MVI ViewModel shape: state: StateFlow<{Name}State> + fun onEvent(Event).
+ * onEvent dispatches through controller.emit<Port>(value) — NO singleton-State writes.
+ * Constructor signature unchanged so ModuleSessionFactory's reflection match still works.
  *
  * License: Apache 2.0
  */
@@ -13,6 +13,8 @@ package io.codenode.flowgraphgenerate.generator
 import io.codenode.flowgraphgenerate.parser.PortInfo
 import io.codenode.flowgraphgenerate.parser.UIFBPSpec
 import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class UIFBPViewModelGeneratorTest {
@@ -32,70 +34,130 @@ class UIFBPViewModelGeneratorTest {
         ipTypeImports = listOf("io.codenode.demo.iptypes.CalculationResults")
     )
 
+    // Case 1: constructor signature
     @Test
-    fun `ViewModelGenerator emits to viewmodel subpackage with flowGraphPrefix-derived name`() {
+    fun `generate emits class with constructor (controller ControllerInterface)`() {
         val output = UIFBPViewModelGenerator().generate(demoSpec)
-        assertTrue(output.contains("package io.codenode.demo.viewmodel"),
-            "ViewModel lives at {basePackage}.viewmodel matching ModuleSessionFactory's lookup")
+        assertTrue(output.contains("class DemoUIViewModel("))
+        assertTrue(output.contains("private val controller: DemoUIControllerInterface"))
+        assertTrue(output.contains(") : ViewModel()"))
+        assertTrue(output.contains("import io.codenode.demo.controller.DemoUIControllerInterface"))
     }
 
+    // Case 2: private MutableStateFlow + public state
     @Test
-    fun `ViewModelGenerator constructor takes typed ControllerInterface and extends ViewModel`() {
+    fun `generate exposes private MutableStateFlow plus public StateFlow named state`() {
         val output = UIFBPViewModelGenerator().generate(demoSpec)
-        // The generated ViewModel must accept the typed ControllerInterface so
-        // ModuleSessionFactory.tryCreateViewModel's reflection match succeeds.
-        assertTrue(
-            output.contains("class DemoUIViewModel(") &&
-                output.contains("private val controller: DemoUIControllerInterface") &&
-                output.contains(") : ViewModel()"),
-            "post-085: ViewModel constructor MUST be (private val controller: " +
-                "DemoUIControllerInterface) and the class MUST extend ViewModel"
-        )
-        assertTrue(output.contains("import androidx.lifecycle.ViewModel"))
-        assertTrue(output.contains("import io.codenode.demo.controller.DemoUIControllerInterface"),
-            "the ControllerInterface lives in {basePackage}.controller")
+        assertTrue(output.contains("private val _state = MutableStateFlow(DemoUIState())"))
+        assertTrue(output.contains("val state: StateFlow<DemoUIState> = _state.asStateFlow()"))
     }
 
+    // Case 3: per-sinkInput collector folding into _state
     @Test
-    fun `ViewModelGenerator exposes StateFlow properties read directly from State`() {
+    fun `generate launches one viewModelScope collector per sinkInput, calling _state update copy port value`() {
         val output = UIFBPViewModelGenerator().generate(demoSpec)
-        assertTrue(output.contains("val results: StateFlow<CalculationResults?>"))
-        assertTrue(output.contains("DemoUIState.resultsFlow"),
-            "flows are read directly from {FlowGraph}State (matches WeatherForecast/Addresses precedent)")
+        assertTrue(output.contains("init {"),
+            "FR-003: ViewModel's init block launches per-sink-port collectors")
+        assertTrue(output.contains("viewModelScope.launch"),
+            "collectors run inside viewModelScope")
+        assertTrue(output.contains("controller.results.collect"),
+            "each collector reads from controller.<sinkPort>")
+        assertTrue(output.contains("_state.update { it.copy(results = value) }"),
+            "each emission folds into _state via copy(...)")
+        assertTrue(output.contains("import androidx.lifecycle.viewModelScope"))
+        assertTrue(output.contains("import kotlinx.coroutines.flow.update"))
+        assertTrue(output.contains("import kotlinx.coroutines.launch"))
     }
 
+    // Case 4: empty sinkInputs → init block omitted
     @Test
-    fun `ViewModelGenerator exposes executionState from the controller`() {
-        val output = UIFBPViewModelGenerator().generate(demoSpec)
-        assertTrue(output.contains("val executionState"),
-            "post-085 ViewModel re-exposes executionState from the inherited ModuleController surface")
-        assertTrue(output.contains("controller.executionState"),
-            "executionState comes from the ControllerInterface (inherits from ModuleController)")
+    fun `generate omits init block when sinkInputs is empty`() {
+        val spec = demoSpec.copy(sinkInputs = emptyList(), ipTypeImports = emptyList())
+        val output = UIFBPViewModelGenerator().generate(spec)
+        assertFalse(output.contains("init {"),
+            "FR-009: empty-sinkInputs case omits the init block; _state stays at default")
+        assertTrue(output.contains("private val _state = MutableStateFlow(DemoUIState())"),
+            "the State data class default constructor still fires")
     }
 
+    // Case 5: onEvent dispatcher with one branch per sourceOutput
     @Test
-    fun `ViewModelGenerator generates emit method writing to State mutable fields`() {
+    fun `generate emits onEvent dispatcher with one when branch per sourceOutput`() {
         val output = UIFBPViewModelGenerator().generate(demoSpec)
-        assertTrue(output.contains("fun emit(numA: Double, numB: Double)"))
-        assertTrue(output.contains("DemoUIState._numA.value = numA"))
-        assertTrue(output.contains("DemoUIState._numB.value = numB"))
+        assertTrue(output.contains("fun onEvent(event: DemoUIEvent)"))
+        assertTrue(output.contains("when (event)"))
+        assertTrue(output.contains("is DemoUIEvent.UpdateNumA"))
+        assertTrue(output.contains("is DemoUIEvent.UpdateNumB"))
     }
 
+    // Case 6: Update branches call controller.emit<Port>(value)
     @Test
-    fun `ViewModelGenerator emits forwarding control methods delegating to controller`() {
-        // Per data-model.md §5 + tasks T007/T008: the UI calls viewModel.start() etc. directly.
-        // These methods are NOT inherited from androidx.lifecycle.ViewModel; the generator must
-        // emit them as one-line delegations.
+    fun `generate uses Update branches calling controller emit-PortName-event-value`() {
         val output = UIFBPViewModelGenerator().generate(demoSpec)
-        assertTrue(output.contains("fun start(): FlowGraph = controller.start()"),
-            "must forward start() to controller.start()")
-        assertTrue(output.contains("fun stop(): FlowGraph = controller.stop()"),
-            "must forward stop() to controller.stop()")
-        assertTrue(output.contains("fun pause(): FlowGraph = controller.pause()"),
-            "must forward pause() to controller.pause()")
-        assertTrue(output.contains("fun resume(): FlowGraph = controller.resume()"),
-            "must forward resume() to controller.resume()")
-        assertTrue(output.contains("fun reset(): FlowGraph = controller.reset()"),
-            "must forward reset() to controller.reset()")
+        assertTrue(output.contains("is DemoUIEvent.UpdateNumA -> controller.emitNumA(event.value)"))
+        assertTrue(output.contains("is DemoUIEvent.UpdateNumB -> controller.emitNumB(event.value)"))
+    }
+
+    // Case 7: data-object branches call controller.emit<Port>()
+    @Test
+    fun `generate uses data-object branches calling controller emit-PortName-noargs`() {
+        val spec = demoSpec.copy(sourceOutputs = listOf(
+            PortInfo("toggleLike", "Unit"),
+            PortInfo("goBack", "Unit")
+        ), ipTypeImports = emptyList())
+        val output = UIFBPViewModelGenerator().generate(spec)
+        assertTrue(output.contains("DemoUIEvent.ToggleLike -> controller.emitToggleLike()"))
+        assertTrue(output.contains("DemoUIEvent.GoBack -> controller.emitGoBack()"))
+    }
+
+    // Case 8: empty sourceOutputs → empty when block
+    @Test
+    fun `generate emits empty when block when sourceOutputs is empty`() {
+        val spec = demoSpec.copy(sourceOutputs = emptyList())
+        val output = UIFBPViewModelGenerator().generate(spec)
+        assertTrue(output.contains("fun onEvent(event: DemoUIEvent)"))
+        assertTrue(output.contains("when (event)"))
+        // No branches between when (event) { … }
+        assertFalse(output.contains("is DemoUIEvent."),
+            "empty sealed interface → no when branches")
+    }
+
+    // Case 9: forwarding control surface preserved
+    @Test
+    fun `generate forwards start stop pause resume reset to controller`() {
+        val output = UIFBPViewModelGenerator().generate(demoSpec)
+        assertTrue(output.contains("fun start(): FlowGraph = controller.start()"))
+        assertTrue(output.contains("fun stop(): FlowGraph = controller.stop()"))
+        assertTrue(output.contains("fun pause(): FlowGraph = controller.pause()"))
+        assertTrue(output.contains("fun resume(): FlowGraph = controller.resume()"))
+        assertTrue(output.contains("fun reset(): FlowGraph = controller.reset()"))
+    }
+
+    // Case 10: NO prior emit(...) aggregate (FR-011)
+    @Test
+    fun `generate does NOT emit prior emit aggregate`() {
+        val output = UIFBPViewModelGenerator().generate(demoSpec)
+        assertFalse(output.contains("fun emit(numA: Double, numB: Double)"),
+            "FR-011: the prior emit(...) aggregate API is removed wholesale")
+    }
+
+    // Case 11: NO singleton State / StateStore reference (Design B)
+    @Test
+    fun `generate does NOT reference any singleton State or StateStore (Design B)`() {
+        val output = UIFBPViewModelGenerator().generate(demoSpec)
+        assertFalse(output.contains("DemoUIState._"),
+            "Design B: ViewModel never writes to a singleton's mutable backing")
+        assertFalse(output.contains("DemoUIState.resultsFlow"),
+            "Design B: ViewModel reads sink flows from the controller, not from a singleton")
+        assertFalse(output.contains("StateStore"),
+            "Design B: no StateStore singleton at all")
+    }
+
+    // Case 12: determinism (SC-005)
+    @Test
+    fun `generate output is byte-identical across two consecutive calls`() {
+        val a = UIFBPViewModelGenerator().generate(demoSpec)
+        val b = UIFBPViewModelGenerator().generate(demoSpec)
+        assertEquals(a, b)
     }
 }
